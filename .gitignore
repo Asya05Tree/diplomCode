@@ -1,0 +1,10 @@
+# Claude Code
+.claude/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Temp
+*.tmp
+~$*
