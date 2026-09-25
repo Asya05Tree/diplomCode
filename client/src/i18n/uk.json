@@ -1,0 +1,24 @@
+{
+  "nav.calendar": "Календар",
+  "nav.unassigned": "Нерозподілені",
+  "nav.food": "Їжа",
+  "nav.health": "Аптечка",
+  "nav.finance": "Фінанси",
+  "nav.study": "Навчання / робота",
+  "nav.cycle": "Цикл",
+  "nav.notes": "Заметки",
+  "nav.settings": "Налаштування",
+
+  "dashboard.title": "Сьогодні",
+  "dashboard.tasksForPeriod": "Задачі на період",
+  "dashboard.period.today": "Сьогодні",
+  "dashboard.period.week": "Тиждень",
+  "dashboard.period.month": "Місяць",
+  "dashboard.noTasksForPeriod": "Немає задач на обраний період",
+  "dashboard.needsDecision": "Потребують рішення",
+  "dashboard.needsDecisionHint": "Не влізли, не зроблені вчасно або відкладені вручну — перенести чи видалити",
+  "dashboard.actionMove": "Перенести",
+  "dashboard.actionDelete": "Видалити",
+  "dashboard.apiOffline": "Backend недоступний — перевірте, чи запущено сервер і MySQL",
+  "dashboard.apiOnline": "З'єднання з сервером встановлено"
+}

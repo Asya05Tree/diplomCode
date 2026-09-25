@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: planner-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: planner
+      MYSQL_USER: planner
+      MYSQL_PASSWORD: planner_dev_password
+      MYSQL_ROOT_PASSWORD: root_dev_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - planner-mysql-data:/var/lib/mysql
+
+volumes:
+  planner-mysql-data:

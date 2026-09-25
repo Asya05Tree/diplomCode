@@ -1,0 +1,50 @@
+/* Кольори прив'язані до модуля (coding-guide.md §5): один колір — для іконки в меню,
+   картки задач, підсвітки в календарі. Тема (light/dark) — це той самий тон, інша яскравість. */
+:root,
+.theme-light {
+  --color-bg: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-text: #2b2b2b;
+  --color-text-muted: #7a7a7a;
+  --color-border: #e7e3dd;
+
+  --color-tasks: #8fb8de;
+  --color-food: #ffe8b8;
+  --color-health: #c9ead3;
+  --color-finance: #ffd9b3;
+  --color-study: #d9c9ea;
+  --color-cycle: #f3c9dd;
+  --color-notes: #e3d3c1;
+}
+
+.theme-dark {
+  --color-bg: #1c1b1a;
+  --color-surface: #262524;
+  --color-text: #efeae2;
+  --color-text-muted: #a39d94;
+  --color-border: #3a3835;
+
+  /* Той самий відтінок, приглушений — не інший колір (coding-guide.md §5) */
+  --color-tasks: #5f7f9e;
+  --color-food: #a68c5d;
+  --color-health: #6f9a7c;
+  --color-finance: #a67c58;
+  --color-study: #8a76a6;
+  --color-cycle: #a6748c;
+  --color-notes: #8a7562;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+#root {
+  min-height: 100vh;
+}

@@ -1,0 +1,24 @@
+{
+  "nav.calendar": "Calendar",
+  "nav.unassigned": "Unassigned",
+  "nav.food": "Food",
+  "nav.health": "Medicine cabinet",
+  "nav.finance": "Finance",
+  "nav.study": "Study / work",
+  "nav.cycle": "Cycle",
+  "nav.notes": "Notes",
+  "nav.settings": "Settings",
+
+  "dashboard.title": "Today",
+  "dashboard.tasksForPeriod": "Tasks for period",
+  "dashboard.period.today": "Today",
+  "dashboard.period.week": "Week",
+  "dashboard.period.month": "Month",
+  "dashboard.noTasksForPeriod": "No tasks for the selected period",
+  "dashboard.needsDecision": "Needs a decision",
+  "dashboard.needsDecisionHint": "Didn't fit, wasn't done on time, or postponed manually — move or delete",
+  "dashboard.actionMove": "Move",
+  "dashboard.actionDelete": "Delete",
+  "dashboard.apiOffline": "Backend is unreachable — check that the server and MySQL are running",
+  "dashboard.apiOnline": "Connected to the server"
+}
