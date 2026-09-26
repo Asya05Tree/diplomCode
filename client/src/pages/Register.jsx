@@ -1,9 +1,24 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n'
 import { sendCode, register } from '../api/client'
+import CodeInput from '../components/CodeInput'
 import './AuthForm.css'
 
 const GENDER_OPTIONS = ['female', 'male', 'other']
+
+// Лише українські або англійські літери (та пробіл/дефіс/апостроф для складених імен) —
+// той самий патерн, що й на бекенді (AuthController.NicknamePattern)
+const NICKNAME_PATTERN = /^[A-Za-zА-ЯҐЄІЇа-яґєіїʼ' -]{2,30}$/
+
+function errorKeyToMessage(t, error, fallbackKey) {
+  const map = {
+    invalid_email: 'register.errorGmailRequired',
+    invalid_nickname: 'register.errorInvalidNickname',
+    email_taken: 'register.errorEmailTaken',
+    invalid_code: 'register.errorInvalidCode',
+  }
+  return t(map[error.message] ?? fallbackKey)
+}
 
 export default function Register({ onRegistered, onBack }) {
   const { t } = useI18n()
@@ -19,16 +34,20 @@ export default function Register({ onRegistered, onBack }) {
 
   const handleSendCode = async () => {
     setError('')
-    if (!email.includes('@')) {
-      setError(t('register.errorInvalidEmail'))
+    if (!NICKNAME_PATTERN.test(nickname)) {
+      setError(t('register.errorInvalidNickname'))
+      return
+    }
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+      setError(t('register.errorGmailRequired'))
       return
     }
     setBusy(true)
     try {
-      await sendCode(email)
+      await sendCode(email, nickname)
       setCodeSent(true)
-    } catch {
-      setError(t('register.errorSendCode'))
+    } catch (err) {
+      setError(errorKeyToMessage(t, err, 'register.errorSendCode'))
     } finally {
       setBusy(false)
     }
@@ -45,8 +64,8 @@ export default function Register({ onRegistered, onBack }) {
     try {
       const result = await register({ nickname, gender, email, code, password })
       onRegistered(result)
-    } catch {
-      setError(t('register.errorFailed'))
+    } catch (err) {
+      setError(errorKeyToMessage(t, err, 'register.errorFailed'))
     } finally {
       setBusy(false)
     }
@@ -83,7 +102,7 @@ export default function Register({ onRegistered, onBack }) {
 
         <label>
           {t('register.code')}
-          <input value={code} onChange={(e) => setCode(e.target.value)} required />
+          <CodeInput value={code} onChange={setCode} length={6} />
         </label>
 
         <label>

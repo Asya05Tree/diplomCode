@@ -18,7 +18,7 @@ public class EmailService
         _logger = logger;
     }
 
-    public async Task SendVerificationCodeAsync(string email, string code)
+    public async Task SendVerificationCodeAsync(string email, string code, string nickname, int expiresInMinutes)
     {
         var host = _config["Smtp:Host"];
         if (string.IsNullOrWhiteSpace(host))
@@ -40,10 +40,44 @@ public class EmailService
 
         using var message = new MailMessage(from!, email)
         {
-            Subject = "Код підтвердження",
-            Body = $"Ваш код підтвердження: {code}\nДіє 10 хвилин.",
+            Subject = "Код автентифікації для Всетута",
+            Body = BuildHtmlBody(nickname, code, expiresInMinutes),
+            IsBodyHtml = true,
         };
 
         await client.SendMailAsync(message);
+    }
+
+    // Код виводиться звичайним текстом (не картинкою) — тільки так його можна виділити
+    // й вставити в поля коду на сайті одним Ctrl+C/Ctrl+V.
+    private static string BuildHtmlBody(string nickname, string code, int expiresInMinutes)
+    {
+        var greetingName = string.IsNullOrWhiteSpace(nickname) ? "користувачу" : nickname;
+
+        return $"""
+            <div style="font-family: Arial, sans-serif; text-align: center; max-width: 480px; margin: 0 auto; padding: 24px; color: #2b2b2b;">
+                <p style="font-size: 16px; line-height: 1.5;">
+                    Дорогий {greetingName},<br />
+                    будь ласка, <strong>підтвердіть свою реєстрацію</strong>.
+                </p>
+
+                <div style="display: inline-block; margin: 24px 0; padding: 20px 32px; border: 2px solid #8fb8de; border-radius: 16px;">
+                    <p style="margin: 0 0 8px; font-size: 14px; color: #7a7a7a;">Ваш код автентифікації для Всетута</p>
+                    <p style="margin: 0; font-size: 36px; font-weight: 700; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</p>
+                </div>
+
+                <p style="font-size: 14px; line-height: 1.5;">
+                    Цей код дійсний протягом {expiresInMinutes} хвилин і може бути використаний лише один раз.
+                </p>
+                <p style="font-size: 13px; color: #7a7a7a; line-height: 1.5;">
+                    Будь ласка, нікому не повідомляйте цей код: ми ніколи не будемо запитувати його по телефону чи електронною поштою.
+                </p>
+
+                <p style="font-size: 14px; margin-top: 24px;">
+                    Дякуємо,<br />
+                    Команда Всетута
+                </p>
+            </div>
+            """;
     }
 }

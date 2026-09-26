@@ -1,0 +1,15 @@
+.code-input {
+  display: flex;
+  gap: 8px;
+}
+
+.code-input-cell {
+  width: 40px;
+  height: 48px;
+  text-align: center;
+  font-size: 1.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
