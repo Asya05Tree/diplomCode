@@ -9,8 +9,10 @@ builder.Services.AddSwaggerGen();
 
 // Рядок підключення береться з appsettings.{Environment}.json (ключ ConnectionStrings:Default)
 var connectionString = builder.Configuration.GetConnectionString("Default");
+// Версія фіксована (не ServerVersion.AutoDetect), інакше dotnet ef migrations намагається
+// підʼєднатись до реальної MySQL ще на етапі побудови моделі — і падає, якщо Docker не піднятий
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0))));
 
 // Фронтенд (Vite dev-сервер) звертається з іншого порту — дозволяємо це тільки для розробки
 const string DevClientPolicy = "DevClient";
