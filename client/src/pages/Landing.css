@@ -24,30 +24,45 @@
 .landing-choices {
   display: flex;
   gap: 64px;
+  /* Без цього flex за замовчуванням розтягує обидва блоки по висоті найвищого —
+     і збільшення підпису при наведенні на один блок зсувало другий */
+  align-items: flex-start;
 }
 
+/* Статична зона наведення — сама НІКОЛИ не рухається. Якби рухалась сама кнопка,
+   курсор лишався б на місці, кнопка "втікала" б з-під нього, hover злітав і кнопка
+   поверталась назад — і так по колу (те саме "скакання", яке було раніше). */
 .landing-choice {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
   padding: 12px;
-  transition: transform 0.2s ease;
+  width: 200px;
+  height: 230px;
+  flex-shrink: 0;
 }
 
-/* При наведенні підпис і картинка (як єдиний блок) трохи піднімаються, підпис збільшується */
-.landing-choice:hover {
-  transform: translateY(-6px);
+.landing-choice-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.4s ease-out;
+}
+
+/* Піднімається саме внутрішній блок — зона наведення (.landing-choice) при цьому не зсувається */
+.landing-choice:hover .landing-choice-visual {
+  transform: translateY(-22vh);
 }
 
 .landing-choice-label {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--color-text);
-  transition: font-size 0.2s ease;
+  transition: font-size 0.4s ease-out;
 }
 
 .landing-choice:hover .landing-choice-label {

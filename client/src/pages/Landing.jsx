@@ -13,12 +13,16 @@ export default function Landing({ onNavigate }) {
       <div className="landing-main">
         <div className="landing-choices">
           <button type="button" className="landing-choice" onClick={() => onNavigate('register')}>
-            <span className="landing-choice-label">{t('landing.register')}</span>
-            <img src="/images/left.png" alt={t('landing.register')} className="landing-choice-image" />
+            <span className="landing-choice-visual">
+              <span className="landing-choice-label">{t('landing.register')}</span>
+              <img src="/images/left.png" alt={t('landing.register')} className="landing-choice-image" />
+            </span>
           </button>
           <button type="button" className="landing-choice" onClick={() => onNavigate('login')}>
-            <span className="landing-choice-label">{t('landing.login')}</span>
-            <img src="/images/right.png" alt={t('landing.login')} className="landing-choice-image" />
+            <span className="landing-choice-visual">
+              <span className="landing-choice-label">{t('landing.login')}</span>
+              <img src="/images/right.png" alt={t('landing.login')} className="landing-choice-image" />
+            </span>
           </button>
         </div>
 
