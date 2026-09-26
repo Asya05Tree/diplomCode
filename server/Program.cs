@@ -1,11 +1,37 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Server.Data;
+using Server.Services;
+
+// За замовчуванням ASP.NET перейменовує claim "sub" на ClaimTypes.NameIdentifier — вимикаємо,
+// щоб у контролерах читати claim саме як "sub", як його видає JwtService
+System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<JwtService>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        };
+    });
 
 // Рядок підключення береться з appsettings.{Environment}.json (ключ ConnectionStrings:Default)
 var connectionString = builder.Configuration.GetConnectionString("Default");
@@ -35,6 +61,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(DevClientPolicy);
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

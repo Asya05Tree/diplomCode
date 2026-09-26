@@ -20,5 +20,38 @@
   "dashboard.actionMove": "Перенести",
   "dashboard.actionDelete": "Видалити",
   "dashboard.apiOffline": "Backend недоступний — перевірте, чи запущено сервер і MySQL",
-  "dashboard.apiOnline": "З'єднання з сервером встановлено"
+  "dashboard.apiOnline": "З'єднання з сервером встановлено",
+
+  "header.logout": "Вийти",
+
+  "landing.title": "Домашня сторінка",
+  "landing.subtitle": "Тут список можливостей",
+  "landing.register": "Реєстрація",
+  "landing.login": "Вхід",
+
+  "auth.back": "Назад",
+
+  "register.title": "Реєстрація",
+  "register.nickname": "Нікнейм",
+  "register.gender": "Стать",
+  "register.gender.female": "Жіноча",
+  "register.gender.male": "Чоловіча",
+  "register.gender.other": "Інша",
+  "register.email": "Email",
+  "register.sendCode": "Надіслати код",
+  "register.codeResend": "Надіслати ще раз",
+  "register.code": "Код підтвердження",
+  "register.password": "Пароль",
+  "register.confirmPassword": "Підтвердіть пароль",
+  "register.submit": "Зареєструватися",
+  "register.errorInvalidEmail": "Введіть коректний email",
+  "register.errorSendCode": "Не вдалося надіслати код",
+  "register.errorPasswordMismatch": "Паролі не збігаються",
+  "register.errorFailed": "Не вдалося зареєструватися — перевірте код і дані",
+
+  "login.title": "Вхід",
+  "login.email": "Email",
+  "login.password": "Пароль",
+  "login.submit": "Увійти",
+  "login.errorFailed": "Невірний email або пароль"
 }

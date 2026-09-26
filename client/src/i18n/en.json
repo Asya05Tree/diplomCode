@@ -20,5 +20,38 @@
   "dashboard.actionMove": "Move",
   "dashboard.actionDelete": "Delete",
   "dashboard.apiOffline": "Backend is unreachable — check that the server and MySQL are running",
-  "dashboard.apiOnline": "Connected to the server"
+  "dashboard.apiOnline": "Connected to the server",
+
+  "header.logout": "Log out",
+
+  "landing.title": "Home page",
+  "landing.subtitle": "The list of features goes here",
+  "landing.register": "Register",
+  "landing.login": "Log in",
+
+  "auth.back": "Back",
+
+  "register.title": "Register",
+  "register.nickname": "Nickname",
+  "register.gender": "Gender",
+  "register.gender.female": "Female",
+  "register.gender.male": "Male",
+  "register.gender.other": "Other",
+  "register.email": "Email",
+  "register.sendCode": "Send code",
+  "register.codeResend": "Resend",
+  "register.code": "Confirmation code",
+  "register.password": "Password",
+  "register.confirmPassword": "Confirm password",
+  "register.submit": "Register",
+  "register.errorInvalidEmail": "Enter a valid email",
+  "register.errorSendCode": "Failed to send the code",
+  "register.errorPasswordMismatch": "Passwords don't match",
+  "register.errorFailed": "Registration failed — check the code and your details",
+
+  "login.title": "Log in",
+  "login.email": "Email",
+  "login.password": "Password",
+  "login.submit": "Log in",
+  "login.errorFailed": "Invalid email or password"
 }

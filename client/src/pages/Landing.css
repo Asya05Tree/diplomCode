@@ -1,0 +1,66 @@
+.landing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Порожній хедер — під майбутнє наповнення */
+.landing-header {
+  height: 60px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.landing-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 40px 24px;
+}
+
+.landing-choices {
+  display: flex;
+  gap: 64px;
+}
+
+.landing-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px;
+  transition: transform 0.2s ease;
+}
+
+/* При наведенні підпис і картинка (як єдиний блок) трохи піднімаються, підпис збільшується */
+.landing-choice:hover {
+  transform: translateY(-6px);
+}
+
+.landing-choice-label {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text);
+  transition: font-size 0.2s ease;
+}
+
+.landing-choice:hover .landing-choice-label {
+  font-size: 1.4rem;
+}
+
+.landing-choice-image {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+}
+
+.landing-placeholder {
+  text-align: center;
+  max-width: 480px;
+}
