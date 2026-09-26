@@ -4,11 +4,18 @@
   min-height: 100vh;
 }
 
-/* Порожній хедер — під майбутнє наповнення */
 .landing-header {
   height: 60px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
   border-bottom: 1px solid var(--color-border);
+}
+
+.landing-logo {
+  height: 44px;
+  width: auto;
 }
 
 .landing-main {

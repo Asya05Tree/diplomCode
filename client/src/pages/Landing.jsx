@@ -8,7 +8,9 @@ export default function Landing({ onNavigate }) {
 
   return (
     <div className="landing">
-      <header className="landing-header" />
+      <header className="landing-header">
+        <img src="/images/logo1.png" alt="Logo" className="landing-logo" />
+      </header>
 
       <div className="landing-main">
         <div className="landing-choices">
