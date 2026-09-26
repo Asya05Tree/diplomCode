@@ -75,6 +75,10 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Gender) || string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "missing_fields" });
 
+        // 72 — межа bcrypt: довші паролі він мовчки обрізає, тому довше не має сенсу дозволяти
+        if (request.Password.Length is < 6 or > 72)
+            return BadRequest(new { error = "invalid_password_length" });
+
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return BadRequest(new { error = "email_taken" });
 

@@ -45,10 +45,12 @@
   "register.confirmPassword": "Confirm password",
   "register.submit": "Register",
   "register.errorGmailRequired": "Registration only works with a gmail.com address",
+  "register.errorInvalidEmailFormat": "Enter an email in a valid format",
   "register.errorInvalidNickname": "Nickname can only contain Ukrainian or English letters",
   "register.errorEmailTaken": "This email is already registered",
   "register.errorInvalidCode": "Invalid or expired confirmation code",
   "register.errorSendCode": "Failed to send the code",
+  "register.errorPasswordTooShort": "Password must be at least 6 characters",
   "register.errorPasswordMismatch": "Passwords don't match",
   "register.errorFailed": "Registration failed — check the code and your details",
 
@@ -56,5 +58,6 @@
   "login.email": "Email",
   "login.password": "Password",
   "login.submit": "Log in",
+  "login.errorInvalidEmailFormat": "Enter an email in a valid format",
   "login.errorFailed": "Invalid email or password"
 }

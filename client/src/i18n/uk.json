@@ -45,10 +45,12 @@
   "register.confirmPassword": "Підтвердіть пароль",
   "register.submit": "Зареєструватися",
   "register.errorGmailRequired": "Реєстрація можлива лише на пошту gmail.com",
+  "register.errorInvalidEmailFormat": "Введіть email у правильному форматі",
   "register.errorInvalidNickname": "Нікнейм може містити лише українські або англійські літери",
   "register.errorEmailTaken": "Ця пошта вже зареєстрована",
   "register.errorInvalidCode": "Невірний або прострочений код підтвердження",
   "register.errorSendCode": "Не вдалося надіслати код",
+  "register.errorPasswordTooShort": "Пароль має містити щонайменше 6 символів",
   "register.errorPasswordMismatch": "Паролі не збігаються",
   "register.errorFailed": "Не вдалося зареєструватися — перевірте код і дані",
 
@@ -56,5 +58,6 @@
   "login.email": "Email",
   "login.password": "Пароль",
   "login.submit": "Увійти",
+  "login.errorInvalidEmailFormat": "Введіть email у правильному форматі",
   "login.errorFailed": "Невірний email або пароль"
 }

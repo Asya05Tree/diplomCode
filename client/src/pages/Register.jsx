@@ -2,13 +2,19 @@ import { useState } from 'react'
 import { useI18n } from '../i18n'
 import { sendCode, register } from '../api/client'
 import CodeInput from '../components/CodeInput'
+import {
+  filterNickname,
+  filterEmailChars,
+  isValidNickname,
+  isValidEmailFormat,
+  isGmailAddress,
+  EMAIL_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+} from '../utils/authValidation'
 import './AuthForm.css'
 
 const GENDER_OPTIONS = ['female', 'male', 'other']
-
-// Лише українські або англійські літери (та пробіл/дефіс/апостроф для складених імен) —
-// той самий патерн, що й на бекенді (AuthController.NicknamePattern)
-const NICKNAME_PATTERN = /^[A-Za-zА-ЯҐЄІЇа-яґєіїʼ' -]{2,30}$/
 
 function errorKeyToMessage(t, error, fallbackKey) {
   const map = {
@@ -16,6 +22,7 @@ function errorKeyToMessage(t, error, fallbackKey) {
     invalid_nickname: 'register.errorInvalidNickname',
     email_taken: 'register.errorEmailTaken',
     invalid_code: 'register.errorInvalidCode',
+    invalid_password_length: 'register.errorPasswordTooShort',
   }
   return t(map[error.message] ?? fallbackKey)
 }
@@ -34,11 +41,15 @@ export default function Register({ onRegistered, onBack }) {
 
   const handleSendCode = async () => {
     setError('')
-    if (!NICKNAME_PATTERN.test(nickname)) {
+    if (!isValidNickname(nickname)) {
       setError(t('register.errorInvalidNickname'))
       return
     }
-    if (!email.toLowerCase().endsWith('@gmail.com')) {
+    if (!isValidEmailFormat(email)) {
+      setError(t('register.errorInvalidEmailFormat'))
+      return
+    }
+    if (!isGmailAddress(email)) {
       setError(t('register.errorGmailRequired'))
       return
     }
@@ -56,6 +67,10 @@ export default function Register({ onRegistered, onBack }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setError(t('register.errorPasswordTooShort'))
+      return
+    }
     if (password !== confirmPassword) {
       setError(t('register.errorPasswordMismatch'))
       return
@@ -78,7 +93,12 @@ export default function Register({ onRegistered, onBack }) {
 
         <label>
           {t('register.nickname')}
-          <input value={nickname} onChange={(e) => setNickname(e.target.value)} required />
+          <input
+            value={nickname}
+            onChange={(e) => setNickname(filterNickname(e.target.value))}
+            minLength={2}
+            required
+          />
         </label>
 
         <label>
@@ -93,7 +113,13 @@ export default function Register({ onRegistered, onBack }) {
         <label>
           {t('register.email')}
           <div className="auth-inline">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(filterEmailChars(e.target.value))}
+              maxLength={EMAIL_MAX_LENGTH}
+              required
+            />
             <button type="button" onClick={handleSendCode} disabled={busy || !email}>
               {codeSent ? t('register.codeResend') : t('register.sendCode')}
             </button>
@@ -107,12 +133,26 @@ export default function Register({ onRegistered, onBack }) {
 
         <label>
           {t('register.password')}
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value.slice(0, PASSWORD_MAX_LENGTH))}
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={PASSWORD_MAX_LENGTH}
+            required
+          />
         </label>
 
         <label>
           {t('register.confirmPassword')}
-          <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value.slice(0, PASSWORD_MAX_LENGTH))}
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={PASSWORD_MAX_LENGTH}
+            required
+          />
         </label>
 
         {error && <p className="auth-error">{error}</p>}
