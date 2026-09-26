@@ -28,7 +28,7 @@ public class AppDbContext : DbContext
             .HasKey(m => new { m.UserId, m.ModuleCode });
 
         modelBuilder.Entity<EmailVerificationCode>()
-            .HasIndex(c => c.UserId);
+            .HasIndex(c => c.Email);
 
         // Самопосилання Tag.ParentId — забороняємо каскадне видалення, щоб видалення батька не зносило все дерево нащадків
         modelBuilder.Entity<Tag>()
