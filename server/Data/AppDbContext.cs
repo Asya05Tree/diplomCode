@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
     public DbSet<RecurrenceRule> RecurrenceRules => Set<RecurrenceRule>();
     public DbSet<RecurrenceException> RecurrenceExceptions => Set<RecurrenceException>();
+    public DbSet<ManualRecurrenceDate> ManualRecurrenceDates => Set<ManualRecurrenceDate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +64,13 @@ public class AppDbContext : DbContext
             .HasOne(e => e.RecurrenceRule)
             .WithMany(r => r.Exceptions)
             .HasForeignKey(e => e.RecurrenceRuleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Ручні дати (Type=Manual) так само належать конкретному правилу — каскад
+        modelBuilder.Entity<ManualRecurrenceDate>()
+            .HasOne(m => m.RecurrenceRule)
+            .WithMany(r => r.ManualDates)
+            .HasForeignKey(m => m.RecurrenceRuleId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
