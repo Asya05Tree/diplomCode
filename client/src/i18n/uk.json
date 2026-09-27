@@ -9,19 +9,6 @@
   "nav.notes": "Заметки",
   "nav.settings": "Налаштування",
 
-  "dashboard.title": "Сьогодні",
-  "dashboard.tasksForPeriod": "Задачі на період",
-  "dashboard.period.today": "Сьогодні",
-  "dashboard.period.week": "Тиждень",
-  "dashboard.period.month": "Місяць",
-  "dashboard.noTasksForPeriod": "Немає задач на обраний період",
-  "dashboard.needsDecision": "Потребують рішення",
-  "dashboard.needsDecisionHint": "Не влізли, не зроблені вчасно або відкладені вручну — перенести чи видалити",
-  "dashboard.actionMove": "Перенести",
-  "dashboard.actionDelete": "Видалити",
-  "dashboard.apiOffline": "Backend недоступний — перевірте, чи запущено сервер і MySQL",
-  "dashboard.apiOnline": "З'єднання з сервером встановлено",
-
   "header.logout": "Вийти",
 
   "landing.title": "Домашня сторінка",
@@ -81,6 +68,8 @@
   "planner.overlapBadge": "Накладається",
   "planner.actionDone": "Готово",
   "planner.actionSkipped": "Пропущено",
+  "planner.actionMove": "Перенести",
+  "planner.actionDelete": "Видалити",
 
   "taskForm.titleLabel": "Назва задачі",
   "taskForm.titlePlaceholder": "Наприклад, Зарядка",

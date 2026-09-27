@@ -1,0 +1,122 @@
+.recurring-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recurring-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recurring-view-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.recurring-view-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recurring-rule-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.recurring-rule-card--active {
+  border-color: var(--color-tasks);
+  background: color-mix(in srgb, var(--color-tasks) 15%, var(--color-bg));
+}
+
+.recurring-rule-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.recurring-rule-summary {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.recurring-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recurring-edit h4 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.recurring-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.recurring-edit input,
+.recurring-edit select {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.recurring-exceptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 10px;
+}
+
+.recurring-exception-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.recurring-exception-form {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.recurring-exception-form input,
+.recurring-exception-form select {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.recurring-exception-form button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

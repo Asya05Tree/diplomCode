@@ -1,0 +1,32 @@
+.unassigned-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.unassigned-page h2 {
+  margin: 0;
+}
+
+.unassigned-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.unassigned-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.unassigned-row--urgent {
+  background: color-mix(in srgb, #c0524a 12%, transparent);
+  border-radius: 8px;
+}
+
+.unassigned-deadline {
+  font-size: 0.78rem;
+  color: #c0524a;
+  padding: 0 0 6px 56px;
+}

@@ -110,8 +110,8 @@ export default function DayView({ token, date }) {
               : [
                   { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },
                   { label: t('planner.actionSkipped'), onClick: () => handleResolve(task.id, 'Skipped') },
-                  { label: t('dashboard.actionMove'), onClick: () => setMovingTaskId(itemKey) },
-                  { label: t('dashboard.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
+                  { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
+                  { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
                 ]
 
             return <TaskItem key={itemKey} task={task} actions={actions} />
