@@ -14,6 +14,9 @@ public class AppDbContext : DbContext
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<UserTagPreference> UserTagPreferences => Set<UserTagPreference>();
     public DbSet<Rule> Rules => Set<Rule>();
+    public DbSet<TaskItem> Tasks => Set<TaskItem>();
+    public DbSet<RecurrenceRule> RecurrenceRules => Set<RecurrenceRule>();
+    public DbSet<RecurrenceException> RecurrenceExceptions => Set<RecurrenceException>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,5 +42,27 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<UserTagPreference>()
             .HasKey(p => new { p.UserId, p.TagId });
+
+        // Частий фільтр у TaskService (день/період/sweep) — задачі користувача, впорядковані за часом
+        modelBuilder.Entity<TaskItem>()
+            .HasIndex(t => new { t.UserId, t.StartDateTime });
+
+        // Restrict, а не каскад: шаблон-задачу правила видаляємо явно в сервісі разом із винятками,
+        // щоб не забути частину звʼязаних даних
+        modelBuilder.Entity<TaskItem>()
+            .HasOne(t => t.RecurrenceRule)
+            .WithMany()
+            .HasForeignKey(t => t.RecurrenceRuleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<RecurrenceRule>()
+            .HasIndex(r => r.UserId);
+
+        // А ось винятки без правила не мають сенсу — тут каскад доречний
+        modelBuilder.Entity<RecurrenceException>()
+            .HasOne(e => e.RecurrenceRule)
+            .WithMany(r => r.Exceptions)
+            .HasForeignKey(e => e.RecurrenceRuleId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
