@@ -24,6 +24,10 @@ public class RecurrenceRulesController : ControllerBase
 {
     private static readonly string[] ValidPatterns = { "Daily", "Weekly", "Monthly" };
 
+    // Той самий горизонт, що й на фронті (TaskForm.jsx/RecurringView.jsx) — без обмеження
+    // дата закінчення могла б поповзти на роки вперед
+    private const int MaxRecurrenceMonths = 6;
+
     private readonly TaskService _taskService;
 
     public RecurrenceRulesController(TaskService taskService)
@@ -33,10 +37,11 @@ public class RecurrenceRulesController : ControllerBase
 
     private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-    private static bool IsValidRule(string title, string pattern, string? daysOfWeek) =>
+    private static bool IsValidRule(string title, string pattern, string? daysOfWeek, DateOnly startDate, DateOnly? endDate) =>
         !string.IsNullOrWhiteSpace(title)
         && ValidPatterns.Contains(pattern)
-        && (pattern != "Weekly" || !string.IsNullOrWhiteSpace(daysOfWeek));
+        && (pattern != "Weekly" || !string.IsNullOrWhiteSpace(daysOfWeek))
+        && (endDate is null || endDate.Value <= startDate.AddMonths(MaxRecurrenceMonths));
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -48,7 +53,7 @@ public class RecurrenceRulesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateRecurrenceRuleRequest request)
     {
-        if (!IsValidRule(request.Title, request.Pattern, request.DaysOfWeek))
+        if (!IsValidRule(request.Title, request.Pattern, request.DaysOfWeek, request.StartDate, request.EndDate))
             return BadRequest(new { error = "invalid_rule" });
 
         var rule = await _taskService.CreateRecurrenceRuleAsync(
@@ -60,7 +65,7 @@ public class RecurrenceRulesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateRecurrenceRuleRequest request)
     {
-        if (!IsValidRule(request.Title, request.Pattern, request.DaysOfWeek))
+        if (!IsValidRule(request.Title, request.Pattern, request.DaysOfWeek, request.StartDate, request.EndDate))
             return BadRequest(new { error = "invalid_rule" });
 
         var ok = await _taskService.UpdateRecurrenceRuleAsync(

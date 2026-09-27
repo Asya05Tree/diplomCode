@@ -9,9 +9,11 @@ import {
   addException,
   deleteException,
 } from '../../api/tasks'
+import { addMonths, fromApiDate, toApiDate } from '../../utils/date'
 import './RecurringView.css'
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7]
+const MAX_RECURRENCE_MONTHS = 6
 
 function summarizeRule(rule, t) {
   const weekdayLabels = t('planner.weekdaysShort').split(',')
@@ -92,6 +94,8 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
     })
   }
 
+  const maxEndDate = editState ? toApiDate(addMonths(fromApiDate(editState.startDate), MAX_RECURRENCE_MONTHS)) : ''
+
   const toggleEditDay = (day) => {
     const next = new Set(editState.daysOfWeek)
     if (next.has(day)) next.delete(day)
@@ -106,6 +110,10 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
     }
     if (editState.pattern === 'Weekly' && editState.daysOfWeek.size === 0) {
       setError(t('taskForm.errorWeekdaysRequired'))
+      return
+    }
+    if (!editState.noEndDate && editState.endDate && editState.endDate > maxEndDate) {
+      setError(t('taskForm.errorEndDateTooFar'))
       return
     }
     setError('')
@@ -265,10 +273,12 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
             </label>
             {!editState.noEndDate && (
               <label>
-                {t('taskForm.endDate')}
+                {t('taskForm.endDate')} <span className="task-form-hint">({t('taskForm.endDateHint')})</span>
                 <input
                   type="date"
                   value={editState.endDate}
+                  min={editState.startDate}
+                  max={maxEndDate}
                   onChange={(e) => setEditState({ ...editState, endDate: e.target.value })}
                 />
               </label>

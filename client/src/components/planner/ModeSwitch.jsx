@@ -1,36 +1,53 @@
 import { useI18n } from '../../i18n'
 import './ModeSwitch.css'
 
-// planner-spec.md §4.2: "День/Період" — один перемикач; "Повторювані" — незалежний тумблер,
-// який при активації блокує перший (правило повторення не належить ані дню, ані діапазону).
+// planner-spec.md §4.2: "День/Період" — Android-стиль тумблер (сірий+повзунок ліворуч = День,
+// кольоровий+повзунок праворуч = Період). "Повторювані" — окрема капсула поруч, той самий
+// візуальний язик (овал, заливка = активний стан), яка при активації блокує тумблер зліва.
 export default function ModeSwitch({ mode, onModeChange, isRecurring, onRecurringChange }) {
   const { t } = useI18n()
+  const isPeriod = mode === 'period'
+
+  const toggleDayPeriod = () => {
+    if (isRecurring) return
+    onModeChange(isPeriod ? 'day' : 'period')
+  }
 
   return (
     <div className="mode-switch">
-      <div className="mode-switch-segment">
-        <button
-          type="button"
-          className={mode === 'day' ? 'mode-switch-btn mode-switch-btn--active' : 'mode-switch-btn'}
-          disabled={isRecurring}
-          onClick={() => onModeChange('day')}
+      <div className={isRecurring ? 'day-period-switch day-period-switch--disabled' : 'day-period-switch'}>
+        <span
+          className={!isPeriod ? 'day-period-label day-period-label--active' : 'day-period-label'}
+          onClick={() => !isRecurring && onModeChange('day')}
         >
           {t('planner.modeDay')}
-        </button>
+        </span>
+
         <button
           type="button"
-          className={mode === 'period' ? 'mode-switch-btn mode-switch-btn--active' : 'mode-switch-btn'}
+          className={isPeriod ? 'android-switch android-switch--on' : 'android-switch'}
+          onClick={toggleDayPeriod}
           disabled={isRecurring}
-          onClick={() => onModeChange('period')}
+          aria-label={t('planner.modePeriod')}
+        >
+          <span className="android-switch-thumb" />
+        </button>
+
+        <span
+          className={isPeriod ? 'day-period-label day-period-label--active' : 'day-period-label'}
+          onClick={() => !isRecurring && onModeChange('period')}
         >
           {t('planner.modePeriod')}
-        </button>
+        </span>
       </div>
 
-      <label className="mode-switch-toggle">
-        <input type="checkbox" checked={isRecurring} onChange={(e) => onRecurringChange(e.target.checked)} />
+      <button
+        type="button"
+        className={isRecurring ? 'recurring-pill recurring-pill--active' : 'recurring-pill'}
+        onClick={() => onRecurringChange(!isRecurring)}
+      >
         {t('planner.modeRecurring')}
-      </label>
+      </button>
     </div>
   )
 }

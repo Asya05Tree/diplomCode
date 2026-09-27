@@ -93,6 +93,8 @@
   "taskForm.errorTitleRequired": "Вкажіть назву задачі",
   "taskForm.errorWeekdaysRequired": "Оберіть хоча б один день тижня",
   "taskForm.errorSave": "Не вдалося зберегти задачу",
+  "taskForm.errorEndDateTooFar": "Дата закінчення не може бути більш ніж за пів року від початку",
+  "taskForm.endDateHint": "максимум пів року від початку",
 
   "reminder.title": "Вчора лишилось {count} задач",
   "reminder.done": "Зробив",

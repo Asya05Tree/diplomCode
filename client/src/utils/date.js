@@ -8,6 +8,12 @@ export function addDays(date, days) {
   return d
 }
 
+export function addMonths(date, months) {
+  const d = new Date(date)
+  d.setMonth(d.getMonth() + months)
+  return d
+}
+
 // 1=Пн..7=Нд — та сама кодировка, що й RecurrenceRule.DaysOfWeek на бекенді
 export function isoDayOfWeek(date) {
   const day = date.getDay()

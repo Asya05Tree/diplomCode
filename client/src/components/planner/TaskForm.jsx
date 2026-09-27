@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
-import { toApiDate, toApiDateTime, formatTime } from '../../utils/date'
+import { addMonths, fromApiDate, toApiDate, toApiDateTime, formatTime } from '../../utils/date'
 import './TaskForm.css'
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] // Пн..Нд — та сама кодировка, що й на бекенді
+// Без обмеження дата закінчення могла б поповзти на роки вперед — обмежуємо розумним горизонтом
+// (планування на пів року вперед уже покриває більшість розкладів: пари, тренування, зміни)
+const MAX_RECURRENCE_MONTHS = 6
 
 // Спільна форма створення задачі, за шаблоном coding-guide.md §8: назва, коли (один раз /
 // повторюється: патерн + дні/час/період), тривалість і дедлайн — необов'язкові.
@@ -28,6 +31,8 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
+  const maxEndDate = toApiDate(addMonths(fromApiDate(date), MAX_RECURRENCE_MONTHS))
+
   const toggleDay = (day) => {
     setSelectedDays((prev) => {
       const next = new Set(prev)
@@ -46,6 +51,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
     }
     if (repeats && pattern === 'Weekly' && selectedDays.size === 0) {
       setError(t('taskForm.errorWeekdaysRequired'))
+      return
+    }
+    if (repeats && !noEndDate && endDate && endDate > maxEndDate) {
+      setError(t('taskForm.errorEndDateTooFar'))
       return
     }
 
@@ -153,8 +162,14 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           </label>
           {!noEndDate && (
             <label>
-              {t('taskForm.endDate')}
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              {t('taskForm.endDate')} <span className="task-form-hint">({t('taskForm.endDateHint')})</span>
+              <input
+                type="date"
+                value={endDate}
+                min={date}
+                max={maxEndDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
             </label>
           )}
         </div>

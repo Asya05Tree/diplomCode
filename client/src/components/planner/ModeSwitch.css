@@ -1,42 +1,88 @@
 .mode-switch {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 22px;
   flex-wrap: wrap;
 }
 
-.mode-switch-segment {
+.day-period-switch {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.2s ease;
 }
 
-.mode-switch-btn {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.mode-switch-btn--active {
-  background: var(--color-tasks);
-  color: var(--color-text);
-  border-color: transparent;
-}
-
-.mode-switch-btn:disabled {
+.day-period-switch--disabled {
   opacity: 0.5;
+  pointer-events: none;
+}
+
+.day-period-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.day-period-label--active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Android-стиль тумблер: сірий трек + білий повзунок ліворуч (вимкнено),
+   кольоровий трек + повзунок праворуч (увімкнено) — плавна анімація transform/background */
+.android-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-border);
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.android-switch--on {
+  background: var(--color-tasks);
+}
+
+.android-switch:disabled {
   cursor: not-allowed;
 }
 
-.mode-switch-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.android-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease;
+}
+
+.android-switch--on .android-switch-thumb {
+  transform: translateX(24px);
+}
+
+/* Повторювані — та сама капсульна форма, заливка = активний стан (замість квадратного чекбокса) */
+.recurring-pill {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  padding: 6px 16px;
   font-size: 0.9rem;
-  color: var(--color-text);
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.recurring-pill--active {
+  background: var(--color-tasks);
+  color: var(--color-text);
+  border-color: transparent;
 }

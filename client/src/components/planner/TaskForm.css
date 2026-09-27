@@ -85,6 +85,11 @@
   border-color: transparent;
 }
 
+.task-form-hint {
+  font-weight: 400;
+  opacity: 0.75;
+}
+
 .task-form-error {
   color: #c0524a;
   font-size: 0.85rem;
