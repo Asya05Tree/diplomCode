@@ -42,7 +42,9 @@ export default function Login({ onLoggedIn, onBack }) {
           <label>
             {t('login.email')}
             <input
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(filterEmailChars(e.target.value))}
               maxLength={EMAIL_MAX_LENGTH}

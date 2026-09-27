@@ -114,7 +114,9 @@ export default function Register({ onRegistered, onBack }) {
           {t('register.email')}
           <div className="auth-inline">
             <input
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(filterEmailChars(e.target.value))}
               maxLength={EMAIL_MAX_LENGTH}
