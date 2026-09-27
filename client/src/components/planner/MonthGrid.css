@@ -1,0 +1,99 @@
+.month-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.month-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.month-grid-header button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.month-grid-title {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.month-grid-weekdays,
+.month-grid-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.month-grid-weekdays span {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.month-grid-cell {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.month-grid-cell:hover {
+  background: var(--color-bg);
+}
+
+.month-grid-cell--outside {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.month-grid-cell--today {
+  border: 1px solid var(--color-tasks);
+}
+
+.month-grid-cell--selected {
+  background: var(--color-tasks);
+  color: var(--color-text);
+}
+
+/* Період: заливка діапазону */
+.month-grid-cell--range {
+  background: color-mix(in srgb, var(--color-tasks) 35%, transparent);
+}
+
+.month-grid-cell--range-edge {
+  background: var(--color-tasks);
+}
+
+/* Період: вільний день (§4.3) */
+.month-grid-cell--free {
+  background: color-mix(in srgb, var(--color-health) 60%, transparent);
+}
+
+/* Повторювані: прев'ю правила (§4.3) */
+.month-grid-cell--occurrence {
+  background: color-mix(in srgb, var(--color-study) 55%, transparent);
+}
+
+.month-grid-cell--cancelled,
+.month-grid-cell--moved-away {
+  background: color-mix(in srgb, var(--color-study) 25%, transparent);
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.month-grid-cell--moved-in {
+  background: color-mix(in srgb, var(--color-study) 55%, transparent);
+  outline: 1px dashed var(--color-study);
+  outline-offset: -1px;
+}

@@ -1,0 +1,42 @@
+.mode-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mode-switch-segment {
+  display: flex;
+  gap: 4px;
+}
+
+.mode-switch-btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.mode-switch-btn--active {
+  background: var(--color-tasks);
+  color: var(--color-text);
+  border-color: transparent;
+}
+
+.mode-switch-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mode-switch-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+}

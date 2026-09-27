@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5080'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5080'
 
 export async function getHealth() {
   const response = await fetch(`${API_BASE_URL}/api/health`)
@@ -10,7 +10,7 @@ export async function getHealth() {
 
 // При помилці кидає Error, чий message — код помилки з бекенду (invalid_email, invalid_nickname,
 // email_taken, invalid_code...), щоб форма могла показати конкретний переклад, а не загальну фразу.
-async function throwApiError(response) {
+export async function throwApiError(response) {
   const body = await response.json().catch(() => null)
   throw new Error(body?.error ?? `request_failed_${response.status}`)
 }
