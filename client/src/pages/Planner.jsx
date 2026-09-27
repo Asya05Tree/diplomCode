@@ -1,18 +1,21 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useI18n } from '../i18n'
 import MonthGrid from '../components/planner/MonthGrid'
 import ModeSwitch from '../components/planner/ModeSwitch'
 import DayView from '../components/planner/DayView'
 import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
+import { getFreeDays, getPeriodTasks } from '../api/tasks'
 import { addDays, getMonthGridCells } from '../utils/date'
 import './Planner.css'
 
 const AUTH_TOKEN_KEY = 'authToken'
 
 // Головний екран (planner-spec.md §4.2): ліва сітка — контекст, права частина — робоча область
-// із трьома режимами (§4.3). Кожен режим сам відповідає за свої дані; сітка отримує лише готові
-// markings (§4.4: заливка поточного режиму не змішується з іншою).
+// із трьома режимами (§4.3). Базове відображення сітки (§4.4) — дні із задачами або з недостатнім
+// запасом вільного часу підсвічені кольором, порожні дні без заливки; працює завжди, без перемикача.
 export default function Planner() {
+  const { t } = useI18n()
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
 
   const [visibleMonth, setVisibleMonth] = useState(() => {
@@ -26,17 +29,49 @@ export default function Planner() {
     const from = new Date()
     return { from, to: addDays(from, 6) }
   })
-  const [periodMarkings, setPeriodMarkings] = useState(new Map())
+  const [minFreeHours, setMinFreeHours] = useState(2)
+  const [busyMarkings, setBusyMarkings] = useState(new Map())
   const [recurringMarkings, setRecurringMarkings] = useState(new Map())
   // Тип Manual (RecurringView): клік по дню в лівій сітці = вставити/зняти ручну дату
   const [manualDateHandler, setManualDateHandler] = useState(null)
+  // Бампається після будь-якої зміни задач у Дні/Періоді, щоб базова заливка сітки не застарівала
+  const [tasksVersion, setTasksVersion] = useState(0)
+  const notifyTasksChanged = () => setTasksVersion((v) => v + 1)
 
   const visibleGridRange = useMemo(() => {
     const cells = getMonthGridCells(visibleMonth.getFullYear(), visibleMonth.getMonth())
     return { from: cells[0].date, to: cells[cells.length - 1].date }
   }, [visibleMonth])
 
-  const markings = isRecurring ? recurringMarkings : mode === 'period' ? periodMarkings : new Map()
+  useEffect(() => {
+    if (isRecurring) return
+    let cancelled = false
+
+    Promise.all([
+      getPeriodTasks(token, visibleGridRange.from, visibleGridRange.to),
+      getFreeDays(token, visibleGridRange.from, visibleGridRange.to, minFreeHours),
+    ])
+      .then(([tasks, freeDays]) => {
+        if (cancelled) return
+        const map = new Map()
+        for (const task of tasks) {
+          if (task.startDateTime) map.set(task.startDateTime.slice(0, 10), 'busy')
+        }
+        for (const day of freeDays) {
+          if (!day.isFreeEnough) map.set(day.date, 'busy')
+        }
+        setBusyMarkings(map)
+      })
+      .catch(() => {
+        if (!cancelled) setBusyMarkings(new Map())
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [token, visibleGridRange, minFreeHours, isRecurring, tasksVersion])
+
+  const markings = isRecurring ? recurringMarkings : busyMarkings
 
   const handleSelectDate = (date) => {
     if (isRecurring) {
@@ -57,6 +92,21 @@ export default function Planner() {
           onSelectDate={handleSelectDate}
           markings={markings}
         />
+
+        {!isRecurring && (
+          <div className="planner-free-hours">
+            <label>
+              {t('planner.minFreeHours')}
+              <input
+                type="number"
+                min="1"
+                max="24"
+                value={minFreeHours}
+                onChange={(e) => setMinFreeHours(Math.min(24, Math.max(1, Number(e.target.value) || 1)))}
+              />
+            </label>
+          </div>
+        )}
       </section>
 
       <section className="planner-work-panel">
@@ -73,13 +123,13 @@ export default function Planner() {
               onManualHandlerChange={setManualDateHandler}
             />
           ) : mode === 'day' ? (
-            <DayView token={token} date={selectedDate} />
+            <DayView token={token} date={selectedDate} onTasksChanged={notifyTasksChanged} />
           ) : (
             <PeriodView
               token={token}
               range={periodRange}
               onRangeChange={setPeriodRange}
-              onMarkingsChange={setPeriodMarkings}
+              onTasksChanged={notifyTasksChanged}
             />
           )}
         </div>

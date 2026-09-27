@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import TaskItem from './TaskItem'
 import MoveTaskForm from './MoveTaskForm'
-import { getPeriodTasks, getFreeDays, resolveTask, deleteTask, updateTask } from '../../api/tasks'
-import { addDays, fromApiDateTime, toApiDate } from '../../utils/date'
+import { getPeriodTasks, resolveTask, deleteTask, updateTask } from '../../api/tasks'
+import { fromApiDateTime, toApiDate } from '../../utils/date'
 import './PeriodView.css'
 
 function parseDate(str) {
@@ -11,14 +11,11 @@ function parseDate(str) {
   return new Date(y, m - 1, d)
 }
 
-// planner-spec.md §4.3 "Період" — довільний діапазон + вільні дні (мінімальний проміжок у годинах,
-// бо повністю порожніх днів за щоденних занять може не бути взагалі).
-export default function PeriodView({ token, range, onRangeChange, onMarkingsChange }) {
+// planner-spec.md §4.3 "Період" — довільний діапазон дат. Заливка "де є задачі" тепер —
+// базове відображення календаря (Planner.jsx), тут лишається тільки сам перелік завдань.
+export default function PeriodView({ token, range, onRangeChange, onTasksChanged }) {
   const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
-  const [showFreeDays, setShowFreeDays] = useState(false)
-  const [minFreeHours, setMinFreeHours] = useState(2)
-  const [freeDates, setFreeDates] = useState(new Set())
   const [movingTaskId, setMovingTaskId] = useState(null)
 
   const reload = useCallback(() => {
@@ -33,42 +30,16 @@ export default function PeriodView({ token, range, onRangeChange, onMarkingsChan
     reload()
   }, [reload])
 
-  useEffect(() => {
-    if (!showFreeDays || range.from > range.to) {
-      setFreeDates(new Set())
-      return
-    }
-    getFreeDays(token, range.from, range.to, minFreeHours)
-      .then((days) => setFreeDates(new Set(days.filter((d) => d.isFreeEnough).map((d) => d.date))))
-      .catch(() => setFreeDates(new Set()))
-  }, [token, range, showFreeDays, minFreeHours])
-
-  useEffect(() => {
-    const map = new Map()
-    if (range.from <= range.to) {
-      let d = new Date(range.from)
-      while (d <= range.to) {
-        const key = toApiDate(d)
-        if (showFreeDays && freeDates.has(key)) {
-          map.set(key, 'free')
-        } else {
-          const isEdge = key === toApiDate(range.from) || key === toApiDate(range.to)
-          map.set(key, isEdge ? 'range-edge' : 'range')
-        }
-        d = addDays(d, 1)
-      }
-    }
-    onMarkingsChange(map)
-  }, [range, showFreeDays, freeDates, onMarkingsChange])
-
   const handleResolve = async (id, action) => {
     await resolveTask(token, id, action)
     reload()
+    onTasksChanged?.()
   }
 
   const handleDelete = async (id) => {
     await deleteTask(token, id)
     reload()
+    onTasksChanged?.()
   }
 
   const handleMove = async (task, startDateTime) => {
@@ -81,6 +52,7 @@ export default function PeriodView({ token, range, onRangeChange, onMarkingsChan
     })
     setMovingTaskId(null)
     reload()
+    onTasksChanged?.()
   }
 
   const groups = useMemo(() => {
@@ -115,22 +87,6 @@ export default function PeriodView({ token, range, onRangeChange, onMarkingsChan
             onChange={(e) => onRangeChange({ ...range, to: parseDate(e.target.value) })}
           />
         </label>
-        <label className="period-view-toggle">
-          <input type="checkbox" checked={showFreeDays} onChange={(e) => setShowFreeDays(e.target.checked)} />
-          {t('planner.showFreeDays')}
-        </label>
-        {showFreeDays && (
-          <label>
-            {t('planner.minFreeHours')}
-            <input
-              type="number"
-              min="1"
-              max="20"
-              value={minFreeHours}
-              onChange={(e) => setMinFreeHours(Number(e.target.value) || 1)}
-            />
-          </label>
-        )}
       </div>
 
       {groups.length === 0 ? (

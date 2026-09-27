@@ -10,7 +10,7 @@ import './DayView.css'
 
 // planner-spec.md §4.3 "День" — розклад обраної дати. Ранковий банер (§4.5) показується тільки
 // коли обрано "сьогодні" — саме тоді нагадувати про вчора має сенс.
-export default function DayView({ token, date }) {
+export default function DayView({ token, date, onTasksChanged }) {
   const { t } = useI18n()
   const [tasks, setTasks] = useState([])
   const [reminderTasks, setReminderTasks] = useState([])
@@ -39,16 +39,19 @@ export default function DayView({ token, date }) {
     await resolveTask(token, id, action)
     setReminderTasks((prev) => prev.filter((task) => task.id !== id))
     reload()
+    onTasksChanged?.()
   }
 
   const handleResolve = async (id, action) => {
     await resolveTask(token, id, action)
     reload()
+    onTasksChanged?.()
   }
 
   const handleDelete = async (id) => {
     await deleteTask(token, id)
     reload()
+    onTasksChanged?.()
   }
 
   const handleMove = async (task, startDateTime) => {
@@ -61,6 +64,7 @@ export default function DayView({ token, date }) {
     })
     setMovingTaskId(null)
     reload()
+    onTasksChanged?.()
   }
 
   return (
@@ -82,6 +86,7 @@ export default function DayView({ token, date }) {
           onSaved={() => {
             setShowForm(false)
             reload()
+            onTasksChanged?.()
           }}
           onCancel={() => setShowForm(false)}
         />

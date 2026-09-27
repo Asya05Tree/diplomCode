@@ -12,9 +12,10 @@
   transition: opacity 0.2s ease;
 }
 
-.day-period-switch--disabled {
-  opacity: 0.5;
-  pointer-events: none;
+/* Візуально приглушена, але клікабельна — один клік по День/Період одразу перемикає назад,
+   не треба спершу вимикати капсулу списку */
+.day-period-switch--inactive {
+  opacity: 0.45;
 }
 
 .day-period-label {
@@ -49,10 +50,6 @@
   background: var(--color-tasks);
 }
 
-.android-switch:disabled {
-  cursor: not-allowed;
-}
-
 .android-switch-thumb {
   position: absolute;
   top: 3px;
@@ -69,7 +66,8 @@
   transform: translateX(24px);
 }
 
-/* Повторювані — та сама капсульна форма, заливка = активний стан (замість квадратного чекбокса) */
+/* Список повторюваних задач — та сама капсульна форма, заливка = активний стан
+   (замість квадратного чекбокса); клікабельна завжди, навіть коли приглушена */
 .recurring-pill {
   border: 1px solid var(--color-border);
   background: transparent;
@@ -78,11 +76,16 @@
   padding: 6px 16px;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.recurring-pill--inactive {
+  opacity: 0.45;
 }
 
 .recurring-pill--active {
   background: var(--color-tasks);
   color: var(--color-text);
   border-color: transparent;
+  opacity: 1;
 }

@@ -66,18 +66,9 @@
   color: var(--color-text);
 }
 
-/* Період: заливка діапазону */
-.month-grid-cell--range {
-  background: color-mix(in srgb, var(--color-tasks) 35%, transparent);
-}
-
-.month-grid-cell--range-edge {
-  background: var(--color-tasks);
-}
-
-/* Період: вільний день (§4.3) */
-.month-grid-cell--free {
-  background: color-mix(in srgb, var(--color-health) 60%, transparent);
+/* Базове відображення (§4.4): день із задачами або з недостатнім запасом вільного часу */
+.month-grid-cell--busy {
+  background: color-mix(in srgb, var(--color-tasks) 40%, transparent);
 }
 
 /* Повторювані: прев'ю правила (§4.3) */

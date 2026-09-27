@@ -28,13 +28,6 @@
   color: var(--color-text);
 }
 
-.period-view-toggle {
-  flex-direction: row !important;
-  align-items: center;
-  gap: 6px !important;
-  color: var(--color-text) !important;
-}
-
 .period-view-group {
   margin-bottom: 10px;
 }
