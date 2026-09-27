@@ -30,6 +30,8 @@
   "landing.login": "Вхід",
 
   "auth.back": "Назад",
+  "auth.haveAccount": "Вже є акаунт? Увійти",
+  "auth.noAccount": "Ще немає акаунту? Зареєструйтесь",
 
   "register.title": "Реєстрація",
   "register.nickname": "Нікнейм",

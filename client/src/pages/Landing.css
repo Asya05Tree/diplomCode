@@ -50,6 +50,7 @@
   width: 200px;
   height: 230px;
   flex-shrink: 0;
+  text-decoration: none;
 }
 
 .landing-choice-visual {

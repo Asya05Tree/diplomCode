@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { sendCode, register } from '../api/client'
 import CodeInput from '../components/CodeInput'
@@ -27,7 +28,7 @@ function errorKeyToMessage(t, error, fallbackKey) {
   return t(map[error.message] ?? fallbackKey)
 }
 
-export default function Register({ onRegistered, onBack }) {
+export default function Register({ onRegistered }) {
   const { t } = useI18n()
   const [nickname, setNickname] = useState('')
   const [gender, setGender] = useState('female')
@@ -160,7 +161,8 @@ export default function Register({ onRegistered, onBack }) {
         {error && <p className="auth-error">{error}</p>}
 
         <button type="submit" className="auth-submit" disabled={busy}>{t('register.submit')}</button>
-        <button type="button" className="auth-link" onClick={onBack}>{t('auth.back')}</button>
+        <Link to="/login" className="auth-link">{t('auth.haveAccount')}</Link>
+        <Link to="/" className="auth-link">{t('auth.back')}</Link>
       </form>
     </div>
   )

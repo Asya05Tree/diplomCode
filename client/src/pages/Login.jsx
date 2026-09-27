@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { login } from '../api/client'
 import { filterEmailChars, isValidEmailFormat, EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH } from '../utils/authValidation'
 import './AuthForm.css'
 import './Login.css'
 
-export default function Login({ onLoggedIn, onBack }) {
+export default function Login({ onLoggedIn }) {
   const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -66,7 +67,8 @@ export default function Login({ onLoggedIn, onBack }) {
           {error && <p className="auth-error">{error}</p>}
 
           <button type="submit" className="auth-submit" disabled={busy}>{t('login.submit')}</button>
-          <button type="button" className="auth-link" onClick={onBack}>{t('auth.back')}</button>
+          <Link to="/reg" className="auth-link">{t('auth.noAccount')}</Link>
+          <Link to="/" className="auth-link">{t('auth.back')}</Link>
         </form>
       </div>
 

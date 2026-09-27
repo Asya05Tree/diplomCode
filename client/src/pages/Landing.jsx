@@ -1,9 +1,10 @@
+import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import './Landing.css'
 
-// Публічна сторінка для тих, хто ще не увійшов. Клік по картинці переключає вид у App.jsx —
-// окремого роутера в проекті немає, і тягнути його заради 4 екранів не варто (coding-guide.md §1).
-export default function Landing({ onNavigate }) {
+// Публічна сторінка для тих, хто ще не увійшов. Реєстрація/вхід — окремі URL (/reg, /login),
+// щоб на них можна було перейти напряму або оновити сторінку без втрати екрана.
+export default function Landing() {
   const { t } = useI18n()
 
   return (
@@ -14,18 +15,18 @@ export default function Landing({ onNavigate }) {
 
       <div className="landing-main">
         <div className="landing-choices">
-          <button type="button" className="landing-choice" onClick={() => onNavigate('register')}>
+          <Link to="/reg" className="landing-choice">
             <span className="landing-choice-visual">
               <span className="landing-choice-label">{t('landing.register')}</span>
               <img src="/images/left.png" alt={t('landing.register')} className="landing-choice-image" />
             </span>
-          </button>
-          <button type="button" className="landing-choice" onClick={() => onNavigate('login')}>
+          </Link>
+          <Link to="/login" className="landing-choice">
             <span className="landing-choice-visual">
               <span className="landing-choice-label">{t('landing.login')}</span>
               <img src="/images/right.png" alt={t('landing.login')} className="landing-choice-image" />
             </span>
-          </button>
+          </Link>
         </div>
 
         <div className="card landing-placeholder">
