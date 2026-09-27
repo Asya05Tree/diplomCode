@@ -1,0 +1,92 @@
+.recurrence-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recurrence-type-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.recurrence-type-btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.recurrence-type-btn--active {
+  background: var(--color-tasks);
+  color: var(--color-text);
+  border-color: transparent;
+}
+
+.recurrence-week-cycle {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recurrence-week-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recurrence-week-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recurrence-week-row-label {
+  width: 84px;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.recurrence-week-row-days {
+  display: flex;
+  gap: 6px;
+}
+
+.recurrence-month-days {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recurrence-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  max-width: 320px;
+}
+
+.recurrence-month-cell {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 8px;
+  height: 32px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.recurrence-month-cell--active {
+  background: var(--color-tasks);
+  border-color: transparent;
+}
+
+.recurrence-hint {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}

@@ -28,6 +28,8 @@ export default function Planner() {
   })
   const [periodMarkings, setPeriodMarkings] = useState(new Map())
   const [recurringMarkings, setRecurringMarkings] = useState(new Map())
+  // Тип Manual (RecurringView): клік по дню в лівій сітці = вставити/зняти ручну дату
+  const [manualDateHandler, setManualDateHandler] = useState(null)
 
   const visibleGridRange = useMemo(() => {
     const cells = getMonthGridCells(visibleMonth.getFullYear(), visibleMonth.getMonth())
@@ -37,7 +39,11 @@ export default function Planner() {
   const markings = isRecurring ? recurringMarkings : mode === 'period' ? periodMarkings : new Map()
 
   const handleSelectDate = (date) => {
-    if (isRecurring || mode !== 'day') return
+    if (isRecurring) {
+      if (manualDateHandler) manualDateHandler(date)
+      return
+    }
+    if (mode !== 'day') return
     setSelectedDate(date)
   }
 
@@ -60,7 +66,12 @@ export default function Planner() {
 
         <div className="card planner-content-card">
           {isRecurring ? (
-            <RecurringView token={token} visibleRange={visibleGridRange} onPreviewChange={setRecurringMarkings} />
+            <RecurringView
+              token={token}
+              visibleRange={visibleGridRange}
+              onPreviewChange={setRecurringMarkings}
+              onManualHandlerChange={setManualDateHandler}
+            />
           ) : mode === 'day' ? (
             <DayView token={token} date={selectedDate} />
           ) : (

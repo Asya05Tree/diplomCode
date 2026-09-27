@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import TaskForm from './TaskForm'
+import RecurrenceFields from './RecurrenceFields'
 import {
   getRecurrenceRules,
   updateRecurrenceRule,
@@ -8,41 +9,59 @@ import {
   previewRecurrenceRule,
   addException,
   deleteException,
+  addManualDate,
+  deleteManualDate,
 } from '../../api/tasks'
-import { addMonths, fromApiDate, toApiDate } from '../../utils/date'
+import { fromApiDate, toApiDate } from '../../utils/date'
+import { recurrenceValueToPayload, ruleToRecurrenceValue, validateRecurrenceValue } from '../../utils/recurrence'
 import './RecurringView.css'
-
-const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7]
-const MAX_RECURRENCE_MONTHS = 6
 
 function summarizeRule(rule, t) {
   const weekdayLabels = t('planner.weekdaysShort').split(',')
-  const patternLabel = t(`taskForm.pattern.${rule.pattern.toLowerCase()}`)
   const time = rule.timeOfDay.slice(0, 5)
-  if (rule.pattern === 'Weekly' && rule.daysOfWeek) {
-    const days = rule.daysOfWeek
-      .split(',')
-      .map(Number)
-      .sort((a, b) => a - b)
-      .map((d) => weekdayLabels[d - 1])
-      .join(', ')
-    return `${patternLabel} · ${days} · ${time}`
+
+  if (rule.type === 'WeekCycle') {
+    const pattern = (rule.weekDaysPattern ?? '').split('|').filter(Boolean)
+    if (rule.cycleWeeks === 1) {
+      const days = pattern[0]?.split(':')[1] ?? ''
+      const labels = days.split(',').filter(Boolean).map((d) => weekdayLabels[Number(d) - 1]).join(', ')
+      return `${t('recurrence.type.WeekCycle')} · ${labels} · ${time}`
+    }
+    const weeks = pattern
+      .map((part) => {
+        const [weekIndex, days] = part.split(':')
+        const labels = (days ?? '').split(',').filter(Boolean).map((d) => weekdayLabels[Number(d) - 1]).join(', ')
+        return `${t('recurrence.week', { n: Number(weekIndex) + 1 })}: ${labels || '—'}`
+      })
+      .join(' · ')
+    return `${t('recurrence.cycleWeeks')} ${rule.cycleWeeks} · ${weeks} · ${time}`
   }
-  return `${patternLabel} · ${time}`
+
+  if (rule.type === 'EveryNDays') return `${t('recurrence.type.EveryNDays')} ${rule.intervalDays} · ${time}`
+
+  if (rule.type === 'MonthDays') {
+    if (rule.monthDayMode === 'Specific') return `${(rule.monthDays ?? '').split(',').join(', ')} · ${time}`
+    return `${t(`recurrence.monthDayMode.${rule.monthDayMode}`)} · ${time}`
+  }
+
+  return `${t('recurrence.type.Manual')} · ${t('recurrence.manualDatesCount', { count: rule.manualDates.length })}`
 }
 
-// planner-spec.md §4.3 "Повторювані" — список правил + форма редагування обраного (дні тижня,
-// час, період дії, винятки). Прев'ю обраного правила прокидається наверх у ліву сітку (§4.4).
-export default function RecurringView({ token, visibleRange, onPreviewChange }) {
+// planner-spec.md §3.3, §4.3 "Повторювані" — список правил + форма редагування обраного.
+// Прев'ю обраного правила прокидається наверх у ліву сітку (§4.4); для типу Manual та сама
+// сітка стає засобом введення — клік по дню передається наверх через onManualHandlerChange.
+export default function RecurringView({ token, visibleRange, onPreviewChange, onManualHandlerChange }) {
   const { t } = useI18n()
-  const weekdayLabels = t('planner.weekdaysShort').split(',')
 
   const [rules, setRules] = useState([])
   const [version, setVersion] = useState(0)
   const bump = () => setVersion((v) => v + 1)
 
   const [selectedId, setSelectedId] = useState(null)
-  const [editState, setEditState] = useState(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editDuration, setEditDuration] = useState('')
+  const [editRecurrence, setEditRecurrence] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
   const [error, setError] = useState('')
 
@@ -77,56 +96,47 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
       .catch(() => onPreviewChange(new Map()))
   }, [selected, visibleRange, token, onPreviewChange])
 
+  // Тип Manual: ліва сітка сама стає формою введення — клік по дню додає/знімає дату
+  useEffect(() => {
+    if (!selected || selected.type !== 'Manual') {
+      onManualHandlerChange(null)
+      return
+    }
+    onManualHandlerChange(() => async (date) => {
+      const key = toApiDate(date)
+      if (selected.manualDates.includes(key)) await deleteManualDate(token, selected.id, date)
+      else await addManualDate(token, selected.id, date)
+      bump()
+    })
+  }, [selected, token, onManualHandlerChange])
+
   const selectRule = (rule) => {
     setSelectedId(rule.id)
     setError('')
     setShowAddException(false)
-    setEditState({
-      title: rule.title,
-      description: rule.description ?? '',
-      durationMinutes: rule.durationMinutes ?? '',
-      pattern: rule.pattern,
-      daysOfWeek: new Set((rule.daysOfWeek ?? '').split(',').filter(Boolean).map(Number)),
-      timeOfDay: rule.timeOfDay.slice(0, 5),
-      startDate: rule.startDate,
-      endDate: rule.endDate ?? '',
-      noEndDate: !rule.endDate,
-    })
-  }
-
-  const maxEndDate = editState ? toApiDate(addMonths(fromApiDate(editState.startDate), MAX_RECURRENCE_MONTHS)) : ''
-
-  const toggleEditDay = (day) => {
-    const next = new Set(editState.daysOfWeek)
-    if (next.has(day)) next.delete(day)
-    else next.add(day)
-    setEditState({ ...editState, daysOfWeek: next })
+    setEditTitle(rule.title)
+    setEditDescription(rule.description ?? '')
+    setEditDuration(rule.durationMinutes ?? '')
+    setEditRecurrence(ruleToRecurrenceValue(rule))
   }
 
   const handleSaveEdit = async () => {
-    if (!editState.title.trim()) {
+    if (!editTitle.trim()) {
       setError(t('taskForm.errorTitleRequired'))
       return
     }
-    if (editState.pattern === 'Weekly' && editState.daysOfWeek.size === 0) {
-      setError(t('taskForm.errorWeekdaysRequired'))
-      return
-    }
-    if (!editState.noEndDate && editState.endDate && editState.endDate > maxEndDate) {
-      setError(t('taskForm.errorEndDateTooFar'))
+    const errorCode = validateRecurrenceValue(editRecurrence)
+    if (errorCode) {
+      setError(t(`taskForm.${errorCode}`))
       return
     }
     setError('')
     try {
       await updateRecurrenceRule(token, selectedId, {
-        title: editState.title.trim(),
-        description: editState.description.trim() || null,
-        durationMinutes: editState.durationMinutes ? Number(editState.durationMinutes) : null,
-        pattern: editState.pattern,
-        daysOfWeek: editState.pattern === 'Weekly' ? Array.from(editState.daysOfWeek).sort().join(',') : null,
-        timeOfDay: `${editState.timeOfDay}:00`,
-        startDate: editState.startDate,
-        endDate: editState.noEndDate ? null : editState.endDate || null,
+        title: editTitle.trim(),
+        description: editDescription.trim() || null,
+        durationMinutes: editDuration ? Number(editDuration) : null,
+        ...recurrenceValueToPayload(editRecurrence),
       })
       bump()
     } catch {
@@ -137,7 +147,7 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
   const handleDeleteRule = async () => {
     await deleteRecurrenceRule(token, selectedId)
     setSelectedId(null)
-    setEditState(null)
+    setEditRecurrence(null)
     bump()
   }
 
@@ -159,6 +169,11 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
 
   const handleDeleteException = async (exceptionId) => {
     await deleteException(token, selectedId, exceptionId)
+    bump()
+  }
+
+  const handleRemoveManualDate = async (dateKey) => {
+    await deleteManualDate(token, selectedId, fromApiDate(dateKey))
     bump()
   }
 
@@ -209,91 +224,47 @@ export default function RecurringView({ token, visibleRange, onPreviewChange }) 
         </div>
       )}
 
-      {selected && editState && (
+      {selected && editRecurrence && (
         <div className="recurring-edit card">
           <h4>{t('planner.editRule')}</h4>
 
           <label>
             {t('taskForm.titleLabel')}
-            <input value={editState.title} onChange={(e) => setEditState({ ...editState, title: e.target.value })} />
+            <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
           </label>
 
-          <div className="task-form-row">
-            <label>
-              <select value={editState.pattern} onChange={(e) => setEditState({ ...editState, pattern: e.target.value })}>
-                <option value="Daily">{t('taskForm.pattern.daily')}</option>
-                <option value="Weekly">{t('taskForm.pattern.weekly')}</option>
-                <option value="Monthly">{t('taskForm.pattern.monthly')}</option>
-              </select>
-            </label>
-            <label>
-              {t('taskForm.time')}
-              <input
-                type="time"
-                value={editState.timeOfDay}
-                onChange={(e) => setEditState({ ...editState, timeOfDay: e.target.value })}
-              />
-            </label>
-          </div>
+          <label>
+            {t('taskForm.description')}
+            <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} />
+          </label>
 
-          {editState.pattern === 'Weekly' && (
-            <div className="task-form-weekdays">
-              <span>{t('taskForm.weekdays')}</span>
-              <div className="task-form-weekdays-list">
-                {WEEKDAYS.map((day, idx) => (
-                  <button
-                    key={day}
-                    type="button"
-                    className={editState.daysOfWeek.has(day) ? 'task-form-weekday task-form-weekday--active' : 'task-form-weekday'}
-                    onClick={() => toggleEditDay(day)}
-                  >
-                    {weekdayLabels[idx]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="task-form-row">
-            <label>
-              {t('taskForm.startDate')}
-              <input
-                type="date"
-                value={editState.startDate}
-                onChange={(e) => setEditState({ ...editState, startDate: e.target.value })}
-              />
-            </label>
-            <label className="task-form-checkbox">
-              <input
-                type="checkbox"
-                checked={editState.noEndDate}
-                onChange={(e) => setEditState({ ...editState, noEndDate: e.target.checked })}
-              />
-              {t('taskForm.noEndDate')}
-            </label>
-            {!editState.noEndDate && (
-              <label>
-                {t('taskForm.endDate')} <span className="task-form-hint">({t('taskForm.endDateHint')})</span>
-                <input
-                  type="date"
-                  value={editState.endDate}
-                  min={editState.startDate}
-                  max={maxEndDate}
-                  onChange={(e) => setEditState({ ...editState, endDate: e.target.value })}
-                />
-              </label>
-            )}
-          </div>
+          <RecurrenceFields value={editRecurrence} onChange={setEditRecurrence} />
 
           <label>
             {t('taskForm.duration')}
             <input
               type="number"
               min="1"
-              value={editState.durationMinutes}
-              onChange={(e) => setEditState({ ...editState, durationMinutes: e.target.value })}
+              value={editDuration}
+              onChange={(e) => setEditDuration(e.target.value)}
             />
           </label>
+
+          {selected.type === 'Manual' && (
+            <div className="recurring-manual-dates">
+              <span>{t('recurrence.manualDatesCount', { count: selected.manualDates.length })}</span>
+              {selected.manualDates.length > 0 && (
+                <div className="recurring-manual-dates-list">
+                  {selected.manualDates.map((d) => (
+                    <span key={d} className="recurring-manual-date-chip">
+                      {d}
+                      <button type="button" onClick={() => handleRemoveManualDate(d)}>×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {error && <p className="task-form-error">{error}</p>}
 

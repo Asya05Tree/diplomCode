@@ -1,19 +1,15 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
-import { addMonths, fromApiDate, toApiDate, toApiDateTime, formatTime } from '../../utils/date'
+import { toApiDate, toApiDateTime, formatTime } from '../../utils/date'
+import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
+import RecurrenceFields from './RecurrenceFields'
 import './TaskForm.css'
 
-const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] // Пн..Нд — та сама кодировка, що й на бекенді
-// Без обмеження дата закінчення могла б поповзти на роки вперед — обмежуємо розумним горизонтом
-// (планування на пів року вперед уже покриває більшість розкладів: пари, тренування, зміни)
-const MAX_RECURRENCE_MONTHS = 6
-
 // Спільна форма створення задачі, за шаблоном coding-guide.md §8: назва, коли (один раз /
-// повторюється: патерн + дні/час/період), тривалість і дедлайн — необов'язкові.
+// повторюється — тип правила й розклад делегуються RecurrenceFields), тривалість і дедлайн — необов'язкові.
 export default function TaskForm({ token, initialDate, defaultRecurring = false, onSaved, onCancel }) {
   const { t } = useI18n()
-  const weekdayLabels = t('planner.weekdaysShort').split(',')
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -23,24 +19,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   const [duration, setDuration] = useState('')
   const [deadline, setDeadline] = useState('')
 
-  const [pattern, setPattern] = useState('Weekly')
-  const [selectedDays, setSelectedDays] = useState(new Set())
-  const [endDate, setEndDate] = useState('')
-  const [noEndDate, setNoEndDate] = useState(true)
+  const [recurrence, setRecurrence] = useState(() => createDefaultRecurrenceValue(initialDate))
 
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-
-  const maxEndDate = toApiDate(addMonths(fromApiDate(date), MAX_RECURRENCE_MONTHS))
-
-  const toggleDay = (day) => {
-    setSelectedDays((prev) => {
-      const next = new Set(prev)
-      if (next.has(day)) next.delete(day)
-      else next.add(day)
-      return next
-    })
-  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -49,13 +31,12 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
       setError(t('taskForm.errorTitleRequired'))
       return
     }
-    if (repeats && pattern === 'Weekly' && selectedDays.size === 0) {
-      setError(t('taskForm.errorWeekdaysRequired'))
-      return
-    }
-    if (repeats && !noEndDate && endDate && endDate > maxEndDate) {
-      setError(t('taskForm.errorEndDateTooFar'))
-      return
+    if (repeats) {
+      const errorCode = validateRecurrenceValue(recurrence)
+      if (errorCode) {
+        setError(t(`taskForm.${errorCode}`))
+        return
+      }
     }
 
     setBusy(true)
@@ -65,11 +46,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           title: title.trim(),
           description: description.trim() || null,
           durationMinutes: duration ? Number(duration) : null,
-          pattern,
-          daysOfWeek: pattern === 'Weekly' ? Array.from(selectedDays).sort().join(',') : null,
-          timeOfDay: `${time}:00`,
-          startDate: date,
-          endDate: noEndDate ? null : endDate || null,
+          ...recurrenceValueToPayload(recurrence),
         })
         onSaved(rule)
       } else {
@@ -116,62 +93,20 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           <input type="radio" checked={repeats} onChange={() => setRepeats(true)} />
           {t('taskForm.repeats')}
         </label>
-        {repeats && (
-          <select value={pattern} onChange={(e) => setPattern(e.target.value)}>
-            <option value="Daily">{t('taskForm.pattern.daily')}</option>
-            <option value="Weekly">{t('taskForm.pattern.weekly')}</option>
-            <option value="Monthly">{t('taskForm.pattern.monthly')}</option>
-          </select>
-        )}
       </div>
 
-      {repeats && pattern === 'Weekly' && (
-        <div className="task-form-weekdays">
-          <span>{t('taskForm.weekdays')}</span>
-          <div className="task-form-weekdays-list">
-            {WEEKDAYS.map((day, idx) => (
-              <button
-                key={day}
-                type="button"
-                className={selectedDays.has(day) ? 'task-form-weekday task-form-weekday--active' : 'task-form-weekday'}
-                onClick={() => toggleDay(day)}
-              >
-                {weekdayLabels[idx]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="task-form-row">
-        <label>
-          {repeats ? t('taskForm.startDate') : t('taskForm.date')}
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-        </label>
-        <label>
-          {t('taskForm.time')}
-          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
-        </label>
-      </div>
-
-      {repeats && (
+      {repeats ? (
+        <RecurrenceFields value={recurrence} onChange={setRecurrence} />
+      ) : (
         <div className="task-form-row">
-          <label className="task-form-checkbox">
-            <input type="checkbox" checked={noEndDate} onChange={(e) => setNoEndDate(e.target.checked)} />
-            {t('taskForm.noEndDate')}
+          <label>
+            {t('taskForm.date')}
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
           </label>
-          {!noEndDate && (
-            <label>
-              {t('taskForm.endDate')} <span className="task-form-hint">({t('taskForm.endDateHint')})</span>
-              <input
-                type="date"
-                value={endDate}
-                min={date}
-                max={maxEndDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </label>
-          )}
+          <label>
+            {t('taskForm.time')}
+            <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+          </label>
         </div>
       )}
 
