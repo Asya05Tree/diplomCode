@@ -163,10 +163,6 @@ export default function RecurrenceFields({ value, onChange }) {
 
       <div className="task-form-row">
         <label>
-          {t('taskForm.time')}
-          <input type="time" value={value.time} onChange={(e) => set({ time: e.target.value })} />
-        </label>
-        <label>
           {t('taskForm.startDate')}
           <input type="date" value={value.startDate} onChange={(e) => handleStartDateChange(e.target.value)} />
         </label>

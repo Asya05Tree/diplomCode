@@ -71,7 +71,7 @@ export default function DayView({ token, date }) {
 
       <div className="day-view-header">
         <button type="button" className="day-view-add" onClick={() => setShowForm((s) => !s)}>
-          {t('planner.addTask')}
+          {showForm ? t('auth.back') : t('planner.addTask')}
         </button>
       </div>
 
