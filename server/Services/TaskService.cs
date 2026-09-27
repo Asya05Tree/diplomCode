@@ -32,53 +32,104 @@ public class TaskService
 
     public record RecurrenceRuleDto(
         int Id, int TaskId, string Title, string? Description, int? DurationMinutes,
-        string Pattern, string? DaysOfWeek, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
-        List<RecurrenceExceptionDto> Exceptions);
+        string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
+        int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern,
+        int? IntervalDays,
+        string? MonthDayMode, string? MonthDays,
+        List<RecurrenceExceptionDto> Exceptions, List<DateOnly> ManualDates);
 
     // ---- Розгортання повторень ----------------------------------------------------------
 
     private static int IsoDayOfWeek(DateOnly d) => d.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)d.DayOfWeek;
+
+    // "0:1,3|1:4,5" -> {0: {1,3}, 1: {4,5}} (індекс тижня в циклі -> ISO-дні)
+    private static Dictionary<int, HashSet<int>> ParseWeekDaysPattern(string? pattern)
+    {
+        var result = new Dictionary<int, HashSet<int>>();
+        if (string.IsNullOrWhiteSpace(pattern)) return result;
+
+        foreach (var part in pattern.Split('|', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split(':');
+            if (kv.Length != 2 || !int.TryParse(kv[0], out var weekIndex)) continue;
+            var days = kv[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(int.Parse).ToHashSet();
+            result[weekIndex] = days;
+        }
+
+        return result;
+    }
+
+    private static List<DateOnly> GenerateWeekCycleDates(RecurrenceRule rule, DateOnly from, DateOnly to)
+    {
+        var cycleWeeks = Math.Clamp(rule.CycleWeeks ?? 1, 1, 4);
+        var pattern = ParseWeekDaysPattern(rule.WeekDaysPattern);
+        // Для циклу з одного тижня дата відліку не має значення (тиждень завжди 0-й) — беремо StartDate
+        var anchor = cycleWeeks > 1 && rule.CycleAnchorDate.HasValue ? rule.CycleAnchorDate.Value : rule.StartDate;
+        var anchorWeekStart = anchor.AddDays(-(IsoDayOfWeek(anchor) - 1)); // понеділок тижня відліку
+
+        var result = new List<DateOnly>();
+        for (var d = from; d <= to; d = d.AddDays(1))
+        {
+            var daysSince = d.DayNumber - anchorWeekStart.DayNumber;
+            var weeksSince = (int)Math.Floor(daysSince / 7.0);
+            var weekIndex = ((weeksSince % cycleWeeks) + cycleWeeks) % cycleWeeks;
+            if (pattern.TryGetValue(weekIndex, out var isoDays) && isoDays.Contains(IsoDayOfWeek(d)))
+                result.Add(d);
+        }
+        return result;
+    }
+
+    private static List<DateOnly> GenerateMonthDaysDates(RecurrenceRule rule, DateOnly from, DateOnly to)
+    {
+        var specificDays = rule.MonthDayMode == "Specific"
+            ? (rule.MonthDays ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToHashSet()
+            : null;
+
+        var result = new List<DateOnly>();
+        for (var d = from; d <= to; d = d.AddDays(1))
+        {
+            // Відсутній у місяці день (29-31) просто ніколи не збігається з d.Day — пропуск природний,
+            // без спецкоду й без перенесення на сусідню дату (planner-spec.md §3.3)
+            var matches = rule.MonthDayMode switch
+            {
+                "Specific" => specificDays!.Contains(d.Day),
+                "Even" => d.Day % 2 == 0,
+                "Odd" => d.Day % 2 != 0,
+                "LastDay" => d.Day == DateTime.DaysInMonth(d.Year, d.Month),
+                _ => false,
+            };
+            if (matches) result.Add(d);
+        }
+        return result;
+    }
 
     // Базові дати спрацювання правила, без урахування винятків
     private static List<DateOnly> GenerateBaseDates(RecurrenceRule rule, DateOnly from, DateOnly to)
     {
         var rangeStart = rule.StartDate > from ? rule.StartDate : from;
         var rangeEnd = rule.EndDate.HasValue && rule.EndDate.Value < to ? rule.EndDate.Value : to;
-        var result = new List<DateOnly>();
-        if (rangeStart > rangeEnd) return result;
+        if (rangeStart > rangeEnd) return new List<DateOnly>();
 
-        switch (rule.Pattern)
+        return rule.Type switch
         {
-            case "Daily":
-                for (var d = rangeStart; d <= rangeEnd; d = d.AddDays(1))
-                    result.Add(d);
-                break;
+            "WeekCycle" => GenerateWeekCycleDates(rule, rangeStart, rangeEnd),
+            "EveryNDays" => GenerateEveryNDaysDates(rule, rangeStart, rangeEnd),
+            "MonthDays" => GenerateMonthDaysDates(rule, rangeStart, rangeEnd),
+            "Manual" => rule.ManualDates.Select(m => m.Date).Where(d => d >= rangeStart && d <= rangeEnd).ToList(),
+            _ => new List<DateOnly>(),
+        };
+    }
 
-            case "Weekly":
-                var days = (rule.DaysOfWeek ?? "")
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(int.Parse)
-                    .ToHashSet();
-                for (var d = rangeStart; d <= rangeEnd; d = d.AddDays(1))
-                    if (days.Contains(IsoDayOfWeek(d))) result.Add(d);
-                break;
-
-            case "Monthly":
-                // Той самий день місяця, що й StartDate.Day; місяці, де такого дня немає, пропускаються
-                var cursor = new DateOnly(rangeStart.Year, rangeStart.Month, 1);
-                var limit = new DateOnly(rangeEnd.Year, rangeEnd.Month, 1);
-                while (cursor <= limit)
-                {
-                    if (rule.StartDate.Day <= DateTime.DaysInMonth(cursor.Year, cursor.Month))
-                    {
-                        var candidate = new DateOnly(cursor.Year, cursor.Month, rule.StartDate.Day);
-                        if (candidate >= rangeStart && candidate <= rangeEnd) result.Add(candidate);
-                    }
-                    cursor = cursor.AddMonths(1);
-                }
-                break;
+    private static List<DateOnly> GenerateEveryNDaysDates(RecurrenceRule rule, DateOnly from, DateOnly to)
+    {
+        var interval = Math.Max(1, rule.IntervalDays ?? 1);
+        var result = new List<DateOnly>();
+        for (var d = from; d <= to; d = d.AddDays(1))
+        {
+            var daysSinceStart = d.DayNumber - rule.StartDate.DayNumber;
+            if (daysSinceStart >= 0 && daysSinceStart % interval == 0) result.Add(d);
         }
-
         return result;
     }
 
@@ -144,7 +195,9 @@ public class TaskService
             t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
             t.Status, t.IsPinned, false, null, false)).ToList();
 
-        var rules = await _db.RecurrenceRules.Include(r => r.Exceptions)
+        var rules = await _db.RecurrenceRules
+            .Include(r => r.Exceptions)
+            .Include(r => r.ManualDates)
             .Where(r => r.UserId == userId).ToListAsync();
 
         if (rules.Count > 0)
@@ -364,9 +417,20 @@ public class TaskService
 
     // ---- CRUD правил повторення ------------------------------------------------------------
 
+    private static RecurrenceRuleDto ToDto(RecurrenceRule r, TaskItem t) => new(
+        r.Id, t.Id, t.Title, t.Description, t.DurationMinutes,
+        r.Type, r.TimeOfDay, r.StartDate, r.EndDate,
+        r.CycleWeeks, r.CycleAnchorDate, r.WeekDaysPattern,
+        r.IntervalDays,
+        r.MonthDayMode, r.MonthDays,
+        r.Exceptions.Select(e => new RecurrenceExceptionDto(e.Id, e.Date, e.ExceptionType, e.NewDateTime)).ToList(),
+        r.ManualDates.Select(m => m.Date).OrderBy(d => d).ToList());
+
     public async Task<List<RecurrenceRuleDto>> GetRecurrenceRulesAsync(int userId)
     {
-        var rules = await _db.RecurrenceRules.Include(r => r.Exceptions)
+        var rules = await _db.RecurrenceRules
+            .Include(r => r.Exceptions)
+            .Include(r => r.ManualDates)
             .Where(r => r.UserId == userId).ToListAsync();
         var templates = await _db.Tasks
             .Where(t => t.UserId == userId && t.RecurrenceRuleId != null).ToListAsync();
@@ -374,29 +438,29 @@ public class TaskService
 
         return rules
             .Where(r => templateByRuleId.ContainsKey(r.Id))
-            .Select(r =>
-            {
-                var t = templateByRuleId[r.Id];
-                return new RecurrenceRuleDto(
-                    r.Id, t.Id, t.Title, t.Description, t.DurationMinutes,
-                    r.Pattern, r.DaysOfWeek, r.TimeOfDay, r.StartDate, r.EndDate,
-                    r.Exceptions.Select(e => new RecurrenceExceptionDto(e.Id, e.Date, e.ExceptionType, e.NewDateTime)).ToList());
-            })
+            .Select(r => ToDto(r, templateByRuleId[r.Id]))
             .ToList();
     }
 
     public async Task<RecurrenceRuleDto> CreateRecurrenceRuleAsync(
         int userId, string title, string? description, int? durationMinutes,
-        string pattern, string? daysOfWeek, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate)
+        string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
+        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern,
+        int? intervalDays, string? monthDayMode, string? monthDays)
     {
         var rule = new RecurrenceRule
         {
             UserId = userId,
-            Pattern = pattern,
-            DaysOfWeek = daysOfWeek,
+            Type = type,
             TimeOfDay = timeOfDay,
             StartDate = startDate,
             EndDate = endDate,
+            CycleWeeks = cycleWeeks,
+            CycleAnchorDate = cycleAnchorDate,
+            WeekDaysPattern = weekDaysPattern,
+            IntervalDays = intervalDays,
+            MonthDayMode = monthDayMode,
+            MonthDays = monthDays,
         };
         _db.RecurrenceRules.Add(rule);
         await _db.SaveChangesAsync(); // потрібен Id правила для шаблон-задачі нижче
@@ -413,32 +477,64 @@ public class TaskService
         _db.Tasks.Add(template);
         await _db.SaveChangesAsync();
 
-        return new RecurrenceRuleDto(
-            rule.Id, template.Id, template.Title, template.Description, template.DurationMinutes,
-            rule.Pattern, rule.DaysOfWeek, rule.TimeOfDay, rule.StartDate, rule.EndDate,
-            new List<RecurrenceExceptionDto>());
+        return ToDto(rule, template);
     }
 
     public async Task<bool> UpdateRecurrenceRuleAsync(
         int userId, int ruleId, string title, string? description, int? durationMinutes,
-        string pattern, string? daysOfWeek, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate)
+        string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
+        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern,
+        int? intervalDays, string? monthDayMode, string? monthDays)
     {
         var rule = await _db.RecurrenceRules.FirstOrDefaultAsync(r => r.Id == ruleId && r.UserId == userId);
         if (rule is null) return false;
         var template = await _db.Tasks.FirstOrDefaultAsync(t => t.RecurrenceRuleId == ruleId);
         if (template is null) return false;
 
-        rule.Pattern = pattern;
-        rule.DaysOfWeek = daysOfWeek;
+        rule.Type = type;
         rule.TimeOfDay = timeOfDay;
         rule.StartDate = startDate;
         rule.EndDate = endDate;
+        rule.CycleWeeks = cycleWeeks;
+        rule.CycleAnchorDate = cycleAnchorDate;
+        rule.WeekDaysPattern = weekDaysPattern;
+        rule.IntervalDays = intervalDays;
+        rule.MonthDayMode = monthDayMode;
+        rule.MonthDays = monthDays;
 
         template.Title = title;
         template.Description = description;
         template.DurationMinutes = durationMinutes;
         template.StartDateTime = startDate.ToDateTime(timeOfDay);
 
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AddManualDateAsync(int userId, int ruleId, DateOnly date)
+    {
+        var ruleExists = await _db.RecurrenceRules.AnyAsync(r => r.Id == ruleId && r.UserId == userId);
+        if (!ruleExists) return false;
+
+        var alreadyExists = await _db.ManualRecurrenceDates
+            .AnyAsync(m => m.RecurrenceRuleId == ruleId && m.Date == date);
+        if (alreadyExists) return true;
+
+        _db.ManualRecurrenceDates.Add(new ManualRecurrenceDate { RecurrenceRuleId = ruleId, Date = date });
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteManualDateAsync(int userId, int ruleId, DateOnly date)
+    {
+        var ruleExists = await _db.RecurrenceRules.AnyAsync(r => r.Id == ruleId && r.UserId == userId);
+        if (!ruleExists) return false;
+
+        var entry = await _db.ManualRecurrenceDates
+            .FirstOrDefaultAsync(m => m.RecurrenceRuleId == ruleId && m.Date == date);
+        if (entry is null) return false;
+
+        _db.ManualRecurrenceDates.Remove(entry);
         await _db.SaveChangesAsync();
         return true;
     }
@@ -458,7 +554,9 @@ public class TaskService
 
     public async Task<List<PreviewEntry>> GetRulePreviewAsync(int userId, int ruleId, DateOnly from, DateOnly to)
     {
-        var rule = await _db.RecurrenceRules.Include(r => r.Exceptions)
+        var rule = await _db.RecurrenceRules
+            .Include(r => r.Exceptions)
+            .Include(r => r.ManualDates)
             .FirstOrDefaultAsync(r => r.Id == ruleId && r.UserId == userId);
         return rule is null ? new List<PreviewEntry>() : PreviewOccurrences(rule, from, to);
     }

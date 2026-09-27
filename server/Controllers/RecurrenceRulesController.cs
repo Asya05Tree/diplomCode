@@ -7,26 +7,33 @@ namespace Server.Controllers;
 
 public record CreateRecurrenceRuleRequest(
     string Title, string? Description, int? DurationMinutes,
-    string Pattern, string? DaysOfWeek, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate);
+    string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
+    int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern,
+    int? IntervalDays,
+    string? MonthDayMode, string? MonthDays);
 
 public record UpdateRecurrenceRuleRequest(
     string Title, string? Description, int? DurationMinutes,
-    string Pattern, string? DaysOfWeek, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate);
+    string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
+    int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern,
+    int? IntervalDays,
+    string? MonthDayMode, string? MonthDays);
 
 public record AddExceptionRequest(DateOnly Date, string ExceptionType, DateTime? NewDateTime); // Cancelled | Moved
+public record ManualDateRequest(DateOnly Date);
 
-// Режим "Повторювані" (planner-spec.md §4.3): правила повторення + винятки.
-// Кожне правило супроводжує шаблон-задачу (Title/Duration/Description) — керує нею TaskService.
+// Режим "Повторювані" (planner-spec.md §3.3, §4.3) — чотири типи правил повторення + винятки
+// + ручні дати. Кожне правило супроводжує шаблон-задачу (Title/Duration/Description) — керує нею TaskService.
 [ApiController]
 [Route("api/recurrence-rules")]
 [Authorize]
 public class RecurrenceRulesController : ControllerBase
 {
-    private static readonly string[] ValidPatterns = { "Daily", "Weekly", "Monthly" };
+    private static readonly string[] ValidTypes = { "WeekCycle", "EveryNDays", "MonthDays", "Manual" };
+    private static readonly string[] ValidMonthDayModes = { "Specific", "Even", "Odd", "LastDay" };
 
-    // Той самий горизонт, що й на фронті (TaskForm.jsx/RecurringView.jsx) — без обмеження
-    // дата закінчення могла б поповзти на роки вперед
-    private const int MaxRecurrenceMonths = 6;
+    // Спільна межа календаря (planner-spec.md §3.3) — далі планувати не можна
+    private const int MaxRecurrenceYears = 1;
 
     private readonly TaskService _taskService;
 
@@ -37,11 +44,28 @@ public class RecurrenceRulesController : ControllerBase
 
     private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-    private static bool IsValidRule(string title, string pattern, string? daysOfWeek, DateOnly startDate, DateOnly? endDate) =>
-        !string.IsNullOrWhiteSpace(title)
-        && ValidPatterns.Contains(pattern)
-        && (pattern != "Weekly" || !string.IsNullOrWhiteSpace(daysOfWeek))
-        && (endDate is null || endDate.Value <= startDate.AddMonths(MaxRecurrenceMonths));
+    private static bool IsValidRule(
+        string title, string type, DateOnly startDate, DateOnly? endDate,
+        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern,
+        int? intervalDays, string? monthDayMode, string? monthDays)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return false;
+        if (!ValidTypes.Contains(type)) return false;
+        if (!endDate.HasValue || endDate.Value > startDate.AddYears(MaxRecurrenceYears) || endDate.Value < startDate)
+            return false;
+
+        return type switch
+        {
+            "WeekCycle" => cycleWeeks is >= 1 and <= 4
+                && (cycleWeeks == 1 || cycleAnchorDate.HasValue)
+                && !string.IsNullOrWhiteSpace(weekDaysPattern),
+            "EveryNDays" => intervalDays is >= 1,
+            "MonthDays" => ValidMonthDayModes.Contains(monthDayMode)
+                && (monthDayMode != "Specific" || !string.IsNullOrWhiteSpace(monthDays)),
+            "Manual" => true, // дати додаються окремими запитами після створення
+            _ => false,
+        };
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -53,24 +77,32 @@ public class RecurrenceRulesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateRecurrenceRuleRequest request)
     {
-        if (!IsValidRule(request.Title, request.Pattern, request.DaysOfWeek, request.StartDate, request.EndDate))
+        if (!IsValidRule(request.Title, request.Type, request.StartDate, request.EndDate,
+                request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern,
+                request.IntervalDays, request.MonthDayMode, request.MonthDays))
             return BadRequest(new { error = "invalid_rule" });
 
         var rule = await _taskService.CreateRecurrenceRuleAsync(
             CurrentUserId, request.Title, request.Description, request.DurationMinutes,
-            request.Pattern, request.DaysOfWeek, request.TimeOfDay, request.StartDate, request.EndDate);
+            request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
+            request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern,
+            request.IntervalDays, request.MonthDayMode, request.MonthDays);
         return Ok(rule);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateRecurrenceRuleRequest request)
     {
-        if (!IsValidRule(request.Title, request.Pattern, request.DaysOfWeek, request.StartDate, request.EndDate))
+        if (!IsValidRule(request.Title, request.Type, request.StartDate, request.EndDate,
+                request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern,
+                request.IntervalDays, request.MonthDayMode, request.MonthDays))
             return BadRequest(new { error = "invalid_rule" });
 
         var ok = await _taskService.UpdateRecurrenceRuleAsync(
             CurrentUserId, id, request.Title, request.Description, request.DurationMinutes,
-            request.Pattern, request.DaysOfWeek, request.TimeOfDay, request.StartDate, request.EndDate);
+            request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
+            request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern,
+            request.IntervalDays, request.MonthDayMode, request.MonthDays);
         return ok ? Ok() : NotFound();
     }
 
@@ -105,6 +137,20 @@ public class RecurrenceRulesController : ControllerBase
     public async Task<IActionResult> DeleteException(int id, int exceptionId)
     {
         var ok = await _taskService.DeleteExceptionAsync(CurrentUserId, id, exceptionId);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpPost("{id}/manual-dates")]
+    public async Task<IActionResult> AddManualDate(int id, [FromBody] ManualDateRequest request)
+    {
+        var ok = await _taskService.AddManualDateAsync(CurrentUserId, id, request.Date);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpDelete("{id}/manual-dates/{date}")]
+    public async Task<IActionResult> DeleteManualDate(int id, DateOnly date)
+    {
+        var ok = await _taskService.DeleteManualDateAsync(CurrentUserId, id, date);
         return ok ? Ok() : NotFound();
     }
 }

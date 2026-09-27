@@ -95,3 +95,11 @@ export function addException(token, ruleId, payload) {
 export function deleteException(token, ruleId, exceptionId) {
   return apiSend('DELETE', `/api/recurrence-rules/${ruleId}/exceptions/${exceptionId}`, token)
 }
+
+export function addManualDate(token, ruleId, date) {
+  return apiSend('POST', `/api/recurrence-rules/${ruleId}/manual-dates`, token, { date: toApiDate(date) })
+}
+
+export function deleteManualDate(token, ruleId, date) {
+  return apiSend('DELETE', `/api/recurrence-rules/${ruleId}/manual-dates/${toApiDate(date)}`, token)
+}
