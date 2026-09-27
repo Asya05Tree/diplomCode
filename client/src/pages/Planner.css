@@ -1,0 +1,40 @@
+.planner {
+  display: grid;
+  grid-template-columns: 35% 65%;
+  gap: 20px;
+  padding: 24px;
+  flex: 1;
+  align-items: start;
+}
+
+.planner-grid-panel {
+  position: sticky;
+  top: 24px;
+}
+
+.planner-work-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planner-mode-card {
+  padding: 12px 18px;
+}
+
+.planner-content-card {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .planner {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-grid-panel {
+    position: static;
+  }
+}

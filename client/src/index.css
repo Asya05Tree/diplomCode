@@ -48,3 +48,17 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Спільні утиліти — використовуються на кількох сторінках (Planner, Login/Register, Landing),
+   тому живуть тут, а не в CSS однієї конкретної сторінки */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.placeholder-text {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}

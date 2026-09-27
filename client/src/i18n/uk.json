@@ -103,6 +103,7 @@
   "taskForm.cancel": "Скасувати",
   "taskForm.errorTitleRequired": "Вкажіть назву задачі",
   "taskForm.errorWeekdaysRequired": "Оберіть хоча б один день тижня",
+  "taskForm.errorSave": "Не вдалося зберегти задачу",
 
   "reminder.title": "Вчора лишилось {count} задач",
   "reminder.done": "Зробив",

@@ -1,0 +1,39 @@
+.reminder-banner {
+  border: 1px solid var(--color-tasks);
+  background: color-mix(in srgb, var(--color-tasks) 15%, var(--color-surface));
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reminder-banner-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.reminder-banner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+
+.reminder-banner-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.reminder-banner-actions button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

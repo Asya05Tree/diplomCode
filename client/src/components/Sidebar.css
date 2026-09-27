@@ -17,10 +17,16 @@
   border-radius: 10px;
   border-left: 3px solid var(--item-color);
   cursor: pointer;
+  text-decoration: none;
 }
 
 .sidebar-item:hover {
   background: var(--color-bg);
+}
+
+.sidebar-item--active {
+  background: var(--color-bg);
+  font-weight: 600;
 }
 
 .sidebar-icon {

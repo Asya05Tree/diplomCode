@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { I18nProvider, useI18n } from './i18n'
 import Sidebar from './components/Sidebar'
-import Dashboard from './pages/Dashboard'
+import Planner from './pages/Planner'
+import Unassigned from './pages/Unassigned'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
@@ -10,8 +11,35 @@ import { getMe } from './api/client'
 
 const AUTH_TOKEN_KEY = 'authToken'
 
-function AppContent() {
+function Layout({ user, theme, onToggleTheme, onLogout }) {
   const { t } = useI18n()
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar />
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <header
+          style={{
+            padding: '12px 24px',
+            borderBottom: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <span>{user?.nickname} · {user?.email}</span>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button onClick={onToggleTheme}>{theme === 'light' ? '🌙' : '☀️'}</button>
+            <button onClick={onLogout}>{t('header.logout')}</button>
+          </div>
+        </header>
+        <Outlet />
+      </main>
+    </div>
+  )
+}
+
+function AppContent() {
   const [theme, setTheme] = useState('light')
   // Поки не перевірили збережений токен — нічого не рендеримо, щоб не мигнути landing перед /app
   const [authChecked, setAuthChecked] = useState(false)
@@ -67,34 +95,20 @@ function AppContent() {
           path="/app"
           element={
             user ? (
-              <div style={{ display: 'flex', minHeight: '100vh' }}>
-                <Sidebar />
-                <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <header
-                    style={{
-                      padding: '12px 24px',
-                      borderBottom: '1px solid var(--color-border)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <span>{user?.nickname} · {user?.email}</span>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <button onClick={() => setTheme((th) => (th === 'light' ? 'dark' : 'light'))}>
-                        {theme === 'light' ? '🌙' : '☀️'}
-                      </button>
-                      <button onClick={handleLogout}>{t('header.logout')}</button>
-                    </div>
-                  </header>
-                  <Dashboard />
-                </main>
-              </div>
+              <Layout
+                user={user}
+                theme={theme}
+                onToggleTheme={() => setTheme((th) => (th === 'light' ? 'dark' : 'light'))}
+                onLogout={handleLogout}
+              />
             ) : (
               <Navigate to="/" replace />
             )
           }
-        />
+        >
+          <Route index element={<Planner />} />
+          <Route path="unassigned" element={<Unassigned />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

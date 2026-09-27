@@ -103,6 +103,7 @@
   "taskForm.cancel": "Cancel",
   "taskForm.errorTitleRequired": "Enter a task title",
   "taskForm.errorWeekdaysRequired": "Pick at least one day of the week",
+  "taskForm.errorSave": "Failed to save the task",
 
   "reminder.title": "{count} tasks left over from yesterday",
   "reminder.done": "Done",

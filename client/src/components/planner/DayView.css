@@ -1,0 +1,25 @@
+.day-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.day-view-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.day-view-add {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.day-view-list {
+  display: flex;
+  flex-direction: column;
+}
