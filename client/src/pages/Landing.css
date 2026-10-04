@@ -117,17 +117,44 @@
   font-size: clamp(0.9rem, 2vw, 1rem);
 }
 
-.landing-demo-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+.landing-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-@media (min-width: 760px) {
-  .landing-demo-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: start;
-  }
+.landing-tabs-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.landing-tab {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.landing-tab--active {
+  background: var(--color-food);
+  color: var(--color-text);
+  border-color: transparent;
+}
+
+.landing-tabs-bar--shopping .landing-tab--active {
+  background: var(--color-finance);
+}
+
+.landing-tab-caption {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .landing-results {
@@ -308,4 +335,75 @@
   flex: 1;
   height: 1px;
   background: var(--color-border);
+}
+
+/* --- Демонстрація повторюваного планування --- */
+
+.landing-recurring-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 760px) {
+  .landing-recurring-grid {
+    grid-template-columns: minmax(220px, 320px) 1fr;
+    align-items: start;
+  }
+}
+
+.landing-recurring-side {
+  gap: 16px;
+}
+
+.landing-recurring-task {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.landing-recurring-task-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.landing-recurring-task-comment {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.landing-weekday-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.landing-weekday {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 8px;
+  width: 38px;
+  height: 34px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.landing-weekday--active {
+  background: var(--color-study);
+  border-color: transparent;
+}
+
+.landing-recurring-calendar {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+@media (min-width: 760px) {
+  .landing-recurring-calendar {
+    max-width: none;
+    margin: 0;
+  }
 }
