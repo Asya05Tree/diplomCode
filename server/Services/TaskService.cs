@@ -35,7 +35,7 @@ public class TaskService
         string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
         int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
         int? IntervalDays,
-        string? MonthDayMode, string? MonthDays,
+        string? MonthDayMode, string? MonthDays, string? MonthDayTimesPattern,
         List<RecurrenceExceptionDto> Exceptions, List<DateOnly> ManualDates);
 
     // ---- Розгортання повторень ----------------------------------------------------------
@@ -79,6 +79,22 @@ public class TaskService
                     dayTimes[day] = time;
             }
             result[weekIndex] = dayTimes;
+        }
+
+        return result;
+    }
+
+    // "5=08:30,15=09:00" -> {5: 08:30, 15: 09:00} — свій час на число місяця (лише MonthDays/Specific)
+    private static Dictionary<int, TimeOnly> ParseMonthDayTimes(string? pattern)
+    {
+        var result = new Dictionary<int, TimeOnly>();
+        if (string.IsNullOrWhiteSpace(pattern)) return result;
+
+        foreach (var entry in pattern.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var de = entry.Split('=');
+            if (de.Length == 2 && int.TryParse(de[0], out var day) && TimeOnly.TryParse(de[1], out var time))
+                result[day] = time;
         }
 
         return result;
@@ -192,17 +208,22 @@ public class TaskService
     {
         var baseDates = GenerateBaseDates(rule, from, to);
         var exceptionByDate = rule.Exceptions.ToDictionary(e => e.Date, e => e);
-        // Непорожній WeekDayTimesPattern (лише для WeekCycle) — свій час на кожен день замість TimeOfDay
-        var customTimes = rule.Type == "WeekCycle" ? ParseWeekDayTimes(rule.WeekDayTimesPattern) : null;
+        // Непорожній WeekDayTimesPattern (WeekCycle) чи MonthDayTimesPattern (MonthDays/Specific) —
+        // свій час на день замість спільного TimeOfDay
+        var customWeekTimes = rule.Type == "WeekCycle" ? ParseWeekDayTimes(rule.WeekDayTimesPattern) : null;
+        var customMonthTimes = rule.Type == "MonthDays" && rule.MonthDayMode == "Specific"
+            ? ParseMonthDayTimes(rule.MonthDayTimesPattern) : null;
         var result = new List<DateTime>();
 
         foreach (var d in baseDates)
         {
             if (exceptionByDate.ContainsKey(d)) continue; // Cancelled — пропуск; Moved — додасться нижче
             var time = rule.TimeOfDay;
-            if (customTimes is not null && customTimes.TryGetValue(GetWeekIndex(rule, d), out var dayTimes)
-                && dayTimes.TryGetValue(IsoDayOfWeek(d), out var custom))
-                time = custom;
+            if (customWeekTimes is not null && customWeekTimes.TryGetValue(GetWeekIndex(rule, d), out var dayTimes)
+                && dayTimes.TryGetValue(IsoDayOfWeek(d), out var customWeek))
+                time = customWeek;
+            else if (customMonthTimes is not null && customMonthTimes.TryGetValue(d.Day, out var customMonth))
+                time = customMonth;
             result.Add(d.ToDateTime(time));
         }
 
@@ -458,7 +479,7 @@ public class TaskService
         r.Type, r.TimeOfDay, r.StartDate, r.EndDate,
         r.CycleWeeks, r.CycleAnchorDate, r.WeekDaysPattern, r.WeekDayTimesPattern,
         r.IntervalDays,
-        r.MonthDayMode, r.MonthDays,
+        r.MonthDayMode, r.MonthDays, r.MonthDayTimesPattern,
         r.Exceptions.Select(e => new RecurrenceExceptionDto(e.Id, e.Date, e.ExceptionType, e.NewDateTime)).ToList(),
         r.ManualDates.Select(m => m.Date).OrderBy(d => d).ToList());
 
@@ -482,7 +503,7 @@ public class TaskService
         int userId, string title, string? description, int? durationMinutes,
         string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
         int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern, string? weekDayTimesPattern,
-        int? intervalDays, string? monthDayMode, string? monthDays)
+        int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern)
     {
         var rule = new RecurrenceRule
         {
@@ -498,6 +519,7 @@ public class TaskService
             IntervalDays = intervalDays,
             MonthDayMode = monthDayMode,
             MonthDays = monthDays,
+            MonthDayTimesPattern = monthDayTimesPattern,
         };
         _db.RecurrenceRules.Add(rule);
         await _db.SaveChangesAsync(); // потрібен Id правила для шаблон-задачі нижче
@@ -521,7 +543,7 @@ public class TaskService
         int userId, int ruleId, string title, string? description, int? durationMinutes,
         string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
         int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern, string? weekDayTimesPattern,
-        int? intervalDays, string? monthDayMode, string? monthDays)
+        int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern)
     {
         var rule = await _db.RecurrenceRules.FirstOrDefaultAsync(r => r.Id == ruleId && r.UserId == userId);
         if (rule is null) return false;
@@ -539,6 +561,7 @@ public class TaskService
         rule.IntervalDays = intervalDays;
         rule.MonthDayMode = monthDayMode;
         rule.MonthDays = monthDays;
+        rule.MonthDayTimesPattern = monthDayTimesPattern;
 
         template.Title = title;
         template.Description = description;

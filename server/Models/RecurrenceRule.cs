@@ -35,6 +35,10 @@ public class RecurrenceRule
     public string? MonthDayMode { get; set; } // Specific | Even | Odd | LastDay
     public string? MonthDays { get; set; }
 
+    // Непорожнє — коли для MonthDays/Specific увімкнено "свій час на кожне число" замість TimeOfDay.
+    // Формат "5=08:30,15=09:00" — без індексу тижня, на відміну від WeekDayTimesPattern
+    public string? MonthDayTimesPattern { get; set; }
+
     public List<RecurrenceException> Exceptions { get; set; } = new();
     public List<ManualRecurrenceDate> ManualDates { get; set; } = new();
 }

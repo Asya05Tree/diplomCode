@@ -10,14 +10,14 @@ public record CreateRecurrenceRuleRequest(
     string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
     int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
     int? IntervalDays,
-    string? MonthDayMode, string? MonthDays);
+    string? MonthDayMode, string? MonthDays, string? MonthDayTimesPattern);
 
 public record UpdateRecurrenceRuleRequest(
     string Title, string? Description, int? DurationMinutes,
     string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
     int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
     int? IntervalDays,
-    string? MonthDayMode, string? MonthDays);
+    string? MonthDayMode, string? MonthDays, string? MonthDayTimesPattern);
 
 public record AddExceptionRequest(DateOnly Date, string ExceptionType, DateTime? NewDateTime); // Cancelled | Moved
 public record ManualDateRequest(DateOnly Date);
@@ -86,7 +86,7 @@ public class RecurrenceRulesController : ControllerBase
             CurrentUserId, request.Title, request.Description, request.DurationMinutes,
             request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
             request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern, request.WeekDayTimesPattern,
-            request.IntervalDays, request.MonthDayMode, request.MonthDays);
+            request.IntervalDays, request.MonthDayMode, request.MonthDays, request.MonthDayTimesPattern);
         return Ok(rule);
     }
 
@@ -102,7 +102,7 @@ public class RecurrenceRulesController : ControllerBase
             CurrentUserId, id, request.Title, request.Description, request.DurationMinutes,
             request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
             request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern, request.WeekDayTimesPattern,
-            request.IntervalDays, request.MonthDayMode, request.MonthDays);
+            request.IntervalDays, request.MonthDayMode, request.MonthDays, request.MonthDayTimesPattern);
         return ok ? Ok() : NotFound();
     }
 
