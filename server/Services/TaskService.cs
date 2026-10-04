@@ -33,7 +33,7 @@ public class TaskService
     public record RecurrenceRuleDto(
         int Id, int TaskId, string Title, string? Description, int? DurationMinutes,
         string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
-        int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern,
+        int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
         int? IntervalDays,
         string? MonthDayMode, string? MonthDays,
         List<RecurrenceExceptionDto> Exceptions, List<DateOnly> ManualDates);

@@ -5,7 +5,8 @@ namespace Server.Models;
 //
 // Чотири типи (Type), поля кожного типу заповнюються лише для свого типу (решта null):
 //   WeekCycle  — CycleWeeks (1-4), CycleAnchorDate (тільки якщо CycleWeeks>1), WeekDaysPattern
-//                у форматі "0:1,3|1:4,5" (індекс тижня в циклі : ISO-дні, 1=Пн..7=Нд)
+//                у форматі "0:1,3|1:4,5" (індекс тижня в циклі : ISO-дні, 1=Пн..7=Нд),
+//                опціонально WeekDayTimesPattern (свій час на день замість спільного TimeOfDay)
 //   EveryNDays — IntervalDays
 //   MonthDays  — MonthDayMode (Specific|Even|Odd|LastDay), MonthDays "5,15,25" лише для Specific
 //   Manual     — дати в окремій таблиці ManualRecurrenceDate, тут додаткових полів немає
@@ -24,6 +25,10 @@ public class RecurrenceRule
     public int? CycleWeeks { get; set; }
     public DateOnly? CycleAnchorDate { get; set; }
     public string? WeekDaysPattern { get; set; }
+
+    // Непорожнє — коли для WeekCycle увімкнено "свій час на кожен день" замість єдиного TimeOfDay.
+    // Формат той самий, що й WeekDaysPattern, але дні несуть ще й час: "0:1=08:30,4=08:30|1:2=09:00"
+    public string? WeekDayTimesPattern { get; set; }
 
     public int? IntervalDays { get; set; }
 
