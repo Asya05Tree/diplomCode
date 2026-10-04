@@ -59,6 +59,25 @@ export function decodeWeekDayTimes(pattern, cycleWeeks) {
   return result
 }
 
+// "5=08:30,15=09:00" -> {5: "08:30", 15: "09:00"} — свій час на число (лише MonthDays/Specific),
+// без індексу тижня, на відміну від weekPatternTimes
+export function encodeMonthDayTimes(monthDayTimes) {
+  return Object.entries(monthDayTimes)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([day, time]) => `${day}=${time}`)
+    .join(',')
+}
+
+export function decodeMonthDayTimes(pattern) {
+  const result = {}
+  if (!pattern) return result
+  for (const entry of pattern.split(',').filter(Boolean)) {
+    const [dayStr, time] = entry.split('=')
+    result[Number(dayStr)] = time
+  }
+  return result
+}
+
 // planner-spec.md §3.3: термін дії правила — максимум рік, за замовчуванням пропонується 3 місяці
 export const MAX_RECURRENCE_YEARS = 1
 export const DEFAULT_END_MONTHS = 3
@@ -78,6 +97,8 @@ export function createDefaultRecurrenceValue(initialDate) {
     intervalDays: 1,
     monthDayMode: 'Specific',
     monthDays: new Set(),
+    monthSameTimeForAll: true,
+    monthDayTimes: {},
   }
 }
 
@@ -96,6 +117,8 @@ export function ruleToRecurrenceValue(rule) {
     intervalDays: rule.intervalDays ?? 1,
     monthDayMode: rule.monthDayMode ?? 'Specific',
     monthDays: new Set((rule.monthDays ?? '').split(',').filter(Boolean).map(Number)),
+    monthSameTimeForAll: !rule.monthDayTimesPattern,
+    monthDayTimes: decodeMonthDayTimes(rule.monthDayTimesPattern),
   }
 }
 
@@ -115,6 +138,9 @@ export function recurrenceValueToPayload(value) {
     monthDayMode: value.type === 'MonthDays' ? value.monthDayMode : null,
     monthDays: value.type === 'MonthDays' && value.monthDayMode === 'Specific'
       ? Array.from(value.monthDays).sort((a, b) => a - b).join(',')
+      : null,
+    monthDayTimesPattern: value.type === 'MonthDays' && value.monthDayMode === 'Specific' && !value.monthSameTimeForAll
+      ? encodeMonthDayTimes(value.monthDayTimes)
       : null,
   }
 }

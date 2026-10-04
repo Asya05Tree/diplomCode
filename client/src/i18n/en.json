@@ -113,8 +113,10 @@
   "planner.noRules": "No recurrence rules yet",
   "planner.editRule": "Edit rule",
   "planner.overlapBadge": "Overlaps",
+  "planner.overlapCount": "{count} tasks",
   "planner.actionDone": "Done",
   "planner.actionSkipped": "Skipped",
+  "planner.actionEdit": "Edit",
   "planner.actionMove": "Move",
   "planner.actionDelete": "Delete",
 

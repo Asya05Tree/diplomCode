@@ -19,7 +19,6 @@ export default function TaskItem({ task, actions = [] }) {
           )}
           {task.title}
         </span>
-        {task.overlaps && <span className="task-item-overlap">⚠ {t('planner.overlapBadge')}</span>}
       </div>
       {actions.length > 0 && (
         <div className="task-item-actions">

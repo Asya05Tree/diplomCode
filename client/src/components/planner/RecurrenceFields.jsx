@@ -7,6 +7,29 @@ const TYPES = ['WeekCycle', 'EveryNDays', 'MonthDays', 'Manual']
 const ISO_DAYS = [1, 2, 3, 4, 5, 6, 7]
 const MONTH_DAY_MODES = ['Specific', 'Even', 'Odd', 'LastDay']
 
+// Перемикач "однаковий час" <-> "свій час на день" — спільний для WeekCycle і MonthDays/Specific
+function TimeModeSwitch({ same, onChange, t }) {
+  return (
+    <div className="recurrence-time-mode-row">
+      <span className={same ? 'recurrence-time-mode-label recurrence-time-mode-label--active' : 'recurrence-time-mode-label'}>
+        {t('recurrence.sameTimeForAll')}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={!same}
+        className={same ? 'recurrence-switch' : 'recurrence-switch recurrence-switch--on'}
+        onClick={() => onChange(!same)}
+      >
+        <span className="recurrence-switch-knob" />
+      </button>
+      <span className={!same ? 'recurrence-time-mode-label recurrence-time-mode-label--active' : 'recurrence-time-mode-label'}>
+        {t('recurrence.customTimePerDay')}
+      </span>
+    </div>
+  )
+}
+
 // planner-spec.md §3.3 — спільна форма для всіх чотирьох типів правил повторення.
 // Керований компонент: value/onChange, форма самого value описана в utils/recurrence.js.
 export default function RecurrenceFields({ value, onChange }) {
@@ -63,10 +86,28 @@ export default function RecurrenceFields({ value, onChange }) {
   }
 
   const toggleMonthDay = (day) => {
+    const willBeActive = !value.monthDays.has(day)
     const next = new Set(value.monthDays)
     if (next.has(day)) next.delete(day)
     else next.add(day)
-    set({ monthDays: next })
+    const nextTimes = { ...value.monthDayTimes }
+    if (willBeActive) nextTimes[day] = nextTimes[day] ?? value.time
+    else delete nextTimes[day]
+    set({ monthDays: next, monthDayTimes: nextTimes })
+  }
+
+  const setMonthDayTime = (day, time) => {
+    set({ monthDayTimes: { ...value.monthDayTimes, [day]: time } })
+  }
+
+  const setMonthSameTimeForAll = (same) => {
+    if (same) {
+      set({ monthSameTimeForAll: true })
+      return
+    }
+    const next = { ...value.monthDayTimes }
+    for (const day of value.monthDays) next[day] = next[day] ?? value.time
+    set({ monthSameTimeForAll: false, monthDayTimes: next })
   }
 
   const handleStartDateChange = (startDate) => {
@@ -117,23 +158,7 @@ export default function RecurrenceFields({ value, onChange }) {
             )}
           </div>
 
-          <div className="recurrence-time-mode-row">
-            <span className={value.sameTimeForAll ? 'recurrence-time-mode-label recurrence-time-mode-label--active' : 'recurrence-time-mode-label'}>
-              {t('recurrence.sameTimeForAll')}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={!value.sameTimeForAll}
-              className={value.sameTimeForAll ? 'recurrence-switch' : 'recurrence-switch recurrence-switch--on'}
-              onClick={() => setSameTimeForAll(!value.sameTimeForAll)}
-            >
-              <span className="recurrence-switch-knob" />
-            </button>
-            <span className={!value.sameTimeForAll ? 'recurrence-time-mode-label recurrence-time-mode-label--active' : 'recurrence-time-mode-label'}>
-              {t('recurrence.customTimePerDay')}
-            </span>
-          </div>
+          <TimeModeSwitch same={value.sameTimeForAll} onChange={setSameTimeForAll} t={t} />
 
           <div className="recurrence-week-grid">
             {value.weekPattern.map((daysSet, weekIndex) => (
@@ -199,18 +224,34 @@ export default function RecurrenceFields({ value, onChange }) {
           </div>
 
           {value.monthDayMode === 'Specific' && (
-            <div className="recurrence-month-grid">
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  className={value.monthDays.has(day) ? 'recurrence-month-cell recurrence-month-cell--active' : 'recurrence-month-cell'}
-                  onClick={() => toggleMonthDay(day)}
-                >
-                  {day}
-                </button>
-              ))}
-            </div>
+            <>
+              <TimeModeSwitch same={value.monthSameTimeForAll} onChange={setMonthSameTimeForAll} t={t} />
+
+              <div className="recurrence-month-grid">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
+                  const active = value.monthDays.has(day)
+                  return (
+                    <div key={day} className="recurrence-monthday-cell">
+                      <button
+                        type="button"
+                        className={active ? 'recurrence-month-cell recurrence-month-cell--active' : 'recurrence-month-cell'}
+                        onClick={() => toggleMonthDay(day)}
+                      >
+                        {day}
+                      </button>
+                      {active && !value.monthSameTimeForAll && (
+                        <input
+                          type="time"
+                          className="recurrence-weekday-time"
+                          value={value.monthDayTimes[day] ?? value.time}
+                          onChange={(e) => setMonthDayTime(day, e.target.value)}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           )}
 
           {(value.monthDayMode === 'Even' || value.monthDayMode === 'Odd') && (
@@ -222,7 +263,10 @@ export default function RecurrenceFields({ value, onChange }) {
       {value.type === 'Manual' && <p className="recurrence-hint">{t('recurrence.manualHint')}</p>}
 
       <div className="task-form-row">
-        {!(value.type === 'WeekCycle' && !value.sameTimeForAll) && (
+        {!(
+          (value.type === 'WeekCycle' && !value.sameTimeForAll) ||
+          (value.type === 'MonthDays' && value.monthDayMode === 'Specific' && !value.monthSameTimeForAll)
+        ) && (
           <label>
             {t('taskForm.time')}
             <input type="time" value={value.time} onChange={(e) => set({ time: e.target.value })} />

@@ -37,11 +37,6 @@
   font-size: 0.85rem;
 }
 
-.task-item-overlap {
-  font-size: 0.75rem;
-  color: #c0524a;
-}
-
 .task-item-actions {
   display: flex;
   gap: 6px;

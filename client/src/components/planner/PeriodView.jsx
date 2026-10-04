@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import TaskItem from './TaskItem'
+import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
-import { getPeriodTasks, resolveTask, deleteTask, updateTask } from '../../api/tasks'
+import OverlapGroup from './OverlapGroup'
+import { getPeriodTasks, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
 import { fromApiDateTime, toApiDate } from '../../utils/date'
 import './PeriodView.css'
 
@@ -17,6 +19,7 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
   const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
   const [movingTaskId, setMovingTaskId] = useState(null)
+  const [editingTaskId, setEditingTaskId] = useState(null)
 
   const reload = useCallback(() => {
     if (range.from > range.to) {
@@ -42,15 +45,34 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
     onTasksChanged?.()
   }
 
+  const handleCancelOccurrence = async (task) => {
+    const occurrenceDate = toApiDate(fromApiDateTime(task.startDateTime))
+    await addException(token, task.recurrenceRuleId, { date: occurrenceDate, exceptionType: 'Cancelled', newDateTime: null })
+    reload()
+    onTasksChanged?.()
+  }
+
   const handleMove = async (task, startDateTime) => {
-    await updateTask(token, task.id, {
-      title: task.title,
-      description: task.description,
-      startDateTime,
-      durationMinutes: task.durationMinutes,
-      deadline: task.deadline,
-    })
+    if (task.isVirtual) {
+      const occurrenceDate = toApiDate(fromApiDateTime(task.startDateTime))
+      await addException(token, task.recurrenceRuleId, { date: occurrenceDate, exceptionType: 'Moved', newDateTime: startDateTime })
+    } else {
+      await updateTask(token, task.id, {
+        title: task.title,
+        description: task.description,
+        startDateTime,
+        durationMinutes: task.durationMinutes,
+        deadline: task.deadline,
+      })
+    }
     setMovingTaskId(null)
+    reload()
+    onTasksChanged?.()
+  }
+
+  const handleSaveEdit = async (task, payload) => {
+    await updateTask(token, task.id, payload)
+    setEditingTaskId(null)
     reload()
     onTasksChanged?.()
   }
@@ -63,8 +85,59 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
       if (!map.has(key)) map.set(key, [])
       map.get(key).push(task)
     }
-    return Array.from(map.entries()).sort(([a], [b]) => (a < b ? -1 : 1))
+    // Декілька задач на точно один час (§4.4) — об'єднати в один розгортний рядок усередині дня
+    return Array.from(map.entries())
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([dateKey, dayTasks]) => {
+        const byTime = new Map()
+        for (const task of dayTasks) {
+          if (!byTime.has(task.startDateTime)) byTime.set(task.startDateTime, [])
+          byTime.get(task.startDateTime).push(task)
+        }
+        return [dateKey, Array.from(byTime.values())]
+      })
   }, [tasks])
+
+  const renderTaskRow = (task) => {
+    const itemKey = `${task.id}-${task.startDateTime}`
+
+    if (movingTaskId === itemKey) {
+      return (
+        <MoveTaskForm
+          key={itemKey}
+          initialDate={fromApiDateTime(task.startDateTime)}
+          onConfirm={(dt) => handleMove(task, dt)}
+          onCancel={() => setMovingTaskId(null)}
+        />
+      )
+    }
+
+    if (editingTaskId === itemKey) {
+      return (
+        <EditTaskForm
+          key={itemKey}
+          task={task}
+          onSave={(payload) => handleSaveEdit(task, payload)}
+          onCancel={() => setEditingTaskId(null)}
+        />
+      )
+    }
+
+    const actions = task.isVirtual
+      ? [
+          { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
+          { label: t('planner.actionDelete'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
+        ]
+      : [
+          { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },
+          { label: t('planner.actionSkipped'), onClick: () => handleResolve(task.id, 'Skipped') },
+          { label: t('planner.actionEdit'), onClick: () => setEditingTaskId(itemKey) },
+          { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
+          { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
+        ]
+
+    return <TaskItem key={itemKey} task={task} actions={actions} />
+  }
 
   const locale = language === 'uk' ? 'uk-UA' : 'en-US'
 
@@ -93,33 +166,17 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
         <p className="placeholder-text">{t('planner.noTasksPeriod')}</p>
       ) : (
         <div className="period-view-list">
-          {groups.map(([dateKey, dayTasks]) => (
+          {groups.map(([dateKey, timeGroups]) => (
             <div key={dateKey} className="period-view-group">
               <div className="period-view-group-date">
                 {fromApiDateTime(dateKey).toLocaleDateString(locale, { day: 'numeric', month: 'long', weekday: 'short' })}
               </div>
-              {dayTasks.map((task) => {
-                const itemKey = `${task.id}-${task.startDateTime}`
-                if (movingTaskId === itemKey) {
-                  return (
-                    <MoveTaskForm
-                      key={itemKey}
-                      initialDate={fromApiDateTime(task.startDateTime)}
-                      onConfirm={(dt) => handleMove(task, dt)}
-                      onCancel={() => setMovingTaskId(null)}
-                    />
-                  )
-                }
-                const actions = task.isVirtual
-                  ? []
-                  : [
-                      { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },
-                      { label: t('planner.actionSkipped'), onClick: () => handleResolve(task.id, 'Skipped') },
-                      { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
-                      { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
-                    ]
-                return <TaskItem key={itemKey} task={task} actions={actions} />
-              })}
+              {timeGroups.map((group) =>
+                group.length === 1 ? (
+                  renderTaskRow(group[0])
+                ) : (
+                  <OverlapGroup key={group[0].startDateTime} tasks={group} renderItem={renderTaskRow} />
+                ))}
             </div>
           ))}
         </div>

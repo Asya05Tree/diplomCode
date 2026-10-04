@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { I18nProvider, useI18n } from './i18n'
 import Sidebar from './components/Sidebar'
+import './Layout.css'
 import Planner from './pages/Planner'
 import Unassigned from './pages/Unassigned'
 import Landing from './pages/Landing'
@@ -15,20 +16,12 @@ function Layout({ user, theme, onToggleTheme, onLogout }) {
   const { t } = useI18n()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="app-shell">
       <Sidebar />
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <header
-          style={{
-            padding: '12px 24px',
-            borderBottom: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span>{user?.nickname} · {user?.email}</span>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <main className="app-main">
+        <header className="app-header">
+          <span className="app-header-user">{user?.nickname} · {user?.email}</span>
+          <div className="app-header-actions">
             <button onClick={onToggleTheme}>{theme === 'light' ? '🌙' : '☀️'}</button>
             <button onClick={onLogout}>{t('header.logout')}</button>
           </div>

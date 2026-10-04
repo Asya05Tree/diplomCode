@@ -113,8 +113,10 @@
   "planner.noRules": "Правил повторення ще немає",
   "planner.editRule": "Редагувати правило",
   "planner.overlapBadge": "Накладається",
+  "planner.overlapCount": "{count} задач",
   "planner.actionDone": "Готово",
   "planner.actionSkipped": "Пропущено",
+  "planner.actionEdit": "Редагувати",
   "planner.actionMove": "Перенести",
   "planner.actionDelete": "Видалити",
 

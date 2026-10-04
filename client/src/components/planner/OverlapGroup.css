@@ -1,0 +1,41 @@
+.overlap-group-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  padding: 8px 0;
+  font-size: 0.9rem;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.overlap-group:first-child .overlap-group-summary {
+  border-top: none;
+}
+
+.overlap-group-count {
+  flex: 1;
+  color: #c0524a;
+  font-size: 0.85rem;
+}
+
+.overlap-group-chevron {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.overlap-group-list {
+  display: flex;
+  flex-direction: column;
+  padding-left: 16px;
+  margin-left: 22px;
+  border-left: 2px solid var(--color-border);
+}
+
+.overlap-group-list .task-item:first-child {
+  border-top: none;
+}

@@ -131,10 +131,15 @@
 }
 
 .recurrence-month-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 5px;
-  max-width: 320px;
+}
+
+.recurrence-monthday-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .recurrence-month-cell {
@@ -142,7 +147,9 @@
   background: var(--color-bg);
   color: var(--color-text);
   border-radius: 8px;
+  width: 32px;
   height: 32px;
+  flex-shrink: 0;
   font-size: 0.8rem;
   cursor: pointer;
 }
