@@ -52,7 +52,7 @@
   "landing.item.ibuprofen": "Ibuprofen blister pack",
 
   "landing.recurringHeading": "Recurring planning",
-  "landing.recurringText": "The same system expands recurrence rules into calendar days — from today through three months ahead. Besides \"Eat salo\", there are always \"Water the flowers\" and \"Look out the window\" on their own schedule. Click any day in this period to see what's planned for it.",
+  "landing.recurringText": "The same system expands a recurrence rule into calendar days — from today through three months ahead. \"Water the flowers\" and \"Look out the window\" are scheduled on the exact same days as \"Eat salo\" — all three follow one shared pattern. Click any day in this period to see what's planned for it.",
   "landing.recurringTaskTitle": "Eat salo",
   "landing.recurringTaskComment": "to stay powerful",
   "landing.recurringTask.flowersTitle": "Water the flowers",

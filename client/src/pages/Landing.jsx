@@ -58,28 +58,16 @@ const SHOPPING_MONEY_DEFAULT = 600
 
 const REPEAT_TYPES = ['WeekCycle', 'EveryNDays']
 const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7]
-const WEEKEND_DAYS = new Set([6, 7])
 const DEFAULT_RECURRING_WEEKDAYS = [1, 3, 5]
 const RECURRING_MONTHS_AHEAD = 3
 
-// Три приклади повторюваних справ — "Їсти сало" керується користувачем (дні тижня
-// або крок у днях), решта має фіксований розклад лише для демонстрації того, що
-// день на календарі збирає плани з кількох різних правил одночасно (planner-spec.md §4.3).
-const FIXED_RECURRING_TASKS = [
-  {
-    key: 'flowers',
-    titleKey: 'landing.recurringTask.flowersTitle',
-    commentKey: 'landing.recurringTask.flowersComment',
-    type: 'EveryNDays',
-    intervalDays: 3,
-  },
-  {
-    key: 'window',
-    titleKey: 'landing.recurringTask.windowTitle',
-    commentKey: 'landing.recurringTask.windowComment',
-    type: 'WeekCycle',
-    weekDays: WEEKEND_DAYS,
-  },
+// Три приклади повторюваних справ, які всі тримаються ОДНОГО розкладу — того самого,
+// що користувач задає для "Їсти сало" (дні тижня або крок у днях). День на календарі
+// демонструє, що кілька планів може збігатися в один день (planner-spec.md §4.3).
+const RECURRING_TASK_DEFS = [
+  { key: 'salo', titleKey: 'landing.recurringTaskTitle', commentKey: 'landing.recurringTaskComment' },
+  { key: 'flowers', titleKey: 'landing.recurringTask.flowersTitle', commentKey: 'landing.recurringTask.flowersComment' },
+  { key: 'window', titleKey: 'landing.recurringTask.windowTitle', commentKey: 'landing.recurringTask.windowComment' },
 ]
 
 function clamp(value, min, max) {
@@ -169,12 +157,12 @@ function TabBar({ tabs, activeKey, onSelect, t }) {
   )
 }
 
-// Чи припадає завдання з таким правилом повторення на вказаний день (не раніше today).
-function taskOccursOn(task, date, today) {
+// Чи припадає спільний розклад (дні тижня або крок у днях) на вказаний день (не раніше today).
+function occursOnDate(date, today, repeatType, selectedWeekDays, intervalDays) {
   const diffDays = Math.round((startOfDay(date) - today) / 86400000)
   if (diffDays < 0) return false
-  if (task.type === 'EveryNDays') return diffDays % task.intervalDays === 0
-  return task.weekDays.has(isoDayOfWeek(date))
+  if (repeatType === 'EveryNDays') return diffDays % intervalDays === 0
+  return selectedWeekDays.has(isoDayOfWeek(date))
 }
 
 // Публічна сторінка для тих, хто ще не увійшов. Реєстрація/вхід — окремі URL (/reg, /login),
@@ -274,37 +262,21 @@ export default function Landing() {
     })
   }
 
-  const recurringTasks = useMemo(
-    () => [
-      {
-        key: 'salo',
-        titleKey: 'landing.recurringTaskTitle',
-        commentKey: 'landing.recurringTaskComment',
-        type: repeatType,
-        intervalDays,
-        weekDays: selectedWeekDays,
-      },
-      ...FIXED_RECURRING_TASKS,
-    ],
-    [repeatType, intervalDays, selectedWeekDays],
-  )
-
   const recurringMarkings = useMemo(() => {
     const map = new Map()
     const totalDays = Math.round((recurrenceEndDate - today) / 86400000)
     for (let i = 0; i <= totalDays; i++) {
       const date = addDays(today, i)
-      const occursAny = recurringTasks.some((task) => taskOccursOn(task, date, today))
-      if (occursAny) map.set(toApiDate(date), 'occurrence')
+      if (occursOnDate(date, today, repeatType, selectedWeekDays, intervalDays)) {
+        map.set(toApiDate(date), 'occurrence')
+      }
     }
     return map
-  }, [recurringTasks, today, recurrenceEndDate])
+  }, [repeatType, selectedWeekDays, intervalDays, today, recurrenceEndDate])
 
-  // Плани саме на обраний день — незалежно від того, яка це дата в межах трьох місяців
-  const selectedDayTasks = useMemo(() => {
-    if (!selectedDate) return []
-    return recurringTasks.filter((task) => taskOccursOn(task, selectedDate, today))
-  }, [recurringTasks, selectedDate, today])
+  // Усі три плани тримаються одного розкладу, тож на обраний день вони або всі є, або жодного
+  const selectedDayHasPlans =
+    selectedDate != null && occursOnDate(selectedDate, today, repeatType, selectedWeekDays, intervalDays)
 
   const weekdayLabels = t('planner.weekdaysShort').split(',')
 
@@ -539,6 +511,28 @@ export default function Landing() {
             <p className="landing-panel-hint">
               {t('landing.recurringRangeHint', { start: toApiDate(today), end: toApiDate(recurrenceEndDate) })}
             </p>
+
+            <div className="landing-day-plan">
+              {selectedDate ? (
+                <>
+                  <p className="landing-day-plan-date">{toApiDate(selectedDate)}</p>
+                  {selectedDayHasPlans ? (
+                    <ul className="landing-day-plan-list">
+                      {RECURRING_TASK_DEFS.map((task) => (
+                        <li key={task.key} className="landing-day-plan-item">
+                          <span className="landing-recurring-task-title">{t(task.titleKey)}</span>
+                          <span className="landing-recurring-task-comment">{t(task.commentKey)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="placeholder-text">{t('landing.recurringDayEmpty')}</p>
+                  )}
+                </>
+              ) : (
+                <p className="placeholder-text">{t('landing.recurringDayHint')}</p>
+              )}
+            </div>
           </div>
 
           <div className="card landing-panel landing-recurring-calendar">
@@ -550,28 +544,6 @@ export default function Landing() {
               markings={recurringMarkings}
             />
           </div>
-        </div>
-
-        <div className="card landing-panel">
-          {selectedDate ? (
-            <>
-              <p className="landing-day-plan-date">{toApiDate(selectedDate)}</p>
-              {selectedDayTasks.length === 0 ? (
-                <p className="placeholder-text">{t('landing.recurringDayEmpty')}</p>
-              ) : (
-                <ul className="landing-day-plan-list">
-                  {selectedDayTasks.map((task) => (
-                    <li key={task.key} className="landing-day-plan-item">
-                      <span className="landing-recurring-task-title">{t(task.titleKey)}</span>
-                      <span className="landing-recurring-task-comment">{t(task.commentKey)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          ) : (
-            <p className="placeholder-text">{t('landing.recurringDayHint')}</p>
-          )}
         </div>
       </section>
     </div>
