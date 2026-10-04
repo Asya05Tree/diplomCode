@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
-import { toApiDate, toApiDateTime, formatTime } from '../../utils/date'
+import { toApiDate, toApiDateTime, formatTime, todayApiDate } from '../../utils/date'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
 import RecurrenceFields from './RecurrenceFields'
 import './TaskForm.css'
@@ -37,6 +37,13 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         setError(t(`taskForm.${errorCode}`))
         return
       }
+      if (recurrence.startDate < todayApiDate()) {
+        setError(t('taskForm.errorStartDateInPast'))
+        return
+      }
+    } else if (date < todayApiDate()) {
+      setError(t('taskForm.errorDateInPast'))
+      return
     }
 
     setBusy(true)
@@ -101,7 +108,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         <div className="task-form-row">
           <label>
             {t('taskForm.date')}
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <input type="date" value={date} min={todayApiDate()} onChange={(e) => setDate(e.target.value)} required />
           </label>
           <label>
             {t('taskForm.time')}
@@ -118,7 +125,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         {!repeats && (
           <label>
             {t('taskForm.deadline')}
-            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+            <input type="date" value={deadline} min={todayApiDate()} onChange={(e) => setDeadline(e.target.value)} />
           </label>
         )}
       </div>

@@ -55,6 +55,73 @@
 .recurrence-week-row-days {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
+}
+
+.recurrence-weekday-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.recurrence-weekday-time {
+  width: 76px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 3px 4px;
+  font-size: 0.78rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.recurrence-time-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recurrence-time-mode-label {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease, font-weight 0.2s ease;
+}
+
+.recurrence-time-mode-label--active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.recurrence-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-border);
+  cursor: pointer;
+  padding: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.recurrence-switch--on {
+  background: var(--color-tasks);
+}
+
+.recurrence-switch-knob {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.recurrence-switch--on .recurrence-switch-knob {
+  transform: translateX(18px);
 }
 
 .recurrence-month-days {

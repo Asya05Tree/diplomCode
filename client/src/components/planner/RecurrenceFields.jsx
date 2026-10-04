@@ -1,5 +1,5 @@
 import { useI18n } from '../../i18n'
-import { addMonths, fromApiDate, toApiDate } from '../../utils/date'
+import { addMonths, fromApiDate, toApiDate, todayApiDate } from '../../utils/date'
 import { MAX_RECURRENCE_YEARS } from '../../utils/recurrence'
 import './RecurrenceFields.css'
 
@@ -18,10 +18,12 @@ export default function RecurrenceFields({ value, onChange }) {
 
   const setCycleWeeks = (n) => {
     const nextPattern = Array.from({ length: n }, (_, i) => value.weekPattern[i] ?? new Set())
-    set({ cycleWeeks: n, weekPattern: nextPattern })
+    const nextPatternTimes = Array.from({ length: n }, (_, i) => value.weekPatternTimes[i] ?? {})
+    set({ cycleWeeks: n, weekPattern: nextPattern, weekPatternTimes: nextPatternTimes })
   }
 
   const toggleWeekDay = (weekIndex, day) => {
+    const willBeActive = !value.weekPattern[weekIndex].has(day)
     const nextPattern = value.weekPattern.map((daysSet, i) => {
       if (i !== weekIndex) return daysSet
       const next = new Set(daysSet)
@@ -29,7 +31,35 @@ export default function RecurrenceFields({ value, onChange }) {
       else next.add(day)
       return next
     })
-    set({ weekPattern: nextPattern })
+    const nextPatternTimes = value.weekPatternTimes.map((dayTimes, i) => {
+      if (i !== weekIndex) return dayTimes
+      const next = { ...dayTimes }
+      if (willBeActive) next[day] = next[day] ?? value.time
+      else delete next[day]
+      return next
+    })
+    set({ weekPattern: nextPattern, weekPatternTimes: nextPatternTimes })
+  }
+
+  const setDayTime = (weekIndex, day, time) => {
+    const nextPatternTimes = value.weekPatternTimes.map((dayTimes, i) =>
+      (i === weekIndex ? { ...dayTimes, [day]: time } : dayTimes))
+    set({ weekPatternTimes: nextPatternTimes })
+  }
+
+  // Перемикач "однаковий час" <-> "свій час на день": при переході на "свій" кожен уже
+  // обраний день отримує поточний спільний час як стартове значення
+  const setSameTimeForAll = (same) => {
+    if (same) {
+      set({ sameTimeForAll: true })
+      return
+    }
+    const nextPatternTimes = value.weekPattern.map((daysSet, i) => {
+      const next = { ...value.weekPatternTimes[i] }
+      for (const day of daysSet) next[day] = next[day] ?? value.time
+      return next
+    })
+    set({ sameTimeForAll: false, weekPatternTimes: nextPatternTimes })
   }
 
   const toggleMonthDay = (day) => {
@@ -87,6 +117,24 @@ export default function RecurrenceFields({ value, onChange }) {
             )}
           </div>
 
+          <div className="recurrence-time-mode-row">
+            <span className={value.sameTimeForAll ? 'recurrence-time-mode-label recurrence-time-mode-label--active' : 'recurrence-time-mode-label'}>
+              {t('recurrence.sameTimeForAll')}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!value.sameTimeForAll}
+              className={value.sameTimeForAll ? 'recurrence-switch' : 'recurrence-switch recurrence-switch--on'}
+              onClick={() => setSameTimeForAll(!value.sameTimeForAll)}
+            >
+              <span className="recurrence-switch-knob" />
+            </button>
+            <span className={!value.sameTimeForAll ? 'recurrence-time-mode-label recurrence-time-mode-label--active' : 'recurrence-time-mode-label'}>
+              {t('recurrence.customTimePerDay')}
+            </span>
+          </div>
+
           <div className="recurrence-week-grid">
             {value.weekPattern.map((daysSet, weekIndex) => (
               <div key={weekIndex} className="recurrence-week-row">
@@ -94,16 +142,28 @@ export default function RecurrenceFields({ value, onChange }) {
                   <span className="recurrence-week-row-label">{t('recurrence.week', { n: weekIndex + 1 })}</span>
                 )}
                 <div className="recurrence-week-row-days">
-                  {ISO_DAYS.map((day, idx) => (
-                    <button
-                      key={day}
-                      type="button"
-                      className={daysSet.has(day) ? 'task-form-weekday task-form-weekday--active' : 'task-form-weekday'}
-                      onClick={() => toggleWeekDay(weekIndex, day)}
-                    >
-                      {weekdayLabels[idx]}
-                    </button>
-                  ))}
+                  {ISO_DAYS.map((day, idx) => {
+                    const active = daysSet.has(day)
+                    return (
+                      <div key={day} className="recurrence-weekday-cell">
+                        <button
+                          type="button"
+                          className={active ? 'task-form-weekday task-form-weekday--active' : 'task-form-weekday'}
+                          onClick={() => toggleWeekDay(weekIndex, day)}
+                        >
+                          {weekdayLabels[idx]}
+                        </button>
+                        {active && !value.sameTimeForAll && (
+                          <input
+                            type="time"
+                            className="recurrence-weekday-time"
+                            value={value.weekPatternTimes[weekIndex]?.[day] ?? value.time}
+                            onChange={(e) => setDayTime(weekIndex, day, e.target.value)}
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -162,9 +222,20 @@ export default function RecurrenceFields({ value, onChange }) {
       {value.type === 'Manual' && <p className="recurrence-hint">{t('recurrence.manualHint')}</p>}
 
       <div className="task-form-row">
+        {!(value.type === 'WeekCycle' && !value.sameTimeForAll) && (
+          <label>
+            {t('taskForm.time')}
+            <input type="time" value={value.time} onChange={(e) => set({ time: e.target.value })} />
+          </label>
+        )}
         <label>
           {t('taskForm.startDate')}
-          <input type="date" value={value.startDate} onChange={(e) => handleStartDateChange(e.target.value)} />
+          <input
+            type="date"
+            value={value.startDate}
+            min={todayApiDate()}
+            onChange={(e) => handleStartDateChange(e.target.value)}
+          />
         </label>
         <label>
           {t('taskForm.endDate')} <span className="task-form-hint">({t('taskForm.endDateHint')})</span>

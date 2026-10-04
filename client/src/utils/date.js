@@ -60,6 +60,12 @@ export function toApiDateTime(date) {
   return `${toApiDate(date)}T${formatTime(date)}:00`
 }
 
+// Завжди обчислюється заново в момент виклику — не кешувати в змінну/useMemo без залежностей,
+// інакше "сьогодні" застаріє, якщо сторінка лишається відкритою через північ
+export function todayApiDate() {
+  return toApiDate(new Date())
+}
+
 export function formatTime(date) {
   const h = String(date.getHours()).padStart(2, '0')
   const m = String(date.getMinutes()).padStart(2, '0')

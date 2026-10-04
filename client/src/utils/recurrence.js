@@ -24,6 +24,41 @@ export function decodeWeekDaysPattern(pattern, cycleWeeks) {
   return result
 }
 
+// Той самий формат, що й WeekDaysPattern, але дні несуть ще й час:
+// "0:1=08:30,3=08:30|1:4=09:00" — свій час на день замість спільного value.time
+export function encodeWeekDayTimes(weekPatternTimes) {
+  return weekPatternTimes
+    .map((dayTimes, weekIndex) => ({ weekIndex, entries: Object.entries(dayTimes) }))
+    .filter(({ entries }) => entries.length > 0)
+    .map(({ weekIndex, entries }) => {
+      const days = entries
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .map(([day, time]) => `${day}=${time}`)
+        .join(',')
+      return `${weekIndex}:${days}`
+    })
+    .join('|')
+}
+
+export function decodeWeekDayTimes(pattern, cycleWeeks) {
+  const result = Array.from({ length: cycleWeeks }, () => ({}))
+  if (!pattern) return result
+
+  for (const part of pattern.split('|')) {
+    const [weekIndexStr, entriesStr] = part.split(':')
+    const weekIndex = Number(weekIndexStr)
+    if (Number.isNaN(weekIndex) || weekIndex < 0 || weekIndex >= cycleWeeks) continue
+    const dayTimes = {}
+    for (const entry of (entriesStr ?? '').split(',').filter(Boolean)) {
+      const [dayStr, time] = entry.split('=')
+      dayTimes[Number(dayStr)] = time
+    }
+    result[weekIndex] = dayTimes
+  }
+
+  return result
+}
+
 // planner-spec.md §3.3: термін дії правила — максимум рік, за замовчуванням пропонується 3 місяці
 export const MAX_RECURRENCE_YEARS = 1
 export const DEFAULT_END_MONTHS = 3
@@ -38,6 +73,8 @@ export function createDefaultRecurrenceValue(initialDate) {
     cycleWeeks: 1,
     cycleAnchorDate: start,
     weekPattern: [new Set()],
+    sameTimeForAll: true,
+    weekPatternTimes: [{}],
     intervalDays: 1,
     monthDayMode: 'Specific',
     monthDays: new Set(),
@@ -54,6 +91,8 @@ export function ruleToRecurrenceValue(rule) {
     cycleWeeks,
     cycleAnchorDate: rule.cycleAnchorDate ?? rule.startDate,
     weekPattern: decodeWeekDaysPattern(rule.weekDaysPattern, cycleWeeks),
+    sameTimeForAll: !rule.weekDayTimesPattern,
+    weekPatternTimes: decodeWeekDayTimes(rule.weekDayTimesPattern, cycleWeeks),
     intervalDays: rule.intervalDays ?? 1,
     monthDayMode: rule.monthDayMode ?? 'Specific',
     monthDays: new Set((rule.monthDays ?? '').split(',').filter(Boolean).map(Number)),
@@ -69,6 +108,9 @@ export function recurrenceValueToPayload(value) {
     cycleWeeks: value.type === 'WeekCycle' ? value.cycleWeeks : null,
     cycleAnchorDate: value.type === 'WeekCycle' && value.cycleWeeks > 1 ? value.cycleAnchorDate : null,
     weekDaysPattern: value.type === 'WeekCycle' ? encodeWeekDaysPattern(value.weekPattern) : null,
+    weekDayTimesPattern: value.type === 'WeekCycle' && !value.sameTimeForAll
+      ? encodeWeekDayTimes(value.weekPatternTimes)
+      : null,
     intervalDays: value.type === 'EveryNDays' ? value.intervalDays : null,
     monthDayMode: value.type === 'MonthDays' ? value.monthDayMode : null,
     monthDays: value.type === 'MonthDays' && value.monthDayMode === 'Specific'

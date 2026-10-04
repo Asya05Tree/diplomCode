@@ -138,6 +138,8 @@
   "taskForm.errorEndDateTooFar": "End date must be within a year of the start",
   "taskForm.errorIntervalRequired": "Enter the step in days (minimum 1)",
   "taskForm.errorMonthDaysRequired": "Pick at least one day of the month",
+  "taskForm.errorDateInPast": "Date can't be in the past",
+  "taskForm.errorStartDateInPast": "Start date can't be in the past",
   "taskForm.endDateHint": "max one year from start, defaults to 3 months",
 
   "reminder.title": "{count} tasks left over from yesterday",
@@ -153,6 +155,8 @@
   "recurrence.week": "Week {n}",
   "recurrence.anchorDate": "Reference date (week 1)",
   "recurrence.intervalDays": "Every … days",
+  "recurrence.sameTimeForAll": "Same time for all",
+  "recurrence.customTimePerDay": "Custom time per day",
   "recurrence.monthDayMode.Specific": "Specific numbers",
   "recurrence.monthDayMode.Even": "Even",
   "recurrence.monthDayMode.Odd": "Odd",

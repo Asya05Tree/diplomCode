@@ -138,6 +138,8 @@
   "taskForm.errorEndDateTooFar": "Дата закінчення має бути в межах року від початку",
   "taskForm.errorIntervalRequired": "Вкажіть крок у днях (мінімум 1)",
   "taskForm.errorMonthDaysRequired": "Оберіть хоча б одне число місяця",
+  "taskForm.errorDateInPast": "Дата не може бути в минулому",
+  "taskForm.errorStartDateInPast": "Дата початку не може бути в минулому",
   "taskForm.endDateHint": "максимум рік від початку, за замовчуванням 3 місяці",
 
   "reminder.title": "Вчора лишилось {count} задач",
@@ -153,6 +155,8 @@
   "recurrence.week": "Тиждень {n}",
   "recurrence.anchorDate": "Дата відліку (тиждень 1)",
   "recurrence.intervalDays": "Кожні … днів",
+  "recurrence.sameTimeForAll": "Однаковий час для всіх",
+  "recurrence.customTimePerDay": "Свій час на кожен день",
   "recurrence.monthDayMode.Specific": "Конкретні числа",
   "recurrence.monthDayMode.Even": "Парні",
   "recurrence.monthDayMode.Odd": "Непарні",

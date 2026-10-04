@@ -12,7 +12,7 @@ import {
   addManualDate,
   deleteManualDate,
 } from '../../api/tasks'
-import { fromApiDate, toApiDate } from '../../utils/date'
+import { fromApiDate, toApiDate, todayApiDate } from '../../utils/date'
 import { recurrenceValueToPayload, ruleToRecurrenceValue, validateRecurrenceValue } from '../../utils/recurrence'
 import './RecurringView.css'
 
@@ -307,7 +307,12 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
                 </select>
                 {exceptionType === 'Moved' && (
                   <>
-                    <input type="date" value={exceptionNewDate} onChange={(e) => setExceptionNewDate(e.target.value)} />
+                    <input
+                      type="date"
+                      value={exceptionNewDate}
+                      min={todayApiDate()}
+                      onChange={(e) => setExceptionNewDate(e.target.value)}
+                    />
                     <input type="time" value={exceptionNewTime} onChange={(e) => setExceptionNewTime(e.target.value)} />
                   </>
                 )}
