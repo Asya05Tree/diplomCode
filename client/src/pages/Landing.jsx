@@ -53,20 +53,34 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
 }
 
-// Пари позицій, сума яких вкладається в бюджет — спільна функція для обох демо-блоків:
-// жорсткий фільтр (обмеження / "вже є дома") звужує множину, бюджет відбирає з неї пари.
-function findAffordablePairs(items, budget) {
-  const result = []
-  for (let i = 0; i < items.length; i++) {
-    for (let j = i + 1; j < items.length; j++) {
-      const total = items[i].price + items[j].price
-      if (total <= budget) {
-        result.push({ items: [items[i], items[j]], total })
+// Усі набори позицій (будь-якого розміру — 1, 2, 3 і більше), сума яких вкладається
+// в бюджет і до яких не можна додати ще хоч одну позицію без перевищення бюджету.
+// Показуємо тільки такі "максимальні" набори: якщо набір можна доповнити — його
+// витісняє більший набір, що вже охоплює той самий варіант. Жорсткий фільтр
+// (обмеження / "вже є дома") звужує множину заздалегідь, бюджет відбирає з неї набори.
+function findMaximalCombos(items, budget) {
+  const n = items.length
+  const results = []
+  for (let mask = 1; mask < 1 << n; mask++) {
+    let total = 0
+    for (let i = 0; i < n; i++) {
+      if (mask & (1 << i)) total += items[i].price
+    }
+    if (total > budget) continue
+
+    let canAddMore = false
+    for (let i = 0; i < n; i++) {
+      if (!(mask & (1 << i)) && total + items[i].price <= budget) {
+        canAddMore = true
+        break
       }
     }
+    if (canAddMore) continue
+
+    results.push({ items: items.filter((_, i) => mask & (1 << i)), total })
   }
-  result.sort((a, b) => b.total - a.total)
-  return result
+  results.sort((a, b) => b.total - a.total || b.items.length - a.items.length)
+  return results
 }
 
 function ComboList({ combos, t, nameFor, emptyText }) {
@@ -75,14 +89,29 @@ function ComboList({ combos, t, nameFor, emptyText }) {
   }
   return (
     <ul className="landing-results-list">
-      {combos.map((combo, index) => (
-        <li key={combo.items.map((item) => item.key).join('-')}>
-          {index > 0 && <div className="landing-results-divider">{t('landing.resultsOr')}</div>}
-          <div className="landing-results-combo">
-            {nameFor(combo.items[0])} {t('landing.comboJoin')} {nameFor(combo.items[1])}
-          </div>
-        </li>
-      ))}
+      {combos.map((combo, index) => {
+        const parts = []
+        combo.items.forEach((item, itemIndex) => {
+          if (itemIndex > 0) {
+            parts.push(
+              <span key={`plus-${item.key}`} className="landing-results-plus">
+                +
+              </span>,
+            )
+          }
+          parts.push(
+            <span key={item.key} className="landing-results-combo-item">
+              {nameFor(item)}
+            </span>,
+          )
+        })
+        return (
+          <li key={combo.items.map((item) => item.key).join('-')}>
+            {index > 0 && <div className="landing-results-divider">{t('landing.resultsOr')}</div>}
+            <div className="landing-results-combo">{parts}</div>
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -132,7 +161,7 @@ export default function Landing() {
 
   const dishCombos = useMemo(() => {
     const budget = clamp(Number(foodMoney) || 0, FOOD_MONEY_MIN, FOOD_MONEY_MAX)
-    return findAffordablePairs(allowedDishes, budget)
+    return findMaximalCombos(allowedDishes, budget)
   }, [allowedDishes, foodMoney])
 
   const neededPurchaseItems = useMemo(
@@ -142,7 +171,7 @@ export default function Landing() {
 
   const purchaseCombos = useMemo(() => {
     const budget = clamp(Number(shoppingMoney) || 0, SHOPPING_MONEY_MIN, SHOPPING_MONEY_MAX)
-    return findAffordablePairs(neededPurchaseItems, budget)
+    return findMaximalCombos(neededPurchaseItems, budget)
   }, [neededPurchaseItems, shoppingMoney])
 
   return (
@@ -224,16 +253,16 @@ export default function Landing() {
               ))}
             </ul>
           </div>
+        </div>
 
-          <div className="card landing-panel">
-            <p className="landing-panel-title">{t('landing.resultsLabel')}</p>
-            <ComboList
-              combos={dishCombos}
-              t={t}
-              nameFor={(item) => t(`landing.dish.${item.key}`)}
-              emptyText={t('landing.resultsEmpty')}
-            />
-          </div>
+        <div className="card landing-results">
+          <p className="landing-panel-title">{t('landing.resultsLabel')}</p>
+          <ComboList
+            combos={dishCombos}
+            t={t}
+            nameFor={(item) => t(`landing.dish.${item.key}`)}
+            emptyText={t('landing.resultsEmpty')}
+          />
         </div>
       </section>
 
@@ -304,16 +333,16 @@ export default function Landing() {
               ))}
             </ul>
           </div>
+        </div>
 
-          <div className="card landing-panel">
-            <p className="landing-panel-title">{t('landing.possiblePurchasesLabel')}</p>
-            <ComboList
-              combos={purchaseCombos}
-              t={t}
-              nameFor={(item) => t(`landing.item.${item.key}`)}
-              emptyText={t('landing.shoppingResultsEmpty')}
-            />
-          </div>
+        <div className="card landing-results">
+          <p className="landing-panel-title">{t('landing.possiblePurchasesLabel')}</p>
+          <ComboList
+            combos={purchaseCombos}
+            t={t}
+            nameFor={(item) => t(`landing.item.${item.key}`)}
+            emptyText={t('landing.shoppingResultsEmpty')}
+          />
         </div>
       </section>
     </div>
