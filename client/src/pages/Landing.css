@@ -117,10 +117,9 @@
   font-size: clamp(0.9rem, 2vw, 1rem);
 }
 
-.landing-tabs {
+.landing-demo-switch {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  justify-content: center;
 }
 
 .landing-tabs-bar {
@@ -147,14 +146,17 @@
   border-color: transparent;
 }
 
-.landing-tabs-bar--shopping .landing-tab--active {
-  background: var(--color-finance);
+.landing-demo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.landing-tab-caption {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
+@media (min-width: 760px) {
+  .landing-demo-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: start;
+  }
 }
 
 .landing-results {
@@ -406,4 +408,25 @@
     max-width: none;
     margin: 0;
   }
+}
+
+.landing-day-plan-date {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.landing-day-plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.landing-day-plan-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
