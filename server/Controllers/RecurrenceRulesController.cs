@@ -8,14 +8,14 @@ namespace Server.Controllers;
 public record CreateRecurrenceRuleRequest(
     string Title, string? Description, int? DurationMinutes,
     string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
-    int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern,
+    int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
     int? IntervalDays,
     string? MonthDayMode, string? MonthDays);
 
 public record UpdateRecurrenceRuleRequest(
     string Title, string? Description, int? DurationMinutes,
     string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
-    int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern,
+    int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
     int? IntervalDays,
     string? MonthDayMode, string? MonthDays);
 
@@ -85,7 +85,7 @@ public class RecurrenceRulesController : ControllerBase
         var rule = await _taskService.CreateRecurrenceRuleAsync(
             CurrentUserId, request.Title, request.Description, request.DurationMinutes,
             request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
-            request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern,
+            request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern, request.WeekDayTimesPattern,
             request.IntervalDays, request.MonthDayMode, request.MonthDays);
         return Ok(rule);
     }
@@ -101,7 +101,7 @@ public class RecurrenceRulesController : ControllerBase
         var ok = await _taskService.UpdateRecurrenceRuleAsync(
             CurrentUserId, id, request.Title, request.Description, request.DurationMinutes,
             request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
-            request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern,
+            request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern, request.WeekDayTimesPattern,
             request.IntervalDays, request.MonthDayMode, request.MonthDays);
         return ok ? Ok() : NotFound();
     }

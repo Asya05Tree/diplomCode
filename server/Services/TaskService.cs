@@ -60,20 +60,50 @@ public class TaskService
         return result;
     }
 
-    private static List<DateOnly> GenerateWeekCycleDates(RecurrenceRule rule, DateOnly from, DateOnly to)
+    // "0:1=08:30,4=08:30|1:2=09:00" -> {0: {1: 08:30, 4: 08:30}, 1: {2: 09:00}} — свій час на день
+    // замість спільного TimeOfDay, той самий індекс тижня, що й WeekDaysPattern
+    private static Dictionary<int, Dictionary<int, TimeOnly>> ParseWeekDayTimes(string? pattern)
+    {
+        var result = new Dictionary<int, Dictionary<int, TimeOnly>>();
+        if (string.IsNullOrWhiteSpace(pattern)) return result;
+
+        foreach (var part in pattern.Split('|', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split(':');
+            if (kv.Length != 2 || !int.TryParse(kv[0], out var weekIndex)) continue;
+            var dayTimes = new Dictionary<int, TimeOnly>();
+            foreach (var entry in kv[1].Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var de = entry.Split('=');
+                if (de.Length == 2 && int.TryParse(de[0], out var day) && TimeOnly.TryParse(de[1], out var time))
+                    dayTimes[day] = time;
+            }
+            result[weekIndex] = dayTimes;
+        }
+
+        return result;
+    }
+
+    private static int GetWeekIndex(RecurrenceRule rule, DateOnly d)
     {
         var cycleWeeks = Math.Clamp(rule.CycleWeeks ?? 1, 1, 4);
-        var pattern = ParseWeekDaysPattern(rule.WeekDaysPattern);
         // Для циклу з одного тижня дата відліку не має значення (тиждень завжди 0-й) — беремо StartDate
         var anchor = cycleWeeks > 1 && rule.CycleAnchorDate.HasValue ? rule.CycleAnchorDate.Value : rule.StartDate;
         var anchorWeekStart = anchor.AddDays(-(IsoDayOfWeek(anchor) - 1)); // понеділок тижня відліку
 
+        var daysSince = d.DayNumber - anchorWeekStart.DayNumber;
+        var weeksSince = (int)Math.Floor(daysSince / 7.0);
+        return ((weeksSince % cycleWeeks) + cycleWeeks) % cycleWeeks;
+    }
+
+    private static List<DateOnly> GenerateWeekCycleDates(RecurrenceRule rule, DateOnly from, DateOnly to)
+    {
+        var pattern = ParseWeekDaysPattern(rule.WeekDaysPattern);
+
         var result = new List<DateOnly>();
         for (var d = from; d <= to; d = d.AddDays(1))
         {
-            var daysSince = d.DayNumber - anchorWeekStart.DayNumber;
-            var weeksSince = (int)Math.Floor(daysSince / 7.0);
-            var weekIndex = ((weeksSince % cycleWeeks) + cycleWeeks) % cycleWeeks;
+            var weekIndex = GetWeekIndex(rule, d);
             if (pattern.TryGetValue(weekIndex, out var isoDays) && isoDays.Contains(IsoDayOfWeek(d)))
                 result.Add(d);
         }
@@ -162,12 +192,18 @@ public class TaskService
     {
         var baseDates = GenerateBaseDates(rule, from, to);
         var exceptionByDate = rule.Exceptions.ToDictionary(e => e.Date, e => e);
+        // Непорожній WeekDayTimesPattern (лише для WeekCycle) — свій час на кожен день замість TimeOfDay
+        var customTimes = rule.Type == "WeekCycle" ? ParseWeekDayTimes(rule.WeekDayTimesPattern) : null;
         var result = new List<DateTime>();
 
         foreach (var d in baseDates)
         {
             if (exceptionByDate.ContainsKey(d)) continue; // Cancelled — пропуск; Moved — додасться нижче
-            result.Add(d.ToDateTime(rule.TimeOfDay));
+            var time = rule.TimeOfDay;
+            if (customTimes is not null && customTimes.TryGetValue(GetWeekIndex(rule, d), out var dayTimes)
+                && dayTimes.TryGetValue(IsoDayOfWeek(d), out var custom))
+                time = custom;
+            result.Add(d.ToDateTime(time));
         }
 
         foreach (var ex in rule.Exceptions.Where(e => e.ExceptionType == "Moved" && e.NewDateTime.HasValue))
@@ -420,7 +456,7 @@ public class TaskService
     private static RecurrenceRuleDto ToDto(RecurrenceRule r, TaskItem t) => new(
         r.Id, t.Id, t.Title, t.Description, t.DurationMinutes,
         r.Type, r.TimeOfDay, r.StartDate, r.EndDate,
-        r.CycleWeeks, r.CycleAnchorDate, r.WeekDaysPattern,
+        r.CycleWeeks, r.CycleAnchorDate, r.WeekDaysPattern, r.WeekDayTimesPattern,
         r.IntervalDays,
         r.MonthDayMode, r.MonthDays,
         r.Exceptions.Select(e => new RecurrenceExceptionDto(e.Id, e.Date, e.ExceptionType, e.NewDateTime)).ToList(),
@@ -445,7 +481,7 @@ public class TaskService
     public async Task<RecurrenceRuleDto> CreateRecurrenceRuleAsync(
         int userId, string title, string? description, int? durationMinutes,
         string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
-        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern,
+        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern, string? weekDayTimesPattern,
         int? intervalDays, string? monthDayMode, string? monthDays)
     {
         var rule = new RecurrenceRule
@@ -458,6 +494,7 @@ public class TaskService
             CycleWeeks = cycleWeeks,
             CycleAnchorDate = cycleAnchorDate,
             WeekDaysPattern = weekDaysPattern,
+            WeekDayTimesPattern = weekDayTimesPattern,
             IntervalDays = intervalDays,
             MonthDayMode = monthDayMode,
             MonthDays = monthDays,
@@ -483,7 +520,7 @@ public class TaskService
     public async Task<bool> UpdateRecurrenceRuleAsync(
         int userId, int ruleId, string title, string? description, int? durationMinutes,
         string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
-        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern,
+        int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern, string? weekDayTimesPattern,
         int? intervalDays, string? monthDayMode, string? monthDays)
     {
         var rule = await _db.RecurrenceRules.FirstOrDefaultAsync(r => r.Id == ruleId && r.UserId == userId);
@@ -498,6 +535,7 @@ public class TaskService
         rule.CycleWeeks = cycleWeeks;
         rule.CycleAnchorDate = cycleAnchorDate;
         rule.WeekDaysPattern = weekDaysPattern;
+        rule.WeekDayTimesPattern = weekDayTimesPattern;
         rule.IntervalDays = intervalDays;
         rule.MonthDayMode = monthDayMode;
         rule.MonthDays = monthDays;
