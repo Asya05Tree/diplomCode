@@ -25,12 +25,6 @@ const FOOD_RESTRICTIONS = [
   { key: 'meat', tag: 'meat' },
 ]
 
-const FOOD_TABS = [
-  { key: 'money', labelKey: 'landing.tab.money', captionKey: 'landing.tabCaption.foodMoney' },
-  { key: 'restrictions', labelKey: 'landing.tab.restrictions', captionKey: 'landing.tabCaption.foodRestrictions' },
-  { key: 'dishes', labelKey: 'landing.tab.dishes', captionKey: 'landing.tabCaption.foodDishes' },
-]
-
 // Другий приклад того самого механізму — "Запаси" з planner-spec.md §3.4:
 // користувач відмічає чекбоксами, що вже є дома, це знімає позицію зі списку покупок.
 const PURCHASE_ITEMS = [
@@ -49,10 +43,9 @@ const EXTRA_STOCK_ITEMS = [
   { key: 'ibuprofen', qty: 1 },
 ]
 
-const SHOPPING_TABS = [
-  { key: 'money', labelKey: 'landing.tab.money', captionKey: 'landing.tabCaption.shoppingMoney' },
-  { key: 'owned', labelKey: 'landing.tab.owned', captionKey: 'landing.tabCaption.shoppingOwned' },
-  { key: 'purchases', labelKey: 'landing.tab.purchases', captionKey: 'landing.tabCaption.shoppingPurchases' },
+const DEMO_TABS = [
+  { key: 'food', labelKey: 'landing.demoTab.food' },
+  { key: 'shopping', labelKey: 'landing.demoTab.shopping' },
 ]
 
 const FOOD_MONEY_MIN = 0
@@ -65,8 +58,29 @@ const SHOPPING_MONEY_DEFAULT = 600
 
 const REPEAT_TYPES = ['WeekCycle', 'EveryNDays']
 const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7]
+const WEEKEND_DAYS = new Set([6, 7])
 const DEFAULT_RECURRING_WEEKDAYS = [1, 3, 5]
 const RECURRING_MONTHS_AHEAD = 3
+
+// Три приклади повторюваних справ — "Їсти сало" керується користувачем (дні тижня
+// або крок у днях), решта має фіксований розклад лише для демонстрації того, що
+// день на календарі збирає плани з кількох різних правил одночасно (planner-spec.md §4.3).
+const FIXED_RECURRING_TASKS = [
+  {
+    key: 'flowers',
+    titleKey: 'landing.recurringTask.flowersTitle',
+    commentKey: 'landing.recurringTask.flowersComment',
+    type: 'EveryNDays',
+    intervalDays: 3,
+  },
+  {
+    key: 'window',
+    titleKey: 'landing.recurringTask.windowTitle',
+    commentKey: 'landing.recurringTask.windowComment',
+    type: 'WeekCycle',
+    weekDays: WEEKEND_DAYS,
+  },
+]
 
 function clamp(value, min, max) {
   if (Number.isNaN(value)) return min
@@ -136,12 +150,11 @@ function ComboList({ combos, t, nameFor, emptyText }) {
   )
 }
 
-// Рядок вкладок — спільний вигляд для обох демо-блоків їжі/покупок і для перемикача
-// типу повторення нижче. variant лише змінює колір активної вкладки (coding-guide.md §5 —
-// той самий принцип закріплення кольору за категорією, тут неформально).
-function TabBar({ tabs, activeKey, onSelect, t, variant }) {
+// Рядок вкладок — спільний вигляд для перемикача демо (їжа / покупки) і для
+// перемикача типу повторення нижче.
+function TabBar({ tabs, activeKey, onSelect, t }) {
   return (
-    <div className={variant ? `landing-tabs-bar landing-tabs-bar--${variant}` : 'landing-tabs-bar'}>
+    <div className="landing-tabs-bar">
       {tabs.map((tab) => (
         <button
           key={tab.key}
@@ -156,16 +169,24 @@ function TabBar({ tabs, activeKey, onSelect, t, variant }) {
   )
 }
 
+// Чи припадає завдання з таким правилом повторення на вказаний день (не раніше today).
+function taskOccursOn(task, date, today) {
+  const diffDays = Math.round((startOfDay(date) - today) / 86400000)
+  if (diffDays < 0) return false
+  if (task.type === 'EveryNDays') return diffDays % task.intervalDays === 0
+  return task.weekDays.has(isoDayOfWeek(date))
+}
+
 // Публічна сторінка для тих, хто ще не увійшов. Реєстрація/вхід — окремі URL (/reg, /login),
 // щоб на них можна було перейти напряму або оновити сторінку без втрати екрана.
 export default function Landing() {
   const { t } = useI18n()
 
-  const [foodTab, setFoodTab] = useState('money')
+  const [activeDemo, setActiveDemo] = useState('food')
+
   const [foodMoney, setFoodMoney] = useState(FOOD_MONEY_DEFAULT)
   const [activeDietRestrictions, setActiveDietRestrictions] = useState([])
 
-  const [shoppingTab, setShoppingTab] = useState('money')
   const [shoppingMoney, setShoppingMoney] = useState(SHOPPING_MONEY_DEFAULT)
   const [ownedItems, setOwnedItems] = useState([])
 
@@ -216,9 +237,6 @@ export default function Landing() {
     return findMaximalCombos(neededPurchaseItems, budget)
   }, [neededPurchaseItems, shoppingMoney])
 
-  const activeFoodTab = FOOD_TABS.find((tab) => tab.key === foodTab) ?? FOOD_TABS[0]
-  const activeShoppingTab = SHOPPING_TABS.find((tab) => tab.key === shoppingTab) ?? SHOPPING_TABS[0]
-
   // Демонстрація повторюваного планування (planner-spec.md §3.3/§4.3): подія діє рівно
   // від сьогодні до сьогодні+3 місяці, без ручного керування межами — так само, як
   // RecurrenceFields пропонує 3 місяці за замовчуванням, тільки тут це єдиний варіант.
@@ -234,10 +252,17 @@ export default function Landing() {
   const [selectedWeekDays, setSelectedWeekDays] = useState(() => new Set(DEFAULT_RECURRING_WEEKDAYS))
   const [intervalDays, setIntervalDays] = useState(2)
   const [visibleMonth, setVisibleMonth] = useState(minMonth)
+  const [selectedDate, setSelectedDate] = useState(null)
 
   const handleMonthChange = (nextMonth) => {
     if (nextMonth < minMonth || nextMonth > maxMonth) return
     setVisibleMonth(nextMonth)
+  }
+
+  // Поза межами "сьогодні..+3 місяці" день не можна обрати — так само, як і сітка не гортається далі
+  const handleSelectDate = (date) => {
+    if (date < today || date > recurrenceEndDate) return
+    setSelectedDate(date)
   }
 
   const toggleWeekDay = (day) => {
@@ -249,17 +274,37 @@ export default function Landing() {
     })
   }
 
+  const recurringTasks = useMemo(
+    () => [
+      {
+        key: 'salo',
+        titleKey: 'landing.recurringTaskTitle',
+        commentKey: 'landing.recurringTaskComment',
+        type: repeatType,
+        intervalDays,
+        weekDays: selectedWeekDays,
+      },
+      ...FIXED_RECURRING_TASKS,
+    ],
+    [repeatType, intervalDays, selectedWeekDays],
+  )
+
   const recurringMarkings = useMemo(() => {
     const map = new Map()
     const totalDays = Math.round((recurrenceEndDate - today) / 86400000)
     for (let i = 0; i <= totalDays; i++) {
       const date = addDays(today, i)
-      const occurs =
-        repeatType === 'WeekCycle' ? selectedWeekDays.has(isoDayOfWeek(date)) : i % intervalDays === 0
-      if (occurs) map.set(toApiDate(date), 'occurrence')
+      const occursAny = recurringTasks.some((task) => taskOccursOn(task, date, today))
+      if (occursAny) map.set(toApiDate(date), 'occurrence')
     }
     return map
-  }, [repeatType, selectedWeekDays, intervalDays, today, recurrenceEndDate])
+  }, [recurringTasks, today, recurrenceEndDate])
+
+  // Плани саме на обраний день — незалежно від того, яка це дата в межах трьох місяців
+  const selectedDayTasks = useMemo(() => {
+    if (!selectedDate) return []
+    return recurringTasks.filter((task) => taskOccursOn(task, selectedDate, today))
+  }, [recurringTasks, selectedDate, today])
 
   const weekdayLabels = t('planner.weekdaysShort').split(',')
 
@@ -290,13 +335,14 @@ export default function Landing() {
         <h2 className="landing-demo-heading">{t('landing.heroHeading')}</h2>
         <p className="landing-demo-text">{t('landing.heroText')}</p>
 
-        <div className="card landing-tabs">
-          <TabBar tabs={FOOD_TABS} activeKey={foodTab} onSelect={setFoodTab} t={t} variant="food" />
-          <p className="landing-tab-caption">{t(activeFoodTab.captionKey)}</p>
+        <div className="landing-demo-switch">
+          <TabBar tabs={DEMO_TABS} activeKey={activeDemo} onSelect={setActiveDemo} t={t} />
+        </div>
 
-          <div className="landing-tab-content">
-            {foodTab === 'money' && (
-              <div className="landing-panel">
+        {activeDemo === 'food' && (
+          <>
+            <div className="landing-demo-grid">
+              <div className="card landing-panel">
                 <label className="landing-panel-title" htmlFor="landing-food-money">
                   {t('landing.moneyLabel')}
                 </label>
@@ -313,63 +359,58 @@ export default function Landing() {
                   />
                   <span className="landing-money-currency">{t('landing.moneyCurrency')}</span>
                 </div>
+                <p className="landing-panel-hint">{t('landing.moneyHint')}</p>
               </div>
-            )}
 
-            {foodTab === 'restrictions' && (
-              <ul className="landing-check-list">
-                {FOOD_RESTRICTIONS.map((restriction) => (
-                  <li key={restriction.key}>
-                    <label className="landing-check-option">
-                      <input
-                        type="checkbox"
-                        checked={activeDietRestrictions.includes(restriction.tag)}
-                        onChange={() => toggleDietRestriction(restriction.tag)}
-                      />
-                      <span>{t(`landing.restriction.${restriction.key}`)}</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            )}
+              <div className="card landing-panel">
+                <p className="landing-panel-title">{t('landing.restrictionsLabel')}</p>
+                <ul className="landing-check-list">
+                  {FOOD_RESTRICTIONS.map((restriction) => (
+                    <li key={restriction.key}>
+                      <label className="landing-check-option">
+                        <input
+                          type="checkbox"
+                          checked={activeDietRestrictions.includes(restriction.tag)}
+                          onChange={() => toggleDietRestriction(restriction.tag)}
+                        />
+                        <span>{t(`landing.restriction.${restriction.key}`)}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {foodTab === 'dishes' && (
-              <ul className="landing-price-list">
-                {DISHES.map((dish) => (
-                  <li key={dish.key} className={allowedDishes.includes(dish) ? '' : 'is-disabled'}>
-                    <span>{t(`landing.dish.${dish.key}`)}</span>
-                    <span className="landing-price-amount">
-                      {dish.price} {t('landing.moneyCurrency')}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+              <div className="card landing-panel">
+                <p className="landing-panel-title">{t('landing.foodLabel')}</p>
+                <ul className="landing-price-list">
+                  {DISHES.map((dish) => (
+                    <li key={dish.key} className={allowedDishes.includes(dish) ? '' : 'is-disabled'}>
+                      <span>{t(`landing.dish.${dish.key}`)}</span>
+                      <span className="landing-price-amount">
+                        {dish.price} {t('landing.moneyCurrency')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-        <div className="card landing-results">
-          <p className="landing-panel-title">{t('landing.resultsLabel')}</p>
-          <ComboList
-            combos={dishCombos}
-            t={t}
-            nameFor={(item) => t(`landing.dish.${item.key}`)}
-            emptyText={t('landing.resultsEmpty')}
-          />
-        </div>
-      </section>
+            <div className="card landing-results">
+              <p className="landing-panel-title">{t('landing.resultsLabel')}</p>
+              <ComboList
+                combos={dishCombos}
+                t={t}
+                nameFor={(item) => t(`landing.dish.${item.key}`)}
+                emptyText={t('landing.resultsEmpty')}
+              />
+            </div>
+          </>
+        )}
 
-      <section className="landing-demo">
-        <h2 className="landing-demo-heading">{t('landing.shoppingHeading')}</h2>
-        <p className="landing-demo-text">{t('landing.shoppingText')}</p>
-
-        <div className="card landing-tabs">
-          <TabBar tabs={SHOPPING_TABS} activeKey={shoppingTab} onSelect={setShoppingTab} t={t} variant="shopping" />
-          <p className="landing-tab-caption">{t(activeShoppingTab.captionKey)}</p>
-
-          <div className="landing-tab-content">
-            {shoppingTab === 'money' && (
-              <div className="landing-panel">
+        {activeDemo === 'shopping' && (
+          <>
+            <div className="landing-demo-grid">
+              <div className="card landing-panel">
                 <label className="landing-panel-title" htmlFor="landing-shopping-money">
                   {t('landing.moneyLabel')}
                 </label>
@@ -386,61 +427,64 @@ export default function Landing() {
                   />
                   <span className="landing-money-currency">{t('landing.moneyCurrency')}</span>
                 </div>
+                <p className="landing-panel-hint">{t('landing.shoppingMoneyHint')}</p>
               </div>
-            )}
 
-            {shoppingTab === 'owned' && (
-              <ul className="landing-check-list">
-                {EXTRA_STOCK_ITEMS.map((item) => (
-                  <li key={item.key} className="landing-extra-item">
-                    <span>{t(`landing.item.${item.key}`)}</span>
-                    <span className="landing-extra-item-qty">
-                      {item.qty} {t('landing.unitPieces')}
-                    </span>
-                  </li>
-                ))}
-                {PURCHASE_ITEMS.map((item) => (
-                  <li key={item.key}>
-                    <label className="landing-check-option">
-                      <input
-                        type="checkbox"
-                        checked={ownedItems.includes(item.key)}
-                        onChange={() => toggleOwnedItem(item.key)}
-                      />
+              <div className="card landing-panel">
+                <p className="landing-panel-title">{t('landing.ownedItemsLabel')}</p>
+                <ul className="landing-check-list">
+                  {EXTRA_STOCK_ITEMS.map((item) => (
+                    <li key={item.key} className="landing-extra-item">
                       <span>{t(`landing.item.${item.key}`)}</span>
-                      <span className="landing-check-option-qty">
+                      <span className="landing-extra-item-qty">
                         {item.qty} {t('landing.unitPieces')}
                       </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            )}
+                    </li>
+                  ))}
+                  {PURCHASE_ITEMS.map((item) => (
+                    <li key={item.key}>
+                      <label className="landing-check-option">
+                        <input
+                          type="checkbox"
+                          checked={ownedItems.includes(item.key)}
+                          onChange={() => toggleOwnedItem(item.key)}
+                        />
+                        <span>{t(`landing.item.${item.key}`)}</span>
+                        <span className="landing-check-option-qty">
+                          {item.qty} {t('landing.unitPieces')}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {shoppingTab === 'purchases' && (
-              <ul className="landing-price-list">
-                {PURCHASE_ITEMS.map((item) => (
-                  <li key={item.key} className={ownedItems.includes(item.key) ? 'is-disabled' : ''}>
-                    <span>{t(`landing.item.${item.key}`)}</span>
-                    <span className="landing-price-amount">
-                      {item.price} {t('landing.moneyCurrency')}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+              <div className="card landing-panel">
+                <p className="landing-panel-title">{t('landing.catalogLabel')}</p>
+                <ul className="landing-price-list">
+                  {PURCHASE_ITEMS.map((item) => (
+                    <li key={item.key} className={ownedItems.includes(item.key) ? 'is-disabled' : ''}>
+                      <span>{t(`landing.item.${item.key}`)}</span>
+                      <span className="landing-price-amount">
+                        {item.price} {t('landing.moneyCurrency')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-        <div className="card landing-results">
-          <p className="landing-panel-title">{t('landing.possiblePurchasesLabel')}</p>
-          <ComboList
-            combos={purchaseCombos}
-            t={t}
-            nameFor={(item) => t(`landing.item.${item.key}`)}
-            emptyText={t('landing.shoppingResultsEmpty')}
-          />
-        </div>
+            <div className="card landing-results">
+              <p className="landing-panel-title">{t('landing.possiblePurchasesLabel')}</p>
+              <ComboList
+                combos={purchaseCombos}
+                t={t}
+                nameFor={(item) => t(`landing.item.${item.key}`)}
+                emptyText={t('landing.shoppingResultsEmpty')}
+              />
+            </div>
+          </>
+        )}
       </section>
 
       <section className="landing-demo">
@@ -501,11 +545,33 @@ export default function Landing() {
             <MonthGrid
               visibleMonth={visibleMonth}
               onMonthChange={handleMonthChange}
-              selectedDate={null}
-              onSelectDate={() => {}}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
               markings={recurringMarkings}
             />
           </div>
+        </div>
+
+        <div className="card landing-panel">
+          {selectedDate ? (
+            <>
+              <p className="landing-day-plan-date">{toApiDate(selectedDate)}</p>
+              {selectedDayTasks.length === 0 ? (
+                <p className="placeholder-text">{t('landing.recurringDayEmpty')}</p>
+              ) : (
+                <ul className="landing-day-plan-list">
+                  {selectedDayTasks.map((task) => (
+                    <li key={task.key} className="landing-day-plan-item">
+                      <span className="landing-recurring-task-title">{t(task.titleKey)}</span>
+                      <span className="landing-recurring-task-comment">{t(task.commentKey)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : (
+            <p className="placeholder-text">{t('landing.recurringDayHint')}</p>
+          )}
         </div>
       </section>
     </div>
