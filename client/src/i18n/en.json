@@ -207,6 +207,8 @@
   "shoppingList.category.stationery": "Stationery",
   "shoppingList.category.other": "Other",
   "shoppingList.category.uncategorized": "Pick a category",
+  "shoppingList.ownedLabel": "Already have at home",
+  "shoppingList.totalLabel": "Total (known prices): {amount} UAH — known for {known} of {total} items",
 
   "finance.balanceLabel": "Available money",
   "finance.balanceHint": "Used by other sections (shopping list, etc.) to pick purchase options that fit the budget"

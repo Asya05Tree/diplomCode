@@ -50,6 +50,7 @@ export function addShoppingItem(name, category, price = 0) {
     name: trimmed,
     category: category ?? detectCategory(trimmed),
     price: Number(price) || 0,
+    owned: false,
   }
   saveShoppingItems([...getShoppingItems(), item])
   return item
@@ -61,4 +62,10 @@ export function removeShoppingItem(id) {
 
 export function setShoppingItemCategory(id, category) {
   saveShoppingItems(getShoppingItems().map((item) => (item.id === id ? { ...item, category } : item)))
+}
+
+// planner-spec.md §4.8 — чекбокс "вже є вдома" біля позиції: відмічені не враховуються
+// в сумі "Разом" і не входять у підбір варіантів покупки за бюджетом.
+export function setShoppingItemOwned(id, owned) {
+  saveShoppingItems(getShoppingItems().map((item) => (item.id === id ? { ...item, owned } : item)))
 }

@@ -207,6 +207,8 @@
   "shoppingList.category.stationery": "Канцтовари",
   "shoppingList.category.other": "Інше",
   "shoppingList.category.uncategorized": "Оберіть категорію",
+  "shoppingList.ownedLabel": "Вже є вдома",
+  "shoppingList.totalLabel": "Разом (за відомими цінами): {amount} грн — відомо для {known} з {total} позицій",
 
   "finance.balanceLabel": "Наявні гроші",
   "finance.balanceHint": "Це значення використовується в інших розділах (список покупок тощо) для підбору варіантів за бюджетом"

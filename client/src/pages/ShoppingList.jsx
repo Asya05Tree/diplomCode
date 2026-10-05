@@ -7,6 +7,7 @@ import {
   getShoppingItems,
   removeShoppingItem,
   setShoppingItemCategory,
+  setShoppingItemOwned,
 } from '../utils/shoppingList'
 import './ShoppingList.css'
 
@@ -38,6 +39,11 @@ export default function ShoppingList() {
     setItems(getShoppingItems())
   }
 
+  const handleOwnedToggle = (id, owned) => {
+    setShoppingItemOwned(id, owned)
+    setItems(getShoppingItems())
+  }
+
   const grouped = useMemo(() => {
     const map = new Map()
     for (const category of SHOPPING_CATEGORIES) map.set(category, [])
@@ -48,6 +54,12 @@ export default function ShoppingList() {
     }
     return Array.from(map.entries()).filter(([, list]) => list.length > 0)
   }, [items])
+
+  // planner-spec.md §4.8 — "Итого" завжди чесно позначає, скільки позицій узято в суму:
+  // те, що вже є вдома, і позиції без ціни в суму не входять.
+  const toBuy = items.filter((item) => !item.owned)
+  const priced = toBuy.filter((item) => item.price > 0)
+  const total = priced.reduce((sum, item) => sum + item.price, 0)
 
   return (
     <div className="shopping-list-page">
@@ -78,7 +90,14 @@ export default function ShoppingList() {
               <h3>{t(`shoppingList.category.${category}`)}</h3>
               <ul>
                 {list.map((item) => (
-                  <li key={item.id} className="shopping-list-row">
+                  <li key={item.id} className={item.owned ? 'shopping-list-row is-owned' : 'shopping-list-row'}>
+                    <label className="shopping-list-owned" title={t('shoppingList.ownedLabel')}>
+                      <input
+                        type="checkbox"
+                        checked={item.owned}
+                        onChange={(e) => handleOwnedToggle(item.id, e.target.checked)}
+                      />
+                    </label>
                     <span className="shopping-list-name">{item.name}</span>
                     {item.price > 0 && (
                       <span className="shopping-list-price">
@@ -108,6 +127,11 @@ export default function ShoppingList() {
               </ul>
             </div>
           ))}
+          {toBuy.length > 0 && (
+            <p className="shopping-list-total">
+              {t('shoppingList.totalLabel', { amount: total, known: priced.length, total: toBuy.length })}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ export default function ShoppingTaskTabs() {
   const budget = getFinanceBalance()
 
   const items = useMemo(() => getShoppingItems(), [])
-  const pricedItems = useMemo(() => items.filter((item) => item.price > 0), [items])
+  const pricedItems = useMemo(() => items.filter((item) => !item.owned && item.price > 0), [items])
 
   const combos = useMemo(() => findMaximalCombos(pricedItems, budget), [pricedItems, budget])
 

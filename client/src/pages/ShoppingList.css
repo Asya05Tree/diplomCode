@@ -73,8 +73,30 @@
   border-bottom: none;
 }
 
+.shopping-list-row.is-owned .shopping-list-name {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.shopping-list-owned {
+  display: flex;
+  align-items: center;
+}
+
+.shopping-list-owned input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-food);
+}
+
 .shopping-list-name {
   flex: 1;
+  font-size: 0.9rem;
+}
+
+.shopping-list-total {
+  margin: 0;
+  font-weight: 600;
   font-size: 0.9rem;
 }
 
