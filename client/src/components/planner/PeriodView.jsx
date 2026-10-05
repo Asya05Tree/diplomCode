@@ -5,12 +5,26 @@ import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
 import OverlapGroup from './OverlapGroup'
 import { getPeriodTasks, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
-import { fromApiDateTime, toApiDate } from '../../utils/date'
+import { addMonths, fromApiDateTime, toApiDate } from '../../utils/date'
 import './PeriodView.css'
 
 function parseDate(str) {
   const [y, m, d] = str.split('-').map(Number)
   return new Date(y, m - 1, d)
+}
+
+// Період не може бути довшим за місяць (вимога інтерфейсу): "по" завжди в межах
+// [від, від+1міс], "з" — у межах [по-1міс, по]. Один і той самий день в обох полях дозволено.
+function clampToAfterFrom(from, to) {
+  if (to < from) return from
+  const maxTo = addMonths(from, 1)
+  return to > maxTo ? maxTo : to
+}
+
+function clampFromBeforeTo(from, to) {
+  if (from > to) return to
+  const minFrom = addMonths(to, -1)
+  return from < minFrom ? minFrom : from
 }
 
 // planner-spec.md §4.3 "Період" — довільний діапазон дат. Заливка "де є задачі" тепер —
@@ -141,6 +155,16 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
 
   const locale = language === 'uk' ? 'uk-UA' : 'en-US'
 
+  const handleFromChange = (e) => {
+    const from = parseDate(e.target.value)
+    onRangeChange({ from, to: clampToAfterFrom(from, range.to) })
+  }
+
+  const handleToChange = (e) => {
+    const to = parseDate(e.target.value)
+    onRangeChange({ from: clampFromBeforeTo(range.from, to), to })
+  }
+
   return (
     <div className="period-view">
       <div className="period-view-controls">
@@ -149,7 +173,9 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
           <input
             type="date"
             value={toApiDate(range.from)}
-            onChange={(e) => onRangeChange({ ...range, from: parseDate(e.target.value) })}
+            min={toApiDate(addMonths(range.to, -1))}
+            max={toApiDate(range.to)}
+            onChange={handleFromChange}
           />
         </label>
         <label>
@@ -157,9 +183,12 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
           <input
             type="date"
             value={toApiDate(range.to)}
-            onChange={(e) => onRangeChange({ ...range, to: parseDate(e.target.value) })}
+            min={toApiDate(range.from)}
+            max={toApiDate(addMonths(range.from, 1))}
+            onChange={handleToChange}
           />
         </label>
+        <span className="period-view-hint">{t('planner.periodMaxHint')}</span>
       </div>
 
       {groups.length === 0 ? (

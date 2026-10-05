@@ -106,6 +106,7 @@
   "planner.noTasksDay": "На цей день задач немає",
   "planner.periodFrom": "З",
   "planner.periodTo": "По",
+  "planner.periodMaxHint": "Можна переглянути період не більше ніж за місяць",
   "planner.minFreeHours": "Мінімум вільних годин",
   "planner.noTasksPeriod": "На цей період задач немає",
   "planner.newRule": "+ Нове правило",

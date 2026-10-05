@@ -1,15 +1,3 @@
-.unassigned-page {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  flex: 1;
-}
-
-.unassigned-page h2 {
-  margin: 0;
-}
-
 .unassigned-list {
   display: flex;
   flex-direction: column;

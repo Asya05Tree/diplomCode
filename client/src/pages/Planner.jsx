@@ -5,7 +5,8 @@ import ModeSwitch from '../components/planner/ModeSwitch'
 import DayView from '../components/planner/DayView'
 import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
-import { getFreeDays, getPeriodTasks } from '../api/tasks'
+import UnassignedView from '../components/planner/UnassignedView'
+import { getFreeDays, getPeriodTasks, getUnassignedCount } from '../api/tasks'
 import { addDays, getMonthGridCells } from '../utils/date'
 import './Planner.css'
 
@@ -24,7 +25,8 @@ export default function Planner() {
   })
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [mode, setMode] = useState('day')
-  const [isRecurring, setIsRecurring] = useState(false)
+  // Три рівноправні вкладки робочої області (planner-spec.md §4.2): 'dayPeriod' | 'recurring' | 'unassigned'
+  const [activeTab, setActiveTab] = useState('dayPeriod')
   const [periodRange, setPeriodRange] = useState(() => {
     const from = new Date()
     return { from, to: addDays(from, 6) }
@@ -32,9 +34,11 @@ export default function Planner() {
   const [minFreeHours, setMinFreeHours] = useState(2)
   const [busyMarkings, setBusyMarkings] = useState(new Map())
   const [recurringMarkings, setRecurringMarkings] = useState(new Map())
+  const [unassignedCount, setUnassignedCount] = useState(0)
   // Тип Manual (RecurringView): клік по дню в лівій сітці = вставити/зняти ручну дату
   const [manualDateHandler, setManualDateHandler] = useState(null)
-  // Бампається після будь-якої зміни задач у Дні/Періоді, щоб базова заливка сітки не застарівала
+  // Бампається після будь-якої зміни задач у Дні/Періоді/Нерозподілених, щоб заливка сітки
+  // й лічильник на вкладці "Нерозподілені" не застарівали
   const [tasksVersion, setTasksVersion] = useState(0)
   const notifyTasksChanged = () => setTasksVersion((v) => v + 1)
 
@@ -44,7 +48,7 @@ export default function Planner() {
   }, [visibleMonth])
 
   useEffect(() => {
-    if (isRecurring) return
+    if (activeTab !== 'dayPeriod') return
     let cancelled = false
 
     Promise.all([
@@ -69,16 +73,24 @@ export default function Planner() {
     return () => {
       cancelled = true
     }
-  }, [token, visibleGridRange, minFreeHours, isRecurring, tasksVersion])
+  }, [token, visibleGridRange, minFreeHours, activeTab, tasksVersion])
 
-  const markings = isRecurring ? recurringMarkings : busyMarkings
+  // Лічильник на вкладці "Нерозподілені" (раніше показувався в сайдбарі) — оновлюється
+  // після будь-якої зміни задач, незалежно від того, яка вкладка зараз активна
+  useEffect(() => {
+    getUnassignedCount(token)
+      .then((res) => setUnassignedCount(res.count))
+      .catch(() => {})
+  }, [token, tasksVersion])
+
+  const markings = activeTab === 'recurring' ? recurringMarkings : busyMarkings
 
   const handleSelectDate = (date) => {
-    if (isRecurring) {
+    if (activeTab === 'recurring') {
       if (manualDateHandler) manualDateHandler(date)
       return
     }
-    if (mode !== 'day') return
+    if (activeTab !== 'dayPeriod' || mode !== 'day') return
     setSelectedDate(date)
   }
 
@@ -88,12 +100,12 @@ export default function Planner() {
         <MonthGrid
           visibleMonth={visibleMonth}
           onMonthChange={setVisibleMonth}
-          selectedDate={mode === 'day' && !isRecurring ? selectedDate : null}
+          selectedDate={activeTab === 'dayPeriod' && mode === 'day' ? selectedDate : null}
           onSelectDate={handleSelectDate}
           markings={markings}
         />
 
-        {!isRecurring && (
+        {activeTab === 'dayPeriod' && (
           <div className="planner-free-hours">
             <label>
               {t('planner.minFreeHours')}
@@ -111,17 +123,25 @@ export default function Planner() {
 
       <section className="planner-work-panel">
         <div className="card planner-mode-card">
-          <ModeSwitch mode={mode} onModeChange={setMode} isRecurring={isRecurring} onRecurringChange={setIsRecurring} />
+          <ModeSwitch
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            mode={mode}
+            onModeChange={setMode}
+            unassignedCount={unassignedCount}
+          />
         </div>
 
         <div className="card planner-content-card">
-          {isRecurring ? (
+          {activeTab === 'recurring' ? (
             <RecurringView
               token={token}
               visibleRange={visibleGridRange}
               onPreviewChange={setRecurringMarkings}
               onManualHandlerChange={setManualDateHandler}
             />
+          ) : activeTab === 'unassigned' ? (
+            <UnassignedView token={token} onTasksChanged={notifyTasksChanged} />
           ) : mode === 'day' ? (
             <DayView token={token} date={selectedDate} onTasksChanged={notifyTasksChanged} />
           ) : (

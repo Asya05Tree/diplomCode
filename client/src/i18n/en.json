@@ -106,6 +106,7 @@
   "planner.noTasksDay": "No tasks for this day",
   "planner.periodFrom": "From",
   "planner.periodTo": "To",
+  "planner.periodMaxHint": "You can view a period of at most one month",
   "planner.minFreeHours": "Minimum free hours",
   "planner.noTasksPeriod": "No tasks for this period",
   "planner.newRule": "+ New rule",

@@ -61,9 +61,16 @@
   border: 1px solid var(--color-tasks);
 }
 
+/* Обраний день має бути однозначно впізнаваним: жирна рамка + трохи більший розмір
+   (поверх сусідів через z-index, бо scale() не впливає на розмір комірки в гріді) */
 .month-grid-cell--selected {
   background: var(--color-tasks);
   color: var(--color-text);
+  border: 3px solid var(--color-text);
+  font-weight: 700;
+  transform: scale(1.12);
+  position: relative;
+  z-index: 2;
 }
 
 /* Базове відображення (§4.4): день із задачами або з недостатнім запасом вільного часу */

@@ -13,7 +13,7 @@ import './DayView.css'
 // planner-spec.md §4.3 "День" — розклад обраної дати. Ранковий банер (§4.5) показується тільки
 // коли обрано "сьогодні" — саме тоді нагадувати про вчора має сенс.
 export default function DayView({ token, date, onTasksChanged }) {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
   const [reminderTasks, setReminderTasks] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -21,6 +21,10 @@ export default function DayView({ token, date, onTasksChanged }) {
   const [editingTaskId, setEditingTaskId] = useState(null)
 
   const isToday = isSameDate(date, new Date())
+  // Текстова дата зліва (замість самої лише підсвітки в сітці) — щоб було однозначно
+  // видно, який саме день зараз обрано
+  const locale = language === 'uk' ? 'uk-UA' : 'en-US'
+  const dateLabel = date.toLocaleDateString(locale, { day: 'numeric', month: 'long', weekday: 'long' })
 
   const reload = useCallback(() => {
     getDayTasks(token, date).then(setTasks).catch(() => setTasks([]))
@@ -152,6 +156,7 @@ export default function DayView({ token, date, onTasksChanged }) {
       )}
 
       <div className="day-view-header">
+        <span className="day-view-date">{dateLabel}</span>
         <button type="button" className="day-view-add" onClick={() => setShowForm((s) => !s)}>
           {showForm ? t('auth.back') : t('planner.addTask')}
         </button>

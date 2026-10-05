@@ -1,24 +1,29 @@
 .mode-switch {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.day-period-switch {
+/* "День/Період" — одна вкладка з двома підписами й перемикачем усередині; підсвічується
+   як ціле, коли активна (так само, як і дві сусідні прості вкладки) */
+.tab-group {
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: opacity 0.2s ease;
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Візуально приглушена, але клікабельна — один клік по День/Період одразу перемикає назад,
-   не треба спершу вимикати капсулу списку */
-.day-period-switch--inactive {
-  opacity: 0.45;
+.tab-group--active {
+  background: var(--color-tasks);
+  border-color: transparent;
 }
 
-.day-period-label {
+.tab-sublabel {
   font-size: 0.9rem;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -26,13 +31,13 @@
   transition: color 0.2s ease;
 }
 
-.day-period-label--active {
+.tab-sublabel--active {
   color: var(--color-text);
   font-weight: 600;
 }
 
-/* Android-стиль тумблер: сірий трек + білий повзунок ліворуч (вимкнено),
-   кольоровий трек + повзунок праворуч (увімкнено) — плавна анімація transform/background */
+/* Android-стиль тумблер: сірий трек + білий повзунок ліворуч (день),
+   кольоровий трек + повзунок праворуч (період) — плавна анімація transform/background */
 .android-switch {
   position: relative;
   width: 52px;
@@ -47,7 +52,7 @@
 }
 
 .android-switch--on {
-  background: var(--color-tasks);
+  background: var(--color-surface);
 }
 
 .android-switch-thumb {
@@ -66,9 +71,8 @@
   transform: translateX(24px);
 }
 
-/* Список повторюваних задач — та сама капсульна форма, заливка = активний стан
-   (замість квадратного чекбокса); клікабельна завжди, навіть коли приглушена */
-.recurring-pill {
+/* Вкладки "Повторювані" й "Нерозподілені" — та сама капсульна форма, заливка = активна вкладка */
+.tab-pill {
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text-muted);
@@ -76,16 +80,11 @@
   padding: 6px 16px;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.recurring-pill--inactive {
-  opacity: 0.45;
-}
-
-.recurring-pill--active {
+.tab-pill--active {
   background: var(--color-tasks);
   color: var(--color-text);
   border-color: transparent;
-  opacity: 1;
 }

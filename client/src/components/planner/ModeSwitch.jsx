@@ -1,37 +1,43 @@
 import { useI18n } from '../../i18n'
 import './ModeSwitch.css'
 
-// planner-spec.md §4.2: "День/Період" і "Список повторюваних задач" — дві рівноправні капсули,
-// активна лише одна. Клік по будь-якій частині неактивної капсули одразу перемикає на неї —
-// не треба спершу вимикати поточну (раніше: android-switch мав HTML disabled, і щоб дістатись
-// "Період" з режиму повторень, треба було спершу клікнути капсулу списку, потім перемикач).
-export default function ModeSwitch({ mode, onModeChange, isRecurring, onRecurringChange }) {
+// planner-spec.md §4.2: три рівноправні вкладки робочої області, активна лише одна —
+// "День/Період" (із внутрішнім перемикачем дня/періоду), "Повторювані", "Нерозподілені".
+// Раніше "Нерозподілені" була окремою сторінкою в сайдбарі — тепер це третя вкладка тут.
+export default function ModeSwitch({ activeTab, onTabChange, mode, onModeChange, unassignedCount }) {
   const { t } = useI18n()
   const isPeriod = mode === 'period'
+  const isDayPeriodActive = activeTab === 'dayPeriod'
 
   const selectDay = () => {
     onModeChange('day')
-    if (isRecurring) onRecurringChange(false)
+    onTabChange('dayPeriod')
   }
 
   const selectPeriod = () => {
     onModeChange('period')
-    if (isRecurring) onRecurringChange(false)
+    onTabChange('dayPeriod')
   }
 
   const toggleDayPeriod = () => {
-    if (isRecurring) {
-      onRecurringChange(false)
+    if (!isDayPeriodActive) {
+      onTabChange('dayPeriod')
       return
     }
     onModeChange(isPeriod ? 'day' : 'period')
   }
 
+  const unassignedLabel =
+    unassignedCount > 0 ? `${t('nav.unassigned')} (${unassignedCount})` : t('nav.unassigned')
+
   return (
     <div className="mode-switch">
-      <div className={isRecurring ? 'day-period-switch day-period-switch--inactive' : 'day-period-switch'}>
+      <div
+        className={isDayPeriodActive ? 'tab-group tab-group--active' : 'tab-group'}
+        onClick={() => onTabChange('dayPeriod')}
+      >
         <span
-          className={!isPeriod ? 'day-period-label day-period-label--active' : 'day-period-label'}
+          className={isDayPeriodActive && !isPeriod ? 'tab-sublabel tab-sublabel--active' : 'tab-sublabel'}
           onClick={selectDay}
         >
           {t('planner.modeDay')}
@@ -47,7 +53,7 @@ export default function ModeSwitch({ mode, onModeChange, isRecurring, onRecurrin
         </button>
 
         <span
-          className={isPeriod ? 'day-period-label day-period-label--active' : 'day-period-label'}
+          className={isDayPeriodActive && isPeriod ? 'tab-sublabel tab-sublabel--active' : 'tab-sublabel'}
           onClick={selectPeriod}
         >
           {t('planner.modePeriod')}
@@ -56,14 +62,18 @@ export default function ModeSwitch({ mode, onModeChange, isRecurring, onRecurrin
 
       <button
         type="button"
-        className={
-          isRecurring
-            ? 'recurring-pill recurring-pill--active'
-            : 'recurring-pill recurring-pill--inactive'
-        }
-        onClick={() => onRecurringChange(!isRecurring)}
+        className={activeTab === 'recurring' ? 'tab-pill tab-pill--active' : 'tab-pill'}
+        onClick={() => onTabChange('recurring')}
       >
         {t('planner.modeRecurring')}
+      </button>
+
+      <button
+        type="button"
+        className={activeTab === 'unassigned' ? 'tab-pill tab-pill--active' : 'tab-pill'}
+        onClick={() => onTabChange('unassigned')}
+      >
+        {unassignedLabel}
       </button>
     </div>
   )

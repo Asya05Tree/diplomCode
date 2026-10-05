@@ -6,15 +6,17 @@
 
 .period-view-controls {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
 }
 
+/* Підпис З/По ліворуч, дата — одразу праворуч від нього (не під ним) */
 .period-view-controls label {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
@@ -26,6 +28,13 @@
   font-size: 0.85rem;
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+/* Пояснення обмеження — завжди праворуч від обох полів */
+.period-view-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-left: auto;
 }
 
 .period-view-group {

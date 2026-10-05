@@ -6,7 +6,16 @@
 
 .day-view-header {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day-view-date {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text);
+  text-transform: capitalize;
 }
 
 .day-view-add {
