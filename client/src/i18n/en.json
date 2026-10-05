@@ -1,6 +1,7 @@
 {
   "nav.calendar": "Calendar",
   "nav.unassigned": "Unassigned",
+  "nav.shoppingList": "Shopping list",
   "nav.food": "Food",
   "nav.health": "Medicine cabinet",
   "nav.finance": "Finance",
@@ -123,6 +124,15 @@
 
   "taskForm.titleLabel": "Task title",
   "taskForm.titlePlaceholder": "e.g. Workout",
+  "taskForm.presetLabel": "Preset names",
+  "taskForm.preset.custom": "Custom name",
+  "taskForm.preset.cookFood": "Cook food",
+  "taskForm.preset.goShopping": "Go to the store",
+  "taskForm.shoppingTab.list": "Shopping list",
+  "taskForm.shoppingTab.options": "Possible purchase options",
+  "taskForm.goToShoppingList": "Go to shopping list",
+  "taskForm.shoppingBudgetLabel": "How much money you have",
+  "taskForm.shoppingBudgetHint": "A number from 0 to 100,000 UAH",
   "taskForm.description": "Description (optional)",
   "taskForm.when": "When",
   "taskForm.once": "Once",
@@ -184,5 +194,17 @@
   "unassigned.deadlineLabel": "Deadline",
   "unassigned.moveTo": "New date and time",
   "unassigned.moveConfirm": "Move",
-  "unassigned.moveCancel": "Cancel"
+  "unassigned.moveCancel": "Cancel",
+
+  "shoppingList.title": "Shopping list",
+  "shoppingList.addPlaceholder": "Item name",
+  "shoppingList.priceLabel": "Price, UAH (optional)",
+  "shoppingList.addButton": "Add",
+  "shoppingList.empty": "The shopping list is empty",
+  "shoppingList.category.food": "Food",
+  "shoppingList.category.drinks": "Drinks",
+  "shoppingList.category.chemistry": "Household chemicals",
+  "shoppingList.category.stationery": "Stationery",
+  "shoppingList.category.other": "Other",
+  "shoppingList.category.uncategorized": "Pick a category"
 }

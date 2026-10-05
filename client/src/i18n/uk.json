@@ -1,6 +1,7 @@
 {
   "nav.calendar": "Календар",
   "nav.unassigned": "Нерозподілені",
+  "nav.shoppingList": "Список покупок",
   "nav.food": "Їжа",
   "nav.health": "Аптечка",
   "nav.finance": "Фінанси",
@@ -123,6 +124,15 @@
 
   "taskForm.titleLabel": "Назва задачі",
   "taskForm.titlePlaceholder": "Наприклад, Зарядка",
+  "taskForm.presetLabel": "Готові назви",
+  "taskForm.preset.custom": "Своя назва",
+  "taskForm.preset.cookFood": "Приготувати їжу",
+  "taskForm.preset.goShopping": "Піти в магазин",
+  "taskForm.shoppingTab.list": "Список покупок",
+  "taskForm.shoppingTab.options": "Можливі варіанти покупки",
+  "taskForm.goToShoppingList": "Перейти до списку покупок",
+  "taskForm.shoppingBudgetLabel": "Скільки є грошей",
+  "taskForm.shoppingBudgetHint": "Число від 0 до 100 000 грн",
   "taskForm.description": "Опис (необов'язково)",
   "taskForm.when": "Коли",
   "taskForm.once": "Один раз",
@@ -184,5 +194,17 @@
   "unassigned.deadlineLabel": "Дедлайн",
   "unassigned.moveTo": "Нова дата й час",
   "unassigned.moveConfirm": "Перенести",
-  "unassigned.moveCancel": "Скасувати"
+  "unassigned.moveCancel": "Скасувати",
+
+  "shoppingList.title": "Список покупок",
+  "shoppingList.addPlaceholder": "Назва товару",
+  "shoppingList.priceLabel": "Ціна, грн (необов'язково)",
+  "shoppingList.addButton": "Додати",
+  "shoppingList.empty": "Список покупок порожній",
+  "shoppingList.category.food": "Їжа",
+  "shoppingList.category.drinks": "Напої",
+  "shoppingList.category.chemistry": "Побутова хімія",
+  "shoppingList.category.stationery": "Канцтовари",
+  "shoppingList.category.other": "Інше",
+  "shoppingList.category.uncategorized": "Оберіть категорію"
 }

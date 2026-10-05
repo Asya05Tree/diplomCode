@@ -4,6 +4,7 @@ import { I18nProvider, useI18n } from './i18n'
 import Sidebar from './components/Sidebar'
 import './Layout.css'
 import Planner from './pages/Planner'
+import ShoppingList from './pages/ShoppingList'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
@@ -99,6 +100,7 @@ function AppContent() {
           }
         >
           <Route index element={<Planner />} />
+          <Route path="shopping-list" element={<ShoppingList />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

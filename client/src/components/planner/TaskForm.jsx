@@ -4,14 +4,22 @@ import { createTask, createRecurrenceRule } from '../../api/tasks'
 import { toApiDate, toApiDateTime, formatTime, todayApiDate } from '../../utils/date'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
 import RecurrenceFields from './RecurrenceFields'
+import ShoppingTaskTabs from './ShoppingTaskTabs'
 import './TaskForm.css'
+
+// Дефолтні назви у випадаючому списку справа від заголовка — обрання одного з них просто
+// підставляє текст у поле назви (користувач може далі змінити його вручну як завгодно).
+const TITLE_PRESETS = ['cookFood', 'goShopping']
 
 // Спільна форма створення задачі, за шаблоном coding-guide.md §8: назва, коли (один раз /
 // повторюється — тип правила й розклад делегуються RecurrenceFields), тривалість і дедлайн — необов'язкові.
 export default function TaskForm({ token, initialDate, defaultRecurring = false, onSaved, onCancel }) {
   const { t } = useI18n()
 
+  const presetLabel = (key) => t(`taskForm.preset.${key}`)
+
   const [title, setTitle] = useState('')
+  const [titlePreset, setTitlePreset] = useState('')
   const [description, setDescription] = useState('')
   const [repeats, setRepeats] = useState(defaultRecurring)
   const [date, setDate] = useState(toApiDate(initialDate))
@@ -23,6 +31,21 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
 
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // Світч "своя назва / з випадаючого списку": вибір у списку підставляє текст у поле,
+  // а ручне редагування поля знімає виділення пресету, якщо текст більше йому не відповідає
+  const handleTitleChange = (value) => {
+    setTitle(value)
+    setTitlePreset(TITLE_PRESETS.find((key) => presetLabel(key) === value) ?? '')
+  }
+
+  const handlePresetSelect = (e) => {
+    const key = e.target.value
+    setTitlePreset(key)
+    if (key) setTitle(presetLabel(key))
+  }
+
+  const isShoppingTask = title.trim() === presetLabel('goShopping')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -80,15 +103,37 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
 
   return (
     <form className="task-form" onSubmit={handleSubmit}>
-      <label>
-        {t('taskForm.titleLabel')}
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('taskForm.titlePlaceholder')} required />
-      </label>
+      <div className="task-form-row">
+        <label>
+          {t('taskForm.titleLabel')}
+          <input
+            value={title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder={t('taskForm.titlePlaceholder')}
+            required
+          />
+        </label>
+        <label>
+          {t('taskForm.presetLabel')}
+          <select value={titlePreset} onChange={handlePresetSelect}>
+            <option value="">{t('taskForm.preset.custom')}</option>
+            {TITLE_PRESETS.map((key) => (
+              <option key={key} value={key}>
+                {presetLabel(key)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
-      <label>
-        {t('taskForm.description')}
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-      </label>
+      {isShoppingTask ? (
+        <ShoppingTaskTabs />
+      ) : (
+        <label>
+          {t('taskForm.description')}
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+        </label>
+      )}
 
       <div className="task-form-when">
         <span className="task-form-when-label">{t('taskForm.when')}</span>

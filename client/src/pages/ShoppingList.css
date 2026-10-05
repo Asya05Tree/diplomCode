@@ -1,0 +1,94 @@
+.shopping-list-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.shopping-list-page h2 {
+  margin: 0;
+}
+
+.shopping-list-add {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.shopping-list-add input {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.shopping-list-add input:first-child {
+  flex: 1;
+  min-width: 160px;
+}
+
+.shopping-list-add button {
+  background: var(--color-tasks);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.shopping-list-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shopping-list-group h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.shopping-list-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shopping-list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.shopping-list-row:last-child {
+  border-bottom: none;
+}
+
+.shopping-list-name {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.shopping-list-price {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.shopping-list-row select {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}

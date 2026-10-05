@@ -1,0 +1,12 @@
+.shopping-task-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shopping-task-list,
+.shopping-task-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

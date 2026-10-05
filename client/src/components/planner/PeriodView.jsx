@@ -5,7 +5,7 @@ import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
 import OverlapGroup from './OverlapGroup'
 import { getPeriodTasks, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
-import { addMonths, fromApiDateTime, toApiDate } from '../../utils/date'
+import { addMonths, fromApiDateTime, startOfDay, toApiDate } from '../../utils/date'
 import './PeriodView.css'
 
 function parseDate(str) {
@@ -13,18 +13,24 @@ function parseDate(str) {
   return new Date(y, m - 1, d)
 }
 
-// Період не може бути довшим за місяць (вимога інтерфейсу): "по" завжди в межах
-// [від, від+1міс], "з" — у межах [по-1міс, по]. Один і той самий день в обох полях дозволено.
-function clampToAfterFrom(from, to) {
-  if (to < from) return from
-  const maxTo = addMonths(from, 1)
-  return to > maxTo ? maxTo : to
+// "З" не залежить від "По" — єдина межа для нього це рік від сьогодні в обидва боки.
+// "По" залежить від "З" — не більше місяця в обидва боки від обраної дати початку.
+// Один і той самий день в обох полях дозволено.
+function clampFromWindow(from) {
+  const today = startOfDay(new Date())
+  const min = addMonths(today, -12)
+  const max = addMonths(today, 12)
+  if (from < min) return min
+  if (from > max) return max
+  return from
 }
 
-function clampFromBeforeTo(from, to) {
-  if (from > to) return to
-  const minFrom = addMonths(to, -1)
-  return from < minFrom ? minFrom : from
+function clampToWindow(from, to) {
+  const min = addMonths(from, -1)
+  const max = addMonths(from, 1)
+  if (to < min) return min
+  if (to > max) return max
+  return to
 }
 
 // planner-spec.md §4.3 "Період" — довільний діапазон дат. Заливка "де є задачі" тепер —
@@ -155,14 +161,18 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
 
   const locale = language === 'uk' ? 'uk-UA' : 'en-US'
 
+  const today = startOfDay(new Date())
+  const fromPickerMin = addMonths(today, -12)
+  const fromPickerMax = addMonths(today, 12)
+
   const handleFromChange = (e) => {
-    const from = parseDate(e.target.value)
-    onRangeChange({ from, to: clampToAfterFrom(from, range.to) })
+    const from = clampFromWindow(parseDate(e.target.value))
+    onRangeChange({ from, to: clampToWindow(from, range.to) })
   }
 
   const handleToChange = (e) => {
-    const to = parseDate(e.target.value)
-    onRangeChange({ from: clampFromBeforeTo(range.from, to), to })
+    const to = clampToWindow(range.from, parseDate(e.target.value))
+    onRangeChange({ from: range.from, to })
   }
 
   return (
@@ -173,8 +183,8 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
           <input
             type="date"
             value={toApiDate(range.from)}
-            min={toApiDate(addMonths(range.to, -1))}
-            max={toApiDate(range.to)}
+            min={toApiDate(fromPickerMin)}
+            max={toApiDate(fromPickerMax)}
             onChange={handleFromChange}
           />
         </label>
@@ -183,7 +193,7 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
           <input
             type="date"
             value={toApiDate(range.to)}
-            min={toApiDate(range.from)}
+            min={toApiDate(addMonths(range.from, -1))}
             max={toApiDate(addMonths(range.from, 1))}
             onChange={handleToChange}
           />
