@@ -2,30 +2,27 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../../i18n'
 import ComboList from '../common/ComboList'
-import { clamp, findMaximalCombos } from '../../utils/combos'
+import { findMaximalCombos } from '../../utils/combos'
 import { getShoppingItems } from '../../utils/shoppingList'
+import { getFinanceBalance } from '../../utils/finance'
 import '../../pages/Landing.css'
 import './ShoppingTaskTabs.css'
-
-const BUDGET_MIN = 0
-const BUDGET_MAX = 100000
 
 // Для задачі "Піти в магазин" замість опису — дві вкладки: сам список покупок (із посиланням
 // на повноцінну сторінку списку) і демо підбору варіантів покупки під бюджет, за тим самим
 // принципом "або", що й на Landing (там же — демонстрація того самого алгоритму findMaximalCombos).
+// Сума грошей більше не вводиться тут окремо — вона завжди береться з розділу "Фінанси"
+// (єдиний баланс на весь застосунок, planner-spec.md §3.6).
 export default function ShoppingTaskTabs() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const [tab, setTab] = useState('list')
-  const [budget, setBudget] = useState(BUDGET_MAX)
+  const budget = getFinanceBalance()
 
   const items = useMemo(() => getShoppingItems(), [])
   const pricedItems = useMemo(() => items.filter((item) => item.price > 0), [items])
 
-  const combos = useMemo(
-    () => findMaximalCombos(pricedItems, clamp(Number(budget) || 0, BUDGET_MIN, BUDGET_MAX)),
-    [pricedItems, budget],
-  )
+  const combos = useMemo(() => findMaximalCombos(pricedItems, budget), [pricedItems, budget])
 
   return (
     <div className="shopping-task-tabs">
@@ -70,21 +67,12 @@ export default function ShoppingTaskTabs() {
         </div>
       ) : (
         <div className="shopping-task-options">
-          <label className="landing-panel-title" htmlFor="task-shopping-budget">
-            {t('taskForm.shoppingBudgetLabel')}
-          </label>
-          <div className="landing-money-field">
-            <input
-              id="task-shopping-budget"
-              type="number"
-              min={BUDGET_MIN}
-              max={BUDGET_MAX}
-              value={budget}
-              onChange={(e) => setBudget(clamp(Number(e.target.value) || 0, BUDGET_MIN, BUDGET_MAX))}
-            />
-            <span className="landing-money-currency">{t('landing.moneyCurrency')}</span>
-          </div>
-          <p className="landing-panel-hint">{t('taskForm.shoppingBudgetHint')}</p>
+          <p className="landing-panel-title">
+            {t('taskForm.shoppingBudgetLabel')}: {budget} {t('landing.moneyCurrency')}
+          </p>
+          <button type="button" className="task-form-cancel" onClick={() => navigate('/app/finance')}>
+            {t('taskForm.editInFinance')}
+          </button>
 
           <ComboList
             combos={combos}

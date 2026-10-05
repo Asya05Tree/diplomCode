@@ -132,7 +132,7 @@
   "taskForm.shoppingTab.options": "Можливі варіанти покупки",
   "taskForm.goToShoppingList": "Перейти до списку покупок",
   "taskForm.shoppingBudgetLabel": "Скільки є грошей",
-  "taskForm.shoppingBudgetHint": "Число від 0 до 100 000 грн",
+  "taskForm.editInFinance": "Змінити у Фінансах",
   "taskForm.description": "Опис (необов'язково)",
   "taskForm.when": "Коли",
   "taskForm.once": "Один раз",
@@ -206,5 +206,8 @@
   "shoppingList.category.chemistry": "Побутова хімія",
   "shoppingList.category.stationery": "Канцтовари",
   "shoppingList.category.other": "Інше",
-  "shoppingList.category.uncategorized": "Оберіть категорію"
+  "shoppingList.category.uncategorized": "Оберіть категорію",
+
+  "finance.balanceLabel": "Наявні гроші",
+  "finance.balanceHint": "Це значення використовується в інших розділах (список покупок тощо) для підбору варіантів за бюджетом"
 }

@@ -1,0 +1,17 @@
+.finance-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+}
+
+.finance-page h2 {
+  margin: 0;
+}
+
+.finance-balance-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

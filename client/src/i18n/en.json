@@ -132,7 +132,7 @@
   "taskForm.shoppingTab.options": "Possible purchase options",
   "taskForm.goToShoppingList": "Go to shopping list",
   "taskForm.shoppingBudgetLabel": "How much money you have",
-  "taskForm.shoppingBudgetHint": "A number from 0 to 100,000 UAH",
+  "taskForm.editInFinance": "Edit in Finance",
   "taskForm.description": "Description (optional)",
   "taskForm.when": "When",
   "taskForm.once": "Once",
@@ -206,5 +206,8 @@
   "shoppingList.category.chemistry": "Household chemicals",
   "shoppingList.category.stationery": "Stationery",
   "shoppingList.category.other": "Other",
-  "shoppingList.category.uncategorized": "Pick a category"
+  "shoppingList.category.uncategorized": "Pick a category",
+
+  "finance.balanceLabel": "Available money",
+  "finance.balanceHint": "Used by other sections (shopping list, etc.) to pick purchase options that fit the budget"
 }

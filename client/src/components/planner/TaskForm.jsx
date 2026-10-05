@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
 import { toApiDate, toApiDateTime, formatTime, todayApiDate } from '../../utils/date'
@@ -46,6 +46,12 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   }
 
   const isShoppingTask = title.trim() === presetLabel('goShopping')
+
+  // Похід у магазин завжди прив'язаний до конкретного моменту — повторення для нього
+  // немає сенсу, тому перемикач "коли" ховаємо і примусово скидаємо на "один раз"
+  useEffect(() => {
+    if (isShoppingTask) setRepeats(false)
+  }, [isShoppingTask])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -135,19 +141,21 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         </label>
       )}
 
-      <div className="task-form-when">
-        <span className="task-form-when-label">{t('taskForm.when')}</span>
-        <label className="task-form-radio">
-          <input type="radio" checked={!repeats} onChange={() => setRepeats(false)} />
-          {t('taskForm.once')}
-        </label>
-        <label className="task-form-radio">
-          <input type="radio" checked={repeats} onChange={() => setRepeats(true)} />
-          {t('taskForm.repeats')}
-        </label>
-      </div>
+      {!isShoppingTask && (
+        <div className="task-form-when">
+          <span className="task-form-when-label">{t('taskForm.when')}</span>
+          <label className="task-form-radio">
+            <input type="radio" checked={!repeats} onChange={() => setRepeats(false)} />
+            {t('taskForm.once')}
+          </label>
+          <label className="task-form-radio">
+            <input type="radio" checked={repeats} onChange={() => setRepeats(true)} />
+            {t('taskForm.repeats')}
+          </label>
+        </div>
+      )}
 
-      {repeats ? (
+      {repeats && !isShoppingTask ? (
         <RecurrenceFields value={recurrence} onChange={setRecurrence} />
       ) : (
         <div className="task-form-row">
@@ -162,18 +170,20 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         </div>
       )}
 
-      <div className="task-form-row">
-        <label>
-          {t('taskForm.duration')}
-          <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} />
-        </label>
-        {!repeats && (
+      {!isShoppingTask && (
+        <div className="task-form-row">
           <label>
-            {t('taskForm.deadline')}
-            <input type="date" value={deadline} min={todayApiDate()} onChange={(e) => setDeadline(e.target.value)} />
+            {t('taskForm.duration')}
+            <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} />
           </label>
-        )}
-      </div>
+          {!repeats && (
+            <label>
+              {t('taskForm.deadline')}
+              <input type="date" value={deadline} min={todayApiDate()} onChange={(e) => setDeadline(e.target.value)} />
+            </label>
+          )}
+        </div>
+      )}
 
       {error && <p className="task-form-error">{error}</p>}
 

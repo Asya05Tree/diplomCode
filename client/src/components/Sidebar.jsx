@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { key: 'nav.shoppingList', icon: '🛒', color: 'var(--color-food)', to: '/app/shopping-list' },
   { key: 'nav.food', icon: '🍲', color: 'var(--color-food)' },
   { key: 'nav.health', icon: '💊', color: 'var(--color-health)' },
-  { key: 'nav.finance', icon: '💰', color: 'var(--color-finance)' },
+  { key: 'nav.finance', icon: '💰', color: 'var(--color-finance)', to: '/app/finance' },
   { key: 'nav.study', icon: '🎓', color: 'var(--color-study)' },
   { key: 'nav.cycle', icon: '🌸', color: 'var(--color-cycle)' },
   { key: 'nav.notes', icon: '📝', color: 'var(--color-notes)' },
