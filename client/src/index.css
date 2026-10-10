@@ -8,9 +8,16 @@
   --color-text-muted: #6b7280;
   --color-border: #e5e7eb;
   --color-heading: #111827;
-  --color-on-accent: #ffffff;
+  /* Текст на заливці акцентом (пілюлі, кнопка логауту): акцентні кольори — пастельні
+     й доволі світлі навіть у "насиченому" стилі, тож білий текст на них нечитаємий.
+     Темний текст лишається контрастним на будь-якій з 10 пар акцентних кольорів. */
+  --color-on-accent: #1f2937;
   --sidebar-bg: #f0f2f5;
   --sidebar-hover: rgba(17, 24, 39, 0.05);
+  --pill-bg: #f3f4f6;
+  --pill-bg-hover: #e9ebef;
+  --pill-text: #374151;
+  --swatch-label: #374151;
 
   --color-tasks: #8fb8de;
   --color-food: #ffe8b8;
@@ -22,15 +29,19 @@
 }
 
 .theme-dark {
-  --color-bg: #1c1b1a;
-  --color-surface: #262524;
+  --color-bg: #18181b;
+  --color-surface: #27272a;
   --color-text: #efeae2;
   --color-text-muted: #a39d94;
-  --color-border: #3a3835;
-  --color-heading: var(--color-text);
-  --color-on-accent: #ffffff;
+  --color-border: #3f3f46;
+  --color-heading: #f9fafb;
+  --color-on-accent: #1f2937;
   --sidebar-bg: var(--color-surface);
   --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --pill-bg: #3f3f46;
+  --pill-bg-hover: #4b4b52;
+  --pill-text: #e5e7eb;
+  --swatch-label: #e5e7eb;
 
   /* Той самий відтінок, приглушений — не інший колір (coding-guide.md §5) */
   --color-tasks: #5f7f9e;
@@ -107,6 +118,15 @@
 body {
   margin: 0;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Клас теми сидить на внутрішньому div (App.jsx), а не на <body> — самі лише CSS-змінні
+   вище не фарбують нічого, тож без цього правила в темній темі крізь прогалини
+   (там, де немає картки з власним фоном) просвічував би світлий фон <body>. */
+.theme-light,
+.theme-dark {
   background: var(--color-bg);
   color: var(--color-text);
 }
