@@ -20,6 +20,10 @@ function formatDate(apiDate) {
   return fromApiDate(apiDate).toLocaleDateString()
 }
 
+function formatDateObj(date) {
+  return date.toLocaleDateString()
+}
+
 // planner-spec.md §3.7 — модуль "Цикл": тільки ручні відмітки початку/кінця, чесний прогноз
 // (без діагнозів і порад звернутися до лікаря) і перевірка запасів до прогнозованої дати,
 // яка переливається в спільний список покупок (§9 "цикл ↔ запаси").
@@ -78,8 +82,8 @@ export default function Cycle() {
           <>
             <p className="cycle-forecast-date">
               {t('cycle.forecastDate', {
-                from: formatDate(toRangeDate(forecast.predictedDate, -forecast.rangeDays)),
-                to: formatDate(toRangeDate(forecast.predictedDate, forecast.rangeDays)),
+                from: formatDateObj(toRangeDate(forecast.predictedDate, -forecast.rangeDays)),
+                to: formatDateObj(toRangeDate(forecast.predictedDate, forecast.rangeDays)),
               })}
             </p>
             {forecast.insufficientHistory && (
