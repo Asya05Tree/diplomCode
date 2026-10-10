@@ -10,8 +10,6 @@
   "nav.notes": "Заметки",
   "nav.settings": "Налаштування",
 
-  "header.logout": "Вийти",
-
   "landing.register": "Реєстрація",
   "landing.login": "Вхід",
   "landing.heroHeading": "Як це працює",
@@ -211,5 +209,24 @@
   "shoppingList.totalLabel": "Разом (за відомими цінами): {amount} грн — відомо для {known} з {total} позицій",
 
   "finance.balanceLabel": "Наявні гроші",
-  "finance.balanceHint": "Це значення використовується в інших розділах (список покупок тощо) для підбору варіантів за бюджетом"
+  "finance.balanceHint": "Це значення використовується в інших розділах (список покупок тощо) для підбору варіантів за бюджетом",
+
+  "settings.title": "Налаштування",
+  "settings.languageLabel": "Мова",
+  "settings.language.uk": "Українська",
+  "settings.language.en": "English",
+  "settings.themeLabel": "Тема",
+  "settings.theme.light": "Світла",
+  "settings.theme.dark": "Темна",
+  "settings.styleLabel": "Стиль кольорів",
+  "settings.style.pastel": "Пастельний",
+  "settings.style.vivid": "Насичений",
+  "settings.paletteLabel": "Колірна палітра",
+  "settings.palette.ocean": "Ocean Breeze",
+  "settings.palette.sunset": "Sunset Vibes",
+  "settings.palette.lavender": "Lavender Sky",
+  "settings.palette.orange": "Теплий помаранчевий",
+  "settings.palette.green": "Природний зелений",
+  "settings.logoutSection": "Акаунт",
+  "settings.logoutButton": "Вийти з акаунта"
 }

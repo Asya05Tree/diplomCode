@@ -1,40 +1,47 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
-import { I18nProvider, useI18n } from './i18n'
+import { I18nProvider } from './i18n'
 import Sidebar from './components/Sidebar'
 import './Layout.css'
 import Planner from './pages/Planner'
 import ShoppingList from './pages/ShoppingList'
 import Finance from './pages/Finance'
+import Settings from './pages/Settings'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import { getMe } from './api/client'
+import {
+  getPalette,
+  getPaletteStyle,
+  getThemeMode,
+  setPalette as persistPalette,
+  setPaletteStyle as persistPaletteStyle,
+  setThemeMode as persistThemeMode,
+} from './utils/settings'
 
 const AUTH_TOKEN_KEY = 'authToken'
 
-function Layout({ user, theme, onToggleTheme, onLogout }) {
-  const { t } = useI18n()
-
+function Layout({ user, outletContext }) {
   return (
     <div className="app-shell">
       <Sidebar />
       <main className="app-main">
         <header className="app-header">
           <span className="app-header-user">{user?.nickname} · {user?.email}</span>
-          <div className="app-header-actions">
-            <button onClick={onToggleTheme}>{theme === 'light' ? '🌙' : '☀️'}</button>
-            <button onClick={onLogout}>{t('header.logout')}</button>
-          </div>
         </header>
-        <Outlet />
+        <Outlet context={outletContext} />
       </main>
     </div>
   )
 }
 
 function AppContent() {
-  const [theme, setTheme] = useState('light')
+  // Тема/стиль/палітра читаються з localStorage одразу при створенні стейту (а не в useEffect),
+  // інакше перший кадр малюється дефолтом і сторінка блимає перед застосуванням збереженого вигляду.
+  const [themeMode, setThemeMode] = useState(getThemeMode)
+  const [paletteStyle, setPaletteStyle] = useState(getPaletteStyle)
+  const [palette, setPalette] = useState(getPalette)
   // Поки не перевірили збережений токен — нічого не рендеримо, щоб не мигнути landing перед /app
   const [authChecked, setAuthChecked] = useState(false)
   const [user, setUser] = useState(null)
@@ -71,10 +78,40 @@ function AppContent() {
     navigate('/')
   }
 
+  const handleSetThemeMode = (mode) => {
+    setThemeMode(mode)
+    persistThemeMode(mode)
+  }
+
+  const handleSetPaletteStyle = (style) => {
+    setPaletteStyle(style)
+    persistPaletteStyle(style)
+  }
+
+  const handleSetPalette = (value) => {
+    setPalette(value)
+    persistPalette(value)
+  }
+
   if (!authChecked) return null
 
+  const settingsOutletContext = {
+    onLogout: handleLogout,
+    themeMode,
+    onSetThemeMode: handleSetThemeMode,
+    paletteStyle,
+    onSetPaletteStyle: handleSetPaletteStyle,
+    palette,
+    onSetPalette: handleSetPalette,
+  }
+
   return (
-    <div className={`theme-${theme}`} style={{ minHeight: '100vh' }}>
+    <div
+      className={`theme-${themeMode}`}
+      data-style={paletteStyle}
+      data-palette={palette}
+      style={{ minHeight: '100vh' }}
+    >
       <Routes>
         <Route path="/" element={user ? <Navigate to="/app" replace /> : <Landing />} />
         <Route
@@ -89,12 +126,7 @@ function AppContent() {
           path="/app"
           element={
             user ? (
-              <Layout
-                user={user}
-                theme={theme}
-                onToggleTheme={() => setTheme((th) => (th === 'light' ? 'dark' : 'light'))}
-                onLogout={handleLogout}
-              />
+              <Layout user={user} outletContext={settingsOutletContext} />
             ) : (
               <Navigate to="/" replace />
             )
@@ -103,6 +135,7 @@ function AppContent() {
           <Route index element={<Planner />} />
           <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="finance" element={<Finance />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

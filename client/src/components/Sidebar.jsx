@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { key: 'nav.study', icon: '🎓', color: 'var(--color-study)' },
   { key: 'nav.cycle', icon: '🌸', color: 'var(--color-cycle)' },
   { key: 'nav.notes', icon: '📝', color: 'var(--color-notes)' },
-  { key: 'nav.settings', icon: '⚙️', color: 'var(--color-tasks)' },
+  { key: 'nav.settings', icon: '⚙️', color: 'var(--color-tasks)', to: '/app/settings' },
 ]
 
 export default function Sidebar() {

@@ -34,6 +34,64 @@
   --color-notes: #8a7562;
 }
 
+/* Налаштування → Акцент (planner-spec.md §3.1 AccentColor, §4.10): фон сторінки для
+   "непастельного" стилю задається явно (біле/чорне тло), пастельний лишає тло теми вище. */
+.theme-light[data-style='vivid'] {
+  --color-bg: #faf6f0;
+}
+
+.theme-dark[data-style='vivid'] {
+  --color-bg: #161b22;
+}
+
+/* AccentColor — загальний акцент інтерфейсу (кнопки, активні елементи), окремо від
+   кольорів модулів вище (coding-guide.md §5). Не залежить від light/dark, лише від
+   обраної палітри (5 варіантів з Налаштувань) та стилю (пастельний/непастельний). */
+[data-palette='ocean'][data-style='pastel'] {
+  --color-accent: #b3e5fc;
+  --color-accent-2: #c5cae9;
+}
+[data-palette='ocean'][data-style='vivid'] {
+  --color-accent: #00c6ff;
+  --color-accent-2: #0072ff;
+}
+[data-palette='sunset'][data-style='pastel'] {
+  --color-accent: #ff80ab;
+  --color-accent-2: #ffe0b2;
+}
+[data-palette='sunset'][data-style='vivid'] {
+  --color-accent: #ff416c;
+  --color-accent-2: #ffb347;
+}
+[data-palette='lavender'][data-style='pastel'] {
+  --color-accent: #d1c4e9;
+  --color-accent-2: #f8bbd0;
+}
+[data-palette='lavender'][data-style='vivid'] {
+  --color-accent: #8360c3;
+  --color-accent-2: #ff8fbf;
+}
+[data-palette='orange'][data-style='pastel'] {
+  --color-accent: #ffccbc;
+  --color-accent-2: #ffe0b2;
+}
+[data-palette='orange'][data-style='vivid'] {
+  --color-accent: #ff7e5f;
+  --color-accent-2: #feb47b;
+}
+[data-palette='green'][data-style='pastel'] {
+  --color-accent: #c8e6c9;
+  --color-accent-2: #dcedc8;
+}
+[data-palette='green'][data-style='vivid'] {
+  --color-accent: #56ab2f;
+  --color-accent-2: #a8e063;
+}
+
+:root {
+  --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+}
+
 * {
   box-sizing: border-box;
 }

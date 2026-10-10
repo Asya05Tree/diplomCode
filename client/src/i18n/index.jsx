@@ -3,12 +3,23 @@ import uk from './uk.json'
 import en from './en.json'
 
 const dictionaries = { uk, en }
+const LANGUAGE_KEY = 'settings:language'
 
 const I18nContext = createContext(null)
 
-export function I18nProvider({ children }) {
+function getStoredLanguage() {
+  const stored = localStorage.getItem(LANGUAGE_KEY)
   // Українська — мова за замовчуванням (coding-guide.md §3)
-  const [language, setLanguage] = useState('uk')
+  return stored in dictionaries ? stored : 'uk'
+}
+
+export function I18nProvider({ children }) {
+  const [language, setLanguageState] = useState(getStoredLanguage)
+
+  const setLanguage = (lang) => {
+    setLanguageState(lang)
+    localStorage.setItem(LANGUAGE_KEY, lang)
+  }
 
   const value = useMemo(() => {
     const dict = dictionaries[language]

@@ -55,11 +55,12 @@
 }
 
 .auth-submit {
-  background: var(--color-tasks);
+  background: var(--color-accent-gradient);
   border: none;
   border-radius: 8px;
   padding: 10px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   color: var(--color-text);
 }

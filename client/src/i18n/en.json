@@ -10,8 +10,6 @@
   "nav.notes": "Notes",
   "nav.settings": "Settings",
 
-  "header.logout": "Log out",
-
   "landing.register": "Register",
   "landing.login": "Log in",
   "landing.heroHeading": "How it works",
@@ -211,5 +209,24 @@
   "shoppingList.totalLabel": "Total (known prices): {amount} UAH — known for {known} of {total} items",
 
   "finance.balanceLabel": "Available money",
-  "finance.balanceHint": "Used by other sections (shopping list, etc.) to pick purchase options that fit the budget"
+  "finance.balanceHint": "Used by other sections (shopping list, etc.) to pick purchase options that fit the budget",
+
+  "settings.title": "Settings",
+  "settings.languageLabel": "Language",
+  "settings.language.uk": "Українська",
+  "settings.language.en": "English",
+  "settings.themeLabel": "Theme",
+  "settings.theme.light": "Light",
+  "settings.theme.dark": "Dark",
+  "settings.styleLabel": "Color style",
+  "settings.style.pastel": "Pastel",
+  "settings.style.vivid": "Vivid",
+  "settings.paletteLabel": "Color palette",
+  "settings.palette.ocean": "Ocean Breeze",
+  "settings.palette.sunset": "Sunset Vibes",
+  "settings.palette.lavender": "Lavender Sky",
+  "settings.palette.orange": "Warm Orange",
+  "settings.palette.green": "Natural Green",
+  "settings.logoutSection": "Account",
+  "settings.logoutButton": "Log out"
 }
