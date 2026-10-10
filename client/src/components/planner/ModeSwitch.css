@@ -19,8 +19,12 @@
 }
 
 .tab-group--active {
-  background: var(--color-tasks);
+  background: var(--color-accent-gradient);
   border-color: transparent;
+}
+
+.tab-group--active .tab-sublabel {
+  color: var(--color-on-accent);
 }
 
 .tab-sublabel {
@@ -52,7 +56,7 @@
 }
 
 .android-switch--on {
-  background: var(--color-surface);
+  background: var(--color-accent-gradient);
 }
 
 .android-switch-thumb {
@@ -84,7 +88,7 @@
 }
 
 .tab-pill--active {
-  background: var(--color-tasks);
-  color: var(--color-text);
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border-color: transparent;
 }

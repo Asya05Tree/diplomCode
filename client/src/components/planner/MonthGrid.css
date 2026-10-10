@@ -64,8 +64,8 @@
 /* Обраний день має бути однозначно впізнаваним: жирна рамка + трохи більший розмір
    (поверх сусідів через z-index, бо scale() не впливає на розмір комірки в гріді) */
 .month-grid-cell--selected {
-  background: var(--color-tasks);
-  color: var(--color-text);
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border: 3px solid var(--color-text);
   font-weight: 700;
   transform: scale(1.12);

@@ -81,7 +81,8 @@
 }
 
 .task-form-weekday--active {
-  background: var(--color-tasks);
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border-color: transparent;
 }
 
@@ -103,13 +104,14 @@
 }
 
 .task-form-submit {
-  background: var(--color-tasks);
+  background: var(--color-accent-gradient);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  color: var(--color-text);
+  color: var(--color-on-accent);
 }
 
 .task-form-cancel {

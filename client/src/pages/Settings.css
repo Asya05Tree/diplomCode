@@ -47,7 +47,10 @@
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  /* Без "background" у transition: активний стан заливається градієнтом, а градієнт
+     (background-image) браузер не вміє плавно інтерполювати — спроба анімувати його
+     саме й читалась як "лагає"/блимає. Колір тексту й тінь лишаються плавними. */
+  transition: color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .settings-option:hover {

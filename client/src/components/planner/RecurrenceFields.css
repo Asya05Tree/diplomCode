@@ -22,8 +22,8 @@
 }
 
 .recurrence-type-btn--active {
-  background: var(--color-tasks);
-  color: var(--color-text);
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border-color: transparent;
 }
 
@@ -107,7 +107,7 @@
 }
 
 .recurrence-switch--on {
-  background: var(--color-tasks);
+  background: var(--color-accent-gradient);
 }
 
 .recurrence-switch-knob {
@@ -155,7 +155,8 @@
 }
 
 .recurrence-month-cell--active {
-  background: var(--color-tasks);
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border-color: transparent;
 }
 

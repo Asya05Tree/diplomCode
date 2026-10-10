@@ -35,8 +35,8 @@
 }
 
 .recurring-rule-card--active {
-  border-color: var(--color-tasks);
-  background: color-mix(in srgb, var(--color-tasks) 15%, var(--color-bg));
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-bg));
 }
 
 .recurring-rule-title {
