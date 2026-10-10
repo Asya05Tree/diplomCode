@@ -1,0 +1,41 @@
+const THEME_MODE_KEY = 'settings:themeMode'
+const PALETTE_STYLE_KEY = 'settings:paletteStyle'
+const PALETTE_KEY = 'settings:palette'
+
+export const PALETTES = ['ocean', 'sunset', 'lavender', 'orange', 'green']
+
+// Акцентні пари кольорів на палітру/стиль (planner-spec.md §3.1 AccentColor,
+// §4.11 "пастельна палитра, светлая и тёмная темы") — не залежать від light/dark,
+// лише від обраної палітри та того, пастельний це варіант чи насичений.
+export const PALETTE_COLORS = {
+  ocean: { pastel: ['#B3E5FC', '#C5CAE9'], vivid: ['#00C6FF', '#0072FF'] },
+  sunset: { pastel: ['#FF80AB', '#FFE0B2'], vivid: ['#FF416C', '#FFB347'] },
+  lavender: { pastel: ['#D1C4E9', '#F8BBD0'], vivid: ['#8360C3', '#FF8FBF'] },
+  orange: { pastel: ['#FFCCBC', '#FFE0B2'], vivid: ['#FF7E5F', '#FEB47B'] },
+  green: { pastel: ['#C8E6C9', '#DCEDC8'], vivid: ['#56AB2F', '#A8E063'] },
+}
+
+export function getThemeMode() {
+  return localStorage.getItem(THEME_MODE_KEY) === 'dark' ? 'dark' : 'light'
+}
+
+export function setThemeMode(mode) {
+  localStorage.setItem(THEME_MODE_KEY, mode === 'dark' ? 'dark' : 'light')
+}
+
+export function getPaletteStyle() {
+  return localStorage.getItem(PALETTE_STYLE_KEY) === 'vivid' ? 'vivid' : 'pastel'
+}
+
+export function setPaletteStyle(style) {
+  localStorage.setItem(PALETTE_STYLE_KEY, style === 'vivid' ? 'vivid' : 'pastel')
+}
+
+export function getPalette() {
+  const stored = localStorage.getItem(PALETTE_KEY)
+  return PALETTES.includes(stored) ? stored : 'ocean'
+}
+
+export function setPalette(palette) {
+  localStorage.setItem(PALETTE_KEY, PALETTES.includes(palette) ? palette : 'ocean')
+}
