@@ -15,7 +15,7 @@ export default function Settings() {
     <div className="settings-page">
       <h2>{t('settings.title')}</h2>
 
-      <section className="settings-section card">
+      <section className="settings-section">
         <h3>{t('settings.languageLabel')}</h3>
         <div className="settings-options">
           {['uk', 'en'].map((lang) => (
@@ -31,7 +31,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="settings-section card">
+      <section className="settings-section">
         <h3>{t('settings.themeLabel')}</h3>
         <div className="settings-options">
           {['light', 'dark'].map((mode) => (
@@ -47,7 +47,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="settings-section card">
+      <section className="settings-section">
         <h3>{t('settings.styleLabel')}</h3>
         <div className="settings-options">
           {['pastel', 'vivid'].map((style) => (
@@ -65,7 +65,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="settings-section card">
+      <section className="settings-section">
         <h3>{t('settings.paletteLabel')}</h3>
         <div className="settings-palette-grid">
           {PALETTES.map((name) => {
@@ -90,7 +90,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className="settings-section card">
+      <section className="settings-section">
         <h3>{t('settings.logoutSection')}</h3>
         <button type="button" className="settings-logout" onClick={onLogout}>
           {t('settings.logoutButton')}
