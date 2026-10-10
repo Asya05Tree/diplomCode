@@ -6,7 +6,7 @@ import './Sidebar.css'
 // Пізніше список фільтрується по UserModule.IsEnabled — вимкнений модуль тут не з'являється.
 // Статистика без окремої вкладки — показується всередині відповідних розділів (Їжа, Фінанси тощо).
 // "Нерозподілені" — тепер вкладка всередині Календаря (Planner.jsx), а не окремий пункт тут.
-// Реальний розділ цієї ітерації — Календар (§4.2-4.5); решта — заглушки на потім.
+// Реальні розділи цієї ітерації — Календар (§4.2-4.5), Список покупок, Фінанси, Цикл; решта — заглушки на потім.
 const NAV_ITEMS = [
   { key: 'nav.calendar', icon: '📅', color: 'var(--color-tasks)', to: '/app' },
   { key: 'nav.shoppingList', icon: '🛒', color: 'var(--color-food)', to: '/app/shopping-list' },
@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { key: 'nav.health', icon: '💊', color: 'var(--color-health)' },
   { key: 'nav.finance', icon: '💰', color: 'var(--color-finance)', to: '/app/finance' },
   { key: 'nav.study', icon: '🎓', color: 'var(--color-study)' },
-  { key: 'nav.cycle', icon: '🌸', color: 'var(--color-cycle)' },
+  { key: 'nav.cycle', icon: '🌸', color: 'var(--color-cycle)', to: '/app/cycle' },
   { key: 'nav.notes', icon: '📝', color: 'var(--color-notes)' },
   { key: 'nav.settings', icon: '⚙️', color: 'var(--color-tasks)', to: '/app/settings' },
 ]

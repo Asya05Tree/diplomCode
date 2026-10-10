@@ -1,0 +1,94 @@
+.cycle-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 520px;
+}
+
+.cycle-page h2 {
+  margin: 0;
+}
+
+.cycle-page h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.cycle-forecast-date {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cycle-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cycle-actions button,
+.cycle-stock-row button,
+.cycle-settings-row {
+  cursor: pointer;
+}
+
+.cycle-page button {
+  background: var(--color-accent-gradient);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-on-accent);
+}
+
+.cycle-page button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cycle-history-list,
+.cycle-stock-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cycle-history-row,
+.cycle-stock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.cycle-history-row:last-child,
+.cycle-stock-row:last-child {
+  border-bottom: none;
+}
+
+.cycle-stock-name {
+  flex: 1;
+}
+
+.cycle-stock-row select {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.cycle-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
