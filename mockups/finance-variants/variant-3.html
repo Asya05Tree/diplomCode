@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Фінанси · Варіант 3 — вкладки в заголовку сторінки</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .v3-tabs-nav { display: flex; gap: 4px; background: var(--pill-bg); border-radius: 10px; padding: 3px; }
+  .v3-tabs-nav .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--pill-text);
+  }
+  .v3-tabs-nav .tab-input:checked + .tab-btn {
+    background: var(--color-surface);
+    color: var(--color-heading);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети вкладки «Фінанси»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="tabs-wrap" style="display:block;">
+        <div class="page-head">
+          <h2>Фінанси</h2>
+          <div class="v3-tabs-nav">
+            <input type="radio" name="fin-tab" id="tab-categories" class="tab-input" checked>
+            <label for="tab-categories" class="tab-btn">🏷️ Категорії</label>
+            <input type="radio" name="fin-tab" id="tab-history" class="tab-input">
+            <label for="tab-history" class="tab-btn">🧾 Історія</label>
+          </div>
+          <span class="variant-note">Варіант 3 · вкладки прямо в заголовку сторінки, баланс і тижнева динаміка — завжди видимою карткою нижче</span>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="kpi-row">
+            <div class="kpi-tile"><span class="kpi-label">Баланс</span><span class="kpi-value">18 450 грн</span></div>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="section-title"><h3>Тижнева динаміка витрат</h3></div>
+            <div class="week-chart">
+              <div class="week-chart-col"><span class="week-chart-amount">2 100</span><div class="week-chart-bar" style="height:45px;"></div><span class="week-chart-label">Тиж 1</span></div>
+              <div class="week-chart-col"><span class="week-chart-amount">3 400</span><div class="week-chart-bar" style="height:73px;"></div><span class="week-chart-label">Тиж 2</span></div>
+              <div class="week-chart-col"><span class="week-chart-amount">4 200</span><div class="week-chart-bar" style="height:90px;"></div><span class="week-chart-label">Тиж 3</span></div>
+              <div class="week-chart-col"><span class="week-chart-amount">2 300</span><div class="week-chart-bar" style="height:49px;"></div><span class="week-chart-label">Тиж 4 (поточний)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card tabs-panel" id="panel-categories">
+          <table class="data-table">
+            <thead><tr><th>Категорія</th><th>Дохід</th><th>Витрата</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-1);"></span>Житло й комунальні</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-2);"></span>Їжа</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-3);"></span>Транспорт</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-4);"></span>Розваги</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-5);"></span>Аптечка</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-6);"></span>Одяг</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-7);"></span>Освіта</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-flex; align-items:center; gap:8px;"><span class="cat-dot" style="background:var(--cat-color-8);"></span>Інше</span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--income">+</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+                <td><span class="amount-input"><span class="amount-sign amount-sign--expense">−</span><input type="number" placeholder="0"><span class="amount-unit">грн</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card tabs-panel" id="panel-history">
+          <table class="data-table">
+            <thead><tr><th>Дата</th><th>Категорія</th><th>Сума</th><th>Опис</th></tr></thead>
+            <tbody>
+              <tr><td>18.10.2026</td><td>Зарплата</td><td><span class="txn-amount txn-amount--income">+32 000 грн</span></td><td class="none-text">—</td></tr>
+              <tr><td>17.10.2026</td><td>Їжа</td><td><span class="txn-amount txn-amount--expense">−540 грн</span></td><td>АТБ, продукти</td></tr>
+              <tr><td>16.10.2026</td><td>Транспорт</td><td><span class="txn-amount txn-amount--expense">−180 грн</span></td><td>Таксі додому</td></tr>
+              <tr><td>15.10.2026</td><td>Житло й комунальні</td><td><span class="txn-amount txn-amount--expense">−2 150 грн</span></td><td>Оплата комуналки</td></tr>
+              <tr><td>14.10.2026</td><td>Розваги</td><td><span class="txn-amount txn-amount--expense">−420 грн</span></td><td>Кіно з друзями</td></tr>
+              <tr><td>12.10.2026</td><td>Аптечка</td><td><span class="txn-amount txn-amount--expense">−310 грн</span></td><td class="none-text">—</td></tr>
+              <tr><td>10.10.2026</td><td>Підробіток</td><td><span class="txn-amount txn-amount--income">+4 500 грн</span></td><td>Фріланс-проєкт</td></tr>
+              <tr><td>08.10.2026</td><td>Одяг</td><td><span class="txn-amount txn-amount--expense">−2 800 грн</span></td><td>Зимова куртка</td></tr>
+              <tr><td>05.10.2026</td><td>Освіта</td><td><span class="txn-amount txn-amount--expense">−1 200 грн</span></td><td class="none-text">—</td></tr>
+              <tr><td>02.10.2026</td><td>Інше</td><td><span class="txn-amount txn-amount--income">+1 000 грн</span></td><td>Повернення боргу</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
