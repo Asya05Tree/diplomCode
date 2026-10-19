@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Макети вкладки «Фінанси»</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .gallery-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .gallery-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  .gallery-card h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .gallery-card p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--color-text-muted);
+  }
+  .gallery-swatch {
+    height: 64px;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="gallery-page">
+  <div>
+    <h1 style="margin: 0 0 6px;">Макети вкладки «Фінанси»</h1>
+    <p class="placeholder-text">
+      Статичні html+css макети (без JS, лише radio-хаки на CSS для вкладок). У кожному з 10 варіантів однаковий
+      набір: баланс, «Тижнева динаміка витрат» (графік по тижнях) і дві вкладки — «Категорії» (таблиця з 8
+      категоріями, де на кожну є поле «+ ___ грн» для доходу і «− ___ грн» для витрати — суму вписує сам
+      користувач, нічого не порахованого наперед) і «Історія» (таблиця вже внесених операцій: дата, категорія,
+      сума зі знаком +/−, опис — якщо його не було, стоїть «—») — planner-spec.md §3.6 FinanceAccount/
+      FinanceTransaction, §4.9 "по неделям". Відрізняється лише те, як саме це зверстано.
+    </p>
+  </div>
+
+  <div class="gallery-grid">
+    <a class="gallery-card card" href="variant-1.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffd9b3, #ffe8b8);"></div>
+      <h3>Варіант 1 — Класичний вертикальний стек</h3>
+      <p>Баланс, графік, нижче вкладки «Категорії» / «Історія» з підкресленням.</p>
+    </a>
+    <a class="gallery-card card" href="variant-2.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #ffd9b3);"></div>
+      <h3>Варіант 2 — Двоколонкова розкладка</h3>
+      <p>Ліворуч баланс і графік вузькою колонкою, праворуч вкладки.</p>
+    </a>
+    <a class="gallery-card card" href="variant-3.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe8b8, #ffd9b3);"></div>
+      <h3>Варіант 3 — Вкладки в заголовку</h3>
+      <p>Перемикач вкладок прямо поруч із заголовком «Фінанси».</p>
+    </a>
+    <a class="gallery-card card" href="variant-4.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffd9b3, #c5cae9);"></div>
+      <h3>Варіант 4 — Великі картки-вкладки</h3>
+      <p>Дві великі плитки з іконкою й описом перемикають вкладки.</p>
+    </a>
+    <a class="gallery-card card" href="variant-5.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f8bbd0, #ffd9b3);"></div>
+      <h3>Варіант 5 — Вертикальні вкладки</h3>
+      <p>Ліворуч список «Категорії» / «Історія», праворуч активна панель.</p>
+    </a>
+    <a class="gallery-card card" href="variant-6.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f3f4f6, #ffd9b3);"></div>
+      <h3>Варіант 6 — Щільний реєстр</h3>
+      <p>Баланс key-value рядком, тонкі текстові вкладки, компактні таблиці.</p>
+    </a>
+    <a class="gallery-card card" href="variant-7.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #ffd9b3);"></div>
+      <h3>Варіант 7 — Тижневий графік-герой</h3>
+      <p>Великий тижневий графік витрат одразу під заголовком.</p>
+    </a>
+    <a class="gallery-card card" href="variant-8.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffd9b3, #ffb199);"></div>
+      <h3>Варіант 8 — Картка-гаманець і графік поруч</h3>
+      <p>Баланс намальований як банківська картка-гаманець, графік поруч.</p>
+    </a>
+    <a class="gallery-card card" href="variant-9.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d9f2e1, #c5cae9);"></div>
+      <h3>Варіант 9 — Акордеон на всю ширину</h3>
+      <p>«Категорії» і «Історія» — повноширинні бари-вкладки з акцентом.</p>
+    </a>
+    <a class="gallery-card card" href="variant-10.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f3f4f6, #e0e0e0);"></div>
+      <h3>Варіант 10 — Документ-звіт із вкладками-ярликами</h3>
+      <p>Формальний звіт вузькою колонкою, вкладки намальовані як паперові ярлики.</p>
+    </a>
+  </div>
+</div>
+</body>
+</html>
