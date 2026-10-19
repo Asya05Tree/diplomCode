@@ -22,9 +22,7 @@
     color: var(--color-heading);
     border-bottom-color: var(--color-accent-2);
   }
-  .v1-row { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
-  .v1-row .week-chart-head { justify-content: flex-start; }
-  @media (max-width: 860px) { .v1-row { grid-template-columns: 1fr; } }
+  .week-chart-head { justify-content: flex-start; }
 </style>
 </head>
 <body>
@@ -41,44 +39,12 @@
     <div class="page-content">
       <div class="page-head">
         <h2>Фінанси</h2>
-        <span class="variant-note">Варіант 1 · баланс і тижнева динаміка витрат розташовані горизонтально поруч, нижче вкладки «Категорії» (з полем «Є зараз») / «Історія» (сума → опис → категорія → дата)</span>
+        <span class="variant-note">Варіант 1 · баланс завжди видно зверху, нижче вкладки «Категорії» (за замовчуванням, з полем «Є зараз») / «Історія» (сума → опис → категорія → дата) / «Статистика» (тижнева динаміка)</span>
       </div>
 
-      <div class="v1-row">
-        <div class="card">
-          <span class="kpi-label">Баланс</span>
-          <div class="kpi-value" style="font-size:1.8rem;">18 450 грн</div>
-        </div>
-
-        <div class="card">
-          <div class="week-chart-head">
-            <h3 style="margin:0;">Тижнева динаміка витрат</h3>
-            <button type="button" class="period-picker">
-              <span>Жовтень</span>
-              <span>2026</span>
-              <span class="period-picker-icon">📅</span>
-            </button>
-          </div>
-          <div class="week-chart-row">
-            <div class="week-axis">
-              <span>4 200</span>
-              <span>3 150</span>
-              <span>2 100</span>
-              <span>1 050</span>
-              <span>0</span>
-            </div>
-            <div class="week-chart">
-              <div class="week-chart-col"><span class="week-chart-amount">2 100</span><div class="week-chart-bar" style="height:45px;"></div><span class="week-chart-label">Тиж 1</span></div>
-              <div class="week-chart-col"><span class="week-chart-amount">3 400</span><div class="week-chart-bar" style="height:73px;"></div><span class="week-chart-label">Тиж 2</span></div>
-              <div class="week-chart-col"><span class="week-chart-amount">4 200</span><div class="week-chart-bar" style="height:90px;"></div><span class="week-chart-label">Тиж 3</span></div>
-              <div class="week-chart-col"><span class="week-chart-amount">2 300</span><div class="week-chart-bar" style="height:49px;"></div><span class="week-chart-label">Тиж 4 (поточний)</span></div>
-            </div>
-          </div>
-          <div class="week-chart-avg">
-            <span>Середнє за тиждень:</span>
-            <strong>3 000 грн</strong>
-          </div>
-        </div>
+      <div class="card">
+        <span class="kpi-label">Баланс</span>
+        <div class="kpi-value" style="font-size:1.8rem;">18 450 грн</div>
       </div>
 
       <div class="card">
@@ -88,6 +54,8 @@
             <label for="tab-categories" class="tab-btn">🏷️ Категорії</label>
             <input type="radio" name="fin-tab" id="tab-history" class="tab-input">
             <label for="tab-history" class="tab-btn">🧾 Історія</label>
+            <input type="radio" name="fin-tab" id="tab-stats" class="tab-input">
+            <label for="tab-stats" class="tab-btn">📊 Статистика</label>
           </div>
 
           <div class="tabs-panel" id="panel-categories">
@@ -162,6 +130,36 @@
                 <tr><td><span class="txn-amount txn-amount--income">+1 000 грн</span></td><td>Повернення боргу</td><td>Інше</td><td>02.10.2026</td></tr>
               </tbody>
             </table>
+          </div>
+
+          <div class="tabs-panel" id="panel-stats">
+            <div class="week-chart-head">
+              <h3 style="margin:0;">Тижнева динаміка витрат</h3>
+              <button type="button" class="period-picker">
+                <span>Жовтень</span>
+                <span>2026</span>
+                <span class="period-picker-icon">📅</span>
+              </button>
+            </div>
+            <div class="week-chart-row">
+              <div class="week-axis">
+                <span>4 200</span>
+                <span>3 150</span>
+                <span>2 100</span>
+                <span>1 050</span>
+                <span>0</span>
+              </div>
+              <div class="week-chart">
+                <div class="week-chart-col"><span class="week-chart-amount">2 100</span><div class="week-chart-bar" style="height:45px;"></div><span class="week-chart-label">Тиж 1</span></div>
+                <div class="week-chart-col"><span class="week-chart-amount">3 400</span><div class="week-chart-bar" style="height:73px;"></div><span class="week-chart-label">Тиж 2</span></div>
+                <div class="week-chart-col"><span class="week-chart-amount">4 200</span><div class="week-chart-bar" style="height:90px;"></div><span class="week-chart-label">Тиж 3</span></div>
+                <div class="week-chart-col"><span class="week-chart-amount">2 300</span><div class="week-chart-bar" style="height:49px;"></div><span class="week-chart-label">Тиж 4 (поточний)</span></div>
+              </div>
+            </div>
+            <div class="week-chart-avg">
+              <span>Середнє за тиждень:</span>
+              <strong>3 000 грн</strong>
+            </div>
           </div>
         </div>
       </div>

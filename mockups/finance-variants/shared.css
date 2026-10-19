@@ -596,7 +596,8 @@ a {
    правило показу панелі одне на всіх — кожному варіанту не треба повторювати
    його локально. */
 .tabs-wrap:has(#tab-categories:checked) #panel-categories,
-.tabs-wrap:has(#tab-history:checked) #panel-history {
+.tabs-wrap:has(#tab-history:checked) #panel-history,
+.tabs-wrap:has(#tab-stats:checked) #panel-stats {
   display: block;
 }
 
