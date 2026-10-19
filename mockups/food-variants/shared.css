@@ -1,0 +1,293 @@
+/* Спільні токени й каркас — скопійовано зі стилю проєкту (client/src/index.css,
+   Layout.css, components/Sidebar.css), щоб макети виглядали як частина того ж додатку.
+   Це статичні макети: жодного JS, лише html+css. */
+
+:root {
+  --color-bg: #fafafd;
+  --color-surface: #ffffff;
+  --color-text: #2b2b2b;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-heading: #111827;
+  --color-on-accent: #1f2937;
+
+  --sidebar-bg: #f0f2f5;
+  --sidebar-hover: rgba(17, 24, 39, 0.05);
+  --pill-bg: #f3f4f6;
+  --pill-bg-hover: #e9ebef;
+  --pill-text: #374151;
+
+  --color-food: #ffe8b8;
+  --color-accent: #b3e5fc;
+  --color-accent-2: #c5cae9;
+  --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+
+  --status-ok-bg: #d9f2e1;
+  --status-ok-text: #1f6d45;
+  --status-warn-bg: #ffead1;
+  --status-warn-text: #8a5a16;
+  --status-bad-bg: #fbdede;
+  --status-bad-text: #93302c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-heading);
+}
+
+a {
+  color: inherit;
+}
+
+/* --- Каркас застосунку (Layout.css) --- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px clamp(16px, 4vw, 24px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header-user {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Бокове меню (Sidebar.css). У макетах пункти звичайної навігації замінені на
+   самі варіанти — щоб можна було перемикатись між макетами, як між вкладками. --- */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--color-border);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-title {
+  padding: 4px 12px 12px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--item-color, var(--color-food));
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar-item--active {
+  background: var(--color-accent-gradient);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.sidebar-item--active .sidebar-label {
+  color: var(--color-on-accent);
+}
+
+.sidebar-icon {
+  font-size: 1.1rem;
+}
+
+.sidebar-label {
+  font-size: 0.95rem;
+}
+
+/* --- Спільні утиліти (index.css) --- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.placeholder-text {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.btn-accent {
+  background: var(--color-accent-gradient);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-on-accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+}
+
+.pill--active {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--ok {
+  background: var(--status-ok-bg);
+  color: var(--status-ok-text);
+}
+
+.badge--warn {
+  background: var(--status-warn-bg);
+  color: var(--status-warn-text);
+}
+
+.badge--bad {
+  background: var(--status-bad-bg);
+  color: var(--status-bad-text);
+}
+
+.food-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.food-page h2 {
+  margin: 0;
+}
+
+.food-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.variant-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: var(--pill-bg);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: inline-block;
+}
+
+/* Намальована заглушка фото рецепта "в єдиному стилі" (planner-spec.md §4.11) —
+   градієнт у кольорі модуля замість справжнього фото. */
+.recipe-photo {
+  background: linear-gradient(135deg, var(--color-food), #fff3d6);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-on-accent);
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px 8px;
+    gap: 2px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebar-title {
+    display: none;
+  }
+
+  .sidebar-item {
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 2px;
+    border-left: none;
+    border-bottom: 3px solid var(--item-color, var(--color-food));
+    padding: 6px 10px;
+  }
+
+  .sidebar-label {
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+}
