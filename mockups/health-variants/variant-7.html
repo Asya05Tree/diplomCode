@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Здоров'я · Варіант 7 — попередження про конфлікт зверху</title>
+<title>Здоров'я · Варіант 7 — профіль-картка з аватаром</title>
 <link rel="stylesheet" href="shared.css" />
 <style>
-  .h1-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
-  @media (max-width: 860px) { .h1-layout { grid-template-columns: 1fr; } }
+  .v7-layout { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+  .v7-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--color-health), #e8f6ec); display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; }
+  @media (max-width: 860px) { .v7-layout { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -33,302 +34,199 @@
     <div class="page-content">
       <div class="page-head">
         <h2>Здоров'я</h2>
-        <span class="variant-note">Варіант 7 · hero-попередження про конфлікт двох препаратів у аптечці, далі стандартні дві колонки</span>
+        <span class="variant-note">Варіант 7 · зліва картка профілю (з аватаром-заглушкою) і таблиця хвороб, праворуч повна таблиця аптечки</span>
       </div>
 
-      <div class="card alert-card">
-        <span class="alert-card-icon">⚠️</span>
-        <span><strong>Ібупрофен</strong> конфліктує з <strong>Варфарин</strong> — обидва зараз у вашій аптечці. <a href="#" style="color: inherit;">Переглянути деталі</a></span>
-      </div>
-
-      <div class="h1-layout">
-        <div class="card">
-          <div class="section-title"><h3>Аптечка</h3></div>
-          <ul class="stock-list">
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--warn"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-ibuprofen-detail" class="drawer-toggle">
-        <label for="h7-ibuprofen-detail" class="stock-name-text is-link">Ібупрофен</label>
-        <div class="drawer-overlay">
-          <label for="h7-ibuprofen-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Ібупрофен</h3><label for="h7-ibuprofen-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>ібупрофен</span></div>
-        <p class="placeholder-text" style="margin:10px 0 4px;">Не поєднювати з:</p>
-        <ul class="conflict-list">
-          <li>⚠ алкоголь</li>
-          <li>⚠ інші препарати з ібупрофеном (передозування)</li>
-          <li>⚠ варфарин — посилює дію</li>
-        </ul>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 03.2027</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-ibuprofen" id="h7-ibuprofen-ok" class="stock-radio--ok" ><label for="h7-ibuprofen-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-ibuprofen" id="h7-ibuprofen-warn" class="stock-radio--warn" checked><label for="h7-ibuprofen-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-ibuprofen" id="h7-ibuprofen-bad" class="stock-radio--bad"><label for="h7-ibuprofen-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--ok"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-paracetamol-detail" class="drawer-toggle">
-        <label for="h7-paracetamol-detail" class="stock-name-text is-link">Парацетамол</label>
-        <div class="drawer-overlay">
-          <label for="h7-paracetamol-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Парацетамол</h3><label for="h7-paracetamol-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>парацетамол</span></div>
-        <p class="placeholder-text" style="margin:10px 0 4px;">Не поєднювати з:</p>
-        <ul class="conflict-list">
-          <li>⚠ алкоголь (навантаження на печінку)</li>
-        </ul>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 11.2026</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-paracetamol" id="h7-paracetamol-ok" class="stock-radio--ok" checked><label for="h7-paracetamol-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-paracetamol" id="h7-paracetamol-warn" class="stock-radio--warn" ><label for="h7-paracetamol-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-paracetamol" id="h7-paracetamol-bad" class="stock-radio--bad"><label for="h7-paracetamol-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--warn"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-warfarin-detail" class="drawer-toggle">
-        <label for="h7-warfarin-detail" class="stock-name-text is-link">Варфарин</label>
-        <div class="drawer-overlay">
-          <label for="h7-warfarin-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Варфарин</h3><label for="h7-warfarin-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>варфарин</span></div>
-        <p class="placeholder-text" style="margin:10px 0 4px;">Не поєднювати з:</p>
-        <ul class="conflict-list">
-          <li>⚠ ібупрофен — посилює дію</li>
-          <li>⚠ алкоголь</li>
-        </ul>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 06.2026</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-warfarin" id="h7-warfarin-ok" class="stock-radio--ok" ><label for="h7-warfarin-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-warfarin" id="h7-warfarin-warn" class="stock-radio--warn" checked><label for="h7-warfarin-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-warfarin" id="h7-warfarin-bad" class="stock-radio--bad"><label for="h7-warfarin-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--ok"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-coal-detail" class="drawer-toggle">
-        <label for="h7-coal-detail" class="stock-name-text is-link">Активоване вугілля</label>
-        <div class="drawer-overlay">
-          <label for="h7-coal-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Активоване вугілля</h3><label for="h7-coal-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>активоване вугілля</span></div>
-        <p class="placeholder-text" style="margin:10px 0 0;">Відомих конфліктів не знайдено.</p>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 2028</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-coal" id="h7-coal-ok" class="stock-radio--ok" checked><label for="h7-coal-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-coal" id="h7-coal-warn" class="stock-radio--warn" ><label for="h7-coal-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-coal" id="h7-coal-bad" class="stock-radio--bad"><label for="h7-coal-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--ok"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-noshpa-detail" class="drawer-toggle">
-        <label for="h7-noshpa-detail" class="stock-name-text is-link">Но-шпа</label>
-        <div class="drawer-overlay">
-          <label for="h7-noshpa-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Но-шпа</h3><label for="h7-noshpa-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>дротаверин</span></div>
-        <p class="placeholder-text" style="margin:10px 0 0;">Відомих конфліктів не знайдено.</p>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 09.2027</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-noshpa" id="h7-noshpa-ok" class="stock-radio--ok" checked><label for="h7-noshpa-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-noshpa" id="h7-noshpa-warn" class="stock-radio--warn" ><label for="h7-noshpa-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-noshpa" id="h7-noshpa-bad" class="stock-radio--bad"><label for="h7-noshpa-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--ok"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-plaster-detail" class="drawer-toggle">
-        <label for="h7-plaster-detail" class="stock-name-text is-link">Пластир</label>
-        <div class="drawer-overlay">
-          <label for="h7-plaster-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Пластир</h3><label for="h7-plaster-detail" class="drawer-close">✕</label></div>
-<p class="placeholder-text" style="margin:4px 0 0;">Медичний виріб, не речовина — конфліктів з іншими препаратами не буває.</p>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">—</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-plaster" id="h7-plaster-ok" class="stock-radio--ok" checked><label for="h7-plaster-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-plaster" id="h7-plaster-warn" class="stock-radio--warn" ><label for="h7-plaster-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-plaster" id="h7-plaster-bad" class="stock-radio--bad"><label for="h7-plaster-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--ok"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-vitd-detail" class="drawer-toggle">
-        <label for="h7-vitd-detail" class="stock-name-text is-link">Вітамін D</label>
-        <div class="drawer-overlay">
-          <label for="h7-vitd-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Вітамін D</h3><label for="h7-vitd-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>вітамін D3</span></div>
-        <p class="placeholder-text" style="margin:10px 0 0;">Відомих конфліктів не знайдено.</p>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 01.2027</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-vitd" id="h7-vitd-ok" class="stock-radio--ok" checked><label for="h7-vitd-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-vitd" id="h7-vitd-warn" class="stock-radio--warn" ><label for="h7-vitd-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-vitd" id="h7-vitd-bad" class="stock-radio--bad"><label for="h7-vitd-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-            <li class="stock-row">
-              <span class="stock-dot stock-dot--warn"></span>
-              <span class="stock-name">
-      <div class="drawer-wrap">
-        <input type="checkbox" id="h7-valerian-detail" class="drawer-toggle">
-        <label for="h7-valerian-detail" class="stock-name-text is-link">Валеріанка</label>
-        <div class="drawer-overlay">
-          <label for="h7-valerian-detail" class="drawer-backdrop" aria-hidden="true"></label>
-          <aside class="drawer-panel">
-            <div class="drawer-head"><h3>Валеріанка</h3><label for="h7-valerian-detail" class="drawer-close">✕</label></div>
-        <div class="med-detail-row"><span>Речовина</span><span>валеріана</span></div>
-        <p class="placeholder-text" style="margin:10px 0 4px;">Не поєднювати з:</p>
-        <ul class="conflict-list">
-          <li>⚠ снодійні — посилює ефект</li>
-        </ul>
-          </aside>
-        </div>
-      </div>
-                <span class="stock-expiry">до 05.2026</span>
-              </span>
-              <div class="stock-toggle">
-                <input type="radio" name="h7-valerian" id="h7-valerian-ok" class="stock-radio--ok" ><label for="h7-valerian-ok" class="stock-circle stock-circle--ok" title="Є"></label>
-                <input type="radio" name="h7-valerian" id="h7-valerian-warn" class="stock-radio--warn" checked><label for="h7-valerian-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
-                <input type="radio" name="h7-valerian" id="h7-valerian-bad" class="stock-radio--bad"><label for="h7-valerian-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
-              </div>
-            </li>
-          </ul>
+      <div class="v7-layout">
+        <div class="card" style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span class="v7-avatar">🧍</span>
+            <div>
+              <div class="profile-field"><span class="profile-field-label">Вага</span><span class="profile-field-value">61 кг</span></div>
+            </div>
+          </div>
+          <div class="profile-field"><span class="profile-field-label">Вік</span><span class="profile-field-value">27 років</span></div>
+          <div class="profile-field"><span class="profile-field-label">Зріст</span><span class="profile-field-value">168 см</span></div>
+          <hr style="border:none; border-top:1px solid var(--color-border); width:100%; margin:4px 0;">
+          <h4 style="margin:0 0 4px; font-size:0.82rem; color:var(--color-text-muted);">Хронічні захворювання</h4>
+        <table class="data-table">
+          <thead><tr><th>Назва</th><th>Впливає на їжу</th><th>Тег</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Діабет 2 типу</td>
+              <td>так</td>
+              <td><span class="condition-tag">цукор</span></td>
+            </tr>
+            <tr>
+              <td>Гастрит</td>
+              <td>так</td>
+              <td><span class="condition-tag">гостре</span></td>
+            </tr>
+            <tr>
+              <td>Гіпертонія</td>
+              <td>так</td>
+              <td><span class="condition-tag">сіль</span></td>
+            </tr>
+            <tr>
+              <td>Подагра</td>
+              <td>так</td>
+              <td><span class="condition-tag">пурини</span></td>
+            </tr>
+            <tr>
+              <td>Мігрень</td>
+              <td>ні</td>
+              <td><span class="none-text">—</span></td>
+            </tr>
+            <tr>
+              <td>Алергія на пилок</td>
+              <td>ні</td>
+              <td><span class="none-text">—</span></td>
+            </tr>
+          </tbody>
+        </table>
         <div class="drawer-wrap">
-          <input type="checkbox" id="h7-add-med" class="drawer-toggle">
-          <label for="h7-add-med" class="btn-accent">+ Додати ліки</label>
+          <input type="checkbox" id="v7-add-cond" class="drawer-toggle">
+          <label for="v7-add-cond" class="btn-outline">+ Додати захворювання</label>
           <div class="drawer-overlay">
-            <label for="h7-add-med" class="drawer-backdrop" aria-hidden="true"></label>
+            <label for="v7-add-cond" class="drawer-backdrop" aria-hidden="true"></label>
             <aside class="drawer-panel">
-              <div class="drawer-head"><h3>Додати ліки</h3><label for="h7-add-med" class="drawer-close">✕</label></div>
+              <div class="drawer-head"><h3>Додати хронічне захворювання</h3><label for="v7-add-cond" class="drawer-close">✕</label></div>
+              <input type="text" class="drawer-search" placeholder="Пошук або своя назва…">
+              <ul class="drawer-product-list">
+                <li><span>Астма</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Целіакія</span><button class="pill" type="button">+ Додати</button></li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>Аптечка</h3>        <div class="drawer-wrap">
+          <input type="checkbox" id="v7-add-med" class="drawer-toggle">
+          <label for="v7-add-med" class="btn-accent">+ Додати ліки</label>
+          <div class="drawer-overlay">
+            <label for="v7-add-med" class="drawer-backdrop" aria-hidden="true"></label>
+            <aside class="drawer-panel">
+              <div class="drawer-head"><h3>Додати ліки</h3><label for="v7-add-med" class="drawer-close">✕</label></div>
               <input type="text" class="drawer-search" placeholder="Пошук препарату…">
               <ul class="drawer-product-list">
                 <li><span>Німесил</span><button class="pill" type="button">+ Додати</button></li>
                 <li><span>Аспірин</span><button class="pill" type="button">+ Додати</button></li>
                 <li><span>Лоратадин</span><button class="pill" type="button">+ Додати</button></li>
                 <li><span>Ренні</span><button class="pill" type="button">+ Додати</button></li>
-                <li><span>Силіцилова мазь</span><button class="pill" type="button">+ Додати</button></li>
-                <li><span>Магній B6</span><button class="pill" type="button">+ Додати</button></li>
               </ul>
             </aside>
           </div>
-        </div>
-        </div>
-        <div class="card">
-          <div class="section-title"><h3>Хронічні захворювання</h3></div>
-          <ul class="condition-list">
-            <li class="condition-row">
-              <span class="condition-name">Діабет 2 типу</span>
-              <span class="condition-tag">тег «цукор»</span>
-              <div class="switch-wrap">
-                <span class="switch-label">Впливає на їжу</span>
-                <span class="switch">
-                  <input type="checkbox" id="h7-diabetes-affects" checked>
-                  <label for="h7-diabetes-affects" class="switch-track"></label>
-                </span>
-              </div>
-            </li>
-            <li class="condition-row">
-              <span class="condition-name">Гастрит</span>
-              <span class="condition-tag">тег «гостре»</span>
-              <div class="switch-wrap">
-                <span class="switch-label">Впливає на їжу</span>
-                <span class="switch">
-                  <input type="checkbox" id="h7-gastritis-affects" checked>
-                  <label for="h7-gastritis-affects" class="switch-track"></label>
-                </span>
-              </div>
-            </li>
-            <li class="condition-row">
-              <span class="condition-name">Мігрень</span>
-              
-              <div class="switch-wrap">
-                <span class="switch-label">Впливає на їжу</span>
-                <span class="switch">
-                  <input type="checkbox" id="h7-migraine-affects" >
-                  <label for="h7-migraine-affects" class="switch-track"></label>
-                </span>
-              </div>
-            </li>
-            <li class="condition-row">
-              <span class="condition-name">Алергія на пилок</span>
-              
-              <div class="switch-wrap">
-                <span class="switch-label">Впливає на їжу</span>
-                <span class="switch">
-                  <input type="checkbox" id="h7-pollen-affects" >
-                  <label for="h7-pollen-affects" class="switch-track"></label>
-                </span>
-              </div>
-            </li>
-          </ul>
-        <div class="drawer-wrap">
-          <input type="checkbox" id="h7-add-cond" class="drawer-toggle">
-          <label for="h7-add-cond" class="btn-outline">+ Додати захворювання</label>
-          <div class="drawer-overlay">
-            <label for="h7-add-cond" class="drawer-backdrop" aria-hidden="true"></label>
-            <aside class="drawer-panel">
-              <div class="drawer-head"><h3>Додати хронічне захворювання</h3><label for="h7-add-cond" class="drawer-close">✕</label></div>
-              <input type="text" class="drawer-search" placeholder="Пошук або своя назва…">
-              <ul class="drawer-product-list">
-                <li><span>Гіпертонія</span><button class="pill" type="button">+ Додати</button></li>
-                <li><span>Астма</span><button class="pill" type="button">+ Додати</button></li>
-                <li><span>Целіакія</span><button class="pill" type="button">+ Додати</button></li>
-                <li><span>Подагра</span><button class="pill" type="button">+ Додати</button></li>
-              </ul>
-            </aside>
-          </div>
-        </div>
+        </div></div>
+        <table class="data-table">
+          <thead><tr><th>Назва</th><th>Категорія</th><th>Речовина</th><th>Стан</th><th>Термін</th><th>Не сумісний з</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Ібупрофен</td>
+              <td><span class="category-badge">Таблетки</span></td>
+              <td>ібупрофен</td>
+              <td><span class="badge badge--warn">закінчується</span></td>
+              <td>до 03.2027</td>
+              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span><span class="conflict-tag">інші препарати з ібупрофеном</span><span class="conflict-tag">варфарин</span></div></td>
+            </tr>
+            <tr>
+              <td>Парацетамол</td>
+              <td><span class="category-badge">Таблетки</span></td>
+              <td>парацетамол</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 11.2026</td>
+              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span></div></td>
+            </tr>
+            <tr>
+              <td>Варфарин</td>
+              <td><span class="category-badge">Таблетки</span></td>
+              <td>варфарин</td>
+              <td><span class="badge badge--warn">закінчується</span></td>
+              <td>до 06.2026</td>
+              <td><div class="conflict-tags"><span class="conflict-tag">ібупрофен</span><span class="conflict-tag">алкоголь</span></div></td>
+            </tr>
+            <tr>
+              <td>Но-шпа</td>
+              <td><span class="category-badge">Таблетки</span></td>
+              <td>дротаверин</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 09.2027</td>
+              <td><span class="none-text">не знайдено</span></td>
+            </tr>
+            <tr>
+              <td>Омега-3</td>
+              <td><span class="category-badge">Капсули</span></td>
+              <td>риб'ячий жир</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 2028</td>
+              <td><span class="none-text">не знайдено</span></td>
+            </tr>
+            <tr>
+              <td>Доктор МОМ</td>
+              <td><span class="category-badge">Сиропи</span></td>
+              <td>рослинні екстракти</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 10.2026</td>
+              <td><span class="none-text">не знайдено</span></td>
+            </tr>
+            <tr>
+              <td>Корвалол</td>
+              <td><span class="category-badge">Краплі</span></td>
+              <td>фенобарбітал</td>
+              <td><span class="badge badge--warn">закінчується</span></td>
+              <td>до 01.2026</td>
+              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span><span class="conflict-tag">снодійні</span></div></td>
+            </tr>
+            <tr>
+              <td>Левомеколь</td>
+              <td><span class="category-badge">Мазі та гелі</span></td>
+              <td>хлорамфенікол</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 2027</td>
+              <td><span class="none-text">не знайдено</span></td>
+            </tr>
+            <tr>
+              <td>Називін</td>
+              <td><span class="category-badge">Спреї</span></td>
+              <td>оксиметазолін</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 05.2026</td>
+              <td><span class="none-text">не знайдено</span></td>
+            </tr>
+            <tr>
+              <td>Пластир</td>
+              <td><span class="category-badge">Пластирі</span></td>
+              <td>—</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>—</td>
+              <td><span class="none-text">не речовина</span></td>
+            </tr>
+            <tr>
+              <td>Інсулін</td>
+              <td><span class="category-badge">Ін'єкції</span></td>
+              <td>інсулін</td>
+              <td><span class="badge badge--warn">закінчується</span></td>
+              <td>до 02.2026</td>
+              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span></div></td>
+            </tr>
+            <tr>
+              <td>Вітамін D</td>
+              <td><span class="category-badge">Вітаміни та добавки</span></td>
+              <td>вітамін D3</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>до 01.2027</td>
+              <td><span class="none-text">не знайдено</span></td>
+            </tr>
+            <tr>
+              <td>Термометр</td>
+              <td><span class="category-badge">Медичні вироби</span></td>
+              <td>—</td>
+              <td><span class="badge badge--ok">є</span></td>
+              <td>—</td>
+              <td><span class="none-text">не речовина</span></td>
+            </tr>
+          </tbody>
+        </table>
         </div>
       </div>
     </div>
