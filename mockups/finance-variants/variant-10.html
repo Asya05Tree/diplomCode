@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Фінанси · Варіант 10 — місячний фінансовий звіт</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .v10-doc { max-width: 720px; margin: 0 auto; width: 100%; }
+  .v10-doc .card { margin-bottom: 16px; }
+  .v10-title-row { display:flex; align-items:baseline; justify-content:space-between; }
+  .v10-kv-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--color-border); font-size:0.9rem; }
+  .v10-kv-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети вкладки «Фінанси»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💰</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Фінанси</h2>
+        <span class="variant-note">Варіант 10 · формальний місячний звіт — вузька колонка, усі розділи таблицями одна під одною</span>
+      </div>
+
+      <div class="v10-doc">
+        <div class="card">
+          <div class="v10-title-row"><h3 style="margin:0;">Фінансовий звіт — жовтень 2026</h3><span class="placeholder-text">станом на 19.10.2026</span></div>
+          <hr style="border:none; border-top:1px solid var(--color-border); margin:12px 0;">
+          <div class="v10-kv-row"><span>Баланс</span><strong>18 450 грн</strong></div>
+          <div class="v10-kv-row"><span>Дохід за місяць</span><strong class="kpi-value--income">+37 500 грн</strong></div>
+          <div class="v10-kv-row"><span>Витрати за місяць</span><strong class="kpi-value--expense">−12 000 грн</strong></div>
+          <div class="v10-kv-row"><span>Ліміт витрат</span><strong>12 000 / 15 000 грн (80%)</strong></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Категорії витрат</h3>
+          <table class="data-table">
+            <thead><tr><th>Категорія</th><th>Сума</th><th>Частка</th></tr></thead>
+            <tbody>
+              <tr><td>Житло й комунальні</td><td>4 200 грн</td><td>35%</td></tr>
+              <tr><td>Їжа</td><td>3 100 грн</td><td>26%</td></tr>
+              <tr><td>Одяг</td><td>1 200 грн</td><td>10%</td></tr>
+              <tr><td>Транспорт</td><td>950 грн</td><td>8%</td></tr>
+              <tr><td>Освіта</td><td>900 грн</td><td>7%</td></tr>
+              <tr><td>Розваги</td><td>780 грн</td><td>6%</td></tr>
+              <tr><td>Аптечка</td><td>540 грн</td><td>4%</td></tr>
+              <tr><td>Інше</td><td>330 грн</td><td>4%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Витрати по тижнях</h3>
+          <table class="data-table">
+            <thead><tr><th>Період</th><th>Сума</th></tr></thead>
+            <tbody>
+              <tr><td>Тиждень 1 (01–07.10)</td><td>2 100 грн</td></tr>
+              <tr><td>Тиждень 2 (08–14.10)</td><td>3 400 грн</td></tr>
+              <tr><td>Тиждень 3 (15–21.10)</td><td>4 200 грн</td></tr>
+              <tr><td>Тиждень 4 (22–31.10, поточний)</td><td>2 300 грн</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="v10-title-row">
+            <h3 style="margin:0;">Операції за період</h3>
+            <div class="drawer-wrap">
+              <input type="checkbox" id="add-txn" class="drawer-toggle">
+              <label for="add-txn" class="pill">+ Додати операцію</label>
+              <div class="drawer-overlay">
+                <label for="add-txn" class="drawer-backdrop" aria-hidden="true"></label>
+                <aside class="drawer-panel">
+                  <div class="drawer-head"><h3>Нова операція</h3><label for="add-txn" class="drawer-close">✕</label></div>
+                  <div class="txn-type-switch">
+                    <input type="radio" name="txn-type" id="txn-type-expense" checked><label for="txn-type-expense" class="pill">Витрата</label>
+                    <input type="radio" name="txn-type" id="txn-type-income"><label for="txn-type-income" class="pill">Дохід</label>
+                  </div>
+                  <label class="drawer-field"><span>Сума, грн</span><input type="number" placeholder="0"></label>
+                  <label class="drawer-field"><span>Категорія</span>
+                    <select>
+                      <option>Їжа</option>
+                      <option>Транспорт</option>
+                      <option>Житло й комунальні</option>
+                      <option>Аптечка</option>
+                      <option>Розваги</option>
+                      <option>Одяг</option>
+                      <option>Освіта</option>
+                      <option>Інше</option>
+                    </select>
+                  </label>
+                  <label class="drawer-field"><span>Опис</span><input type="text" placeholder="Напр. АТБ, продукти"></label>
+                  <label class="drawer-field"><span>Дата</span><input type="date" value="2026-10-19"></label>
+                  <button class="btn-accent" type="button">Зберегти</button>
+                </aside>
+              </div>
+            </div>
+          </div>
+          <hr style="border:none; border-top:1px solid var(--color-border); margin:12px 0;">
+          <table class="data-table">
+            <thead><tr><th>Дата</th><th>Категорія</th><th>Опис</th><th>Тип</th><th>Сума</th></tr></thead>
+            <tbody>
+              <tr><td>18.10.2026</td><td>Зарплата</td><td>Зарплата</td><td>Дохід</td><td><span class="txn-amount txn-amount--income">+32 000 грн</span></td></tr>
+              <tr><td>17.10.2026</td><td>Їжа</td><td>АТБ, продукти</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−540 грн</span></td></tr>
+              <tr><td>16.10.2026</td><td>Транспорт</td><td>Таксі додому</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−180 грн</span></td></tr>
+              <tr><td>15.10.2026</td><td>Житло й комунальні</td><td>Оплата комуналки</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−2 150 грн</span></td></tr>
+              <tr><td>14.10.2026</td><td>Розваги</td><td>Кіно з друзями</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−420 грн</span></td></tr>
+              <tr><td>12.10.2026</td><td>Аптечка</td><td>Вітаміни й бинти</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−310 грн</span></td></tr>
+              <tr><td>10.10.2026</td><td>Підробіток</td><td>Фріланс-проєкт</td><td>Дохід</td><td><span class="txn-amount txn-amount--income">+4 500 грн</span></td></tr>
+              <tr><td>08.10.2026</td><td>Одяг</td><td>Зимова куртка</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−2 800 грн</span></td></tr>
+              <tr><td>05.10.2026</td><td>Освіта</td><td>Курс англійської</td><td>Витрата</td><td><span class="txn-amount txn-amount--expense">−1 200 грн</span></td></tr>
+              <tr><td>02.10.2026</td><td>Інше</td><td>Повернення боргу</td><td>Дохід</td><td><span class="txn-amount txn-amount--income">+1 000 грн</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
