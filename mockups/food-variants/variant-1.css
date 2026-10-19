@@ -1,0 +1,86 @@
+/* Варіант 1 — "Класичний екран розділу": дослівно макет §4.6 planner-spec.md —
+   обрані страви зверху, запаси знизу, без зайвих прикрас. */
+
+.v1-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.v1-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.v1-section-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.v1-dish-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v1-dish-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.v1-dish-row:last-child {
+  border-bottom: none;
+}
+
+.v1-dish-name {
+  font-size: 0.95rem;
+}
+
+.v1-stock-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.v1-stock-lines strong {
+  color: var(--color-text);
+}
+
+.v1-stock-warn {
+  color: var(--status-warn-text);
+}
+
+.v1-empty-card {
+  opacity: 0.55;
+}
+
+.v1-empty-card h4 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.v1-empty-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 0.88rem;
+}
+
+.v1-empty-grid span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.v1-empty-grid input {
+  accent-color: var(--color-food);
+}

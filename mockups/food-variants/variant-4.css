@@ -1,0 +1,74 @@
+/* Варіант 4 — "Екран готовки": два кроки підтвердження готування дослівно за
+   §4.6 planner-spec.md — "Хватает ли ингредиентов?" і "Что осталось?". */
+
+.v4-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 480px;
+}
+
+.v4-step-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.v4-card h3 {
+  margin: 0 0 12px;
+}
+
+.v4-check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.v4-check-grid label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.v4-check-grid input {
+  accent-color: var(--color-food);
+}
+
+.v4-after-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.v4-after-row:last-of-type {
+  border-bottom: none;
+}
+
+.v4-tri-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.v4-tri-buttons button {
+  font-size: 0.78rem;
+  padding: 5px 10px;
+}
+
+.v4-tri-buttons button.is-selected {
+  background: var(--color-accent-gradient);
+  border-color: transparent;
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.v4-arrow {
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: 1.3rem;
+}

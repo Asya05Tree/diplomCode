@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Їжа · Варіант 5 — Компактний список</title>
+<link rel="stylesheet" href="shared.css" />
+<link rel="stylesheet" href="variant-5.css" />
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети вкладки «Їжа»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 6</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="food-page">
+      <div class="food-page-head">
+        <h2>Їжа</h2>
+        <span class="variant-note">Варіант 5 · Компактна таблиця замість карток, псевдо-вкладки всередині розділу</span>
+      </div>
+
+      <div class="v5-tabs">
+        <span class="v5-tab">Обрані (3)</span>
+        <span class="v5-tab is-active">Стрічка</span>
+        <span class="v5-tab">Запаси</span>
+      </div>
+
+      <div class="card">
+        <table class="v5-table">
+          <thead>
+            <tr>
+              <th>Страва</th>
+              <th>Час</th>
+              <th>Інгредієнти</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="v5-name-cell"><span class="v5-emoji">🍲</span>Борщ</td>
+              <td>60 хв</td>
+              <td>буряк, картопля, капуста, морква, цибуля</td>
+              <td><span class="badge badge--ok">✓ все є</span></td>
+            </tr>
+            <tr>
+              <td class="v5-name-cell"><span class="v5-emoji">🍝</span>Паста карбонара</td>
+              <td>25 хв</td>
+              <td>паста, бекон, яйце, пармезан</td>
+              <td><span class="badge badge--warn">докупити 2 (~85 грн)</span></td>
+            </tr>
+            <tr>
+              <td class="v5-name-cell"><span class="v5-emoji">🍛</span>Плов</td>
+              <td>50 хв</td>
+              <td>рис, морква, цибуля, курка</td>
+              <td><span class="badge badge--warn">докупити 5 (~230 грн)</span></td>
+            </tr>
+            <tr>
+              <td class="v5-name-cell"><span class="v5-emoji">🥞</span>Омлет</td>
+              <td>10 хв</td>
+              <td>яйця, молоко, сіль</td>
+              <td><span class="badge badge--ok">✓ все є</span></td>
+            </tr>
+            <tr>
+              <td class="v5-name-cell"><span class="v5-emoji">🐟</span>Пюре з рибою</td>
+              <td>30 хв</td>
+              <td>картопля, молоко, консервована сардина, яйце</td>
+              <td><span class="badge badge--ok">✓ все є</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
