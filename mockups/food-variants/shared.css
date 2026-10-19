@@ -1,6 +1,8 @@
-/* Спільні токени й каркас — скопійовано зі стилю проєкту (client/src/index.css,
-   Layout.css, components/Sidebar.css), щоб макети виглядали як частина того ж додатку.
-   Це статичні макети: жодного JS, лише html+css. */
+/* Спільні токени, каркас і компоненти — скопійовано зі стилю проєкту
+   (client/src/index.css, Layout.css, components/Sidebar.css), щоб макети виглядали
+   як частина того ж додатку. Лише html+css: жодного JS, навіть перемикачі
+   "є/закінчується/немає" та панель "Додати запаси" зроблені на чистому CSS
+   (radio/checkbox-хак через :checked і :has()). */
 
 :root {
   --color-bg: #fafafd;
@@ -23,11 +25,11 @@
   --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
 
   --status-ok-bg: #d9f2e1;
-  --status-ok-text: #1f6d45;
+  --status-ok-text: #1f8a4c;
   --status-warn-bg: #ffead1;
-  --status-warn-text: #8a5a16;
+  --status-warn-text: #c77c10;
   --status-bad-bg: #fbdede;
-  --status-bad-text: #93302c;
+  --status-bad-text: #d1453c;
 }
 
 * {
@@ -134,7 +136,7 @@ a {
 }
 
 .sidebar-label {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 /* --- Спільні утиліти (index.css) --- */
@@ -160,6 +162,7 @@ a {
   color: var(--color-on-accent);
   cursor: pointer;
   white-space: nowrap;
+  display: inline-block;
 }
 
 .btn-outline {
@@ -221,8 +224,9 @@ a {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   flex: 1;
+  min-width: 0;
 }
 
 .food-page h2 {
@@ -246,16 +250,350 @@ a {
   display: inline-block;
 }
 
-/* Намальована заглушка фото рецепта "в єдиному стилі" (planner-spec.md §4.11) —
-   градієнт у кольорі модуля замість справжнього фото. */
-.recipe-photo {
-  background: linear-gradient(135deg, var(--color-food), #fff3d6);
-  border-radius: 10px;
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* ==========================================================================
+   Запаси — кольорова крапка статусу + триступеневий перемикач
+   "є / закінчується / немає" (радіо-кнопки замасковані під кольорові кружки).
+   Позначення "немає" прибирає рядок зі списку — реалізовано через :has(),
+   без жодного рядка JS.
+   ========================================================================== */
+.stock-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--color-border);
+  max-height: 60px;
+  overflow: hidden;
+  opacity: 1;
+  transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease, margin 0.25s ease;
+}
+
+.stock-row:last-child {
+  border-bottom: none;
+}
+
+.stock-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stock-dot--ok { background: var(--status-ok-text); }
+.stock-dot--warn { background: var(--status-warn-text); }
+.stock-dot--bad { background: var(--status-bad-text); }
+
+.stock-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stock-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.stock-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+  opacity: 0.3;
+  border: 2px solid transparent;
+  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stock-circle--ok { background: var(--status-ok-text); }
+.stock-circle--warn { background: var(--status-warn-text); }
+.stock-circle--bad { background: var(--status-bad-text); }
+
+.stock-toggle input:hover + .stock-circle {
+  opacity: 0.65;
+}
+
+.stock-toggle input:checked + .stock-circle {
+  opacity: 1;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 3.5px currentColor;
+}
+
+.stock-toggle input.stock-radio--ok:checked + .stock-circle { color: var(--status-ok-text); }
+.stock-toggle input.stock-radio--warn:checked + .stock-circle { color: var(--status-warn-text); }
+.stock-toggle input.stock-radio--bad:checked + .stock-circle { color: var(--status-bad-text); }
+
+/* Позначили "немає" — рядок складається й зникає зі списку */
+.stock-row:has(.stock-radio--bad:checked) {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  border-bottom-color: transparent;
+  pointer-events: none;
+}
+
+.stock-add-btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* Компактний варіант (горизонтальні чіпи / вузька колонка) */
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--pill-bg);
+  border-radius: 999px;
+  padding: 6px 10px 6px 12px;
+  font-size: 0.85rem;
+  max-width: 100%;
+  transition: max-width 0.25s ease, opacity 0.2s ease, padding 0.2s ease, margin 0.2s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.stock-chip:has(.stock-radio--bad:checked) {
+  max-width: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Панель "Додати запаси" — виїжджає справа. Чистий CSS: прихований чекбокс +
+   <label for="..."> як кнопка відкриття/закриття, без жодного JS.
+   ========================================================================== */
+.drawer-wrap {
+  display: contents;
+}
+
+.drawer-toggle {
+  display: none;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.drawer-toggle:checked ~ .drawer-overlay {
+  visibility: visible;
+  opacity: 1;
+}
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.35);
+  cursor: pointer;
+  display: block;
+}
+
+.drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(340px, 90vw);
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  box-shadow: -6px 0 20px rgba(17, 24, 39, 0.1);
+}
+
+.drawer-toggle:checked ~ .drawer-overlay .drawer-panel {
+  transform: translateX(0);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.drawer-close {
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  padding: 2px 6px;
+}
+
+.drawer-search {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.drawer-product-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.drawer-product-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+
+.drawer-product-list li:last-child {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   Картки рецептів — "квадратик з картинкою", назва і статус наявності.
+   ========================================================================== */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.recipe-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(17, 24, 39, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.1);
+}
+
+.recipe-card-photo {
+  position: relative;
+  height: 108px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 2.3rem;
+  background: linear-gradient(135deg, var(--color-food), #fff6e0);
+}
+
+.recipe-card-time {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.88);
   color: var(--color-on-accent);
-  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.recipe-card-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recipe-card-name {
+  font-weight: 600;
+  font-size: 0.94rem;
+}
+
+.recipe-card--lg .recipe-card-photo {
+  height: 160px;
+  font-size: 3.2rem;
+}
+
+/* ==========================================================================
+   Панель фільтрів: Все / Із наявного / діапазон "від __ до __ грн"
+   ========================================================================== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.price-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.price-range input {
+  width: 48px;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: var(--pill-text);
+  text-align: center;
+}
+
+.price-range input:focus {
+  outline: none;
 }
 
 @media (max-width: 760px) {
@@ -287,7 +625,7 @@ a {
   }
 
   .sidebar-label {
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     white-space: nowrap;
   }
 }
