@@ -683,6 +683,29 @@ a {
   flex-wrap: wrap;
 }
 
+/* Компактний key-value рядок профілю (варіант 6) — проміжний варіант між
+   .profile-strip (вільні відступи) і .profile-hero (великий блок): рамка
+   навколо, вертикальні розділювачі між полями. Використовується як стандартний
+   верх усіх 10 варіантів вкладки "Здоров'я". */
+.profile-kv {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.profile-kv > .profile-field {
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px solid var(--color-border);
+}
+
+.profile-kv > .profile-field:last-child {
+  border-right: none;
+}
+
 .profile-field {
   display: flex;
   flex-direction: column;
@@ -782,6 +805,43 @@ a {
 .none-text {
   color: var(--color-text-muted);
   font-size: 0.82rem;
+}
+
+/* ==========================================================================
+   Вкладки «Аптечка» / «Хронічні захворювання» — перемикач на чистому CSS:
+   прихований <input type="radio"> + <label> як кнопка вкладки, показ
+   відповідної панелі через ":checked ~". Механізм однаковий у всіх 10
+   варіантах, зовнішній вигляд кнопок (підкреслення, сегментований
+   перемикач, вертикальний список, великі плитки тощо) кожен варіант
+   налаштовує локально поверх .tab-btn / .tab-input:checked + .tab-btn.
+   ========================================================================== */
+.tabs-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tab-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.tab-btn {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tabs-panel {
+  display: none;
+  flex: 1 0 100%;
+  width: 100%;
+}
+
+#tab-meds:checked ~ #panel-meds,
+#tab-cond:checked ~ #panel-cond {
+  display: block;
 }
 
 @media (max-width: 760px) {
