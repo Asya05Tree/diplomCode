@@ -1,0 +1,528 @@
+/* Спільні токени, каркас і компоненти для макетів вкладки "Навчання / робота"
+   (викладачі, розклад занять на 2 тижні, розклад дзвінків, місячний
+   календар із лабораторними/ДЗ та оцінками). Лише html+css, жодного JS —
+   вкладки й перемикачі зроблено на чистому CSS (radio-хак через :checked
+   і :has()). Каркас узгоджений з client/src/index.css, Layout.css,
+   Sidebar.css та з іншими мокапами (food/health/finance-variants). */
+
+:root {
+  --color-bg: #fafafd;
+  --color-surface: #ffffff;
+  --color-text: #2b2b2b;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-heading: #111827;
+  --color-on-accent: #1f2937;
+
+  --sidebar-bg: #f0f2f5;
+  --sidebar-hover: rgba(17, 24, 39, 0.05);
+  --pill-bg: #f3f4f6;
+  --pill-bg-hover: #e9ebef;
+  --pill-text: #374151;
+
+  /* Навчання / робота — пастельно-фіолетовий (coding-guide.md, "Навчання / робота") */
+  --color-study: #d1c4e9;
+  --color-accent: #b3e5fc;
+  --color-accent-2: #c5cae9;
+  --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+
+  --status-ok-bg: #d9f2e1;
+  --status-ok-text: #1f8a4c;
+  --status-warn-bg: #ffead1;
+  --status-warn-text: #c77c10;
+  --status-bad-bg: #fbdede;
+  --status-bad-text: #d1453c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-heading);
+}
+
+a {
+  color: inherit;
+}
+
+/* --- Каркас застосунку (Layout.css) --- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px clamp(16px, 4vw, 24px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header-user {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Бокове меню (Sidebar.css). Пункти замінені на самі варіанти макету. --- */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--color-border);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-title {
+  padding: 4px 12px 12px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--item-color, var(--color-study));
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar-item--active {
+  background: var(--color-accent-gradient);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.sidebar-item--active .sidebar-label {
+  color: var(--color-on-accent);
+}
+
+.sidebar-icon {
+  font-size: 1.1rem;
+}
+
+.sidebar-label {
+  font-size: 0.88rem;
+}
+
+/* --- Спільні утиліти (index.css) --- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+
+.placeholder-text {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.btn-accent {
+  background: var(--color-accent-gradient);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-on-accent);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+}
+
+.pill--active {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--ok { background: var(--status-ok-bg); color: var(--status-ok-text); }
+.badge--warn { background: var(--status-warn-bg); color: var(--status-warn-text); }
+.badge--bad { background: var(--status-bad-bg); color: var(--status-bad-text); }
+
+.page-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.page-content h2 {
+  margin: 0;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.variant-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: var(--pill-bg);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: inline-block;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:nth-child(odd) {
+  background: var(--color-bg);
+}
+
+.none-text {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+/* ==========================================================================
+   Розклад занять — комірка з назвою предмета, кабінетом/посиланням і
+   викладачем в один-два рядки.
+   ========================================================================== */
+.schedule-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.schedule-cell strong {
+  font-size: 0.84rem;
+  color: var(--color-heading);
+}
+
+.schedule-cell span {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.schedule-table th:first-child,
+.schedule-table td:first-child {
+  text-align: center;
+  font-weight: 700;
+  width: 32px;
+}
+
+/* ==========================================================================
+   Розклад дзвінків — невеликі поля "від / до" для кожної пари.
+   ========================================================================== */
+.time-field {
+  width: 100px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.86rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   Місячний календар, який гортається (◀ Місяць Рік ▶), з позначками днів,
+   коли є дедлайн лабораторної/ДЗ.
+   ========================================================================== */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.month-nav-btn {
+  background: var(--pill-bg);
+  border: none;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.month-nav-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 140px;
+  text-align: center;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.month-weekday {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding-bottom: 4px;
+}
+
+.month-day {
+  position: relative;
+  min-height: 40px;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--pill-bg);
+  font-size: 0.82rem;
+}
+
+.month-day--muted {
+  opacity: 0.35;
+}
+
+.month-day--today {
+  background: var(--color-accent-gradient);
+  font-weight: 700;
+  color: var(--color-on-accent);
+}
+
+.month-day-dot {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-study);
+}
+
+.month-day--today .month-day-dot {
+  background: var(--color-on-accent);
+}
+
+/* ==========================================================================
+   Підсумкова оцінка — перемикач "Шкільна / Університетська" на чистому CSS.
+   ========================================================================== */
+.grade-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.grade-switch {
+  display: flex;
+  gap: 6px;
+}
+
+.grade-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.grade-switch input:checked + .pill {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.grade-value-panel {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grade-value-panel .kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.grade-block:has(#grade-school:checked) #grade-panel-school { display: flex; }
+.grade-block:has(#grade-univ:checked) #grade-panel-univ { display: flex; }
+
+/* ==========================================================================
+   KPI-плитка (перевикористовується для "Підсумкова оцінка" тощо).
+   ========================================================================== */
+.kpi-label {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Вкладки — прихований radio + label, показ через ":has()" від спільного
+   .tabs-wrap. Конкретні пари id/панелей для верхньорівневих секцій кожен
+   варіант визначає локально; пара "Тиждень 1 / Тиждень 2" усередині
+   розкладу — однакова в усіх варіантах, тому правило для неї спільне.
+   ========================================================================== */
+.tabs-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tab-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.tab-btn {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tabs-panel {
+  display: none;
+}
+
+.tabs-wrap:has(#tab-week1:checked) #panel-week1,
+.tabs-wrap:has(#tab-week2:checked) #panel-week2 {
+  display: block;
+}
+
+@media (max-width: 760px) {
+  .app-shell { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px 8px;
+    gap: 2px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebar-title { display: none; }
+
+  .sidebar-item {
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 2px;
+    border-left: none;
+    border-bottom: 3px solid var(--item-color, var(--color-study));
+    padding: 6px 10px;
+  }
+
+  .sidebar-label {
+    font-size: 0.64rem;
+    white-space: nowrap;
+  }
+}
