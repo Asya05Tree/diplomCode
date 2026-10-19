@@ -188,6 +188,13 @@ a {
   border: none;
 }
 
+/* Рядок пілюль-фільтрів категорій над таблицею аптечки (варіант 4) */
+.v4-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .pill--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);

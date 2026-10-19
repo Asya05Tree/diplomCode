@@ -3,12 +3,41 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Здоров'я · Варіант 10 — медична картка / друкований звіт</title>
+<title>Здоров'я · Варіант 10 — вкладки-ярлики документа</title>
 <link rel="stylesheet" href="shared.css" />
 <style>
   .v10-doc { max-width: 760px; margin: 0 auto; width: 100%; }
-  .v10-doc .card { margin-bottom: 16px; }
+  .v10-doc .card { margin-bottom: 0; }
   .v10-title-row { display:flex; align-items:baseline; justify-content:space-between; }
+  .v10-tabs-nav { display: flex; gap: 4px; margin-top: 18px; }
+  .v10-tabs-nav .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    background: var(--pill-bg);
+    color: var(--color-text-muted);
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-bottom: -1px;
+    position: relative;
+  }
+  .v10-tabs-nav .tab-input:checked + .tab-btn {
+    background: var(--color-surface);
+    color: var(--color-heading);
+  }
+  .v10-tabs .tabs-panel {
+    display: none;
+    border: 1px solid var(--color-border);
+    border-radius: 0 10px 10px 10px;
+    padding: 18px;
+    background: var(--color-surface);
+  }
+  .v10-tabs:has(#tab-meds:checked) #panel-meds { display: block; }
+  .v10-tabs:has(#tab-cond:checked) #panel-cond { display: block; }
 </style>
 </head>
 <body>
@@ -34,170 +63,210 @@
     <div class="page-content">
       <div class="page-head">
         <h2>Здоров'я</h2>
-        <span class="variant-note">Варіант 10 · формальний документ-звіт: одна вузька колонка, профіль і обидві таблиці одна під одною</span>
+        <span class="variant-note">Варіант 10 · медична картка-документ — вузька колонка, вкладки намальовані як паперові ярлики над розділом</span>
       </div>
 
       <div class="v10-doc">
         <div class="card">
           <div class="v10-title-row"><h3 style="margin:0;">Медична картка — Олена К.</h3><span class="placeholder-text">станом на 19.10.2026</span></div>
           <hr style="border:none; border-top:1px solid var(--color-border); margin:12px 0;">
-          <div class="profile-strip" style="padding:0;">
-            <div class="profile-field"><span class="profile-field-label">Вага</span><span class="profile-field-value">61 кг</span></div>
-            <div class="profile-field"><span class="profile-field-label">Вік</span><span class="profile-field-value">27 років</span></div>
-            <div class="profile-field"><span class="profile-field-label">Зріст</span><span class="profile-field-value">168 см</span></div>
+          <div class="profile-kv" style="border:none;">
+            <div class="profile-field" style="border-right:1px solid var(--color-border); padding:0 14px;"><span class="profile-field-label">Вага</span><span class="profile-field-value">61 кг</span></div>
+            <div class="profile-field" style="border-right:1px solid var(--color-border); padding:0 14px;"><span class="profile-field-label">Вік</span><span class="profile-field-value">27 років</span></div>
+            <div class="profile-field" style="padding:0 14px;"><span class="profile-field-label">Зріст</span><span class="profile-field-value">168 см</span></div>
           </div>
         </div>
 
-        <div class="card">
-          <h3 style="margin-top:0;">Аптечка</h3>
-        <table class="data-table">
-          <thead><tr><th>Назва</th><th>Категорія</th><th>Речовина</th><th>Стан</th><th>Термін</th><th>Не сумісний з</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>Ібупрофен</td>
-              <td><span class="category-badge">Таблетки</span></td>
-              <td>ібупрофен</td>
-              <td><span class="badge badge--warn">закінчується</span></td>
-              <td>до 03.2027</td>
-              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span><span class="conflict-tag">інші препарати з ібупрофеном</span><span class="conflict-tag">варфарин</span></div></td>
-            </tr>
-            <tr>
-              <td>Парацетамол</td>
-              <td><span class="category-badge">Таблетки</span></td>
-              <td>парацетамол</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 11.2026</td>
-              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span></div></td>
-            </tr>
-            <tr>
-              <td>Варфарин</td>
-              <td><span class="category-badge">Таблетки</span></td>
-              <td>варфарин</td>
-              <td><span class="badge badge--warn">закінчується</span></td>
-              <td>до 06.2026</td>
-              <td><div class="conflict-tags"><span class="conflict-tag">ібупрофен</span><span class="conflict-tag">алкоголь</span></div></td>
-            </tr>
-            <tr>
-              <td>Но-шпа</td>
-              <td><span class="category-badge">Таблетки</span></td>
-              <td>дротаверин</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 09.2027</td>
-              <td><span class="none-text">не знайдено</span></td>
-            </tr>
-            <tr>
-              <td>Омега-3</td>
-              <td><span class="category-badge">Капсули</span></td>
-              <td>риб'ячий жир</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 2028</td>
-              <td><span class="none-text">не знайдено</span></td>
-            </tr>
-            <tr>
-              <td>Доктор МОМ</td>
-              <td><span class="category-badge">Сиропи</span></td>
-              <td>рослинні екстракти</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 10.2026</td>
-              <td><span class="none-text">не знайдено</span></td>
-            </tr>
-            <tr>
-              <td>Корвалол</td>
-              <td><span class="category-badge">Краплі</span></td>
-              <td>фенобарбітал</td>
-              <td><span class="badge badge--warn">закінчується</span></td>
-              <td>до 01.2026</td>
-              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span><span class="conflict-tag">снодійні</span></div></td>
-            </tr>
-            <tr>
-              <td>Левомеколь</td>
-              <td><span class="category-badge">Мазі та гелі</span></td>
-              <td>хлорамфенікол</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 2027</td>
-              <td><span class="none-text">не знайдено</span></td>
-            </tr>
-            <tr>
-              <td>Називін</td>
-              <td><span class="category-badge">Спреї</span></td>
-              <td>оксиметазолін</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 05.2026</td>
-              <td><span class="none-text">не знайдено</span></td>
-            </tr>
-            <tr>
-              <td>Пластир</td>
-              <td><span class="category-badge">Пластирі</span></td>
-              <td>—</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>—</td>
-              <td><span class="none-text">не речовина</span></td>
-            </tr>
-            <tr>
-              <td>Інсулін</td>
-              <td><span class="category-badge">Ін'єкції</span></td>
-              <td>інсулін</td>
-              <td><span class="badge badge--warn">закінчується</span></td>
-              <td>до 02.2026</td>
-              <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span></div></td>
-            </tr>
-            <tr>
-              <td>Вітамін D</td>
-              <td><span class="category-badge">Вітаміни та добавки</span></td>
-              <td>вітамін D3</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>до 01.2027</td>
-              <td><span class="none-text">не знайдено</span></td>
-            </tr>
-            <tr>
-              <td>Термометр</td>
-              <td><span class="category-badge">Медичні вироби</span></td>
-              <td>—</td>
-              <td><span class="badge badge--ok">є</span></td>
-              <td>—</td>
-              <td><span class="none-text">не речовина</span></td>
-            </tr>
-          </tbody>
-        </table>
-        </div>
+        <div class="tabs-wrap v10-tabs" style="display:block;">
+          <div class="v10-tabs-nav">
+            <input type="radio" name="health-tab" id="tab-meds" class="tab-input" checked>
+            <label for="tab-meds" class="tab-btn">Аптечка</label>
+            <input type="radio" name="health-tab" id="tab-cond" class="tab-input">
+            <label for="tab-cond" class="tab-btn">Хронічні захворювання</label>
+          </div>
 
-        <div class="card">
-          <h3 style="margin-top:0;">Хронічні захворювання</h3>
-        <table class="data-table">
-          <thead><tr><th>Назва</th><th>Впливає на їжу</th><th>Тег</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>Діабет 2 типу</td>
-              <td>так</td>
-              <td><span class="condition-tag">цукор</span></td>
-            </tr>
-            <tr>
-              <td>Гастрит</td>
-              <td>так</td>
-              <td><span class="condition-tag">гостре</span></td>
-            </tr>
-            <tr>
-              <td>Гіпертонія</td>
-              <td>так</td>
-              <td><span class="condition-tag">сіль</span></td>
-            </tr>
-            <tr>
-              <td>Подагра</td>
-              <td>так</td>
-              <td><span class="condition-tag">пурини</span></td>
-            </tr>
-            <tr>
-              <td>Мігрень</td>
-              <td>ні</td>
-              <td><span class="none-text">—</span></td>
-            </tr>
-            <tr>
-              <td>Алергія на пилок</td>
-              <td>ні</td>
-              <td><span class="none-text">—</span></td>
-            </tr>
-          </tbody>
-        </table>
+          <div class="tabs-panel" id="panel-meds">
+            <div class="section-title"><h3 style="font-size:0.95rem;">Аптечка</h3>
+              <div class="drawer-wrap">
+                <input type="checkbox" id="add-med" class="drawer-toggle">
+                <label for="add-med" class="pill">+ Додати ліки</label>
+                <div class="drawer-overlay">
+                  <label for="add-med" class="drawer-backdrop" aria-hidden="true"></label>
+                  <aside class="drawer-panel">
+                    <div class="drawer-head"><h3>Додати ліки</h3><label for="add-med" class="drawer-close">✕</label></div>
+                    <input type="text" class="drawer-search" placeholder="Пошук препарату…">
+                    <ul class="drawer-product-list">
+                      <li><span>Німесил</span><button class="pill" type="button">+ Додати</button></li>
+                      <li><span>Аспірин</span><button class="pill" type="button">+ Додати</button></li>
+                      <li><span>Лоратадин</span><button class="pill" type="button">+ Додати</button></li>
+                      <li><span>Ренні</span><button class="pill" type="button">+ Додати</button></li>
+                    </ul>
+                  </aside>
+                </div>
+              </div>
+            </div>
+            <div class="v4-pills" style="margin-bottom: 12px;">
+              <button class="pill pill--active" type="button">Усі</button>
+              <button class="pill" type="button">Таблетки</button>
+              <button class="pill" type="button">Капсули</button>
+              <button class="pill" type="button">Сиропи</button>
+              <button class="pill" type="button">Краплі</button>
+              <button class="pill" type="button">Мазі та гелі</button>
+              <button class="pill" type="button">Спреї</button>
+              <button class="pill" type="button">Пластирі</button>
+              <button class="pill" type="button">Ін'єкції</button>
+              <button class="pill" type="button">Вітаміни та добавки</button>
+              <button class="pill" type="button">Медичні вироби</button>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Назва</th><th>Категорія</th><th>Речовина</th><th>Стан</th><th>Термін</th><th>Не сумісний з</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Ібупрофен</td>
+                  <td><span class="category-badge">Таблетки</span></td>
+                  <td>ібупрофен</td>
+                  <td><span class="badge badge--warn">закінчується</span></td>
+                  <td>до 03.2027</td>
+                  <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span><span class="conflict-tag">інші препарати з ібупрофеном</span><span class="conflict-tag">варфарин</span></div></td>
+                </tr>
+                <tr>
+                  <td>Парацетамол</td>
+                  <td><span class="category-badge">Таблетки</span></td>
+                  <td>парацетамол</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 11.2026</td>
+                  <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span></div></td>
+                </tr>
+                <tr>
+                  <td>Варфарин</td>
+                  <td><span class="category-badge">Таблетки</span></td>
+                  <td>варфарин</td>
+                  <td><span class="badge badge--warn">закінчується</span></td>
+                  <td>до 06.2026</td>
+                  <td><div class="conflict-tags"><span class="conflict-tag">ібупрофен</span><span class="conflict-tag">алкоголь</span></div></td>
+                </tr>
+                <tr>
+                  <td>Но-шпа</td>
+                  <td><span class="category-badge">Таблетки</span></td>
+                  <td>дротаверин</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 09.2027</td>
+                  <td><span class="none-text">не знайдено</span></td>
+                </tr>
+                <tr>
+                  <td>Омега-3</td>
+                  <td><span class="category-badge">Капсули</span></td>
+                  <td>риб'ячий жир</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 2028</td>
+                  <td><span class="none-text">не знайдено</span></td>
+                </tr>
+                <tr>
+                  <td>Доктор МОМ</td>
+                  <td><span class="category-badge">Сиропи</span></td>
+                  <td>рослинні екстракти</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 10.2026</td>
+                  <td><span class="none-text">не знайдено</span></td>
+                </tr>
+                <tr>
+                  <td>Корвалол</td>
+                  <td><span class="category-badge">Краплі</span></td>
+                  <td>фенобарбітал</td>
+                  <td><span class="badge badge--warn">закінчується</span></td>
+                  <td>до 01.2026</td>
+                  <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span><span class="conflict-tag">снодійні</span></div></td>
+                </tr>
+                <tr>
+                  <td>Левомеколь</td>
+                  <td><span class="category-badge">Мазі та гелі</span></td>
+                  <td>хлорамфенікол</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 2027</td>
+                  <td><span class="none-text">не знайдено</span></td>
+                </tr>
+                <tr>
+                  <td>Називін</td>
+                  <td><span class="category-badge">Спреї</span></td>
+                  <td>оксиметазолін</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 05.2026</td>
+                  <td><span class="none-text">не знайдено</span></td>
+                </tr>
+                <tr>
+                  <td>Пластир</td>
+                  <td><span class="category-badge">Пластирі</span></td>
+                  <td>—</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>—</td>
+                  <td><span class="none-text">не речовина</span></td>
+                </tr>
+                <tr>
+                  <td>Інсулін</td>
+                  <td><span class="category-badge">Ін'єкції</span></td>
+                  <td>інсулін</td>
+                  <td><span class="badge badge--warn">закінчується</span></td>
+                  <td>до 02.2026</td>
+                  <td><div class="conflict-tags"><span class="conflict-tag">алкоголь</span></div></td>
+                </tr>
+                <tr>
+                  <td>Вітамін D</td>
+                  <td><span class="category-badge">Вітаміни та добавки</span></td>
+                  <td>вітамін D3</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>до 01.2027</td>
+                  <td><span class="none-text">не знайдено</span></td>
+                </tr>
+                <tr>
+                  <td>Термометр</td>
+                  <td><span class="category-badge">Медичні вироби</span></td>
+                  <td>—</td>
+                  <td><span class="badge badge--ok">є</span></td>
+                  <td>—</td>
+                  <td><span class="none-text">не речовина</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tabs-panel" id="panel-cond">
+            <h3 style="margin-top:0; font-size:0.95rem;">Хронічні захворювання</h3>
+            <table class="data-table">
+              <thead><tr><th>Назва</th><th>Впливає на їжу</th><th>Тег</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Діабет 2 типу</td>
+                  <td>так</td>
+                  <td><span class="condition-tag">цукор</span></td>
+                </tr>
+                <tr>
+                  <td>Гастрит</td>
+                  <td>так</td>
+                  <td><span class="condition-tag">гостре</span></td>
+                </tr>
+                <tr>
+                  <td>Гіпертонія</td>
+                  <td>так</td>
+                  <td><span class="condition-tag">сіль</span></td>
+                </tr>
+                <tr>
+                  <td>Подагра</td>
+                  <td>так</td>
+                  <td><span class="condition-tag">пурини</span></td>
+                </tr>
+                <tr>
+                  <td>Мігрень</td>
+                  <td>ні</td>
+                  <td><span class="none-text">—</span></td>
+                </tr>
+                <tr>
+                  <td>Алергія на пилок</td>
+                  <td>ні</td>
+                  <td><span class="none-text">—</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
