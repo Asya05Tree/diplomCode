@@ -374,34 +374,6 @@ a {
 }
 
 /* ==========================================================================
-   Ліміт на період — прогрес-бар "витрачено / ліміт" (FinanceLimit).
-   ========================================================================== */
-.limit-bar-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  font-size: 0.84rem;
-  margin-bottom: 6px;
-}
-
-.limit-bar-head strong {
-  color: var(--color-heading);
-}
-
-.limit-bar-track {
-  height: 10px;
-  border-radius: 999px;
-  background: var(--pill-bg);
-  overflow: hidden;
-}
-
-.limit-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--status-warn-text), var(--status-warn-bg));
-}
-
-/* ==========================================================================
    Тижнева динаміка витрат — простий стовпчиковий графік на чистому CSS
    (planner-spec.md §4.9 "по неделям"). Висоти стовпчиків задані інлайн-style.
    ========================================================================== */
@@ -552,6 +524,14 @@ a {
 
 .tabs-panel {
   display: none;
+}
+
+/* Вкладки "Категорії" / "Історія" мають однакові id у всіх варіантах, тому
+   правило показу панелі одне на всіх — кожному варіанту не треба повторювати
+   його локально. */
+.tabs-wrap:has(#tab-categories:checked) #panel-categories,
+.tabs-wrap:has(#tab-history:checked) #panel-history {
+  display: block;
 }
 
 @media (max-width: 760px) {
