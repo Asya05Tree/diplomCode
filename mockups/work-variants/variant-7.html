@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Робота · Варіант 7 — цілі та KPI</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .goal-row { display:flex; flex-direction:column; gap:6px; padding:12px 0; border-bottom:1px solid var(--color-border); }
+  .goal-row:last-child { border-bottom:none; }
+  .goal-head { display:flex; align-items:center; justify-content:space-between; }
+  .goal-title { font-size:0.9rem; font-weight:600; }
+  .goal-pct { font-size:0.84rem; color:var(--color-text-muted); }
+  .goal-bar-track { height:8px; border-radius:999px; background:var(--pill-bg); overflow:hidden; }
+  .goal-bar-fill { height:100%; border-radius:999px; background:var(--color-accent-gradient); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети розділу «Робота»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Робота</h2>
+        <span class="variant-note">Варіант 7 · цілі та KPI на квартал — прогрес виконання, самооцінка, дата наступного ревʼю</span>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; gap:28px; flex-wrap:wrap; margin-bottom:12px;">
+          <div><span class="kpi-label">Квартал</span><div class="kpi-value">Q4 2026</div></div>
+          <div><span class="kpi-label">Наступне ревʼю</span><div class="kpi-value">15.01.2027</div></div>
+          <div><span class="kpi-label">Загальний прогрес</span><div class="kpi-value">68%</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Цілі на квартал</h3>
+          <button type="button" class="btn-accent">+ Додати ціль</button>
+        </div>
+
+        <div class="goal-row">
+          <div class="goal-head"><span class="goal-title">Запустити новий модуль звітності</span><span class="goal-pct">80%</span></div>
+          <div class="goal-bar-track"><div class="goal-bar-fill" style="width:80%;"></div></div>
+          <span class="placeholder-text" style="font-size:0.78rem;">Залишилось: тестування й документація</span>
+        </div>
+
+        <div class="goal-row">
+          <div class="goal-head"><span class="goal-title">Скоротити час обробки заявок до 2 днів</span><span class="goal-pct">55%</span></div>
+          <div class="goal-bar-track"><div class="goal-bar-fill" style="width:55%;"></div></div>
+          <span class="placeholder-text" style="font-size:0.78rem;">Поточний показник: 3.1 дня</span>
+        </div>
+
+        <div class="goal-row">
+          <div class="goal-head"><span class="goal-title">Пройти курс із тайм-менеджменту</span><span class="goal-pct">100%</span></div>
+          <div class="goal-bar-track"><div class="goal-bar-fill" style="width:100%; background:var(--status-ok-text);"></div></div>
+          <span class="placeholder-text" style="font-size:0.78rem;">Завершено 30.09.2026, сертифікат отримано</span>
+        </div>
+
+        <div class="goal-row">
+          <div class="goal-head"><span class="goal-title">Навчити нового співробітника</span><span class="goal-pct">20%</span></div>
+          <div class="goal-bar-track"><div class="goal-bar-fill" style="width:20%;"></div></div>
+          <span class="placeholder-text" style="font-size:0.78rem;">Початок роботи — середина листопада</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Самооцінка за попередній квартал</h3></div>
+        <table class="data-table">
+          <thead><tr><th>Критерій</th><th>Моя оцінка</th><th>Оцінка керівника</th></tr></thead>
+          <tbody>
+            <tr><td>Якість виконання задач</td><td>8/10</td><td>9/10</td></tr>
+            <tr><td>Дотримання термінів</td><td>7/10</td><td>7/10</td></tr>
+            <tr><td>Командна робота</td><td>9/10</td><td>9/10</td></tr>
+            <tr><td>Ініціативність</td><td>6/10</td><td>8/10</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

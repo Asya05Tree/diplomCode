@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Робота · Варіант 9 — зміни й оплата</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .pay-row { display:flex; gap:16px; flex-wrap:wrap; }
+  .pay-tile { flex:1 1 180px; border:1px solid var(--color-border); border-radius:14px; padding:14px 16px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети розділу «Робота»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Робота</h2>
+        <span class="variant-note">Варіант 9 · зміни пов'язані з оплатою — кожна зміна рахує «години × ставка», підсумок заробітку за місяць</span>
+      </div>
+
+      <div class="card">
+        <div class="pay-row">
+          <div class="pay-tile"><span class="kpi-label">Ставка за годину</span><div class="kpi-value">220 грн</div></div>
+          <div class="pay-tile"><span class="kpi-label">Відпрацьовано годин (жовтень)</span><div class="kpi-value">98 год</div></div>
+          <div class="pay-tile"><span class="kpi-label">Зароблено за місяць</span><div class="kpi-value" style="color:var(--status-ok-text);">21 560 грн</div></div>
+          <div class="pay-tile"><span class="kpi-label">Заплановано до кінця місяця</span><div class="kpi-value">+ 24 год</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Зміни цього місяця</h3></div>
+        <table class="data-table">
+          <thead><tr><th>Дата</th><th>Тип зміни</th><th>Години</th><th>Оплата</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>01.10.2026</td><td>Ранкова 08:00–16:00</td><td>8</td><td>1 760 грн</td><td><span class="badge badge--ok">Виплачено</span></td></tr>
+            <tr><td>02.10.2026</td><td>Ранкова 08:00–16:00</td><td>8</td><td>1 760 грн</td><td><span class="badge badge--ok">Виплачено</span></td></tr>
+            <tr><td>05.10.2026</td><td>Денна 12:00–20:00</td><td>8</td><td>1 760 грн</td><td><span class="badge badge--ok">Виплачено</span></td></tr>
+            <tr><td>06.10.2026</td><td>Денна 12:00–20:00</td><td>8</td><td>1 760 грн</td><td><span class="badge badge--ok">Виплачено</span></td></tr>
+            <tr><td>09.10.2026</td><td>Нічна 20:00–08:00 (+20%)</td><td>12</td><td>3 168 грн</td><td><span class="badge badge--ok">Виплачено</span></td></tr>
+            <tr><td>17.10.2026</td><td>Денна 12:00–20:00</td><td>8</td><td>1 760 грн</td><td><span class="badge badge--warn">Очікує</span></td></tr>
+            <tr><td>21.10.2026</td><td>Нічна 20:00–08:00 (+20%)</td><td>12</td><td>3 168 грн</td><td><span class="badge badge--warn">Заплановано</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

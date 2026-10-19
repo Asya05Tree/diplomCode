@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Робота · Варіант 4 — облік робочого часу</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .timer-hero { display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px; }
+  .timer-circle { width:160px; height:160px; border-radius:50%; border:8px solid var(--color-accent-2); display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .timer-time { font-size:1.6rem; font-weight:700; }
+  .timer-label { font-size:0.78rem; color:var(--color-text-muted); }
+  .timer-actions { display:flex; gap:10px; margin-top:6px; }
+  .week-bars { display:flex; align-items:flex-end; gap:14px; height:100px; margin-top:10px; }
+  .week-bars-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; justify-content:flex-end; height:100%; }
+  .week-bars-fill { width:100%; max-width:34px; border-radius:6px 6px 0 0; background:var(--color-accent-gradient); }
+  .week-bars-label { font-size:0.72rem; color:var(--color-text-muted); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети розділу «Робота»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Робота</h2>
+        <span class="variant-note">Варіант 4 · облік робочого часу — кнопка «Почати/Завершити зміну», скільки відпрацьовано сьогодні й за тиждень</span>
+      </div>
+
+      <div class="card timer-hero">
+        <div class="timer-circle">
+          <span class="timer-time">05:42</span>
+          <span class="timer-label">відпрацьовано сьогодні</span>
+        </div>
+        <span class="placeholder-text">Зміна почалась о 09:03</span>
+        <div class="timer-actions">
+          <button type="button" class="btn-outline">⏸ Перерва</button>
+          <button type="button" class="btn-accent">⏹ Завершити зміну</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Цей тиждень</h3><span class="kpi-value" style="font-size:1.1rem;">31 год 15 хв</span></div>
+        <div class="week-bars">
+          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">7.8г</span><div class="week-bars-fill" style="height:70px;"></div><span class="week-bars-label">Пн</span></div>
+          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">8.1г</span><div class="week-bars-fill" style="height:73px;"></div><span class="week-bars-label">Вт</span></div>
+          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">7.5г</span><div class="week-bars-fill" style="height:67px;"></div><span class="week-bars-label">Ср</span></div>
+          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">5.7г</span><div class="week-bars-fill" style="height:51px;"></div><span class="week-bars-label">Чт (сьогодні)</span></div>
+          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">—</span><div class="week-bars-fill" style="height:0px; background:var(--pill-bg);"></div><span class="week-bars-label">Пт</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Журнал змін</h3></div>
+        <table class="data-table">
+          <thead><tr><th>Дата</th><th>Початок</th><th>Кінець</th><th>Відпрацьовано</th><th>Понаднормово</th></tr></thead>
+          <tbody>
+            <tr><td>19.10.2026 (сьогодні)</td><td>09:03</td><td>—</td><td>05:42 (триває)</td><td class="none-text">—</td></tr>
+            <tr><td>18.10.2026</td><td>08:57</td><td>17:48</td><td>08:09</td><td><span class="badge badge--warn">+0:09</span></td></tr>
+            <tr><td>17.10.2026</td><td>09:01</td><td>16:32</td><td>07:31</td><td class="none-text">—</td></tr>
+            <tr><td>16.10.2026</td><td>08:55</td><td>17:02</td><td>08:07</td><td><span class="badge badge--warn">+0:07</span></td></tr>
+            <tr><td>15.10.2026</td><td>09:00</td><td>16:48</td><td>07:48</td><td class="none-text">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

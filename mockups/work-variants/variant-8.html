@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Робота · Варіант 8 — зустрічі та дзвінки</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .agenda-row { display:flex; gap:14px; padding:10px 2px; border-bottom:1px solid var(--color-border); }
+  .agenda-row:last-child { border-bottom: none; }
+  .agenda-time { flex:0 0 72px; font-size:0.84rem; font-weight:700; color:var(--color-heading); }
+  .agenda-main { flex:1; display:flex; flex-direction:column; gap:2px; }
+  .agenda-title { font-size:0.9rem; font-weight:600; }
+  .agenda-meta { font-size:0.76rem; color:var(--color-text-muted); }
+  .agenda-link { font-size:0.78rem; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети розділу «Робота»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Робота</h2>
+        <span class="variant-note">Варіант 8 · денна агенда зустрічей і дзвінків — час, платформа/кабінет, учасники, нотатка</span>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Понеділок, 19 жовтня 2026</h3>
+          <button type="button" class="btn-accent">+ Додати зустріч</button>
+        </div>
+
+        <div class="agenda-row">
+          <span class="agenda-time">09:30</span>
+          <div class="agenda-main">
+            <span class="agenda-title">Дейлі команди розробки</span>
+            <span class="agenda-meta">Учасники: Марина, Данило, Вікторія</span>
+          </div>
+          <span class="agenda-link">💻 Zoom</span>
+        </div>
+
+        <div class="agenda-row">
+          <span class="agenda-time">11:00</span>
+          <div class="agenda-main">
+            <span class="agenda-title">Дзвінок з клієнтом Studio Nord</span>
+            <span class="agenda-meta">Обговорення макету лендингу</span>
+          </div>
+          <span class="agenda-link">📞 Google Meet</span>
+        </div>
+
+        <div class="agenda-row">
+          <span class="agenda-time">13:30</span>
+          <div class="agenda-main">
+            <span class="agenda-title">Обід</span>
+            <span class="agenda-meta">—</span>
+          </div>
+          <span class="placeholder-text agenda-link">—</span>
+        </div>
+
+        <div class="agenda-row">
+          <span class="agenda-time">15:00</span>
+          <div class="agenda-main">
+            <span class="agenda-title">1:1 з керівником</span>
+            <span class="agenda-meta">Олег Костенко · кабінет 305</span>
+          </div>
+          <span class="agenda-link">🏢 Офіс</span>
+        </div>
+
+        <div class="agenda-row">
+          <span class="agenda-time">16:30</span>
+          <div class="agenda-main">
+            <span class="agenda-title">Ревʼю коду спринту</span>
+            <span class="agenda-meta">Учасники: уся команда розробки</span>
+          </div>
+          <span class="agenda-link">💻 Zoom</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Найближчі дні</h3></div>
+        <table class="data-table">
+          <thead><tr><th>Дата</th><th>Зустріч</th><th>Час</th></tr></thead>
+          <tbody>
+            <tr><td>20.10.2026</td><td>Планування спринту</td><td>10:00</td></tr>
+            <tr><td>21.10.2026</td><td>Дзвінок з ФОП Дем'янчук</td><td>14:00</td></tr>
+            <tr><td>22.10.2026</td><td>Демо релізу для GreenBox</td><td>11:30</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
