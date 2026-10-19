@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Їжа · Варіант 2 — запаси чіпами зверху</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .v2-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети вкладки «Їжа»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">🍲</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="food-page">
+      <div class="food-page-head">
+        <h2>Їжа</h2>
+        <span class="variant-note">Варіант 2 · запаси горизонтальною стрічкою чіпів, картки рецептів на всю ширину знизу</span>
+      </div>
+
+      <div class="section-title"><h3 style="margin:0;">Запаси</h3></div>
+      <div class="card" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--ok"></span>Картопля
+          <div class="stock-toggle">
+            <input type="radio" name="v2-potato" id="v2-potato-ok" class="stock-radio--ok" checked><label for="v2-potato-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-potato" id="v2-potato-warn" class="stock-radio--warn" ><label for="v2-potato-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-potato" id="v2-potato-bad" class="stock-radio--bad"><label for="v2-potato-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--warn"></span>Молоко
+          <div class="stock-toggle">
+            <input type="radio" name="v2-milk" id="v2-milk-ok" class="stock-radio--ok" ><label for="v2-milk-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-milk" id="v2-milk-warn" class="stock-radio--warn" checked><label for="v2-milk-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-milk" id="v2-milk-bad" class="stock-radio--bad"><label for="v2-milk-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--warn"></span>Хліб
+          <div class="stock-toggle">
+            <input type="radio" name="v2-bread" id="v2-bread-ok" class="stock-radio--ok" ><label for="v2-bread-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-bread" id="v2-bread-warn" class="stock-radio--warn" checked><label for="v2-bread-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-bread" id="v2-bread-bad" class="stock-radio--bad"><label for="v2-bread-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--ok"></span>Яйця
+          <div class="stock-toggle">
+            <input type="radio" name="v2-eggs" id="v2-eggs-ok" class="stock-radio--ok" checked><label for="v2-eggs-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-eggs" id="v2-eggs-warn" class="stock-radio--warn" ><label for="v2-eggs-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-eggs" id="v2-eggs-bad" class="stock-radio--bad"><label for="v2-eggs-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--ok"></span>Буряк
+          <div class="stock-toggle">
+            <input type="radio" name="v2-beet" id="v2-beet-ok" class="stock-radio--ok" checked><label for="v2-beet-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-beet" id="v2-beet-warn" class="stock-radio--warn" ><label for="v2-beet-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-beet" id="v2-beet-bad" class="stock-radio--bad"><label for="v2-beet-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--ok"></span>Морква
+          <div class="stock-toggle">
+            <input type="radio" name="v2-carrot" id="v2-carrot-ok" class="stock-radio--ok" checked><label for="v2-carrot-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-carrot" id="v2-carrot-warn" class="stock-radio--warn" ><label for="v2-carrot-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-carrot" id="v2-carrot-bad" class="stock-radio--bad"><label for="v2-carrot-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--ok"></span>Цибуля
+          <div class="stock-toggle">
+            <input type="radio" name="v2-onion" id="v2-onion-ok" class="stock-radio--ok" checked><label for="v2-onion-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-onion" id="v2-onion-warn" class="stock-radio--warn" ><label for="v2-onion-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-onion" id="v2-onion-bad" class="stock-radio--bad"><label for="v2-onion-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <span class="stock-chip">
+          <span class="stock-dot stock-dot--ok"></span>Олія
+          <div class="stock-toggle">
+            <input type="radio" name="v2-oil" id="v2-oil-ok" class="stock-radio--ok" checked><label for="v2-oil-ok" class="stock-circle stock-circle--ok" title="Є"></label>
+            <input type="radio" name="v2-oil" id="v2-oil-warn" class="stock-radio--warn" ><label for="v2-oil-warn" class="stock-circle stock-circle--warn" title="Закінчується"></label>
+            <input type="radio" name="v2-oil" id="v2-oil-bad" class="stock-radio--bad"><label for="v2-oil-bad" class="stock-circle stock-circle--bad" title="Немає"></label>
+          </div>
+        </span>
+        <div class="drawer-wrap">
+          <input type="checkbox" id="v2-add-stock" class="drawer-toggle">
+          <label for="v2-add-stock" class="pill stock-add-btn">+ Додати запаси</label>
+          <div class="drawer-overlay">
+            <label for="v2-add-stock" class="drawer-backdrop" aria-hidden="true"></label>
+            <aside class="drawer-panel">
+              <div class="drawer-head">
+                <h3>Додати запаси</h3>
+                <label for="v2-add-stock" class="drawer-close">✕</label>
+              </div>
+              <input type="text" class="drawer-search" placeholder="Пошук продукту…">
+              <ul class="drawer-product-list">
+                <li><span>Сир</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Йогурт</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Банани</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Курка</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Рис</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Помідори</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Огірки</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Сметана</span><button class="pill" type="button">+ Додати</button></li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+          <div class="filter-bar" style="margin-bottom: 14px;">
+            <button class="pill pill--active" type="button">Все</button>
+            <button class="pill" type="button">Із наявного</button>
+            <span class="pill price-range"><span>від</span><input type="number" placeholder="0"><span>до</span><input type="number" placeholder="300"><span>грн</span></span>
+          </div>
+      <div class="v2-grid">
+            <div class="recipe-card">
+              <div class="recipe-card-photo">🍲<span class="recipe-card-time">60 хв</span></div>
+              <div class="recipe-card-body"><span class="recipe-card-name">Борщ</span><span class="badge badge--ok">✓ все є</span></div>
+            </div>
+            <div class="recipe-card">
+              <div class="recipe-card-photo">🍝<span class="recipe-card-time">25 хв</span></div>
+              <div class="recipe-card-body"><span class="recipe-card-name">Паста карбонара</span><span class="badge badge--warn">докупити 2 (~85 грн)</span></div>
+            </div>
+            <div class="recipe-card">
+              <div class="recipe-card-photo">🍛<span class="recipe-card-time">50 хв</span></div>
+              <div class="recipe-card-body"><span class="recipe-card-name">Плов</span><span class="badge badge--warn">докупити 5 (~230 грн)</span></div>
+            </div>
+            <div class="recipe-card">
+              <div class="recipe-card-photo">🥞<span class="recipe-card-time">10 хв</span></div>
+              <div class="recipe-card-body"><span class="recipe-card-name">Омлет</span><span class="badge badge--ok">✓ все є</span></div>
+            </div>
+            <div class="recipe-card">
+              <div class="recipe-card-photo">🐟<span class="recipe-card-time">30 хв</span></div>
+              <div class="recipe-card-body"><span class="recipe-card-name">Пюре з рибою</span><span class="badge badge--ok">✓ все є</span></div>
+            </div>
+            <div class="recipe-card">
+              <div class="recipe-card-photo">🥗<span class="recipe-card-time">15 хв</span></div>
+              <div class="recipe-card-body"><span class="recipe-card-name">Салат овочевий</span><span class="badge badge--warn">докупити 1 (~20 грн)</span></div>
+            </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

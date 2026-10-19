@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="shared.css" />
 <style>
   .gallery-page {
-    max-width: 920px;
+    max-width: 980px;
     margin: 0 auto;
     padding: 40px 24px 60px;
     display: flex;
@@ -47,41 +47,64 @@
     <h1 style="margin: 0 0 6px;">Макети вкладки «Їжа»</h1>
     <p class="placeholder-text">
       Статичні html+css макети (без JS) розділу «Їжа» — планувальник особистих справ (plans/planner-spec.md §3.4, §4.6,
-      plans/coding-guide.md §5, §10). Кожен варіант — окремий файл з тим самим боковим меню, де замість реальних
-      розділів додатку розміщені посилання на самі варіанти, щоб було зручно перемикатись і порівнювати.
+      plans/coding-guide.md §5). Кожен варіант — окремий файл з тим самим боковим меню, де замість реальних розділів
+      додатку розміщені посилання на самі варіанти. У кожному варіанті є: «Запаси» зі статус-крапкою й перемикачем
+      є/закінчується/немає (кольорові кружки — позначення «немає» прибирає рядок зі списку, це чистий CSS без JS),
+      кнопка «Додати запаси», що відкриває бічну панель з пошуком і переліком продуктів, та картки страв з фільтрами
+      «Все / Із наявного / від–до грн».
     </p>
   </div>
 
   <div class="gallery-grid">
     <a class="gallery-card card" href="variant-1.html">
       <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe8b8, #fff3d6);"></div>
-      <h3>Варіант 1 — Класичний</h3>
-      <p>Дослівно за макетом зі специфікації: «Обрані страви» зверху, «Запаси» знизу, плюс приклад-заповнювач для першого входу.</p>
+      <h3>Варіант 1 — Запаси зліва, картки справа</h3>
+      <p>Класичний двоколонковий екран: вузька колонка запасів зліва, фільтри й сітка карток страв справа.</p>
     </a>
     <a class="gallery-card card" href="variant-2.html">
       <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #c5cae9);"></div>
-      <h3>Варіант 2 — Стрічка + запаси поруч</h3>
-      <p>Двоколонковий екран: компактний стан запасів зліва, стрічка страв з фільтрами й ранжуванням справа.</p>
+      <h3>Варіант 2 — Запаси чіпами зверху</h3>
+      <p>Запаси — горизонтальна стрічка кольорових чіпів на всю ширину, картки страв суцільною сіткою знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-3.html">
       <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe8b8, #ffd9b3);"></div>
-      <h3>Варіант 3 — Фото-картки</h3>
-      <p>Акцент на візуалі: сітка великих карток з мальованими заглушками фото, пошук і фільтри зверху.</p>
+      <h3>Варіант 3 — Рецепти зверху, запаси знизу</h3>
+      <p>Картки страв — головний фокус зверху, компактні запаси двома колонками знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-4.html">
       <div class="gallery-swatch" style="background: linear-gradient(135deg, #c9ead3, #ffe8b8);"></div>
-      <h3>Варіант 4 — Екран готовки</h3>
-      <p>Двокроковий флоу підтвердження готування: «чи вистачає інгредієнтів» → «що залишилось».</p>
+      <h3>Варіант 4 — Три колонки</h3>
+      <p>Запаси, обрані страви з кнопкою «Приготував» і стрічка для вибору нового — три колонки поруч.</p>
     </a>
     <a class="gallery-card card" href="variant-5.html">
       <div class="gallery-swatch" style="background: linear-gradient(135deg, #f3f4f6, #ffe8b8);"></div>
-      <h3>Варіант 5 — Компактна таблиця</h3>
-      <p>Мінімалістичний список-таблиця замість карток, псевдо-вкладки «Обрані / Стрічка / Запаси».</p>
+      <h3>Варіант 5 — Запаси за місцем зберігання</h3>
+      <p>Запаси згруповані в три картки: Холодильник / Комора / Морозилка, картки страв знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-6.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #18181b, #a68c5d);"></div>
-      <h3>Варіант 6 — Темна тема</h3>
-      <p>Той самий розділ у темній темі з насиченим (vivid) акцентом — перевірка контрасту й приглушеного кольору модуля.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffd9b3, #ffe8b8);"></div>
+      <h3>Варіант 6 — Рекомендований рецепт зверху</h3>
+      <p>Великий hero-блок «що приготувати сьогодні», під ним запаси зліва й стрічка страв справа.</p>
+    </a>
+    <a class="gallery-card card" href="variant-7.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #ffe8b8);"></div>
+      <h3>Варіант 7 — Запаси міні-віджетом</h3>
+      <p>Запаси — компактний плаваючий віджет біля фільтрів, картки страв займають основний простір.</p>
+    </a>
+    <a class="gallery-card card" href="variant-8.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe8b8, #b3e5fc);"></div>
+      <h3>Варіант 8 — 60% рецепти / 40% запаси</h3>
+      <p>Картки страв займають більшу частину екрана зліва, запаси — щільна колонка праворуч.</p>
+    </a>
+    <a class="gallery-card card" href="variant-9.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe8b8, #e9ebef);"></div>
+      <h3>Варіант 9 — Повноширинні секції</h3>
+      <p>«Запаси» і «Стрічка страв» — два окремі повноширинні розділи з кольоровим акцентом зліва.</p>
+    </a>
+    <a class="gallery-card card" href="variant-10.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #fff3d6, #ffe8b8);"></div>
+      <h3>Варіант 10 — Мінімалізм, великі картки</h3>
+      <p>Запаси — тонка стрічка чіпів зверху, увесь акцент на великих красивих картках страв.</p>
     </a>
   </div>
 </div>
