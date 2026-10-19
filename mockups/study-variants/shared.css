@@ -497,6 +497,20 @@ a {
   display: block;
 }
 
+/* Перемикач "Тиждень 1 / Тиждень 2" усередині розкладу занять — однаковий
+   у всіх варіантах. */
+.week-tabs-nav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.week-tabs-nav .tab-input:checked + .pill {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
 @media (max-width: 760px) {
   .app-shell { flex-direction: column; }
 
