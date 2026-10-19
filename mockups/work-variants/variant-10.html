@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Робота · Варіант 10 — робочий профіль</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .profile-hero { display:flex; align-items:center; gap:18px; }
+  .profile-avatar { width:64px; height:64px; border-radius:16px; background:var(--color-accent-gradient); display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; }
+  .profile-tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:14px; }
+  .profile-tile { border:1px solid var(--color-border); border-radius:14px; padding:14px 16px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети розділу «Робота»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Робота</h2>
+        <span class="variant-note">Варіант 10 · універсальний робочий профіль — посада, роботодавець, графік і найближчий вихідний одним екраном</span>
+      </div>
+
+      <div class="card profile-hero">
+        <div class="profile-avatar">🧑‍💻</div>
+        <div>
+          <div class="kpi-value" style="font-size:1.3rem;">Frontend-розробниця</div>
+          <span class="placeholder-text">ТОВ «Технопроцес» · з 03.03.2025</span>
+        </div>
+      </div>
+
+      <div class="profile-tiles">
+        <div class="profile-tile"><span class="kpi-label">Графік роботи</span><div class="kpi-value" style="font-size:1.1rem;">Пн–Пт, 09:00–18:00</div></div>
+        <div class="profile-tile"><span class="kpi-label">Випробувальний термін</span><div class="kpi-value" style="font-size:1.1rem;">Завершено</div></div>
+        <div class="profile-tile"><span class="kpi-label">Наступний вихідний</span><div class="kpi-value" style="font-size:1.1rem;">Сб, 24.10.2026</div></div>
+        <div class="profile-tile"><span class="kpi-label">Стаж на посаді</span><div class="kpi-value" style="font-size:1.1rem;">1 рік 7 міс.</div></div>
+        <div class="profile-tile"><span class="kpi-label">Відпустка залишилось</span><div class="kpi-value" style="font-size:1.1rem;">14 днів</div></div>
+        <div class="profile-tile"><span class="kpi-label">Керівник</span><div class="kpi-value" style="font-size:1.1rem;">Олег Костенко</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Коротко про компанію</h3></div>
+        <table class="data-table">
+          <thead><tr><th>Поле</th><th>Значення</th></tr></thead>
+          <tbody>
+            <tr><td>Юридична назва</td><td>ТОВ «Технопроцес»</td></tr>
+            <tr><td>Адреса офісу</td><td>м. Київ, вул. Хрещатик, 22, каб. 305</td></tr>
+            <tr><td>HR-контакт</td><td>Тетяна Крамар · t.kramar@company.com</td></tr>
+            <tr><td>Внутрішній телефон</td><td>104</td></tr>
+            <tr><td>Корпоративна пошта</td><td>o.kolosova@company.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
