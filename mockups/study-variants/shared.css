@@ -497,6 +497,15 @@ a {
   display: block;
 }
 
+/* Вкладки верхнього рівня "Викладачі / Розклад / Дзвінки / Місяць" —
+   однакові id в усіх варіантах, що їх використовують. */
+.tabs-wrap:has(#tab-teachers:checked) #panel-teachers,
+.tabs-wrap:has(#tab-schedule:checked) #panel-schedule,
+.tabs-wrap:has(#tab-bells:checked) #panel-bells,
+.tabs-wrap:has(#tab-month:checked) #panel-month {
+  display: block;
+}
+
 /* Перемикач "Тиждень 1 / Тиждень 2" усередині розкладу занять — однаковий
    у всіх варіантах. */
 .week-tabs-nav {
