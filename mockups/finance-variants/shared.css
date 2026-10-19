@@ -1,0 +1,805 @@
+/* Спільні токени, каркас і компоненти для макетів вкладки "Фінанси"
+   (баланс, ліміт, дохід/витрата, категорії трат, аналітика по тижнях,
+   стрічка транзакцій). Лише html+css, жодного JS — перемикачі (вкладки,
+   тип операції) зроблено на чистому CSS (checkbox/radio-хак через :checked
+   і :has()). Каркас узгоджений з client/src/index.css, Layout.css,
+   Sidebar.css та з іншими мокапами (food-variants, health-variants). */
+
+:root {
+  --color-bg: #fafafd;
+  --color-surface: #ffffff;
+  --color-text: #2b2b2b;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-heading: #111827;
+  --color-on-accent: #1f2937;
+
+  --sidebar-bg: #f0f2f5;
+  --sidebar-hover: rgba(17, 24, 39, 0.05);
+  --pill-bg: #f3f4f6;
+  --pill-bg-hover: #e9ebef;
+  --pill-text: #374151;
+
+  /* Фінанси — пастельно-помаранчевий (coding-guide.md §色, "Фінанси") */
+  --color-finance: #ffd9b3;
+  --color-accent: #b3e5fc;
+  --color-accent-2: #c5cae9;
+  --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+
+  --status-ok-bg: #d9f2e1;
+  --status-ok-text: #1f8a4c;
+  --status-warn-bg: #ffead1;
+  --status-warn-text: #c77c10;
+  --status-bad-bg: #fbdede;
+  --status-bad-text: #d1453c;
+
+  /* Палітра категорій витрат — 8 пастельних кольорів для барів/донату */
+  --cat-color-1: #ffd9b3;
+  --cat-color-2: #c9ead3;
+  --cat-color-3: #b3e5fc;
+  --cat-color-4: #c5cae9;
+  --cat-color-5: #f8bbd0;
+  --cat-color-6: #ffe8b8;
+  --cat-color-7: #d1c4e9;
+  --cat-color-8: #e0e0e0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-heading);
+}
+
+a {
+  color: inherit;
+}
+
+/* --- Каркас застосунку (Layout.css) --- */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px clamp(16px, 4vw, 24px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header-user {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Бокове меню (Sidebar.css). Пункти замінені на самі варіанти макету. --- */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--color-border);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-title {
+  padding: 4px 12px 12px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--item-color, var(--color-finance));
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar-item--active {
+  background: var(--color-accent-gradient);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.sidebar-item--active .sidebar-label {
+  color: var(--color-on-accent);
+}
+
+.sidebar-icon {
+  font-size: 1.1rem;
+}
+
+.sidebar-label {
+  font-size: 0.88rem;
+}
+
+/* --- Спільні утиліти (index.css) --- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+
+.placeholder-text {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.btn-accent {
+  background: var(--color-accent-gradient);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-on-accent);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+}
+
+.pill--active {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--ok { background: var(--status-ok-bg); color: var(--status-ok-text); }
+.badge--warn { background: var(--status-warn-bg); color: var(--status-warn-text); }
+.badge--bad { background: var(--status-bad-bg); color: var(--status-bad-text); }
+
+.page-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.page-content h2 {
+  margin: 0;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.variant-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: var(--pill-bg);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: inline-block;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:nth-child(odd) {
+  background: var(--color-bg);
+}
+
+.none-text {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+/* ==========================================================================
+   KPI-плитки (Баланс / Дохід / Витрати / Ліміт) — planner-spec.md §3.6
+   FinanceAccount.Balance, FinanceTransaction.Type, FinanceLimit.Amount.
+   ========================================================================== */
+.kpi-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.kpi-tile {
+  flex: 1 1 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-label {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.kpi-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.kpi-value--income { color: var(--status-ok-text); }
+.kpi-value--expense { color: var(--status-bad-text); }
+
+/* Великий блок балансу (hero), аналог profile-hero в health-variants */
+.balance-hero {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+}
+
+.balance-hero .kpi-value {
+  font-size: 2rem;
+}
+
+/* Компактний key-value рядок балансу/ліміту (клінічний реєстр, варіант 6) */
+.balance-kv {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.balance-kv > .kpi-tile {
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px solid var(--color-border);
+}
+
+.balance-kv > .kpi-tile:last-child {
+  border-right: none;
+}
+
+/* ==========================================================================
+   Ліміт на період — прогрес-бар "витрачено / ліміт" (FinanceLimit).
+   ========================================================================== */
+.limit-bar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  margin-bottom: 6px;
+}
+
+.limit-bar-head strong {
+  color: var(--color-heading);
+}
+
+.limit-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  overflow: hidden;
+}
+
+.limit-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--status-warn-text), var(--status-warn-bg));
+}
+
+/* ==========================================================================
+   Категорії трат — горизонтальні бари з кольоровою крапкою, назвою,
+   сумою й часткою (planner-spec.md §4.9 "Траты по категориям").
+   ========================================================================== */
+.category-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.category-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-name {
+  flex: 0 0 150px;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-bar-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  overflow: hidden;
+  min-width: 40px;
+}
+
+.category-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.cat-amount {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Легенда категорій (використовується разом з донат-діаграмою) */
+.category-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+}
+
+.category-legend-row .cat-amount {
+  margin-left: auto;
+}
+
+/* Кругова діаграма категорій на чистому CSS (conic-gradient) */
+.donut-chart {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(
+    var(--cat-color-1) 0% 35%,
+    var(--cat-color-2) 35% 61%,
+    var(--cat-color-3) 61% 69%,
+    var(--cat-color-4) 69% 75%,
+    var(--cat-color-5) 75% 79%,
+    var(--cat-color-6) 79% 89%,
+    var(--cat-color-7) 89% 96%,
+    var(--cat-color-8) 96% 100%
+  );
+}
+
+.donut-chart::after {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.donut-center {
+  position: absolute;
+  inset: 20px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 2px;
+}
+
+/* ==========================================================================
+   Тижнева динаміка витрат — простий стовпчиковий графік на чистому CSS
+   (planner-spec.md §4.9 "по неделям"). Висоти стовпчиків задані інлайн-style.
+   ========================================================================== */
+.week-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  height: 120px;
+}
+
+.week-chart-col {
+  flex: 1;
+  max-width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  height: 100%;
+}
+
+.week-chart-amount {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.week-chart-bar {
+  width: 100%;
+  max-width: 42px;
+  border-radius: 6px 6px 0 0;
+  background: var(--color-accent-gradient);
+}
+
+.week-chart-label {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Стрічка транзакцій (дохід/витрата) — planner-spec.md §3.6 FinanceTransaction
+   (Amount, Type, Category, Description, OccurredAt).
+   ========================================================================== */
+.txn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.txn-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.txn-row:last-child {
+  border-bottom: none;
+}
+
+.txn-cat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.txn-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.txn-desc {
+  font-size: 0.9rem;
+}
+
+.txn-meta {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.txn-amount {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.txn-amount--income { color: var(--status-ok-text); }
+.txn-amount--expense { color: var(--status-bad-text); }
+
+/* ==========================================================================
+   Картка-гаманець (варіант 8) — баланс, стилізований під банківську картку.
+   ========================================================================== */
+.wallet-card {
+  background: linear-gradient(135deg, var(--color-finance), #ffb199);
+  border-radius: 18px;
+  padding: 22px 24px;
+  color: #3a2c1f;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.12);
+}
+
+.wallet-card .wallet-label {
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.wallet-card .wallet-balance {
+  font-size: 2.1rem;
+  font-weight: 700;
+}
+
+.wallet-card .wallet-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   Бічна панель "Нова операція" — виїжджає справа. Прихований чекбокс +
+   <label for="..."> як кнопка відкриття/закриття (той самий хак, що й у
+   health-variants / food-variants).
+   ========================================================================== */
+.drawer-wrap {
+  display: contents;
+}
+
+.drawer-toggle {
+  display: none;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.drawer-toggle:checked ~ .drawer-overlay {
+  visibility: visible;
+  opacity: 1;
+}
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.35);
+  cursor: pointer;
+  display: block;
+}
+
+.drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(360px, 90vw);
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  box-shadow: -6px 0 20px rgba(17, 24, 39, 0.1);
+  overflow-y: auto;
+}
+
+.drawer-toggle:checked ~ .drawer-overlay .drawer-panel {
+  transform: translateX(0);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.drawer-close {
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  padding: 2px 6px;
+}
+
+/* Перемикач типу операції "Витрата / Дохід" у формі додавання */
+.txn-type-switch {
+  display: flex;
+  gap: 6px;
+}
+
+.txn-type-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.txn-type-switch input:checked + .pill {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+
+.drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.drawer-field input,
+.drawer-field select {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   Вкладки (використовуються в частині варіантів) — той самий механізм,
+   що й у health-variants: прихований radio + label, показ через ":has()"
+   від спільного .tabs-wrap, тому розмітка може бути як плоскою, так і
+   вкладеною в додаткові обгортки. Конкретні правила ":has(#id:checked)"
+   кожен варіант, що використовує вкладки, визначає локально (бо кількість
+   і id вкладок різні).
+   ========================================================================== */
+.tabs-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tab-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.tab-btn {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tabs-panel {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .app-shell { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px 8px;
+    gap: 2px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebar-title { display: none; }
+
+  .sidebar-item {
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 2px;
+    border-left: none;
+    border-bottom: 3px solid var(--item-color, var(--color-finance));
+    padding: 6px 10px;
+  }
+
+  .sidebar-label {
+    font-size: 0.64rem;
+    white-space: nowrap;
+  }
+}
