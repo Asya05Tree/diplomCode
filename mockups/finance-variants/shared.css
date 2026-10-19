@@ -625,7 +625,8 @@ a {
 
 .wallet-card .wallet-foot {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
   font-size: 0.82rem;
   opacity: 0.85;
 }
