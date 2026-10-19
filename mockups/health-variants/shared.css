@@ -699,6 +699,91 @@ a {
   font-weight: 600;
 }
 
+.profile-hero {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 20px 24px;
+}
+
+.profile-hero .profile-field-value {
+  font-size: 1.4rem;
+}
+
+/* ==========================================================================
+   Загальна таблиця (аптечка з усіма полями, хвороби) — Речовина/Стан/Термін/
+   Не сумісний з показані прямо в рядку, без прихованих панелей.
+   ========================================================================== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:nth-child(odd) {
+  background: var(--color-bg);
+}
+
+.data-table .category-row td {
+  background: var(--pill-bg);
+  font-weight: 600;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.category-badge {
+  font-size: 0.74rem;
+  color: var(--pill-text);
+  background: var(--pill-bg);
+  border-radius: 999px;
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+.conflict-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.conflict-tag {
+  font-size: 0.72rem;
+  background: var(--status-bad-bg);
+  color: var(--status-bad-text);
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.none-text {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
 @media (max-width: 760px) {
   .app-shell { flex-direction: column; }
 
