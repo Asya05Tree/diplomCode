@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Макети вкладки «Здоров'я»</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .gallery-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .gallery-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  .gallery-card h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .gallery-card p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--color-text-muted);
+  }
+  .gallery-swatch {
+    height: 64px;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="gallery-page">
+  <div>
+    <h1 style="margin: 0 0 6px;">Макети вкладки «Здоров'я»</h1>
+    <p class="placeholder-text">
+      Статичні html+css макети (без JS) розділу «Здоров'я» — аптечка й хронічні захворювання
+      (plans/planner-spec.md §3.5, §4.7; plans/coding-guide.md §11). У кожному варіанті: аптечка зі статус-крапкою
+      й перемикачем є/закінчується/немає (той самий компонент, що й «Запаси» в «Їжі» — однаковий enum), клік на
+      назву препарату відкриває панель з речовиною та переліком конфліктів («Не поєднювати з:» — усе на чистому
+      CSS, без JS), кнопка «+ Додати ліки», і хронічні захворювання з перемикачем «Впливає на їжу» та тегом правила.
+    </p>
+  </div>
+
+  <div class="gallery-grid">
+    <a class="gallery-card card" href="variant-1.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c9ead3, #e8f6ec);"></div>
+      <h3>Варіант 1 — Дві колонки</h3>
+      <p>Аптечка (60%) зліва, хронічні захворювання (40%) справа.</p>
+    </a>
+    <a class="gallery-card card" href="variant-2.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #c5cae9);"></div>
+      <h3>Варіант 2 — Одна колонка</h3>
+      <p>Аптечка на всю ширину зверху, хронічні захворювання на всю ширину знизу.</p>
+    </a>
+    <a class="gallery-card card" href="variant-3.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe8b8, #c9ead3);"></div>
+      <h3>Варіант 3 — Три колонки, статична панель</h3>
+      <p>Захворювання зліва, аптечка посередині, деталі останнього препарату — постійна панель праворуч.</p>
+    </a>
+    <a class="gallery-card card" href="variant-4.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c9ead3, #ffd9b3);"></div>
+      <h3>Варіант 4 — За формою випуску</h3>
+      <p>Ліки згруповані в таблетки/вироби/вітаміни, захворювання — тег-хмаринкою.</p>
+    </a>
+    <a class="gallery-card card" href="variant-5.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c9ead3, #ffe8b8);"></div>
+      <h3>Варіант 5 — Картки препаратів</h3>
+      <p>Препарати — візуальні картки сіткою (як рецепти в «Їжі»), захворювання списком знизу.</p>
+    </a>
+    <a class="gallery-card card" href="variant-6.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f3f4f6, #c9ead3);"></div>
+      <h3>Варіант 6 — Компактні таблиці</h3>
+      <p>Аптечка й захворювання — щільні таблиці замість карток/списків.</p>
+    </a>
+    <a class="gallery-card card" href="variant-7.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffead1, #c9ead3);"></div>
+      <h3>Варіант 7 — Попередження про конфлікт</h3>
+      <p>Hero-банер зверху: два препарати з аптечки конфліктують одне з одним.</p>
+    </a>
+    <a class="gallery-card card" href="variant-8.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #c9ead3);"></div>
+      <h3>Варіант 8 — Профіль зверху</h3>
+      <p>Зріст/вага/вік зверху (естетичні поля профілю), далі аптечка й захворювання двома колонками.</p>
+    </a>
+    <a class="gallery-card card" href="variant-9.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c9ead3, #e9ebef);"></div>
+      <h3>Варіант 9 — Повноширинні секції</h3>
+      <p>«Аптечка» і «Хронічні захворювання» — два розділи на всю ширину з кольоровим акцентом зліва.</p>
+    </a>
+    <a class="gallery-card card" href="variant-10.html">
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e8f6ec, #c9ead3);"></div>
+      <h3>Варіант 10 — Фокус на захворюваннях</h3>
+      <p>Аптечка — тонка стрічка статус-чіпів зверху, основний акцент на картках хронічних захворювань.</p>
+    </a>
+  </div>
+</div>
+</body>
+</html>

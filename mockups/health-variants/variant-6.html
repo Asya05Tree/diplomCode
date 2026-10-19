@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Здоров'я · Варіант 6 — компактні таблиці</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .h6-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  .h6-table th { text-align: left; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-muted); padding: 6px 10px; border-bottom: 1px solid var(--color-border); }
+  .h6-table td { padding: 8px 10px; border-bottom: 1px solid var(--color-border); }
+  .h6-table tr:last-child td { border-bottom: none; }
+  .h6-table tbody tr:nth-child(odd) { background: var(--color-bg); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Макети вкладки «Здоров'я»</span>
+    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 1</span></a>
+    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 2</span></a>
+    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 3</span></a>
+    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 4</span></a>
+    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 5</span></a>
+    <a href="variant-6.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 6</span></a>
+    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 7</span></a>
+    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 8</span></a>
+    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 9</span></a>
+    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💊</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Здоров'я</h2>
+        <span class="variant-note">Варіант 6 · аптечка й захворювання — щільні таблиці замість карток/списків</span>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Аптечка</h3>        <div class="drawer-wrap">
+          <input type="checkbox" id="h6-add-med" class="drawer-toggle">
+          <label for="h6-add-med" class="btn-accent">+ Додати ліки</label>
+          <div class="drawer-overlay">
+            <label for="h6-add-med" class="drawer-backdrop" aria-hidden="true"></label>
+            <aside class="drawer-panel">
+              <div class="drawer-head"><h3>Додати ліки</h3><label for="h6-add-med" class="drawer-close">✕</label></div>
+              <input type="text" class="drawer-search" placeholder="Пошук препарату…">
+              <ul class="drawer-product-list">
+                <li><span>Німесил</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Аспірин</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Лоратадин</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Ренні</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Силіцилова мазь</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Магній B6</span><button class="pill" type="button">+ Додати</button></li>
+              </ul>
+            </aside>
+          </div>
+        </div></div>
+        <table class="h6-table">
+          <thead><tr><th>Назва</th><th>Речовина</th><th>Термін</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Ібупрофен</td>
+              <td>ібупрофен</td>
+              <td>до 03.2027</td>
+              <td><span class="badge badge--warn">⚠ закінчується</span></td>
+            </tr>
+            <tr>
+              <td>Парацетамол</td>
+              <td>парацетамол</td>
+              <td>до 11.2026</td>
+              <td><span class="badge badge--ok">✓ є</span></td>
+            </tr>
+            <tr>
+              <td>Варфарин</td>
+              <td>варфарин</td>
+              <td>до 06.2026</td>
+              <td><span class="badge badge--warn">⚠ закінчується</span></td>
+            </tr>
+            <tr>
+              <td>Активоване вугілля</td>
+              <td>активоване вугілля</td>
+              <td>до 2028</td>
+              <td><span class="badge badge--ok">✓ є</span></td>
+            </tr>
+            <tr>
+              <td>Но-шпа</td>
+              <td>дротаверин</td>
+              <td>до 09.2027</td>
+              <td><span class="badge badge--ok">✓ є</span></td>
+            </tr>
+            <tr>
+              <td>Пластир</td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="badge badge--ok">✓ є</span></td>
+            </tr>
+            <tr>
+              <td>Вітамін D</td>
+              <td>вітамін D3</td>
+              <td>до 01.2027</td>
+              <td><span class="badge badge--ok">✓ є</span></td>
+            </tr>
+            <tr>
+              <td>Валеріанка</td>
+              <td>валеріана</td>
+              <td>до 05.2026</td>
+              <td><span class="badge badge--warn">⚠ закінчується</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Хронічні захворювання</h3>        <div class="drawer-wrap">
+          <input type="checkbox" id="h6-add-cond" class="drawer-toggle">
+          <label for="h6-add-cond" class="btn-outline">+ Додати захворювання</label>
+          <div class="drawer-overlay">
+            <label for="h6-add-cond" class="drawer-backdrop" aria-hidden="true"></label>
+            <aside class="drawer-panel">
+              <div class="drawer-head"><h3>Додати хронічне захворювання</h3><label for="h6-add-cond" class="drawer-close">✕</label></div>
+              <input type="text" class="drawer-search" placeholder="Пошук або своя назва…">
+              <ul class="drawer-product-list">
+                <li><span>Гіпертонія</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Астма</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Целіакія</span><button class="pill" type="button">+ Додати</button></li>
+                <li><span>Подагра</span><button class="pill" type="button">+ Додати</button></li>
+              </ul>
+            </aside>
+          </div>
+        </div></div>
+        <table class="h6-table">
+          <thead><tr><th>Назва</th><th>Впливає на їжу</th><th>Тег</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Діабет 2 типу</td>
+              <td>так</td>
+              <td>цукор</td>
+            </tr>
+            <tr>
+              <td>Гастрит</td>
+              <td>так</td>
+              <td>гостре</td>
+            </tr>
+            <tr>
+              <td>Мігрень</td>
+              <td>ні</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Алергія на пилок</td>
+              <td>ні</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

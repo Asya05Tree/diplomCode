@@ -398,6 +398,105 @@ a {
 }
 
 /* ==========================================================================
+   Обрані страви — список вибраних на найближчу готовку ("Обрані страви (N)"
+   §4.6 planner-spec.md), з кнопкою "Приготував". Є список-рядками, чіпами
+   та мініатюрами-аватарами — компактний варіант для вузької колонки.
+   ========================================================================== */
+.dish-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dish-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dish-row:last-child {
+  border-bottom: none;
+}
+
+.dish-name {
+  font-size: 0.9rem;
+}
+
+.dish-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dish-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--pill-bg);
+  border-radius: 999px;
+  padding: 6px 8px 6px 14px;
+  font-size: 0.85rem;
+}
+
+.dish-chip .btn-outline {
+  padding: 3px 10px;
+  font-size: 0.76rem;
+}
+
+.thumb-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--color-food), #fff6e0);
+}
+
+.thumb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Картка рецепта, що водночас позначена як "обрана" — рібон у кутку */
+.recipe-card--selected {
+  border-color: var(--color-food);
+  box-shadow: 0 0 0 2px var(--color-food), 0 2px 10px rgba(17, 24, 39, 0.05);
+}
+
+.recipe-card--selected .recipe-card-photo {
+  position: relative;
+}
+
+.recipe-ribbon {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--color-food);
+  color: var(--color-on-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+/* "Плаваюча" виділена картка (елевація сильніша, акцентна рамка зліва) */
+.floating-card {
+  border-left: 3px solid var(--color-food);
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.08);
+}
+
+/* ==========================================================================
    Панель "Додати запаси" — виїжджає справа. Чистий CSS: прихований чекбокс +
    <label for="..."> як кнопка відкриття/закриття, без жодного JS.
    ========================================================================== */
