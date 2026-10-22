@@ -6,12 +6,21 @@
 // працює лише через цей модуль і не знає про localStorage.
 import PRODUCTS from './products.json'
 import RECIPES from './recipes.json'
+import HEALTH from './health.json'
 
 const STOCK_KEY = 'food:stock' // { productId: 'Available' | 'RunningLow' | 'OutOfStock' }
 const SELECTED_KEY = 'food:selected' // [recipeId]
 const LAST_COOKED_KEY = 'food:lastCooked' // { recipeId: ISO-рядок }
 
+const RULES_KEY = 'health:rules' // { tagKey: { relation: 'Forbidden' | 'Avoid', enabled: bool } }
+const MED_STATE_KEY = 'health:medicineState' // { medicineId: 'Available' | 'RunningLow' | 'OutOfStock' }
+const MED_ADDED_KEY = 'health:medicineAdded' // [medicineId] — додані з довідника
+
 export { PRODUCTS, RECIPES }
+export const MEDICINE_CATEGORIES = HEALTH.categories
+export const MEDICINES = HEALTH.medicines
+export const ADDABLE_MEDICINES = HEALTH.addableMedicines
+export const CONDITIONS = HEALTH.conditions
 
 // StockItem.State (planner-spec.md §3.4). "OutOfStock" прибирає продукт зі списку запасів
 // і робить рецепт з ним таким, що потребує докупівлі.
@@ -162,4 +171,161 @@ export function markCooked(recipeId) {
   map[recipeId] = new Date().toISOString()
   localStorage.setItem(LAST_COOKED_KEY, JSON.stringify(map))
   return map
+}
+
+// ============================================================================
+// Здоровʼя (planner-spec.md §3.5 Аптечка, §3.1/§11 хронічні захворювання)
+// ============================================================================
+
+export function medName(medicine, language) {
+  return language === 'en' ? medicine.nameEn : medicine.nameUk
+}
+
+export function medSubstance(medicine, language) {
+  return language === 'en' ? medicine.substanceEn : medicine.substanceUk
+}
+
+export function medConflicts(medicine, language) {
+  return (language === 'en' ? medicine.conflictsEn : medicine.conflictsUk) || []
+}
+
+export function categoryName(key, language) {
+  const c = MEDICINE_CATEGORIES.find((x) => x.key === key)
+  if (!c) return key
+  return language === 'en' ? c.nameEn : c.nameUk
+}
+
+export function conditionName(condition, language) {
+  return language === 'en' ? condition.nameEn : condition.nameUk
+}
+
+export function conditionTag(condition, language) {
+  return language === 'en' ? condition.tagEn : condition.tagUk
+}
+
+// Назва тега-обмеження для показу в "Їжі" (бере підпис із відповідного захворювання).
+export function tagLabel(tagKey, language) {
+  const c = CONDITIONS.find((x) => x.tagKey === tagKey)
+  if (!c) return tagKey
+  return language === 'en' ? c.tagEn : c.tagUk
+}
+
+// ---- Аптечка (UserMedicine.State) ------------------------------------------
+
+function seedMedicineState() {
+  const map = {}
+  for (const m of MEDICINES) map[m.id] = m.seedState
+  return map
+}
+
+export function getMedicineState() {
+  const raw = localStorage.getItem(MED_STATE_KEY)
+  if (!raw) {
+    const seeded = seedMedicineState()
+    localStorage.setItem(MED_STATE_KEY, JSON.stringify(seeded))
+    return seeded
+  }
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return seedMedicineState()
+  }
+}
+
+export function setMedicineState(id, state) {
+  const map = getMedicineState()
+  map[id] = state
+  localStorage.setItem(MED_STATE_KEY, JSON.stringify(map))
+  return map
+}
+
+function getAddedMedicineIds() {
+  return readJson(MED_ADDED_KEY, [])
+}
+
+export function addMedicine(id) {
+  const added = getAddedMedicineIds()
+  if (!added.includes(id)) localStorage.setItem(MED_ADDED_KEY, JSON.stringify([...added, id]))
+  return setMedicineState(id, 'Available')
+}
+
+// Повний список препаратів аптечки: базові з довідника + додані користувачем, з поточним станом.
+export function listMedicines() {
+  const state = getMedicineState()
+  const added = getAddedMedicineIds()
+  const base = MEDICINES.map((m) => ({ ...m, state: state[m.id] ?? m.seedState }))
+  const extra = added
+    .map((id) => ADDABLE_MEDICINES.find((m) => m.id === id))
+    .filter(Boolean)
+    .map((m) => ({ ...m, state: state[m.id] ?? 'Available' }))
+  return [...base, ...extra]
+}
+
+export function listAddableMedicines() {
+  const added = getAddedMedicineIds()
+  return ADDABLE_MEDICINES.filter((m) => !added.includes(m.id))
+}
+
+// ---- Правила харчування з хронічних захворювань ----------------------------
+// Головне архітектурне рішення (§2.3): обмеження зберігаються як ДАНІ, а не як if у коді.
+// Хвороба, що впливає на їжу, стає правилом на тег: Forbidden (жорстке — страви з тегом
+// не показуються) або Avoid (мʼяке — лише попередження). Цей самий стор читає модуль "Їжа".
+
+function seedRules() {
+  const map = {}
+  for (const c of CONDITIONS) {
+    if (c.affectsFood && c.tagKey) map[c.tagKey] = { relation: c.defaultRelation, enabled: true }
+  }
+  return map
+}
+
+export function getRules() {
+  const raw = localStorage.getItem(RULES_KEY)
+  if (!raw) {
+    const seeded = seedRules()
+    localStorage.setItem(RULES_KEY, JSON.stringify(seeded))
+    return seeded
+  }
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return seedRules()
+  }
+}
+
+// Записати/змінити правило для тега (relation + увімкнено). null — прибрати правило зовсім.
+export function setRule(tagKey, rule) {
+  const map = getRules()
+  if (rule === null) delete map[tagKey]
+  else map[tagKey] = rule
+  localStorage.setItem(RULES_KEY, JSON.stringify(map))
+  return map
+}
+
+// Перетин тегів набору з активними правилами (єдина точка перевірки, §2.3).
+function tagsRuleStatus(tags, rules) {
+  let forbidden = null
+  let avoid = null
+  for (const tag of tags) {
+    const rule = rules[tag]
+    if (!rule || !rule.enabled) continue
+    if (rule.relation === 'Forbidden') forbidden = tag
+    else if (rule.relation === 'Avoid' && !avoid) avoid = tag
+  }
+  return { forbidden, avoid }
+}
+
+// Статус страви: чи заборонена (жорстке правило на теге інгредієнта) чи небажана (мʼяке).
+export function recipeHealthStatus(recipe, rules) {
+  const tags = new Set()
+  for (const ing of recipe.ingredients) {
+    const product = getProduct(ing.productId)
+    if (product) for (const tag of product.tags || []) tags.add(tag)
+  }
+  return tagsRuleStatus([...tags], rules)
+}
+
+// Статус одного продукту в запасах — для позначки "можна / небажано / не можна".
+export function productHealthStatus(product, rules) {
+  return tagsRuleStatus(product.tags || [], rules)
 }
