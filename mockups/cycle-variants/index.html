@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Макети вкладки «Цикл» — календар циклу</title>
+<title>Макети вкладки «Цикл» — трекер циклу з фазами, показниками та історією</title>
 <link rel="stylesheet" href="shared.css" />
 <style>
   .gallery-page { max-width: 980px; margin: 0 auto; padding: 40px 24px 60px; display: flex; flex-direction: column; gap: 22px; }
@@ -17,64 +17,66 @@
 <body>
 <div class="gallery-page">
   <div>
-    <h1 style="margin: 0 0 6px;">Макети вкладки «Цикл» — календар циклу</h1>
+    <h1 style="margin: 0 0 6px;">Макети вкладки «Цикл» — трекер циклу</h1>
     <p class="placeholder-text">
-      10 варіантів верстки одного й того ж: календар менструального циклу, де ЯВНО видно, коли початок і коли кінець
-      (planner-spec.md §3.7 — лише ручні відмітки початку/кінця, чесний прогноз без діагнозів). Спільні дані в усіх
-      варіантах: цикли 05–10.09 і 03–08.10.2026, сьогодні 22.10, прогноз наступного початку 29.10 – 02.11.2026.
+      10 варіантів ОДНОГО складеного екрана: герой-трекер «День циклу» прям зверху, двомісячний розворот календаря,
+      показники місячних, усі фази циклу (менструація · фолікулярна · овуляція · лютеїнова · прогноз), реєстр історії
+      менструації та кнопка експорту в PDF (у частині варіантів історія винесена окремою вкладкою). Варіанти різняться
+      лише компонуванням цих блоків. Спільні дані: цикли 05–10.09 і 03–08.10.2026, сьогодні 22.10 (день 20 з 28),
+      прогноз наступного початку 29.10 – 02.11.2026.
     </p>
   </div>
 
   <div class="gallery-grid">
     <a class="gallery-card card" href="variant-1.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #a84b86);"></div>
-      <h3>Варіант 1 — Класичний місяць</h3>
-      <p>Місяць-календар + бокова панель прогнозу й журнал. Початок і кінець — різного тону.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #fde7f0, #efe7fb);"></div>
+      <h3>Варіант 1 — Все на одній сторінці</h3>
+      <p>Герой → розворот → показники → фази (список) → реєстр історії. PDF у героєві й біля історії.</p>
     </a>
     <a class="gallery-card card" href="variant-2.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f6b7d1, #fce3ee);"></div>
-      <h3>Варіант 2 — Горизонтальний таймлайн</h3>
-      <p>Весь місяць однією стрічкою днів; період затінено, початок/кінець — акцентами.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #c5cae9);"></div>
+      <h3>Варіант 2 — Вкладки Календар / Фази / Історія</h3>
+      <p>Герой зверху, під ним вкладки. Календар = розворот + показники; Фази; Історія = реєстр.</p>
     </a>
     <a class="gallery-card card" href="variant-3.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #c5cae9);"></div>
-      <h3>Варіант 3 — Двомісячний розворот</h3>
-      <p>Вересень і Жовтень поруч: фактичний період у жовтні та прогноз наступного.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f6b7d1, #b9a7dd);"></div>
+      <h3>Варіант 3 — Дві колонки</h3>
+      <p>Ліворуч розворот, праворуч герой + показники + фази. Реєстр історії на всю ширину знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-4.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #b9a7dd);"></div>
-      <h3>Варіант 4 — Радіальне кільце</h3>
-      <p>Кругова діаграма циклу: фаза, «День 20 з 28», прогноз наступної менструації пунктиром.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #7fc6c0);"></div>
+      <h3>Варіант 4 — Герой із показниками + смуга фаз</h3>
+      <p>Метрики всередині героя; під ним розворот, горизонтальна смуга фаз і реєстр. Велика PDF-кнопка.</p>
     </a>
     <a class="gallery-card card" href="variant-5.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #f6b7d1, #a84b86);"></div>
-      <h3>Варіант 5 — Журнал-картки</h3>
-      <p>Кожен цикл — окрема картка з міні-смугою «початок → кінець» і довжиною.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #7fc6c0, #e05b94);"></div>
+      <h3>Варіант 5 — Фокус на фазах</h3>
+      <p>Герой → велика смуга-таймлайн усіх фаз → розворот → показники збоку. Історія — окрема вкладка.</p>
     </a>
     <a class="gallery-card card" href="variant-6.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #fce3ee, #e05b94);"></div>
-      <h3>Варіант 6 — Тижневі рядки</h3>
-      <p>Безперервний календар вересень–листопад: видно ритм циклів між місяцями.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #efe7fb, #e05b94);"></div>
+      <h3>Варіант 6 — Дашборд-панель</h3>
+      <p>Герой + показники у верхній панелі; розворот; фази кольоровими плитками; реєстр знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-7.html">
       <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #f6b7d1);"></div>
-      <h3>Варіант 7 — Великий трекер</h3>
-      <p>Герой «День циклу 20» з великими кнопками відмітки + компактний календар.</p>
+      <h3>Варіант 7 — Історія окремою вкладкою</h3>
+      <p>Огляд (герой + розворот + фази + показники) та вкладка Історія з реєстром і PDF-звітом.</p>
     </a>
     <a class="gallery-card card" href="variant-8.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #a84b86);"></div>
-      <h3>Варіант 8 — Таблиця-реєстр</h3>
-      <p>Журнал циклів таблицею (початок / кінець / довжина) + міні-календар місяця.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #e05b94);"></div>
+      <h3>Варіант 8 — Таймлайн-орієнтований</h3>
+      <p>Герой → розворот із легендою фаз під місяцями; фази і в календарі, і списком; реєстр знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-9.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #7fc6c0);"></div>
-      <h3>Варіант 9 — Календар + фази</h3>
-      <p>Місяць ліворуч, фази циклу (менструація … овуляція … прогноз) праворуч.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #a84b86, #c5cae9);"></div>
+      <h3>Варіант 9 — Медичний звіт</h3>
+      <p>Акцент на великих показниках і реєстрі як головному блоці; розворот нижче. Велика кнопка «Експорт PDF-звіту».</p>
     </a>
     <a class="gallery-card card" href="variant-10.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #a84b86, #b9a7dd);"></div>
-      <h3>Варіант 10 — Смуги-фази (gantt)</h3>
-      <p>Цикли брусками на шкалі вересень–листопад із вертикальною позначкою «сьогодні».</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #e05b94, #efe7fb);"></div>
+      <h3>Варіант 10 — Три вкладки</h3>
+      <p>Спільний герой зверху; вкладки Календар (розворот + фази) / Показники (KPI + смуга фаз) / Історія (реєстр + PDF).</p>
     </a>
   </div>
 </div>

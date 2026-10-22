@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Цикл · Варіант 1 — класичний місяць-календар</title>
+<title>Цикл · Варіант 1 — герой-трекер + двомісячний розворот + фази + історія</title>
 <link rel="stylesheet" href="shared.css" />
 <style>
-  .v1-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; align-items: start; }
-  @media (max-width: 900px) { .v1-layout { grid-template-columns: 1fr; } }
+  .spread { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .spread-month { }
+  @media (max-width: 900px) { .spread { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -25,100 +26,189 @@
     <div class="page-content">
       <div class="page-head">
         <h2>Цикл</h2>
-        <span class="variant-note">Варіант 1 · класичний місяць-календар; перший день (початок) і останній (кінець) різного тону, прогноз наступного циклу — пунктиром</span>
+        <span class="variant-note">Варіант 1 · герой-трекер зверху, двомісячний розворот, показники місячних, усі фази циклу та реєстр історії знизу; кнопка експорту PDF — у героєві</span>
       </div>
 
-      <div class="v1-layout">
-        <div class="card">
-          <div class="month-nav">
-            <button type="button" class="month-nav-btn">◀</button>
-            <span class="month-nav-label">Жовтень 2026</span>
-            <button type="button" class="month-nav-btn">▶</button>
-          </div>
-
-          <div class="month-grid">
-            <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
-
-            <div class="month-day month-day--muted">28</div>
-            <div class="month-day month-day--muted">29</div>
-            <div class="month-day month-day--muted">30</div>
-            <div class="month-day">1</div>
-            <div class="month-day">2</div>
-            <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
-            <div class="month-day month-day--period">4</div>
-
-            <div class="month-day month-day--period">5</div>
-            <div class="month-day month-day--period">6</div>
-            <div class="month-day month-day--period">7</div>
-            <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
-            <div class="month-day">9</div>
-            <div class="month-day">10</div>
-            <div class="month-day">11</div>
-
-            <div class="month-day">12</div>
-            <div class="month-day">13</div>
-            <div class="month-day">14</div>
-            <div class="month-day">15</div>
-            <div class="month-day">16</div>
-            <div class="month-day">17</div>
-            <div class="month-day">18</div>
-
-            <div class="month-day">19</div>
-            <div class="month-day">20</div>
-            <div class="month-day">21</div>
-            <div class="month-day month-day--today">22</div>
-            <div class="month-day">23</div>
-            <div class="month-day">24</div>
-            <div class="month-day">25</div>
-
-            <div class="month-day">26</div>
-            <div class="month-day">27</div>
-            <div class="month-day">28</div>
-            <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
-            <div class="month-day month-day--predicted">30</div>
-            <div class="month-day month-day--predicted">31</div>
-            <div class="month-day month-day--muted month-day--predicted">1</div>
-          </div>
-
-          <div class="legend" style="margin-top:16px;">
-            <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
-            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
-            <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
-            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
-            <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+      <!-- ГЕРОЙ-ТРЕКЕР (прям зверху, як у варіанті 7) -->
+      <div class="cycle-hero">
+        <div class="cycle-hero-main">
+          <span class="cycle-hero-day">20</span>
+          <span class="cycle-hero-of">з 28</span>
+        </div>
+        <div class="cycle-hero-info">
+          <span class="cycle-hero-sub">День циклу · наступний початок ≈ через 9 днів (29.10 – 02.11.2026)</span>
+          <div class="cycle-progress"><div class="cycle-progress-fill" style="width:71%;"></div></div>
+          <div class="cycle-hero-actions">
+            <button type="button" class="btn-period">Відмітити початок</button>
+            <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+            <button type="button" class="btn-pdf">📄 Експорт у PDF</button>
           </div>
         </div>
+      </div>
 
-        <div style="display:flex; flex-direction:column; gap:18px;">
-          <div class="card forecast-panel">
-            <span class="kpi-label">Прогноз наступного початку</span>
-            <span class="forecast-date">29.10 – 02.11.2026</span>
-            <span class="placeholder-text">Середня довжина циклу — 28 днів, менструації — 6 днів. Цикл регулярний (розкид ≤ 3 дні).</span>
-          </div>
-
-          <div class="card">
-            <div class="section-title"><h3>Відмітки</h3></div>
-            <div class="cycle-actions">
-              <button type="button" class="btn-period">Відмітити початок</button>
-              <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+      <!-- ДВОМІСЯЧНИЙ РОЗВОРОТ (як у варіанті 3) -->
+      <div class="card">
+        <div class="spread">
+          <div class="spread-month">
+            <div class="month-nav">
+              <button type="button" class="month-nav-btn">◀</button>
+              <span class="month-nav-label">Вересень 2026</span>
+              <button type="button" class="month-nav-btn">▶</button>
             </div>
-            <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
+            <div class="month-grid">
+              <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+              <div class="month-day month-day--muted">31</div>
+              <div class="month-day">1</div>
+              <div class="month-day">2</div>
+              <div class="month-day">3</div>
+              <div class="month-day">4</div>
+              <div class="month-day month-day--start"><span class="day-tag">початок</span>5</div>
+              <div class="month-day month-day--period">6</div>
+              <div class="month-day month-day--period">7</div>
+              <div class="month-day month-day--period">8</div>
+              <div class="month-day month-day--period">9</div>
+              <div class="month-day month-day--end"><span class="day-tag">кінець</span>10</div>
+              <div class="month-day">11</div>
+              <div class="month-day">12</div>
+              <div class="month-day">13</div>
+              <div class="month-day">14</div>
+              <div class="month-day">15</div>
+              <div class="month-day">16</div>
+              <div class="month-day">17</div>
+              <div class="month-day">18</div>
+              <div class="month-day">19</div>
+              <div class="month-day">20</div>
+              <div class="month-day">21</div>
+              <div class="month-day">22</div>
+              <div class="month-day">23</div>
+              <div class="month-day">24</div>
+              <div class="month-day">25</div>
+              <div class="month-day">26</div>
+              <div class="month-day">27</div>
+              <div class="month-day">28</div>
+              <div class="month-day">29</div>
+              <div class="month-day">30</div>
+              <div class="month-day month-day--muted">1</div>
+              <div class="month-day month-day--muted">2</div>
+              <div class="month-day month-day--muted">3</div>
+              <div class="month-day month-day--muted">4</div>
+            </div>
           </div>
 
-          <div class="card">
-            <div class="section-title"><h3>Історія циклів</h3></div>
-            <ul class="cycle-list">
-              <li class="cycle-list-row">
-                <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
-                <span class="cycle-len">6 днів</span>
-              </li>
-              <li class="cycle-list-row">
-                <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
-                <span class="cycle-len">6 днів</span>
-              </li>
-            </ul>
+          <div class="spread-month">
+            <div class="month-nav">
+              <button type="button" class="month-nav-btn">◀</button>
+              <span class="month-nav-label">Жовтень 2026</span>
+              <button type="button" class="month-nav-btn">▶</button>
+            </div>
+            <div class="month-grid">
+              <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+              <div class="month-day month-day--muted">28</div>
+              <div class="month-day month-day--muted">29</div>
+              <div class="month-day month-day--muted">30</div>
+              <div class="month-day">1</div>
+              <div class="month-day">2</div>
+              <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
+              <div class="month-day month-day--period">4</div>
+              <div class="month-day month-day--period">5</div>
+              <div class="month-day month-day--period">6</div>
+              <div class="month-day month-day--period">7</div>
+              <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
+              <div class="month-day">9</div>
+              <div class="month-day">10</div>
+              <div class="month-day">11</div>
+              <div class="month-day">12</div>
+              <div class="month-day">13</div>
+              <div class="month-day">14</div>
+              <div class="month-day">15</div>
+              <div class="month-day">16</div>
+              <div class="month-day">17</div>
+              <div class="month-day">18</div>
+              <div class="month-day">19</div>
+              <div class="month-day">20</div>
+              <div class="month-day">21</div>
+              <div class="month-day month-day--today">22</div>
+              <div class="month-day">23</div>
+              <div class="month-day">24</div>
+              <div class="month-day">25</div>
+              <div class="month-day">26</div>
+              <div class="month-day">27</div>
+              <div class="month-day">28</div>
+              <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
+              <div class="month-day month-day--predicted">30</div>
+              <div class="month-day month-day--predicted">31</div>
+              <div class="month-day month-day--muted month-day--predicted">1</div>
+            </div>
           </div>
         </div>
+
+        <div class="legend" style="margin-top:16px;">
+          <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні менструації</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступної</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+        </div>
+      </div>
+
+      <!-- ПОКАЗНИКИ МІСЯЧНИХ -->
+      <div>
+        <div class="section-title"><h3>Показники місячних</h3></div>
+        <div class="metrics-kv">
+          <div class="kpi-tile"><span class="kpi-label">День циклу</span><span class="kpi-value kpi-value--pink">20 / 28</span></div>
+          <div class="kpi-tile"><span class="kpi-label">Середня довжина циклу</span><span class="kpi-value">28 днів</span></div>
+          <div class="kpi-tile"><span class="kpi-label">Середня менструація</span><span class="kpi-value">6 днів</span></div>
+          <div class="kpi-tile"><span class="kpi-label">Регулярність</span><span class="kpi-value">Регулярний</span></div>
+          <div class="kpi-tile"><span class="kpi-label">Останній цикл</span><span class="kpi-value">28 днів</span></div>
+        </div>
+      </div>
+
+      <!-- УСІ ФАЗИ ЦИКЛУ -->
+      <div class="card">
+        <div class="section-title"><h3>Фази циклу</h3></div>
+        <ul class="phase-list">
+          <li class="phase-row"><span class="phase-dot phase-dot--menstruation"></span><span class="phase-name">Менструація</span><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span><span class="phase-range">6 днів</span></li>
+          <li class="phase-row"><span class="phase-dot phase-dot--follicular"></span><span class="phase-name">Фолікулярна</span><span class="phase-range">09–16.10</span></li>
+          <li class="phase-row"><span class="phase-dot phase-dot--ovulation"></span><span class="phase-name">Овуляція <span class="placeholder-text">(орієнтовно)</span></span><span class="phase-range">~17.10</span></li>
+          <li class="phase-row phase-row--current"><span class="phase-dot phase-dot--luteal"></span><span class="phase-name">Лютеїнова</span><span class="pill pill--active">зараз</span><span class="phase-range">18–28.10</span></li>
+          <li class="phase-row"><span class="phase-dot phase-dot--predicted"></span><span class="phase-name">Прогноз наступної менструації</span><span class="phase-range">29.10 – 02.11</span></li>
+        </ul>
+      </div>
+
+      <!-- ІСТОРІЯ МЕНСТРУАЦІЇ (реєстр, як у варіанті 8) -->
+      <div class="card">
+        <div class="section-title">
+          <h3>Історія менструації</h3>
+          <button type="button" class="btn-pdf">📄 Згенерувати PDF-звіт</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Початок</th><th>Кінець</th><th>Тривалість менструації</th><th>Довжина циклу</th><th>Статус</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge--start">05.09.2026</span></td>
+              <td><span class="badge badge--end">10.09.2026</span></td>
+              <td>6 днів</td>
+              <td>28 днів</td>
+              <td><span class="badge badge--ok">завершено</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge--start">03.10.2026</span></td>
+              <td><span class="badge badge--end">08.10.2026</span></td>
+              <td>6 днів</td>
+              <td>28 днів</td>
+              <td><span class="badge badge--ok">завершено</span></td>
+            </tr>
+            <tr style="opacity:0.75;">
+              <td colspan="2">29.10 – 02.11.2026 <span class="placeholder-text">(прогноз)</span></td>
+              <td>~6 днів</td>
+              <td class="none-text">—</td>
+              <td><span class="badge badge--warn">прогноз</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
       </div>
     </div>
   </main>
