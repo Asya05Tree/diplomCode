@@ -1,0 +1,124 @@
+[
+  {
+    "id": "borsch",
+    "nameUk": "Борщ",
+    "nameEn": "Borscht",
+    "emoji": "🍲",
+    "cookTimeMinutes": 60,
+    "ingredients": [
+      { "productId": "beet",   "amountUk": "1 шт",     "amountEn": "1 pc" },
+      { "productId": "potato", "amountUk": "3 шт",     "amountEn": "3 pcs" },
+      { "productId": "carrot", "amountUk": "1 шт",     "amountEn": "1 pc" },
+      { "productId": "onion",  "amountUk": "1 шт",     "amountEn": "1 pc" },
+      { "productId": "oil",    "amountUk": "2 ст. л.", "amountEn": "2 tbsp" },
+      { "productId": "salt",   "amountUk": "дрібка",   "amountEn": "a pinch" }
+    ],
+    "steps": [
+      { "uk": "Нарізати буряк, моркву й цибулю, обсмажити на олії", "en": "Chop beet, carrot and onion, sauté in oil" },
+      { "uk": "Відварити картоплю в каструлі", "en": "Boil potatoes in a pot" },
+      { "uk": "Додати засмажку, варити 15 хвилин", "en": "Add the sauté, cook for 15 minutes" },
+      { "uk": "Посолити до смаку", "en": "Salt to taste" }
+    ]
+  },
+  {
+    "id": "carbonara",
+    "nameUk": "Паста карбонара",
+    "nameEn": "Pasta carbonara",
+    "emoji": "🍝",
+    "cookTimeMinutes": 25,
+    "ingredients": [
+      { "productId": "pasta",  "amountUk": "200 г",    "amountEn": "200 g" },
+      { "productId": "eggs",   "amountUk": "2 шт",     "amountEn": "2 pcs" },
+      { "productId": "cheese", "amountUk": "50 г",     "amountEn": "50 g" },
+      { "productId": "bacon",  "amountUk": "100 г",    "amountEn": "100 g" },
+      { "productId": "salt",   "amountUk": "дрібка",   "amountEn": "a pinch" }
+    ],
+    "steps": [
+      { "uk": "Відварити пасту до al dente", "en": "Boil pasta until al dente" },
+      { "uk": "Обсмажити бекон", "en": "Fry the bacon" },
+      { "uk": "Змішати яйця з тертим сиром", "en": "Mix eggs with grated cheese" },
+      { "uk": "Зʼєднати все, швидко перемішати", "en": "Combine everything, toss quickly" }
+    ]
+  },
+  {
+    "id": "plov",
+    "nameUk": "Плов",
+    "nameEn": "Plov",
+    "emoji": "🍛",
+    "cookTimeMinutes": 50,
+    "ingredients": [
+      { "productId": "rice",    "amountUk": "1 склянка", "amountEn": "1 cup" },
+      { "productId": "pork",    "amountUk": "400 г",     "amountEn": "400 g" },
+      { "productId": "carrot",  "amountUk": "2 шт",      "amountEn": "2 pcs" },
+      { "productId": "onion",   "amountUk": "1 шт",      "amountEn": "1 pc" },
+      { "productId": "oil",     "amountUk": "3 ст. л.",  "amountEn": "3 tbsp" },
+      { "productId": "garlic",  "amountUk": "1 головка", "amountEn": "1 head" },
+      { "productId": "zira",    "amountUk": "1 ч. л.",   "amountEn": "1 tsp" },
+      { "productId": "raisins", "amountUk": "30 г",      "amountEn": "30 g" },
+      { "productId": "salt",    "amountUk": "дрібка",    "amountEn": "a pinch" }
+    ],
+    "steps": [
+      { "uk": "Обсмажити мʼясо з цибулею й морквою", "en": "Fry the meat with onion and carrot" },
+      { "uk": "Додати спеції, часник і родзинки", "en": "Add spices, garlic and raisins" },
+      { "uk": "Засипати рис, залити водою", "en": "Add rice, pour in water" },
+      { "uk": "Тушкувати під кришкою 30 хвилин", "en": "Simmer covered for 30 minutes" }
+    ]
+  },
+  {
+    "id": "omelette",
+    "nameUk": "Омлет",
+    "nameEn": "Omelette",
+    "emoji": "🥞",
+    "cookTimeMinutes": 10,
+    "ingredients": [
+      { "productId": "eggs", "amountUk": "3 шт",    "amountEn": "3 pcs" },
+      { "productId": "milk", "amountUk": "50 мл",   "amountEn": "50 ml" },
+      { "productId": "oil",  "amountUk": "1 ст. л.", "amountEn": "1 tbsp" },
+      { "productId": "salt", "amountUk": "дрібка",  "amountEn": "a pinch" }
+    ],
+    "steps": [
+      { "uk": "Збити яйця з молоком", "en": "Whisk eggs with milk" },
+      { "uk": "Розігріти пательню з олією", "en": "Heat the pan with oil" },
+      { "uk": "Вилити, смажити 5 хвилин", "en": "Pour in, fry for 5 minutes" }
+    ]
+  },
+  {
+    "id": "mashFish",
+    "nameUk": "Пюре з рибою",
+    "nameEn": "Mash with fish",
+    "emoji": "🐟",
+    "cookTimeMinutes": 30,
+    "ingredients": [
+      { "productId": "potato", "amountUk": "4 шт",   "amountEn": "4 pcs" },
+      { "productId": "milk",   "amountUk": "100 мл", "amountEn": "100 ml" },
+      { "productId": "fish",   "amountUk": "1 банка", "amountEn": "1 can" },
+      { "productId": "eggs",   "amountUk": "1 шт",   "amountEn": "1 pc" },
+      { "productId": "salt",   "amountUk": "дрібка", "amountEn": "a pinch" }
+    ],
+    "steps": [
+      { "uk": "Зварити картоплю", "en": "Boil the potatoes" },
+      { "uk": "Розімʼ яти з молоком", "en": "Mash with milk" },
+      { "uk": "Додати рибу", "en": "Add the fish" },
+      { "uk": "Подавати з вареним яйцем", "en": "Serve with a boiled egg" }
+    ]
+  },
+  {
+    "id": "veggieSalad",
+    "nameUk": "Салат овочевий",
+    "nameEn": "Vegetable salad",
+    "emoji": "🥗",
+    "cookTimeMinutes": 15,
+    "ingredients": [
+      { "productId": "cucumber", "amountUk": "2 шт",    "amountEn": "2 pcs" },
+      { "productId": "tomato",   "amountUk": "2 шт",    "amountEn": "2 pcs" },
+      { "productId": "onion",    "amountUk": "0.5 шт",  "amountEn": "0.5 pc" },
+      { "productId": "oil",      "amountUk": "1 ст. л.", "amountEn": "1 tbsp" },
+      { "productId": "salt",     "amountUk": "дрібка",  "amountEn": "a pinch" }
+    ],
+    "steps": [
+      { "uk": "Нарізати огірки й помідори", "en": "Chop cucumbers and tomatoes" },
+      { "uk": "Додати тонко нарізану цибулю", "en": "Add thinly sliced onion" },
+      { "uk": "Заправити олією, посолити", "en": "Dress with oil, add salt" }
+    ]
+  }
+]
