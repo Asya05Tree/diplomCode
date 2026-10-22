@@ -294,3 +294,96 @@ a { color: inherit; }
   }
   .sidebar-label { font-size: 0.64rem; white-space: nowrap; }
 }
+
+/* ==========================================================================
+   СКЛАДЕНИЙ МАКЕТ «Цикл v2» — спільні блоки для нових 10 варіантів:
+   герой-трекер зверху + показники місячних + усі фази циклу + реєстр історії +
+   кнопка експорту в PDF (або історія окремою вкладкою).
+   ========================================================================== */
+
+/* Фази циклу — кольори крапок/сегментів (менструація, фолікулярна, овуляція,
+   лютеїнова, прогноз). Тон "овуляція" навмисно м'ятний, інші — спокійні. */
+:root {
+  --phase-menstruation: var(--cycle-start);
+  --phase-follicular: #bcdcc6;
+  --phase-ovulation: var(--cycle-ovulation);
+  --phase-luteal: #e7d6a8;
+  --phase-predicted: var(--cycle-predicted);
+}
+
+/* --- Герой-трекер (великий день циклу «прям зверху») --- */
+.cycle-hero {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  background: linear-gradient(135deg, #fde7f0, #efe7fb);
+  border: 1px solid var(--color-border); border-radius: 16px; padding: 20px 24px;
+}
+.cycle-hero-main { display: flex; align-items: baseline; gap: 10px; flex-shrink: 0; }
+.cycle-hero-day { font-size: 3rem; font-weight: 800; color: var(--cycle-start); line-height: 1; }
+.cycle-hero-of { font-size: 1rem; color: var(--color-text-muted); }
+.cycle-hero-info { display: flex; flex-direction: column; gap: 10px; flex: 1 1 260px; min-width: 220px; }
+.cycle-hero-sub { font-size: 0.92rem; color: var(--color-text-muted); }
+.cycle-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* Тонкий прогрес-бар «день X з 28» */
+.cycle-progress { height: 10px; border-radius: 999px; background: var(--pill-bg); overflow: hidden; }
+.cycle-progress-fill { height: 100%; border-radius: 999px; background: var(--cycle-start); }
+
+/* --- Кнопка експорту у PDF --- */
+.btn-pdf {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; font-weight: 600;
+  color: var(--color-text); cursor: pointer; font-family: inherit; white-space: nowrap;
+}
+.btn-pdf:hover { background: var(--pill-bg-hover); }
+
+/* --- Вкладки сторінки (Календар / Фази / Історія тощо) --- */
+.cycle-tabs { display: flex; flex-wrap: wrap; gap: 24px; border-bottom: 1px solid var(--color-border); }
+.cycle-tab {
+  padding: 8px 2px; font-size: 0.92rem; font-weight: 600; color: var(--color-text-muted);
+  background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  cursor: pointer; text-decoration: none; font-family: inherit;
+}
+.cycle-tab--active { color: var(--color-heading); border-bottom-color: var(--color-accent-2); }
+
+/* --- Показники місячних (KPI-плитки у рамці-реєстрі) --- */
+.metrics-kv {
+  display: flex; flex-wrap: wrap; border: 1px solid var(--color-border);
+  border-radius: 12px; overflow: hidden; background: var(--color-surface);
+}
+.metrics-kv > .kpi-tile {
+  flex: 1 1 160px; padding: 12px 16px;
+  border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);
+}
+
+/* --- Усі фази циклу: список --- */
+.phase-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.phase-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; border: 1px solid var(--color-border);
+  border-radius: 10px; background: var(--color-surface);
+}
+.phase-row--current { border-color: var(--color-accent-2); box-shadow: 0 2px 10px rgba(17, 24, 39, 0.06); }
+.phase-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.phase-dot--menstruation { background: var(--phase-menstruation); }
+.phase-dot--follicular { background: var(--phase-follicular); }
+.phase-dot--ovulation { background: var(--phase-ovulation); }
+.phase-dot--luteal { background: var(--phase-luteal); }
+.phase-dot--predicted { background: transparent; border: 2px dashed var(--phase-predicted); }
+.phase-name { font-weight: 600; font-size: 0.9rem; }
+.phase-range { margin-left: auto; font-size: 0.82rem; color: var(--color-text-muted); }
+
+/* --- Усі фази циклу: горизонтальна смуга-таймлайн --- */
+.phase-bar { display: flex; height: 30px; border-radius: 9px; overflow: hidden; border: 1px solid var(--color-border); }
+.phase-seg {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.66rem; font-weight: 700; color: #3a2c3a; white-space: nowrap; overflow: hidden;
+}
+.phase-seg--menstruation { background: var(--cycle-period); }
+.phase-seg--follicular { background: var(--phase-follicular); }
+.phase-seg--ovulation { background: var(--phase-ovulation); }
+.phase-seg--luteal { background: var(--phase-luteal); }
+.phase-seg--predicted {
+  background: repeating-linear-gradient(45deg, #efe7fb, #efe7fb 6px, #e3d7f5 6px, #e3d7f5 12px);
+  color: #6d5a9c;
+}
