@@ -297,6 +297,71 @@
   font-size: 0.94rem;
 }
 
+/* Чесний рядок про сховані обмеженнями страви (§4.6) */
+.food-health-note {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: var(--status-bad-text, #d1453c);
+  background: #fbdede;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.theme-dark .food-health-note {
+  background: #4a2320;
+  color: #f0a9a3;
+}
+
+/* Мʼяке правило (небажано) — маленька примітка на картці */
+.food-avoid-note {
+  font-size: 0.74rem;
+  color: #c77c10;
+}
+
+.theme-dark .food-avoid-note {
+  color: #f0c488;
+}
+
+/* Позначка "можна / небажано / не можна" в запасах */
+.health-flag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.health-flag--ok {
+  background: #d9f2e1;
+  color: #1f8a4c;
+}
+
+.health-flag--warn {
+  background: #ffead1;
+  color: #c77c10;
+}
+
+.health-flag--bad {
+  background: #fbdede;
+  color: #d1453c;
+}
+
+.theme-dark .health-flag--ok {
+  background: #234b36;
+  color: #9fe0b8;
+}
+
+.theme-dark .health-flag--warn {
+  background: #4d3a1d;
+  color: #f0c488;
+}
+
+.theme-dark .health-flag--bad {
+  background: #4a2320;
+  color: #f0a9a3;
+}
+
 /* --- Запаси --- */
 .food-stock {
   display: flex;

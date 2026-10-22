@@ -6,6 +6,7 @@ import './Layout.css'
 import Planner from './pages/Planner'
 import ShoppingList from './pages/ShoppingList'
 import Food from './pages/Food'
+import Health from './pages/Health'
 import Finance from './pages/Finance'
 import Cycle from './pages/Cycle'
 import Settings from './pages/Settings'
@@ -136,6 +137,7 @@ function AppContent() {
         >
           <Route index element={<Planner />} />
           <Route path="food" element={<Food />} />
+          <Route path="health" element={<Health />} />
           <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="finance" element={<Finance />} />
           <Route path="cycle" element={<Cycle />} />

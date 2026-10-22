@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { key: 'nav.calendar', icon: '📅', color: 'var(--color-tasks)', to: '/app' },
   { key: 'nav.shoppingList', icon: '🛒', color: 'var(--color-food)', to: '/app/shopping-list' },
   { key: 'nav.food', icon: '🍲', color: 'var(--color-food)', to: '/app/food' },
-  { key: 'nav.health', icon: '💊', color: 'var(--color-health)' },
+  { key: 'nav.health', icon: '💊', color: 'var(--color-health)', to: '/app/health' },
   { key: 'nav.finance', icon: '💰', color: 'var(--color-finance)', to: '/app/finance' },
   { key: 'nav.study', icon: '🎓', color: 'var(--color-study)' },
   { key: 'nav.cycle', icon: '🌸', color: 'var(--color-cycle)', to: '/app/cycle' },

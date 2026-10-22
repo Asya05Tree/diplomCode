@@ -7,15 +7,19 @@ import {
   addStockProduct,
   computeAvailability,
   getProduct,
+  getRules,
   getSelected,
   getStockMap,
   ingredientAmount,
   listAddableProducts,
   listStock,
   markCooked,
+  productHealthStatus,
   productName,
+  recipeHealthStatus,
   recipeName,
   setStockState,
+  tagLabel,
   toggleSelected,
 } from '../pseudo-db'
 import './Food.css'
@@ -40,6 +44,9 @@ export default function Food() {
 
   const [stockMap, setStockMap] = useState(() => getStockMap())
   const [selected, setSelected] = useState(() => getSelected())
+  // Правила з модуля "Здоровʼя" (хронічні захворювання → теги). Читаються при відкритті
+  // сторінки: страви з жорстким (Forbidden) правилом ховаються, у запасах — позначка.
+  const [rules] = useState(() => getRules())
 
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [addStockOpen, setAddStockOpen] = useState(false)
@@ -55,15 +62,27 @@ export default function Food() {
     return map
   }, [stockMap])
 
+  // Статус страв щодо правил здоровʼя (заборонено / небажано).
+  const health = useMemo(() => {
+    const map = {}
+    for (const recipe of RECIPES) map[recipe.id] = recipeHealthStatus(recipe, rules)
+    return map
+  }, [rules])
+
+  // Скільки страв сховано жорсткими обмеженнями — показуємо чесним рядком (§4.6).
+  const hiddenByHealth = RECIPES.filter((r) => health[r.id].forbidden).length
+
   const visibleRecipes = useMemo(() => {
     return RECIPES.filter((recipe) => {
+      // Жорстке правило здоровʼя (Forbidden) — страва не показується взагалі (§2.3, §4.6).
+      if (health[recipe.id].forbidden) return false
       const av = availability[recipe.id]
       // "Із наявного" — лише те, де все є (§4.6: страви з нестачею не показуються взагалі).
       if (mode === 'available') return av.isAvailable
       // "Все" з бюджетом: показуємо рецепт, якщо докупівля вкладається в діапазон від..до.
       return av.missingCost >= range.from && av.missingCost <= range.to
     })
-  }, [availability, mode, range])
+  }, [availability, health, mode, range])
 
   const clamp = (value) => Math.min(Math.max(0, Math.round(Number(value) || 0)), balance)
 
@@ -196,12 +215,19 @@ export default function Food() {
             </button>
           </div>
 
+          {hiddenByHealth > 0 && (
+            <p className="food-health-note">
+              {t('food.hiddenByHealth', { count: hiddenByHealth })}
+            </p>
+          )}
+
           {visibleRecipes.length === 0 ? (
             <p className="placeholder-text">{t('food.emptyRecipes')}</p>
           ) : (
             <div className="recipe-grid">
               {visibleRecipes.map((recipe) => {
                 const av = availability[recipe.id]
+                const hs = health[recipe.id]
                 const isFav = selected.includes(recipe.id)
                 return (
                   <div
@@ -232,6 +258,11 @@ export default function Food() {
                           {t('food.badgeBuy', { count: av.missingCount, cost: av.missingCost })}
                         </span>
                       )}
+                      {hs.avoid && (
+                        <span className="food-avoid-note">
+                          {t('food.avoidNote', { tag: tagLabel(hs.avoid, language) })}
+                        </span>
+                      )}
                     </div>
                   </div>
                 )
@@ -245,10 +276,23 @@ export default function Food() {
             <h3>{t('food.stockTitle')}</h3>
           </div>
           <ul className="stock-list">
-            {stockRows.map(({ product, state }) => (
+            {stockRows.map(({ product, state }) => {
+              const hs = productHealthStatus(product, rules)
+              return (
               <li key={product.id} className="stock-row">
                 <span className={`stock-dot stock-dot--${state === 'Available' ? 'ok' : 'warn'}`} />
                 <span className="stock-name">{productName(product, language)}</span>
+                {hs.forbidden ? (
+                  <span className="health-flag health-flag--bad" title={tagLabel(hs.forbidden, language)}>
+                    {t('food.health.forbidden')}
+                  </span>
+                ) : hs.avoid ? (
+                  <span className="health-flag health-flag--warn" title={tagLabel(hs.avoid, language)}>
+                    {t('food.health.avoid')}
+                  </span>
+                ) : (
+                  <span className="health-flag health-flag--ok">{t('food.health.ok')}</span>
+                )}
                 <div className="stock-toggle">
                   {STOCK_TOGGLE.map(({ state: s, cls }) => (
                     <button
@@ -261,7 +305,8 @@ export default function Food() {
                   ))}
                 </div>
               </li>
-            ))}
+              )
+            })}
           </ul>
           <button type="button" className="btn-accent stock-add-btn" onClick={() => setAddStockOpen(true)}>
             {t('food.addStock')}
