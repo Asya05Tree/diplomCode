@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 10 — смуги-фази (gantt-таймлайн Вересень–Листопад)</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  /* --- Локальний layout таймлайну (лише розкладка; кольори/компоненти — зі shared.css) --- */
+  .v10-timeline { position: relative; }
+
+  /* Місячна вісь: три рівні сегменти з лівими рисками-гридлайнами */
+  .tl-axis {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 10px;
+  }
+  .tl-axis-cell {
+    padding: 6px 10px; font-size: 0.8rem; font-weight: 700;
+    color: var(--color-heading);
+    border-left: 1px solid var(--color-border);
+  }
+  .tl-axis-cell small { display: block; font-weight: 500; font-size: 0.68rem; color: var(--color-text-muted); }
+
+  /* Трек з гридлайнами на 1/3 і 2/3 — ті самі межі місяців */
+  .tl-track {
+    position: relative;
+    background:
+      linear-gradient(90deg, transparent calc(33.333% - 1px), var(--color-border) calc(33.333% - 1px), var(--color-border) 33.333%, transparent 33.333%),
+      linear-gradient(90deg, transparent calc(66.666% - 1px), var(--color-border) calc(66.666% - 1px), var(--color-border) 66.666%, transparent 66.666%);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 14px 0;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  /* Доріжка однієї смуги */
+  .tl-lane { position: relative; height: 40px; }
+  .tl-lane-label {
+    position: absolute; left: 10px; top: -2px;
+    font-size: 0.68rem; color: var(--color-text-muted); z-index: 1;
+  }
+
+  /* Сама смуга — позиціонується у % по всій довжині (Вересень→Листопад) */
+  .tl-bar {
+    position: absolute; top: 12px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4px; gap: 6px;
+    background: var(--cycle-period);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  /* START-кап ліворуч, END-кап праворуч — головне: де початок, де кінець */
+  .tl-bar::before,
+  .tl-bar::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 8px;
+  }
+  .tl-bar::before { left: 0;  background: var(--cycle-start); border-radius: 7px 0 0 7px; }
+  .tl-bar::after  { right: 0; background: var(--cycle-end);   border-radius: 0 7px 7px 0; }
+
+  /* Смуга-прогноз — пунктирна, напівпрозора, без суцільних капів */
+  .tl-bar--predicted {
+    background: transparent;
+    border: 1.5px dashed var(--cycle-predicted);
+    box-shadow: none;
+  }
+  .tl-bar--predicted::before,
+  .tl-bar--predicted::after { display: none; }
+
+  .tl-bar .badge { position: relative; z-index: 2; }
+
+  /* Вертикальна мітка "сьогодні" через весь трек */
+  .tl-today {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: var(--color-accent-2); z-index: 3;
+  }
+  .tl-today-flag {
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 0.68rem; font-weight: 700;
+    color: var(--color-on-accent);
+    background: var(--color-accent-2); border-radius: 999px; padding: 2px 8px;
+  }
+
+  .v10-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .v10-grid { grid-template-columns: 1fr; } }
+
+  @media (max-width: 560px) {
+    .tl-bar .badge { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-10.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 10</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 10 · смуги-фази (gantt-таймлайн Вересень→Листопад); кожна смуга має кап-початок і кап-кінець різного тону, прогноз — пунктиром</span>
+      </div>
+
+      <div class="v10-grid">
+        <div class="card">
+          <div class="section-title"><h3>Таймлайн циклів</h3></div>
+
+          <div class="v10-timeline">
+            <!-- Місячна вісь: три рівні сегменти -->
+            <div class="tl-axis">
+              <div class="tl-axis-cell">Вересень<small>2026</small></div>
+              <div class="tl-axis-cell">Жовтень<small>2026</small></div>
+              <div class="tl-axis-cell">Листопад<small>2026</small></div>
+            </div>
+
+            <!-- Трек зі смугами -->
+            <div class="tl-track">
+              <!-- Цикл A: 05–10.09 -->
+              <div class="tl-lane">
+                <span class="tl-lane-label">Цикл A</span>
+                <div class="tl-bar" style="left: 4.4%; width: 6.7%;">
+                  <span class="badge badge--start">05.09</span>
+                  <span class="badge badge--end">10.09</span>
+                </div>
+              </div>
+
+              <!-- Цикл B: 03–08.10 -->
+              <div class="tl-lane">
+                <span class="tl-lane-label">Цикл B</span>
+                <div class="tl-bar" style="left: 35.5%; width: 6.5%;">
+                  <span class="badge badge--start">03.10</span>
+                  <span class="badge badge--end">08.10</span>
+                </div>
+              </div>
+
+              <!-- Прогноз: 29.10–02.11 -->
+              <div class="tl-lane">
+                <span class="tl-lane-label">Прогноз</span>
+                <div class="tl-bar tl-bar--predicted" style="left: 63.4%; width: 5.5%;">
+                  <span class="badge badge--start">29.10</span>
+                  <span class="badge badge--end">02.11</span>
+                </div>
+              </div>
+
+              <!-- Вертикальна мітка "сьогодні 22.10" -->
+              <div class="tl-today" style="left: 56.5%;">
+                <span class="tl-today-flag">сьогодні 22.10</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="legend" style="margin-top:16px;">
+            <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок (кап)</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець (кап)</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Менструація</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div class="card forecast-panel">
+            <span class="kpi-label">Прогноз наступного початку</span>
+            <span class="forecast-date">29.10 – 02.11.2026</span>
+            <span class="placeholder-text">Середина орієнтовно 31.10. Середня довжина циклу — 28 днів, менструації — 6 днів. Цикл регулярний (розкид ≤ 3 дні).</span>
+          </div>
+
+          <div class="card">
+            <div class="kpi-row">
+              <div class="kpi-tile">
+                <span class="kpi-label">Середній цикл</span>
+                <span class="kpi-value">28 днів</span>
+              </div>
+              <div class="kpi-tile">
+                <span class="kpi-label">Менструація</span>
+                <span class="kpi-value kpi-value--pink">6 днів</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><h3>Відмітки</h3></div>
+            <div class="cycle-actions">
+              <button type="button" class="btn-period">Відмітити початок</button>
+              <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+            </div>
+            <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><h3>Журнал циклів</h3></div>
+            <ul class="cycle-list">
+              <li class="cycle-list-row">
+                <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
+                <span class="cycle-len">6 днів</span>
+              </li>
+              <li class="cycle-list-row">
+                <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
+                <span class="cycle-len">6 днів</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
