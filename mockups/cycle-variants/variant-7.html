@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 7 — великий трекер-герой</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  /* Герой-картка: великий фокус на "дні циклу", прогрес і дві великі відмітки.
+     Лише локальний layout — кольори й компоненти беруться зі spiльного shared.css. */
+  .v7-hero {
+    display: flex; flex-direction: column; gap: 18px;
+    background: var(--color-surface);
+  }
+  .v7-hero-top {
+    display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap;
+  }
+  .v7-hero-day { display: flex; flex-direction: column; gap: 2px; }
+  .v7-hero-label { font-size: 0.82rem; color: var(--color-text-muted); }
+  .v7-hero-value {
+    font-size: 3.2rem; font-weight: 800; line-height: 1;
+  }
+  .v7-hero-sub {
+    font-size: 0.92rem; color: var(--color-text-muted); max-width: 520px;
+  }
+  .v7-hero-sub strong { color: var(--cycle-start); font-weight: 700; }
+
+  /* Тонка горизонтальна смуга прогресу 20/28 */
+  .v7-progress {
+    position: relative; height: 10px; border-radius: 999px;
+    background: var(--pill-bg); overflow: hidden;
+  }
+  .v7-progress-fill {
+    position: absolute; inset: 0 auto 0 0; width: 71.4%;
+    background: var(--cycle-start); border-radius: 999px;
+  }
+  .v7-progress-meta {
+    display: flex; justify-content: space-between;
+    font-size: 0.74rem; color: var(--color-text-muted); margin-top: 6px;
+  }
+
+  /* Дві ВЕЛИКІ кнопки відміток */
+  .v7-marks { display: flex; gap: 12px; flex-wrap: wrap; }
+  .v7-marks .btn-period {
+    font-size: 1.02rem; padding: 14px 24px; border-radius: 12px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  /* Нижній блок: календар + журнал поруч, на вузьких — стовпчиком */
+  .v7-lower { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .v7-lower { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-7.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 7</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 7 · великий трекер-герой; у центрі — день циклу та прогрес, під ним календар з явним початком/кінцем і журнал</span>
+      </div>
+
+      <!-- ГЕРОЙ -->
+      <div class="card v7-hero">
+        <div class="v7-hero-top">
+          <div class="v7-hero-day">
+            <span class="v7-hero-label">День циклу</span>
+            <span class="v7-hero-value kpi-value--pink">День циклу 20</span>
+          </div>
+          <span class="v7-hero-sub">з 28 · наступний початок ≈ <strong>через 9 днів</strong> (29.10 – 02.11.2026)</span>
+        </div>
+
+        <div>
+          <div class="v7-progress">
+            <div class="v7-progress-fill"></div>
+          </div>
+          <div class="v7-progress-meta">
+            <span>День 1</span>
+            <span>День 20 з 28</span>
+            <span>День 28</span>
+          </div>
+        </div>
+
+        <div class="v7-marks">
+          <button type="button" class="btn-period">＋ Відмітити початок</button>
+          <button type="button" class="btn-period btn-period--end">■ Відмітити кінець</button>
+        </div>
+      </div>
+
+      <!-- НИЖНІЙ БЛОК: календар + журнал -->
+      <div class="v7-lower">
+        <div class="card">
+          <div class="month-nav">
+            <button type="button" class="month-nav-btn">◀</button>
+            <span class="month-nav-label">Жовтень 2026</span>
+            <button type="button" class="month-nav-btn">▶</button>
+          </div>
+
+          <div class="month-grid">
+            <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+
+            <div class="month-day month-day--muted">28</div>
+            <div class="month-day month-day--muted">29</div>
+            <div class="month-day month-day--muted">30</div>
+            <div class="month-day">1</div>
+            <div class="month-day">2</div>
+            <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
+            <div class="month-day month-day--period">4</div>
+
+            <div class="month-day month-day--period">5</div>
+            <div class="month-day month-day--period">6</div>
+            <div class="month-day month-day--period">7</div>
+            <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
+            <div class="month-day">9</div>
+            <div class="month-day">10</div>
+            <div class="month-day">11</div>
+
+            <div class="month-day">12</div>
+            <div class="month-day">13</div>
+            <div class="month-day">14</div>
+            <div class="month-day">15</div>
+            <div class="month-day">16</div>
+            <div class="month-day">17</div>
+            <div class="month-day">18</div>
+
+            <div class="month-day">19</div>
+            <div class="month-day">20</div>
+            <div class="month-day">21</div>
+            <div class="month-day month-day--today">22</div>
+            <div class="month-day">23</div>
+            <div class="month-day">24</div>
+            <div class="month-day">25</div>
+
+            <div class="month-day">26</div>
+            <div class="month-day">27</div>
+            <div class="month-day">28</div>
+            <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
+            <div class="month-day month-day--predicted">30</div>
+            <div class="month-day month-day--predicted">31</div>
+            <div class="month-day month-day--muted month-day--predicted">1</div>
+          </div>
+
+          <div class="legend" style="margin-top:16px;">
+            <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title"><h3>Журнал циклів</h3></div>
+          <ul class="cycle-list">
+            <li class="cycle-list-row">
+              <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
+              <span class="cycle-len">6 днів</span>
+            </li>
+            <li class="cycle-list-row">
+              <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
+              <span class="cycle-len">6 днів</span>
+            </li>
+          </ul>
+          <p class="placeholder-text" style="margin:12px 0 0;">Середня довжина циклу — 28 днів, менструації — 6 днів. Цикл регулярний (розкид ≤ 3 дні). Пропущена відмітка не додумується — додайте її вручну.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

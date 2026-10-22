@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 5 — список-журнал карток циклів</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  /* Локальний лейаут Варіанта 5 — лише розкладка та міні-стрічка діапазону.
+     Усі кольори беремо зі спільних змінних shared.css. */
+  .v5-status {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 18px 28px;
+  }
+  .v5-status .kpi-row { flex: 1 1 320px; }
+  .v5-status .cycle-actions { flex: 0 0 auto; }
+
+  .v5-journal { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Картка одного циклу */
+  .cycle-card { display: flex; flex-direction: column; gap: 12px; }
+  .cycle-card-head {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .cycle-card-head .cycle-range { gap: 8px; }
+  .cycle-card-head .cycle-len {
+    margin-left: auto; font-size: 0.82rem; color: var(--color-text-muted);
+  }
+
+  /* Міні горизонтальна стрічка діапазону: тонкий трек на всю ширину,
+     рожевий сегмент start→end, виразні "шапки" на початку та кінці. */
+  .range-bar {
+    position: relative;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--color-border);
+  }
+  .range-bar-fill {
+    position: absolute; top: 0; bottom: 0;
+    border-radius: 999px;
+    background: var(--cycle-period);
+  }
+  /* Виразна шапка ПОЧАТКУ (лівий край сегмента) */
+  .range-cap {
+    position: absolute; top: 50%;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--color-surface);
+    box-shadow: 0 0 0 1px var(--color-border);
+  }
+  .range-cap--start { background: var(--cycle-start); }
+  .range-cap--end { background: var(--cycle-end); }
+
+  .range-scale {
+    display: flex; justify-content: space-between;
+    font-size: 0.68rem; color: var(--color-text-muted);
+  }
+
+  /* Прогнозна (ghost) картка — пунктирне оформлення */
+  .cycle-card--predicted {
+    border-style: dashed;
+    border-color: var(--cycle-predicted);
+    background: transparent;
+  }
+  .cycle-card--predicted .range-bar {
+    background: transparent;
+    border: 1.5px dashed var(--cycle-predicted);
+  }
+  .cycle-card--predicted .range-bar-fill {
+    background: transparent;
+    border: 1.5px dashed var(--cycle-predicted);
+  }
+  .cycle-card--predicted .range-cap {
+    background: var(--cycle-predicted);
+    box-shadow: 0 0 0 1px var(--cycle-predicted);
+  }
+  .ghost-label {
+    font-weight: 600; font-size: 0.9rem; color: #6d5a9c;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .badge--ghost {
+    background: transparent; color: #6d5a9c;
+    border: 1.5px dashed var(--cycle-predicted);
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-5.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 5</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 5 · список-журнал карток циклів; у кожній картці міні-стрічка з виразними шапками початку й кінця, прогнозна картка — пунктиром</span>
+      </div>
+
+      <!-- Компактний поточний статус -->
+      <div class="card v5-status">
+        <div class="kpi-row">
+          <div class="kpi-tile">
+            <span class="kpi-label">День циклу</span>
+            <span class="kpi-value kpi-value--pink">20 з 28</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-label">Прогноз наступного</span>
+            <span class="kpi-value">29.10 – 02.11.2026</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-label">До наступного початку</span>
+            <span class="kpi-value">≈ 9 днів</span>
+          </div>
+        </div>
+        <div class="cycle-actions">
+          <button type="button" class="btn-period">Відмітити початок</button>
+          <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+        </div>
+      </div>
+
+      <!-- Легенда -->
+      <div class="card">
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Шапка початку</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Шапка кінця</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні менструації</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз (пунктир)</span>
+        </div>
+      </div>
+
+      <!-- Журнал-список карток циклів (найновіші зверху) -->
+      <div class="section-title"><h3>Журнал циклів</h3></div>
+      <div class="v5-journal">
+
+        <!-- Прогнозна (ghost) картка -->
+        <div class="card cycle-card cycle-card--predicted">
+          <div class="cycle-card-head">
+            <span class="ghost-label">🔮 Наступний цикл (прогноз)</span>
+            <span class="cycle-range">
+              <span class="badge badge--ghost">29.10</span>
+              <span class="arrow">→</span>
+              <span class="badge badge--ghost">02.11</span>
+            </span>
+            <span class="cycle-len">≈ 5 днів менструації · цикл 28 днів</span>
+          </div>
+          <div class="range-bar">
+            <div class="range-bar-fill" style="left:10%; right:30%;"></div>
+            <span class="range-cap range-cap--start" style="left:10%;"></span>
+            <span class="range-cap range-cap--end" style="left:70%;"></span>
+          </div>
+          <div class="range-scale"><span>Початок 29.10</span><span>Кінець 02.11</span></div>
+        </div>
+
+        <!-- 03.10 → 08.10 -->
+        <div class="card cycle-card">
+          <div class="cycle-card-head">
+            <span class="cycle-range">
+              <span class="badge badge--start">03.10</span>
+              <span class="arrow">→</span>
+              <span class="badge badge--end">08.10</span>
+            </span>
+            <span class="cycle-len">6 днів менструації · цикл 28 днів</span>
+          </div>
+          <div class="range-bar">
+            <div class="range-bar-fill" style="left:8%; right:28%;"></div>
+            <span class="range-cap range-cap--start" style="left:8%;"></span>
+            <span class="range-cap range-cap--end" style="left:72%;"></span>
+          </div>
+          <div class="range-scale"><span>Початок 03.10</span><span>Кінець 08.10</span></div>
+        </div>
+
+        <!-- 05.09 → 10.09 -->
+        <div class="card cycle-card">
+          <div class="cycle-card-head">
+            <span class="cycle-range">
+              <span class="badge badge--start">05.09</span>
+              <span class="arrow">→</span>
+              <span class="badge badge--end">10.09</span>
+            </span>
+            <span class="cycle-len">6 днів менструації · цикл 28 днів</span>
+          </div>
+          <div class="range-bar">
+            <div class="range-bar-fill" style="left:12%; right:32%;"></div>
+            <span class="range-cap range-cap--start" style="left:12%;"></span>
+            <span class="range-cap range-cap--end" style="left:68%;"></span>
+          </div>
+          <div class="range-scale"><span>Початок 05.09</span><span>Кінець 10.09</span></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 8 — таблиця-журнал (реєстр циклів)</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  /* Локальна розкладка варіанту 8: компактний міні-календар над реєстром-таблицею. */
+  .v8-layout { display: flex; flex-direction: column; gap: 18px; }
+  .v8-top { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 820px) { .v8-top { grid-template-columns: 1fr; } }
+
+  /* Компактний місяць-календар: менші клітинки, ніж базові. */
+  .v8-mini .month-grid { gap: 4px; }
+  .v8-mini .month-day {
+    min-height: 34px; padding: 4px 5px; font-size: 0.78rem;
+    border-radius: 8px; gap: 1px;
+  }
+  .v8-mini .day-tag { font-size: 0.52rem; }
+
+  /* Рядок-прогноз у таблиці — примарний, пунктирна рамка у тоні прогнозу. */
+  .v8-table-wrap { overflow-x: auto; }
+  tr.v8-row-predicted td {
+    color: #6d5a9c;
+    background: transparent;
+    border-top: 1.5px dashed var(--cycle-predicted);
+    border-bottom: 1.5px dashed var(--cycle-predicted);
+  }
+  tr.v8-row-predicted td:first-child { border-left: 1.5px dashed var(--cycle-predicted); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+  tr.v8-row-predicted td:last-child { border-right: 1.5px dashed var(--cycle-predicted); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+  .data-table tbody tr.v8-row-predicted:nth-child(odd) { background: transparent; }
+  .v8-predicted-range { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-8.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 8</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 8 · таблиця-журнал (реєстр); кожен цикл — рядок з явним початком і кінцем, прогноз наступного — пунктирний рядок</span>
+      </div>
+
+      <div class="v8-layout">
+        <div class="v8-top">
+          <!-- Компактний міні-календар жовтня -->
+          <div class="card v8-mini">
+            <div class="month-nav">
+              <button type="button" class="month-nav-btn">◀</button>
+              <span class="month-nav-label">Жовтень 2026</span>
+              <button type="button" class="month-nav-btn">▶</button>
+            </div>
+
+            <div class="month-grid">
+              <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+
+              <div class="month-day month-day--muted">28</div>
+              <div class="month-day month-day--muted">29</div>
+              <div class="month-day month-day--muted">30</div>
+              <div class="month-day">1</div>
+              <div class="month-day">2</div>
+              <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
+              <div class="month-day month-day--period">4</div>
+
+              <div class="month-day month-day--period">5</div>
+              <div class="month-day month-day--period">6</div>
+              <div class="month-day month-day--period">7</div>
+              <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
+              <div class="month-day">9</div>
+              <div class="month-day">10</div>
+              <div class="month-day">11</div>
+
+              <div class="month-day">12</div>
+              <div class="month-day">13</div>
+              <div class="month-day">14</div>
+              <div class="month-day">15</div>
+              <div class="month-day">16</div>
+              <div class="month-day">17</div>
+              <div class="month-day">18</div>
+
+              <div class="month-day">19</div>
+              <div class="month-day">20</div>
+              <div class="month-day">21</div>
+              <div class="month-day month-day--today">22</div>
+              <div class="month-day">23</div>
+              <div class="month-day">24</div>
+              <div class="month-day">25</div>
+
+              <div class="month-day">26</div>
+              <div class="month-day">27</div>
+              <div class="month-day">28</div>
+              <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
+              <div class="month-day month-day--predicted">30</div>
+              <div class="month-day month-day--predicted">31</div>
+              <div class="month-day month-day--muted month-day--predicted">1</div>
+            </div>
+
+            <div class="legend" style="margin-top:14px;">
+              <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
+              <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
+              <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
+              <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
+              <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+            </div>
+          </div>
+
+          <!-- Відмітки + прогноз -->
+          <div style="display:flex; flex-direction:column; gap:18px;">
+            <div class="card forecast-panel">
+              <span class="kpi-label">Прогноз наступного початку</span>
+              <span class="forecast-date">29.10 – 02.11.2026</span>
+              <span class="placeholder-text">Середина орієнтовно 31.10. Середня довжина циклу — 28 днів, менструації — 6 днів. Цикл регулярний (розкид ≤ 3 дні).</span>
+            </div>
+
+            <div class="card">
+              <div class="section-title"><h3>Відмітки</h3></div>
+              <div class="cycle-actions">
+                <button type="button" class="btn-period">Відмітити початок</button>
+                <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+              </div>
+              <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Реєстр циклів -->
+        <div class="card">
+          <div class="section-title"><h3>Реєстр циклів</h3></div>
+          <div class="v8-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Початок</th>
+                  <th>Кінець</th>
+                  <th>Довжина менструації</th>
+                  <th>Довжина циклу</th>
+                  <th>Статус</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge badge--start">05.09.2026</span></td>
+                  <td><span class="badge badge--end">10.09.2026</span></td>
+                  <td>6 днів</td>
+                  <td>28 днів</td>
+                  <td><span class="badge badge--ok">завершено</span></td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge--start">03.10.2026</span></td>
+                  <td><span class="badge badge--end">08.10.2026</span></td>
+                  <td>6 днів</td>
+                  <td>28 днів</td>
+                  <td><span class="badge badge--ok">завершено</span></td>
+                </tr>
+                <tr class="v8-row-predicted">
+                  <td colspan="2"><span class="v8-predicted-range">29.10 – 02.11.2026</span></td>
+                  <td>~6 днів</td>
+                  <td>—</td>
+                  <td><span class="badge badge--warn">прогноз</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="placeholder-text" style="margin:12px 0 0;">Прогнозний рядок — лише орієнтир за середніми значеннями; пропущена відмітка не додумується.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

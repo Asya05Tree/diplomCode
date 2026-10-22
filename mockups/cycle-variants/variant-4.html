@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 4 — радіальне кільце циклу (початок і кінець на дузі)</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  /* --- Розкладка: кільце ліворуч, супровідна колонка праворуч --- */
+  .v4-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 860px) { .v4-layout { grid-template-columns: 1fr; } }
+
+  .ring-card { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+  /* Контейнер кільця з запасом під підписи навколо дуги */
+  .ring-wrap {
+    position: relative;
+    width: 290px; height: 290px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Саме кільце: conic-gradient по 28 днях циклу.
+     День 1 (початок) угорі — насичений --cycle-start; дні 2–5 — --cycle-period;
+     день 6 (кінець) — глибший --cycle-end; дні 7–27 — світло-сірі;
+     перед вершиною (прогноз наступної менструації) — лавандовий --cycle-predicted. */
+  .ring {
+    position: relative;
+    width: 230px; height: 230px; border-radius: 50%;
+    background: conic-gradient(
+      var(--cycle-start)      0deg   12.86deg,   /* день 1 — початок */
+      var(--cycle-period)     12.86deg 64.29deg, /* дні 2–5 */
+      var(--cycle-end)        64.29deg 77.14deg, /* день 6 — кінець */
+      #e9ebef                 77.14deg 334.29deg,/* дні 7–27 */
+      var(--cycle-predicted)  334.29deg 360deg   /* прогноз наступної менструації */
+    );
+  }
+  /* Внутрішнє біле коло — ефект «пончика»/кільця */
+  .ring::after {
+    content: "";
+    position: absolute; inset: 40px;
+    background: var(--color-surface);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--color-border);
+  }
+  /* Центр кільця */
+  .ring-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0; text-align: center; pointer-events: none;
+  }
+  .ring-center .kpi-value { font-size: 2rem; line-height: 1.05; }
+  .ring-center .kpi-label { font-size: 0.8rem; }
+
+  /* Підписи та мітки навколо дуги. Позиціонуються по краю кільця. */
+  .ring-tag {
+    position: absolute;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.7rem; font-weight: 700; white-space: nowrap;
+    text-transform: uppercase; letter-spacing: 0.02em;
+  }
+  .ring-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--color-surface);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12);
+    flex-shrink: 0;
+  }
+  .ring-dot--start { background: var(--cycle-start); }
+  .ring-dot--end { background: var(--cycle-end); }
+  .ring-dot--today {
+    width: 16px; height: 16px;
+    background: var(--color-surface);
+    border: 4px solid var(--color-accent-2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  /* Початок — угорі над кільцем */
+  .ring-tag--start { top: -6px; left: 50%; transform: translateX(-50%); color: var(--cycle-start); flex-direction: column; }
+  /* Кінець — праворуч угорі (кінець рожевої дуги, ~77°) */
+  .ring-tag--end { top: 36px; right: -6px; color: var(--cycle-end); }
+  /* Сьогодні — ліворуч унизу (день 20, ~251°) */
+  .ring-tag--today { bottom: 48px; left: -10px; color: var(--color-text-muted); }
+
+  .side-col { display: flex; flex-direction: column; gap: 18px; }
+
+  .ring-caption { font-size: 0.82rem; color: var(--color-text-muted); text-align: center; max-width: 250px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-4.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 4</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 4 · радіальне кільце циклу — рожева дуга менструації з явними мітками початку (день 1) і кінця (день 6), лавандовий сектор прогнозу та маркер «сьогодні»</span>
+      </div>
+
+      <div class="v4-layout">
+        <div class="card ring-card">
+          <div class="ring-wrap">
+            <div class="ring"></div>
+
+            <!-- Мітка початку (день 1, угорі) -->
+            <span class="ring-tag ring-tag--start">
+              <span class="ring-dot ring-dot--start"></span>
+              Початок · день 1
+            </span>
+            <!-- Мітка кінця (день 6, кінець рожевої дуги) -->
+            <span class="ring-tag ring-tag--end">
+              <span class="ring-dot ring-dot--end"></span>
+              Кінець · день 6
+            </span>
+            <!-- Маркер «сьогодні» (день 20) -->
+            <span class="ring-tag ring-tag--today">
+              <span class="ring-dot ring-dot--today"></span>
+              Сьогодні
+            </span>
+
+            <!-- Центр кільця -->
+            <div class="ring-center">
+              <span class="kpi-value kpi-value--pink">День 20</span>
+              <span class="kpi-label">з 28</span>
+            </div>
+          </div>
+
+          <p class="ring-caption">Повне коло — 28 днів циклу. Рожева дуга — менструація (дні 1–6), лавандова — прогноз наступної.</p>
+
+          <div class="legend">
+            <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+          </div>
+        </div>
+
+        <div class="side-col">
+          <div class="card">
+            <div class="section-title"><h3>Показники</h3></div>
+            <div class="kpi-row">
+              <div class="kpi-tile">
+                <span class="kpi-label">День циклу</span>
+                <span class="kpi-value kpi-value--pink">20 / 28</span>
+              </div>
+              <div class="kpi-tile">
+                <span class="kpi-label">Середня довжина</span>
+                <span class="kpi-value">28 днів</span>
+              </div>
+              <div class="kpi-tile">
+                <span class="kpi-label">Менструація</span>
+                <span class="kpi-value">6 днів</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card forecast-panel">
+            <span class="kpi-label">Прогноз наступного початку</span>
+            <span class="forecast-date">29.10 – 02.11.2026</span>
+            <span class="placeholder-text">Орієнтовно через 9 днів. Цикл регулярний (розкид ≤ 3 дні). Прогноз — лише орієнтир, не діагноз.</span>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><h3>Відмітки</h3></div>
+            <div class="cycle-actions">
+              <button type="button" class="btn-period">Відмітити початок</button>
+              <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+            </div>
+            <p class="placeholder-text" style="margin:10px 0 0;">Початок і кінець відмічаються вручну — пропущена відмітка не додумується.</p>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><h3>Історія циклів</h3></div>
+            <ul class="cycle-list">
+              <li class="cycle-list-row">
+                <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
+                <span class="cycle-len">6 днів</span>
+              </li>
+              <li class="cycle-list-row">
+                <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
+                <span class="cycle-len">6 днів</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 2 — горизонтальний таймлайн (стрічка днів)</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  /* Лише те, що специфічне для горизонтального таймлайну. Решта — зі shared.css. */
+  .strip-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .strip-head .month-nav-label { min-width: 0; }
+
+  /* Трохи ширші клітинки, щоб вмістився підпис-мітка та день тижня. */
+  .day-strip { gap: 5px; }
+  .day-strip-cell { width: 46px; min-height: 64px; position: relative; }
+
+  /* Міні-мітка "початок / кінець" над клітинкою стрічки. */
+  .strip-tag {
+    position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+    font-size: 0.56rem; font-weight: 700; line-height: 1; white-space: nowrap;
+    text-transform: uppercase; letter-spacing: 0.02em;
+    padding: 2px 6px; border-radius: 999px; color: #fff;
+  }
+  .strip-tag--start { background: var(--cycle-start); }
+  .strip-tag--end { background: var(--cycle-end); }
+  .strip-tag--predicted { background: var(--cycle-predicted); color: #3f3466; }
+
+  /* Відступ зверху, щоб мітки не обрізались. */
+  .day-strip-wrap { padding-top: 14px; }
+
+  .strip-caption {
+    font-size: 0.76rem; color: var(--color-text-muted);
+    margin: 4px 0 0;
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-2.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 2</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 2 · горизонтальний таймлайн: весь місяць однією стрічкою днів; початок і кінець виділені окремими тонами й міні-мітками, прогноз наступного — пунктиром</span>
+      </div>
+
+      <!-- Основна стрічка днів місяця -->
+      <div class="card">
+        <div class="strip-head">
+          <div class="month-nav" style="margin-bottom:0;">
+            <button type="button" class="month-nav-btn">◀</button>
+            <span class="month-nav-label">Жовтень 2026</span>
+            <button type="button" class="month-nav-btn">▶</button>
+          </div>
+          <span class="badge badge--start">День 20 з 28 · наступний ≈ через 9 днів</span>
+        </div>
+
+        <div class="day-strip-wrap">
+          <div class="day-strip">
+            <div class="day-strip-cell">1<small>Чт</small></div>
+            <div class="day-strip-cell">2<small>Пт</small></div>
+            <div class="day-strip-cell is-start"><span class="strip-tag strip-tag--start">початок</span>3<small>Сб</small></div>
+            <div class="day-strip-cell is-period">4<small>Нд</small></div>
+            <div class="day-strip-cell is-period">5<small>Пн</small></div>
+            <div class="day-strip-cell is-period">6<small>Вт</small></div>
+            <div class="day-strip-cell is-period">7<small>Ср</small></div>
+            <div class="day-strip-cell is-end"><span class="strip-tag strip-tag--end">кінець</span>8<small>Чт</small></div>
+            <div class="day-strip-cell">9<small>Пт</small></div>
+            <div class="day-strip-cell">10<small>Сб</small></div>
+            <div class="day-strip-cell">11<small>Нд</small></div>
+            <div class="day-strip-cell">12<small>Пн</small></div>
+            <div class="day-strip-cell">13<small>Вт</small></div>
+            <div class="day-strip-cell">14<small>Ср</small></div>
+            <div class="day-strip-cell">15<small>Чт</small></div>
+            <div class="day-strip-cell">16<small>Пт</small></div>
+            <div class="day-strip-cell">17<small>Сб</small></div>
+            <div class="day-strip-cell">18<small>Нд</small></div>
+            <div class="day-strip-cell">19<small>Пн</small></div>
+            <div class="day-strip-cell">20<small>Вт</small></div>
+            <div class="day-strip-cell">21<small>Ср</small></div>
+            <div class="day-strip-cell is-today"><span class="strip-tag strip-tag--predicted">сьогодні</span>22<small>Чт</small></div>
+            <div class="day-strip-cell">23<small>Пт</small></div>
+            <div class="day-strip-cell">24<small>Сб</small></div>
+            <div class="day-strip-cell">25<small>Нд</small></div>
+            <div class="day-strip-cell">26<small>Пн</small></div>
+            <div class="day-strip-cell">27<small>Вт</small></div>
+            <div class="day-strip-cell">28<small>Ср</small></div>
+            <div class="day-strip-cell is-predicted"><span class="strip-tag strip-tag--predicted">прогноз</span>29<small>Чт</small></div>
+            <div class="day-strip-cell is-predicted">30<small>Пт</small></div>
+            <div class="day-strip-cell is-predicted">31<small>Сб</small></div>
+          </div>
+        </div>
+        <p class="strip-caption">↔ Прокрутіть стрічку, щоб побачити весь місяць. Початок циклу (3) і кінець (8) — різні тони; сьогодні — 22.</p>
+
+        <!-- Тонка друга стрічка лише для прогнозованого вікна наступного циклу -->
+        <div class="section-title" style="margin:18px 0 8px;"><h3>Прогнозоване вікно наступного циклу</h3></div>
+        <div class="day-strip-wrap" style="padding-top:14px;">
+          <div class="day-strip">
+            <div class="day-strip-cell is-predicted"><span class="strip-tag strip-tag--predicted">поч.?</span>29<small>Чт</small></div>
+            <div class="day-strip-cell is-predicted">30<small>Пт</small></div>
+            <div class="day-strip-cell is-predicted">31<small>Сб</small></div>
+            <div class="day-strip-cell is-predicted">1<small>Нд</small></div>
+            <div class="day-strip-cell is-predicted"><span class="strip-tag strip-tag--predicted">кін.?</span>2<small>Пн</small></div>
+          </div>
+        </div>
+        <p class="strip-caption">29.10 – 02.11.2026 · орієнтовно, без суцільної заливки — це лише прогноз, а не відмічені дні.</p>
+
+        <div class="legend" style="margin-top:16px;">
+          <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+        </div>
+      </div>
+
+      <!-- Прогноз + відмітки -->
+      <div class="card forecast-panel">
+        <span class="kpi-label">Прогноз наступного початку</span>
+        <span class="forecast-date">29.10 – 02.11.2026</span>
+        <span class="placeholder-text">Середина вікна — 31.10. Середня довжина циклу — 28 днів, менструації — 6 днів. Цикл регулярний (розкид ≤ 3 дні).</span>
+        <div class="cycle-actions" style="margin-top:10px;">
+          <button type="button" class="btn-period">Відмітити початок</button>
+          <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+        </div>
+        <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
+      </div>
+
+      <!-- Журнал циклів -->
+      <div class="card">
+        <div class="section-title"><h3>Історія циклів</h3></div>
+        <ul class="cycle-list">
+          <li class="cycle-list-row">
+            <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
+            <span class="cycle-len">6 днів</span>
+          </li>
+          <li class="cycle-list-row">
+            <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
+            <span class="cycle-len">6 днів</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

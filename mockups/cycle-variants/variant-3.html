@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цикл · Варіант 3 — двомісячний розворот (два місяці поруч)</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  .v3-spread { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  .v3-below { display: flex; flex-direction: column; gap: 18px; }
+  @media (max-width: 900px) { .v3-spread { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <span class="sidebar-title">Цикл — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
+    <a href="variant-3.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">🌸</span><span class="sidebar-label">Варіант 3</span></a>
+  </nav>
+  <main class="app-main">
+    <header class="app-header">
+      <span class="app-header-user">Олена К. · olena@example.com</span>
+    </header>
+
+    <div class="page-content">
+      <div class="page-head">
+        <h2>Цикл</h2>
+        <span class="variant-note">Варіант 3 · двомісячний розворот — два місяці поруч; початок і кінець кожного циклу різного тону, прогноз наступного — пунктиром</span>
+      </div>
+
+      <div class="v3-spread">
+        <!-- Вересень 2026 -->
+        <div class="card">
+          <div class="month-nav">
+            <button type="button" class="month-nav-btn">◀</button>
+            <span class="month-nav-label">Вересень 2026</span>
+            <button type="button" class="month-nav-btn">▶</button>
+          </div>
+
+          <div class="month-grid">
+            <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+
+            <div class="month-day month-day--muted">31</div>
+            <div class="month-day">1</div>
+            <div class="month-day">2</div>
+            <div class="month-day">3</div>
+            <div class="month-day">4</div>
+            <div class="month-day month-day--start"><span class="day-tag">початок</span>5</div>
+            <div class="month-day month-day--period">6</div>
+
+            <div class="month-day month-day--period">7</div>
+            <div class="month-day month-day--period">8</div>
+            <div class="month-day month-day--period">9</div>
+            <div class="month-day month-day--end"><span class="day-tag">кінець</span>10</div>
+            <div class="month-day">11</div>
+            <div class="month-day">12</div>
+            <div class="month-day">13</div>
+
+            <div class="month-day">14</div>
+            <div class="month-day">15</div>
+            <div class="month-day">16</div>
+            <div class="month-day">17</div>
+            <div class="month-day">18</div>
+            <div class="month-day">19</div>
+            <div class="month-day">20</div>
+
+            <div class="month-day">21</div>
+            <div class="month-day">22</div>
+            <div class="month-day">23</div>
+            <div class="month-day">24</div>
+            <div class="month-day">25</div>
+            <div class="month-day">26</div>
+            <div class="month-day">27</div>
+
+            <div class="month-day">28</div>
+            <div class="month-day">29</div>
+            <div class="month-day">30</div>
+          </div>
+        </div>
+
+        <!-- Жовтень 2026 -->
+        <div class="card">
+          <div class="month-nav">
+            <button type="button" class="month-nav-btn">◀</button>
+            <span class="month-nav-label">Жовтень 2026</span>
+            <button type="button" class="month-nav-btn">▶</button>
+          </div>
+
+          <div class="month-grid">
+            <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+
+            <div class="month-day month-day--muted">28</div>
+            <div class="month-day month-day--muted">29</div>
+            <div class="month-day month-day--muted">30</div>
+            <div class="month-day">1</div>
+            <div class="month-day">2</div>
+            <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
+            <div class="month-day month-day--period">4</div>
+
+            <div class="month-day month-day--period">5</div>
+            <div class="month-day month-day--period">6</div>
+            <div class="month-day month-day--period">7</div>
+            <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
+            <div class="month-day">9</div>
+            <div class="month-day">10</div>
+            <div class="month-day">11</div>
+
+            <div class="month-day">12</div>
+            <div class="month-day">13</div>
+            <div class="month-day">14</div>
+            <div class="month-day">15</div>
+            <div class="month-day">16</div>
+            <div class="month-day">17</div>
+            <div class="month-day">18</div>
+
+            <div class="month-day">19</div>
+            <div class="month-day">20</div>
+            <div class="month-day">21</div>
+            <div class="month-day month-day--today">22</div>
+            <div class="month-day">23</div>
+            <div class="month-day">24</div>
+            <div class="month-day">25</div>
+
+            <div class="month-day">26</div>
+            <div class="month-day">27</div>
+            <div class="month-day">28</div>
+            <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
+            <div class="month-day month-day--predicted">30</div>
+            <div class="month-day month-day--predicted">31</div>
+            <div class="month-day month-day--muted month-day--predicted">1</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="v3-below">
+        <div class="card">
+          <div class="legend">
+            <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
+          </div>
+        </div>
+
+        <div class="card forecast-panel">
+          <span class="kpi-label">Прогноз наступного початку</span>
+          <span class="forecast-date">29.10 – 02.11.2026</span>
+          <span class="placeholder-text">Середня довжина циклу — 28 днів, менструації — 6 днів. Цикл регулярний (розкид ≤ 3 дні).</span>
+        </div>
+
+        <div class="card">
+          <div class="section-title"><h3>Відмітки</h3></div>
+          <div class="cycle-actions">
+            <button type="button" class="btn-period">Відмітити початок</button>
+            <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+          </div>
+          <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
+        </div>
+
+        <div class="card">
+          <div class="section-title"><h3>Історія циклів</h3></div>
+          <ul class="cycle-list">
+            <li class="cycle-list-row">
+              <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
+              <span class="cycle-len">6 днів</span>
+            </li>
+            <li class="cycle-list-row">
+              <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
+              <span class="cycle-len">6 днів</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
