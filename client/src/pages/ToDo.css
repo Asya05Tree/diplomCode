@@ -1,0 +1,174 @@
+/* Дошка задач "To-Do" — три колонки-"листки" (Зробити / В процесі / Зроблено).
+   Канбан у стилі мокапу work-variants/variant-3, але картки рухаються стрілками
+   на React-стані. Кольори — зі спільних змінних теми (index.css). */
+
+.todo-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.todo-page h2 {
+  margin: 0;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.variant-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: var(--pill-bg);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+/* --- Форма додавання --- */
+.todo-add {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.todo-add input {
+  flex: 1 1 240px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.btn-accent {
+  background: var(--color-accent-gradient);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-on-accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* --- Дошка з трьох листків --- */
+.todo-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.todo-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 120px;
+}
+
+/* Кольорова шапка кожного листка — тон модуля "To-Do" */
+.todo-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 2px 4px 8px;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.todo-col--todo .todo-col-head { border-bottom-color: var(--color-todo); }
+.todo-col--doing .todo-col-head { border-bottom-color: var(--color-accent-2); }
+.todo-col--done .todo-col-head { border-bottom-color: #1f8a4c; }
+
+.todo-col-empty {
+  margin: 0;
+  padding: 8px 4px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* --- Картка задачі --- */
+.todo-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-col--done .todo-card {
+  opacity: 0.75;
+}
+
+.todo-col--done .todo-card-text {
+  text-decoration: line-through;
+}
+
+.todo-card-text {
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.todo-card-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.todo-card-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todo-card-btn:hover:not(:disabled) {
+  background: var(--pill-bg-hover);
+}
+
+.todo-card-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.todo-card-btn--danger {
+  color: #d1453c;
+}
+
+.todo-card-btn--danger:hover {
+  background: #fbdede;
+}
+
+.theme-dark .todo-card-btn--danger:hover {
+  background: #4a2320;
+}
+
+@media (max-width: 860px) {
+  .todo-board {
+    grid-template-columns: 1fr;
+  }
+}

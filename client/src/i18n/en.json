@@ -1,5 +1,6 @@
 {
   "nav.calendar": "Calendar",
+  "nav.todo": "To-do list",
   "nav.unassigned": "Unassigned",
   "nav.shoppingList": "Shopping list",
   "nav.food": "Food",
@@ -259,6 +260,17 @@
   "study.gradeUnivHint": "100-point / ECTS · B",
 
   "work.note": "The “Work” section is still in progress — coming in future iterations.",
+
+  "todo.note": "Three sheets: To do → In progress → Done. Add a task and move it between sheets with the arrows. Data is stored locally.",
+  "todo.addPlaceholder": "New task…",
+  "todo.addButton": "Add",
+  "todo.col.todo": "To do",
+  "todo.col.doing": "In progress",
+  "todo.col.done": "Done",
+  "todo.empty": "Empty",
+  "todo.moveLeft": "Move one sheet back",
+  "todo.moveRight": "Move one sheet forward",
+  "todo.delete": "Delete",
 
   "food.note": "Dish feed, stock and selected dishes. Data is a temporary pseudo-DB (no backend yet)",
   "food.filterAll": "All",

@@ -25,6 +25,7 @@
   --color-finance: #ffd9b3;
   --color-study: #d9c9ea;
   --color-work: #c9dbea;
+  --color-todo: #bfe3cf;
   --color-cycle: #f3c9dd;
   --color-notes: #e3d3c1;
 }
@@ -51,6 +52,7 @@
   --color-finance: #a67c58;
   --color-study: #8a76a6;
   --color-work: #5d7f97;
+  --color-todo: #4f7e63;
   --color-cycle: #a6748c;
   --color-notes: #8a7562;
 }

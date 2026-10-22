@@ -9,6 +9,7 @@ import './Sidebar.css'
 // Реальні розділи цієї ітерації — Календар (§4.2-4.5), Список покупок, Фінанси, Цикл; решта — заглушки на потім.
 const NAV_ITEMS = [
   { key: 'nav.calendar', icon: '📅', color: 'var(--color-tasks)', to: '/app' },
+  { key: 'nav.todo', icon: '🗂️', color: 'var(--color-todo)', to: '/app/todo' },
   { key: 'nav.shoppingList', icon: '🛒', color: 'var(--color-food)', to: '/app/shopping-list' },
   { key: 'nav.food', icon: '🍲', color: 'var(--color-food)', to: '/app/food' },
   { key: 'nav.health', icon: '💊', color: 'var(--color-health)', to: '/app/health' },
