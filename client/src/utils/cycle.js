@@ -117,6 +117,105 @@ export function computeForecast(records) {
   }
 }
 
+const DEFAULT_PERIOD_LENGTH = 6
+
+function daysBetween(aApi, bApi) {
+  return Math.round((fromApiDate(bApi) - fromApiDate(aApi)) / 86400000)
+}
+
+function addApiDays(api, n) {
+  return toApiDate(addDays(fromApiDate(api), n))
+}
+
+// Показники місячних (дашборд-варіант 6): день циклу, середня довжина циклу й
+// менструації, останній цикл, регулярність. Усе рахується з реальних відміток
+// користувача — це не медичні висновки, а статистика по його ж даних.
+export function computeCycleStats(records) {
+  const starts = records.map((r) => r.startDate).sort()
+  if (starts.length === 0) {
+    return { hasData: false, avgCycleLength: DEFAULT_CYCLE_LENGTH }
+  }
+
+  const lastStart = starts[starts.length - 1]
+  const lastRecord = records.find((r) => r.startDate === lastStart)
+  const lastEnd = lastRecord?.endDate ?? null
+
+  const periodLengths = records.filter((r) => r.endDate).map((r) => daysBetween(r.startDate, r.endDate) + 1)
+  const avgPeriodLength = periodLengths.length
+    ? Math.round(periodLengths.reduce((s, n) => s + n, 0) / periodLengths.length)
+    : null
+
+  const cycleLengths = []
+  for (let i = 1; i < starts.length; i++) cycleLengths.push(daysBetween(starts[i - 1], starts[i]))
+  const avgCycleLength = cycleLengths.length
+    ? Math.round(cycleLengths.reduce((s, n) => s + n, 0) / cycleLengths.length)
+    : DEFAULT_CYCLE_LENGTH
+  const lastCycleLength = cycleLengths.length ? cycleLengths[cycleLengths.length - 1] : null
+  const spread = cycleLengths.length ? Math.max(...cycleLengths) - Math.min(...cycleLengths) : null
+  const isRegular = spread === null ? null : spread <= REGULAR_SPREAD_THRESHOLD_DAYS
+
+  // День циклу рахуємо від останньої відмітки "початок" до сьогодні (включно).
+  const cycleDay = Math.max(1, daysBetween(lastStart, todayApiDate()) + 1)
+
+  return { hasData: true, lastStart, lastEnd, avgPeriodLength, avgCycleLength, lastCycleLength, isRegular, cycleDay }
+}
+
+// Усі фази циклу (орієнтовні — похідні від середніх, а не діагноз). Повертає
+// порядок менструація → фолікулярна → овуляція → лютеїнова → прогноз наступної.
+export function computeCyclePhases(records, forecast, stats) {
+  if (!stats.hasData || !forecast?.predictedDate) return []
+
+  const periodLen = stats.avgPeriodLength ?? DEFAULT_PERIOD_LENGTH
+  const periodStart = stats.lastStart
+  const periodEnd = stats.lastEnd ?? addApiDays(periodStart, periodLen - 1)
+  const nextStart = forecast.predictedDate
+  const ovulation = addApiDays(nextStart, -14) // лютеїнова фаза ~14 днів — орієнтовно
+  const today = todayApiDate()
+
+  const phases = [
+    { key: 'menstruation', from: periodStart, to: periodEnd },
+    { key: 'follicular', from: addApiDays(periodEnd, 1), to: addApiDays(ovulation, -1) },
+    { key: 'ovulation', from: ovulation, to: ovulation, approx: true },
+    { key: 'luteal', from: addApiDays(ovulation, 1), to: addApiDays(nextStart, -1) },
+    { key: 'predicted', from: nextStart, to: addApiDays(nextStart, periodLen - 1), predicted: true },
+  ]
+
+  return phases.map((p) => ({ ...p, current: today >= p.from && today <= p.to }))
+}
+
+// Позначки для клітинок календаря: множини днів-початків, днів-кінців, днів
+// менструації та прогнозованих днів (apiDate-рядки "YYYY-MM-DD").
+export function buildCalendarMarks(records, forecast, stats) {
+  const starts = new Set()
+  const ends = new Set()
+  const period = new Set()
+  const predicted = new Set()
+  const today = todayApiDate()
+
+  for (const r of records) {
+    starts.add(r.startDate)
+    const last = r.endDate ?? (r.startDate <= today ? today : r.startDate)
+    if (r.endDate) ends.add(r.endDate)
+    let cursor = r.startDate
+    // усі дні від початку до кінця (або до сьогодні, якщо цикл триває) — менструація
+    for (let guard = 0; cursor <= last && guard < 40; guard++) {
+      period.add(cursor)
+      cursor = addApiDays(cursor, 1)
+    }
+  }
+
+  if (stats?.hasData && forecast?.predictedDate) {
+    const periodLen = stats.avgPeriodLength ?? DEFAULT_PERIOD_LENGTH
+    let cursor = forecast.predictedDate
+    for (let i = 0; i < periodLen; i++) {
+      predicted.add(cursor)
+      cursor = addApiDays(cursor, 1)
+    }
+  }
+
+  return { starts, ends, period, predicted }
+}
+
 export function getCycleStock() {
   try {
     const raw = localStorage.getItem(STOCK_KEY)
