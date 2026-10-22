@@ -81,12 +81,7 @@ export default function Food() {
     setStockMap({ ...setStockState(productId, state) })
     // "Немає" — продукт списано: він одразу потрапляє в список покупок (§4.8, один жест — кілька ефектів).
     if (state === 'OutOfStock') {
-      const product = stockMap[productId] ? null : null
-      void product
-      const p = RECIPES && null
-      void p
-      const target = listStock(stockMap).find((s) => s.product.id === productId)
-      const prod = target ? target.product : null
+      const prod = getProduct(productId)
       if (prod) addShoppingItem(productName(prod, language), 'food', prod.price)
     }
   }
@@ -133,12 +128,8 @@ export default function Food() {
         map[ing.productId] = newState
         // Що стало "немає" — у список покупок (§4.6).
         if (newState === 'OutOfStock' && wasPresent) {
-          const prod = recipe.ingredients.find((i) => i.productId === ing.productId)
-          void prod
-          const product = RECIPES ? null : null
-          void product
-          const p = listAddableProducts(map).find((x) => x.id === ing.productId)
-          if (p) addShoppingItem(productName(p, language), 'food', p.price)
+          const prod = getProduct(ing.productId)
+          if (prod) addShoppingItem(productName(prod, language), 'food', prod.price)
         }
       }
       setStockMap(map)
@@ -348,7 +339,7 @@ export default function Food() {
                 <p className="placeholder-text">{t('food.cookQuestion')}</p>
                 <ul className="cook-ingredients">
                   {cooking.recipe.ingredients.map((ing) => {
-                    const product = getProductSafe(ing.productId)
+                    const product = getProduct(ing.productId)
                     return (
                       <li key={ing.productId}>
                         <label>
@@ -375,7 +366,7 @@ export default function Food() {
                 <h3>{t('food.resultTitle')}</h3>
                 <ul className="cook-result">
                   {cooking.recipe.ingredients.map((ing) => {
-                    const product = getProductSafe(ing.productId)
+                    const product = getProduct(ing.productId)
                     return (
                       <li key={ing.productId}>
                         <span>{productName(product, language)}</span>
