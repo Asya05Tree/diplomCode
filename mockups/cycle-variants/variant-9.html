@@ -3,45 +3,55 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Цикл · Варіант 9 — календар + панель фаз</title>
+<title>Цикл · Варіант 9 — медичний звіт: великі показники та реєстр історії зверху</title>
 <link rel="stylesheet" href="shared.css" />
 <style>
-  .v9-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
-  @media (max-width: 900px) { .v9-layout { grid-template-columns: 1fr; } }
+  /* Варіант 9 «Медичний звіт» — чистий, документний вигляд.
+     Увесь локальний CSS лише про розкладку/акценти цього макета. */
 
-  /* Панель фаз циклу — вертикальний список із кольоровою крапкою на фазу */
-  .phase-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-  .phase-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 10px 12px; border: 1px solid var(--color-border);
-    border-radius: 10px; background: var(--color-surface);
+  /* Документна обгортка з «паперовим» відчуттям */
+  .report { display: flex; flex-direction: column; gap: 18px; }
+
+  /* Стриманий, компактний герой — менший день циклу */
+  .report-hero { padding: 16px 20px; gap: 18px; }
+  .report-hero .cycle-hero-day { font-size: 1.9rem; }
+  .report-hero .cycle-hero-of { font-size: 0.85rem; }
+
+  /* Великі KPI-плитки — головний акцент показників */
+  .kpi-report { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+  .kpi-report > .kpi-tile {
+    padding: 18px 18px; gap: 6px;
+    border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);
   }
-  .phase-dot {
-    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
-    margin-top: 3px; border: 1px solid transparent;
+  .kpi-report > .kpi-tile:nth-child(5n) { border-right: none; }
+  .kpi-report .kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi-report .kpi-value { font-size: 2.1rem; line-height: 1.05; }
+  .kpi-report .kpi-unit { font-size: 0.9rem; font-weight: 500; color: var(--color-text-muted); }
+  @media (max-width: 900px) { .kpi-report { grid-template-columns: repeat(2, 1fr); } .kpi-report > .kpi-tile:nth-child(5n) { border-right: 1px solid var(--color-border); } }
+
+  /* Велика акцентна кнопка PDF у шапці звіту */
+  .btn-pdf--hero {
+    font-size: 1rem; padding: 12px 22px; border-radius: 10px;
+    background: var(--color-accent-gradient); border: 1.5px solid var(--color-accent-2);
+    color: var(--color-on-accent); box-shadow: 0 2px 8px rgba(17, 24, 39, 0.1);
   }
-  .phase-dot--period { background: var(--cycle-period); }
-  .phase-dot--follicular { background: var(--color-accent); }
-  .phase-dot--ovulation { background: var(--cycle-ovulation); }
-  .phase-dot--luteal { background: var(--color-accent-2); }
-  .phase-dot--predicted { background: transparent; border: 1.5px dashed var(--cycle-predicted); }
-  .phase-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .phase-name { font-weight: 600; font-size: 0.9rem; }
-  .phase-range { font-size: 0.82rem; color: var(--color-text-muted); }
-  .phase-meta { font-size: 0.72rem; color: var(--color-text-muted); }
-  .phase-item--current {
-    border-color: var(--color-accent-2);
-    background: var(--color-accent-gradient);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  .btn-pdf--hero:hover { filter: brightness(0.97); background: var(--color-accent-gradient); }
+
+  .report-head {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px;
+    border: 1px solid var(--color-border); border-radius: 12px;
+    background: var(--color-surface); padding: 16px 20px;
   }
-  .phase-item--current .phase-range,
-  .phase-item--current .phase-meta { color: var(--color-on-accent); }
-  .phase-item--predicted { border-style: dashed; border-color: var(--cycle-predicted); }
-  .phase-now {
-    margin-left: auto; align-self: center; flex-shrink: 0;
-    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.02em; color: var(--color-on-accent);
-  }
+  .report-meta { display: flex; flex-direction: column; gap: 2px; }
+  .report-meta .report-title-line { font-weight: 700; font-size: 1.02rem; color: var(--color-heading); }
+  .report-meta .report-sub { font-size: 0.82rem; color: var(--color-text-muted); }
+
+  /* Двомісячний розворот — нижче й трохи компактніше */
+  .spread { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .spread .month-day { min-height: 38px; padding: 5px 7px; font-size: 0.8rem; }
+  .spread .month-nav-label { font-size: 0.9rem; }
+  @media (max-width: 900px) { .spread { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -59,141 +69,201 @@
     <div class="page-content">
       <div class="page-head">
         <h2>Цикл</h2>
-        <span class="variant-note">Варіант 9 · календар місяця зліва, панель фаз циклу справа; поточна фаза підсвічена, початок і кінець менструації різного тону</span>
+        <span class="variant-note">Варіант 9 · медичний звіт: стриманий герой, великі показники та реєстр історії зверху, двомісячний розворот нижче, фази списком, акцентна кнопка експорту PDF</span>
       </div>
 
-      <div class="v9-layout">
-        <!-- ЛІВА КОЛОНКА: місяць-календар -->
-        <div class="card">
-          <div class="month-nav">
-            <button type="button" class="month-nav-btn">◀</button>
-            <span class="month-nav-label">Жовтень 2026</span>
-            <button type="button" class="month-nav-btn">▶</button>
+      <div class="report">
+
+        <!-- ШАПКА ЗВІТУ з великою кнопкою PDF -->
+        <div class="report-head">
+          <div class="report-meta">
+            <span class="report-title-line">Звіт циклу · Олена К.</span>
+            <span class="report-sub">Станом на 22.10.2026 · дані з ручних відміток початку/кінця</span>
           </div>
+          <button type="button" class="btn-pdf btn-pdf--hero">📄 Експорт PDF-звіту</button>
+        </div>
 
-          <div class="month-grid">
-            <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+        <!-- СТРИМАНИЙ ГЕРОЙ-ТРЕКЕР -->
+        <div class="cycle-hero report-hero">
+          <div class="cycle-hero-main">
+            <span class="cycle-hero-day">20</span>
+            <span class="cycle-hero-of">з 28</span>
+          </div>
+          <div class="cycle-hero-info">
+            <span class="cycle-hero-sub">День циклу · наступний початок ≈ через 9 днів (29.10 – 02.11.2026)</span>
+            <div class="cycle-progress"><div class="cycle-progress-fill" style="width:71%;"></div></div>
+            <div class="cycle-hero-actions">
+              <button type="button" class="btn-period">Відмітити початок</button>
+              <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
+            </div>
+          </div>
+        </div>
 
-            <div class="month-day month-day--muted">28</div>
-            <div class="month-day month-day--muted">29</div>
-            <div class="month-day month-day--muted">30</div>
-            <div class="month-day">1</div>
-            <div class="month-day">2</div>
-            <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
-            <div class="month-day month-day--period">4</div>
+        <!-- ПОКАЗНИКИ МІСЯЧНИХ — великі KPI-плитки (головний акцент) -->
+        <div>
+          <div class="section-title"><h3>Показники місячних</h3></div>
+          <div class="metrics-kv kpi-report">
+            <div class="kpi-tile"><span class="kpi-label">День циклу</span><span class="kpi-value kpi-value--pink">20<span class="kpi-unit"> / 28</span></span></div>
+            <div class="kpi-tile"><span class="kpi-label">Середня довжина циклу</span><span class="kpi-value">28<span class="kpi-unit"> днів</span></span></div>
+            <div class="kpi-tile"><span class="kpi-label">Середня менструація</span><span class="kpi-value">6<span class="kpi-unit"> днів</span></span></div>
+            <div class="kpi-tile"><span class="kpi-label">Регулярність</span><span class="kpi-value">Регулярний</span></div>
+            <div class="kpi-tile"><span class="kpi-label">Останній цикл</span><span class="kpi-value">28<span class="kpi-unit"> днів</span></span></div>
+          </div>
+        </div>
 
-            <div class="month-day month-day--period">5</div>
-            <div class="month-day month-day--period">6</div>
-            <div class="month-day month-day--period">7</div>
-            <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
-            <div class="month-day">9</div>
-            <div class="month-day">10</div>
-            <div class="month-day">11</div>
+        <!-- ІСТОРІЯ МЕНСТРУАЦІЇ — реєстр, головний блок, високо на сторінці -->
+        <div class="card">
+          <div class="section-title">
+            <h3>Історія менструації</h3>
+            <button type="button" class="btn-pdf">📄 Згенерувати PDF-звіт</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>Початок</th><th>Кінець</th><th>Тривалість менструації</th><th>Довжина циклу</th><th>Статус</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge--start">05.09.2026</span></td>
+                <td><span class="badge badge--end">10.09.2026</span></td>
+                <td>6 днів</td>
+                <td>28 днів</td>
+                <td><span class="badge badge--ok">завершено</span></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge--start">03.10.2026</span></td>
+                <td><span class="badge badge--end">08.10.2026</span></td>
+                <td>6 днів</td>
+                <td>28 днів</td>
+                <td><span class="badge badge--ok">завершено</span></td>
+              </tr>
+              <tr style="opacity:0.75;">
+                <td colspan="2">29.10 – 02.11.2026 <span class="placeholder-text">(прогноз)</span></td>
+                <td>~6 днів</td>
+                <td class="none-text">—</td>
+                <td><span class="badge badge--warn">прогноз</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="placeholder-text" style="margin:10px 0 0;">Пропущена відмітка не додумується — додайте її вручну будь-яким числом.</p>
+        </div>
 
-            <div class="month-day">12</div>
-            <div class="month-day">13</div>
-            <div class="month-day">14</div>
-            <div class="month-day">15</div>
-            <div class="month-day">16</div>
-            <div class="month-day">17<span class="day-dot" style="background: var(--cycle-ovulation);"></span></div>
-            <div class="month-day">18</div>
+        <!-- УСІ ФАЗИ ЦИКЛУ — список -->
+        <div class="card">
+          <div class="section-title"><h3>Фази циклу</h3></div>
+          <ul class="phase-list">
+            <li class="phase-row"><span class="phase-dot phase-dot--menstruation"></span><span class="phase-name">Менструація</span><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span><span class="phase-range">6 днів</span></li>
+            <li class="phase-row"><span class="phase-dot phase-dot--follicular"></span><span class="phase-name">Фолікулярна</span><span class="phase-range">09–16.10</span></li>
+            <li class="phase-row"><span class="phase-dot phase-dot--ovulation"></span><span class="phase-name">Овуляція <span class="placeholder-text">(орієнтовно)</span></span><span class="phase-range">~17.10</span></li>
+            <li class="phase-row phase-row--current"><span class="phase-dot phase-dot--luteal"></span><span class="phase-name">Лютеїнова</span><span class="pill pill--active">зараз</span><span class="phase-range">18–28.10</span></li>
+            <li class="phase-row"><span class="phase-dot phase-dot--predicted"></span><span class="phase-name">Прогноз наступної менструації</span><span class="phase-range">29.10 – 02.11</span></li>
+          </ul>
+        </div>
 
-            <div class="month-day">19</div>
-            <div class="month-day">20</div>
-            <div class="month-day">21</div>
-            <div class="month-day month-day--today">22</div>
-            <div class="month-day">23</div>
-            <div class="month-day">24</div>
-            <div class="month-day">25</div>
+        <!-- ДВОМІСЯЧНИЙ РОЗВОРОТ — нижче, трохи компактніше -->
+        <div class="card">
+          <div class="spread">
+            <div class="spread-month">
+              <div class="month-nav">
+                <button type="button" class="month-nav-btn">◀</button>
+                <span class="month-nav-label">Вересень 2026</span>
+                <button type="button" class="month-nav-btn">▶</button>
+              </div>
+              <div class="month-grid">
+                <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+                <div class="month-day month-day--muted">31</div>
+                <div class="month-day">1</div>
+                <div class="month-day">2</div>
+                <div class="month-day">3</div>
+                <div class="month-day">4</div>
+                <div class="month-day month-day--start"><span class="day-tag">початок</span>5</div>
+                <div class="month-day month-day--period">6</div>
+                <div class="month-day month-day--period">7</div>
+                <div class="month-day month-day--period">8</div>
+                <div class="month-day month-day--period">9</div>
+                <div class="month-day month-day--end"><span class="day-tag">кінець</span>10</div>
+                <div class="month-day">11</div>
+                <div class="month-day">12</div>
+                <div class="month-day">13</div>
+                <div class="month-day">14</div>
+                <div class="month-day">15</div>
+                <div class="month-day">16</div>
+                <div class="month-day">17</div>
+                <div class="month-day">18</div>
+                <div class="month-day">19</div>
+                <div class="month-day">20</div>
+                <div class="month-day">21</div>
+                <div class="month-day">22</div>
+                <div class="month-day">23</div>
+                <div class="month-day">24</div>
+                <div class="month-day">25</div>
+                <div class="month-day">26</div>
+                <div class="month-day">27</div>
+                <div class="month-day">28</div>
+                <div class="month-day">29</div>
+                <div class="month-day">30</div>
+                <div class="month-day month-day--muted">1</div>
+                <div class="month-day month-day--muted">2</div>
+                <div class="month-day month-day--muted">3</div>
+                <div class="month-day month-day--muted">4</div>
+              </div>
+            </div>
 
-            <div class="month-day">26</div>
-            <div class="month-day">27</div>
-            <div class="month-day">28</div>
-            <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
-            <div class="month-day month-day--predicted">30</div>
-            <div class="month-day month-day--predicted">31</div>
-            <div class="month-day month-day--muted month-day--predicted">1</div>
+            <div class="spread-month">
+              <div class="month-nav">
+                <button type="button" class="month-nav-btn">◀</button>
+                <span class="month-nav-label">Жовтень 2026</span>
+                <button type="button" class="month-nav-btn">▶</button>
+              </div>
+              <div class="month-grid">
+                <div class="month-weekday">Пн</div><div class="month-weekday">Вт</div><div class="month-weekday">Ср</div><div class="month-weekday">Чт</div><div class="month-weekday">Пт</div><div class="month-weekday">Сб</div><div class="month-weekday">Нд</div>
+                <div class="month-day month-day--muted">28</div>
+                <div class="month-day month-day--muted">29</div>
+                <div class="month-day month-day--muted">30</div>
+                <div class="month-day">1</div>
+                <div class="month-day">2</div>
+                <div class="month-day month-day--start"><span class="day-tag">початок</span>3</div>
+                <div class="month-day month-day--period">4</div>
+                <div class="month-day month-day--period">5</div>
+                <div class="month-day month-day--period">6</div>
+                <div class="month-day month-day--period">7</div>
+                <div class="month-day month-day--end"><span class="day-tag">кінець</span>8</div>
+                <div class="month-day">9</div>
+                <div class="month-day">10</div>
+                <div class="month-day">11</div>
+                <div class="month-day">12</div>
+                <div class="month-day">13</div>
+                <div class="month-day">14</div>
+                <div class="month-day">15</div>
+                <div class="month-day">16</div>
+                <div class="month-day">17</div>
+                <div class="month-day">18</div>
+                <div class="month-day">19</div>
+                <div class="month-day">20</div>
+                <div class="month-day">21</div>
+                <div class="month-day month-day--today">22</div>
+                <div class="month-day">23</div>
+                <div class="month-day">24</div>
+                <div class="month-day">25</div>
+                <div class="month-day">26</div>
+                <div class="month-day">27</div>
+                <div class="month-day">28</div>
+                <div class="month-day month-day--predicted"><span class="day-tag">прогноз</span>29</div>
+                <div class="month-day month-day--predicted">30</div>
+                <div class="month-day month-day--predicted">31</div>
+                <div class="month-day month-day--muted month-day--predicted">1</div>
+              </div>
+            </div>
           </div>
 
           <div class="legend" style="margin-top:16px;">
             <span class="legend-item"><span class="legend-swatch legend-swatch--start"></span>Початок</span>
-            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні циклу</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--period"></span>Дні менструації</span>
             <span class="legend-item"><span class="legend-swatch legend-swatch--end"></span>Кінець</span>
-            <span class="legend-item"><span class="legend-swatch" style="background: var(--cycle-ovulation);"></span>Овуляція (орієнтовно)</span>
-            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступного</span>
+            <span class="legend-item"><span class="legend-swatch legend-swatch--predicted"></span>Прогноз наступної</span>
             <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Сьогодні</span>
           </div>
         </div>
 
-        <!-- ПРАВА КОЛОНКА: панель фаз + дії + журнал -->
-        <div style="display:flex; flex-direction:column; gap:18px;">
-          <div class="card">
-            <div class="section-title"><h3>Фази циклу</h3></div>
-            <ul class="phase-list">
-              <li class="phase-item">
-                <span class="phase-dot phase-dot--period"></span>
-                <span class="phase-body">
-                  <span class="phase-name">Менструація</span>
-                  <span class="phase-range">03–08.10 · початок 03.10, кінець 08.10</span>
-                </span>
-              </li>
-              <li class="phase-item">
-                <span class="phase-dot phase-dot--follicular"></span>
-                <span class="phase-body">
-                  <span class="phase-name">Фолікулярна</span>
-                  <span class="phase-range">09–16.10</span>
-                </span>
-              </li>
-              <li class="phase-item">
-                <span class="phase-dot phase-dot--ovulation"></span>
-                <span class="phase-body">
-                  <span class="phase-name">Овуляція</span>
-                  <span class="phase-range">орієнтовно ~17.10</span>
-                  <span class="phase-meta">Оцінка за середньою довжиною циклу, не діагноз.</span>
-                </span>
-              </li>
-              <li class="phase-item phase-item--current">
-                <span class="phase-dot phase-dot--luteal"></span>
-                <span class="phase-body">
-                  <span class="phase-name">Лютеїнова</span>
-                  <span class="phase-range">18–28.10</span>
-                </span>
-                <span class="phase-now">зараз</span>
-              </li>
-              <li class="phase-item phase-item--predicted">
-                <span class="phase-dot phase-dot--predicted"></span>
-                <span class="phase-body">
-                  <span class="phase-name">Прогноз наступної менструації</span>
-                  <span class="phase-range">29.10 – 02.11 · орієнтовно</span>
-                  <span class="phase-meta">Середній цикл — 28 днів, менструація — 6 днів. Цикл регулярний.</span>
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <div class="section-title"><h3>Відмітки</h3></div>
-            <div class="cycle-actions">
-              <button type="button" class="btn-period">Відмітити початок</button>
-              <button type="button" class="btn-period btn-period--end">Відмітити кінець</button>
-            </div>
-            <p class="placeholder-text" style="margin:10px 0 0;">Фази обчислюються з ваших ручних відміток початку й кінця. Пропущену відмітку додайте вручну.</p>
-          </div>
-
-          <div class="card">
-            <div class="section-title"><h3>Історія циклів</h3></div>
-            <ul class="cycle-list">
-              <li class="cycle-list-row">
-                <span class="cycle-range"><span class="badge badge--start">05.09</span><span class="arrow">→</span><span class="badge badge--end">10.09</span></span>
-                <span class="cycle-len">6 днів</span>
-              </li>
-              <li class="cycle-list-row">
-                <span class="cycle-range"><span class="badge badge--start">03.10</span><span class="arrow">→</span><span class="badge badge--end">08.10</span></span>
-                <span class="cycle-len">6 днів</span>
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
     </div>
   </main>
