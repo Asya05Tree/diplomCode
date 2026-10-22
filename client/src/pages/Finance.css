@@ -1,17 +1,307 @@
+/* Розділ "Фінанси" (planner-spec.md §3.6). Базується на макеті
+   mockups/finance-variants/variant-1 (баланс зверху, нижче вкладки
+   Категорії / Історія / Статистика), але вкладки — на React-стані, а не на
+   CSS-хаку. Кольори статусів і категорій scoped на .finance-page, щоб не
+   засмічувати глобальні змінні теми (index.css). */
+
 .finance-page {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 360px;
+  gap: 18px;
+
+  --status-ok-text: #1f8a4c;
+  --status-bad-text: #d1453c;
+
+  --cat-color-1: #ffd9b3;
+  --cat-color-2: #c9ead3;
+  --cat-color-3: #b3e5fc;
+  --cat-color-4: #c5cae9;
+  --cat-color-5: #f8bbd0;
+  --cat-color-6: #ffe8b8;
+  --cat-color-7: #d1c4e9;
+  --cat-color-8: #e0e0e0;
 }
 
 .finance-page h2 {
   margin: 0;
 }
 
+.finance-page h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.variant-note {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: var(--pill-bg);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+/* --- Баланс: усе ще поле ручного введення (інші модулі лише читають його) --- */
 .finance-balance-field {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.kpi-label {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.finance-money-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.finance-money-field input {
+  width: 160px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.finance-money-currency {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Вкладки (Категорії / Історія / Статистика) --- */
+.finance-tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.finance-tab-btn {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  padding: 8px 2px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+
+.finance-tab-btn--active {
+  color: var(--color-heading);
+  border-bottom-color: var(--color-accent-2);
+}
+
+/* --- Таблиці --- */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:nth-child(odd) {
+  background: var(--color-bg);
+}
+
+.none-text {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.finance-cat-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* --- Поля ручного введення сум по категоріях --- */
+.amount-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.amount-sign {
+  font-weight: 700;
+  font-size: 0.95rem;
+  width: 12px;
+  text-align: center;
+}
+
+.amount-sign--income { color: var(--status-ok-text); }
+.amount-sign--expense { color: var(--status-bad-text); }
+
+.amount-input input {
+  width: 90px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.86rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.amount-unit {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Історія операцій --- */
+.txn-amount {
+  font-weight: 700;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.txn-amount--income { color: var(--status-ok-text); }
+.txn-amount--expense { color: var(--status-bad-text); }
+
+/* --- Статистика: стовпчиковий графік тижневих витрат --- */
+.week-chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.85rem;
+  border: none;
+}
+
+.week-chart-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.week-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 8px 20px 0;
+  border-right: 1px solid var(--color-border);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.week-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  height: 120px;
+  flex: 1;
+}
+
+.week-chart-col {
+  flex: 1;
+  max-width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  height: 100%;
+}
+
+.week-chart-amount {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.week-chart-bar {
+  width: 100%;
+  max-width: 42px;
+  min-height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: var(--color-accent-gradient);
+}
+
+.week-chart-label {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+.week-chart-avg {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+}
+
+.week-chart-avg strong {
+  font-size: 1rem;
+  color: var(--color-heading);
 }
