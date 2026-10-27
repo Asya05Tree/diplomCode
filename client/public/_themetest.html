@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>theme test</title>
+    <link rel="stylesheet" href="/src/index.css" />
+    <link rel="stylesheet" href="/src/components/Sidebar.css" />
+    <link rel="stylesheet" href="/src/components/planner/MonthGrid.css" />
+    <style>
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+      .combo { padding: 20px; min-height: 340px; }
+      .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+      .mini-sidebar { width: 180px; padding: 8px; border-radius: 12px; background: var(--sidebar-bg); }
+      .cap { font: 600 11px var(--font-heading); letter-spacing: .05em; text-transform: uppercase; opacity:.7; }
+      .month-grid-cells.demo { max-width: 240px; }
+      svg.icon { width:20px;height:20px; }
+    </style>
+  </head>
+  <body>
+    <div class="grid" id="root"></div>
+    <script>
+      const combos = [
+        { cls: 'theme-light', style: 'pastel', pal: 'ocean', name: 'Світла · Пастель · Ocean' },
+        { cls: 'theme-dark', style: 'vivid', pal: 'lavender', name: 'Темна · Насичена · Lavender' },
+        { cls: 'theme-light', style: 'vivid', pal: 'sunset', name: 'Світла · Насичена · Sunset' },
+        { cls: 'theme-dark', style: 'pastel', pal: 'green', name: 'Темна · Пастель · Green' },
+      ]
+      const gear = '<svg class="icon sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><circle cx="12" cy="12" r="9"/></svg>'
+      const cal = '<svg class="icon sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>'
+      function cell(txt, mod) { return `<button class="month-grid-cell ${mod||''}">${txt}</button>` }
+      const root = document.getElementById('root')
+      root.innerHTML = combos.map(c => `
+        <div class="${c.cls} combo" data-style="${c.style}" data-palette="${c.pal}">
+          <div class="cap">${c.name}</div>
+          <h2 style="margin:6px 0">Заголовок Всетута</h2>
+          <p style="color:var(--color-text-muted);margin:0 0 8px">Основний текст сторінки — має читатись на тлі.</p>
+          <div class="row">
+            <button class="btn-accent">Основна дія</button>
+            <button class="btn-ghost">Другорядна</button>
+            <span class="pill">Бейдж</span>
+            <a href="#">Посилання</a>
+          </div>
+          <div class="row">
+            <label style="display:flex;gap:6px;align-items:center;color:var(--color-text)"><input type="checkbox" checked>Чекбокс</label>
+            <input type="text" placeholder="Пошук…" style="flex:1;min-width:120px">
+          </div>
+          <div class="row" style="align-items:stretch">
+            <div class="mini-sidebar">
+              <a class="sidebar-item sidebar-item--active" style="--item-color:var(--color-tasks)">${cal}<span class="sidebar-label">Календар</span></a>
+              <a class="sidebar-item" style="--item-color:var(--color-study)">${gear}<span class="sidebar-label">Налаштування</span></a>
+            </div>
+            <div class="month-grid" style="flex:1">
+              <div class="month-grid-cells demo">
+                ${cell(5)}${cell(6,'month-grid-cell--today')}${cell(7)}${cell(8,'month-grid-cell--busy')}${cell(9,'month-grid-cell--selected')}${cell(10)}${cell(11)}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('')
+      document.querySelectorAll('.combo').forEach(c => {
+        const b = c.querySelector('.btn-accent')
+        const cs = getComputedStyle(b)
+        const acc = getComputedStyle(c).getPropertyValue('--color-accent')
+        const d = document.createElement('div')
+        d.style.cssText = 'font:11px monospace;color:var(--color-text);margin-top:8px;word-break:break-all'
+        d.textContent = `--color-accent:[${acc}] bgImg:${cs.backgroundImage.slice(0,60)} onAcc:${getComputedStyle(c).getPropertyValue('--color-on-accent')}`
+        c.appendChild(d)
+      })
+    </script>
+  </body>
+</html>
