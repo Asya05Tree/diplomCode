@@ -27,5 +27,10 @@ public class TaskItem
     public int? RecurrenceRuleId { get; set; }
     public RecurrenceRule? RecurrenceRule { get; set; }
 
+    // Звідки задача (напр. "shopping") і на яку сутність посилається (напр. Id списку покупок).
+    // Дозволяє відкрити екран-джерело з картки задачі (spisok-pokupok.md "Запланувати похід у магазин").
+    public string? SourceModule { get; set; }
+    public int? SourceEntityId { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
