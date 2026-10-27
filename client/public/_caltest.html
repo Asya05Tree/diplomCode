@@ -3,56 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cal test</title>
-    <link rel="stylesheet" href="/src/index.css" />
-    <link rel="stylesheet" href="/src/Layout.css" />
-    <link rel="stylesheet" href="/src/pages/Planner.css" />
-    <link rel="stylesheet" href="/src/components/planner/MonthGrid.css" />
-    <link rel="stylesheet" href="/src/components/planner/ModeSwitch.css" />
+    <title>cal test full</title>
+    <script>
+      // Вантажимо ВСІ css як у реальному застосунку, щоб відтворити кросс-файловий конфлікт.
+      const CSS = [
+        '/src/index.css','/src/Layout.css','/src/components/Sidebar.css',
+        '/src/pages/Planner.css','/src/components/planner/MonthGrid.css','/src/components/planner/ModeSwitch.css',
+        '/src/components/planner/DayView.css','/src/components/planner/PeriodView.css','/src/components/planner/RecurringView.css',
+        '/src/components/planner/UnassignedView.css','/src/components/planner/TaskForm.css','/src/components/planner/TaskItem.css',
+        '/src/components/planner/OverlapGroup.css','/src/components/planner/RecurrenceFields.css','/src/components/planner/ReminderBanner.css',
+        '/src/components/planner/MoveTaskForm.css','/src/components/planner/ShoppingTaskTabs.css','/src/components/CodeInput.css',
+        '/src/pages/AuthForm.css','/src/pages/Cycle.css','/src/pages/Finance.css','/src/pages/Food.css','/src/pages/Health.css',
+        '/src/pages/Landing.css','/src/pages/Login.css','/src/pages/Settings.css','/src/pages/ShoppingList.css','/src/pages/Study.css','/src/pages/ToDo.css',
+      ]
+      const only = new URLSearchParams(location.search).get('only')
+      const skip = (new URLSearchParams(location.search).get('skip')||'').split(',').filter(Boolean)
+      CSS.forEach(href => {
+        if (only && !href.includes(only) && !href.endsWith('index.css') && !href.endsWith('Layout.css') && !href.includes('MonthGrid') && !href.includes('Planner.css')) return
+        if (skip.some(s => href.includes(s))) return
+        document.write(`<link rel="stylesheet" href="${href}">`)
+      })
+    </script>
   </head>
   <body>
     <div class="theme-light" data-style="pastel" data-palette="ocean">
-      <div class="app-content">
-        <div class="planner">
-          <section class="planner-grid-panel card" id="gridpanel">
-            <div class="month-grid">
-              <div class="month-grid-header">
-                <button class="month-grid-nav">‹</button>
-                <span class="month-grid-title">Жовтень 2026 р.</span>
-                <button class="month-grid-nav">›</button>
-              </div>
-              <div class="month-grid-weekdays" id="wd"></div>
-              <div class="month-grid-cells" id="cells"></div>
+      <div class="app-shell">
+        <nav class="sidebar"><div class="sidebar-brand"><span class="sidebar-brand-name">Всетута</span></div></nav>
+        <main class="app-main">
+          <header class="app-header">хедер</header>
+          <div class="app-content">
+            <div class="planner">
+              <section class="planner-grid-panel card" id="gridpanel">
+                <div class="month-grid">
+                  <div class="month-grid-header">
+                    <button class="month-grid-nav">‹</button>
+                    <span class="month-grid-title">Жовтень 2026 р.</span>
+                    <button class="month-grid-nav">›</button>
+                  </div>
+                  <div class="month-grid-weekdays" id="wd"></div>
+                  <div class="month-grid-cells" id="cells"></div>
+                </div>
+              </section>
+              <section class="planner-work-panel">
+                <div class="card planner-mode-card">робоча панель</div>
+                <div class="card planner-content-card">День / Період…</div>
+              </section>
             </div>
-            <div class="planner-free-hours">
-              <label>Мінімум вільних годин <input type="number" value="2" /></label>
-            </div>
-          </section>
-          <section class="planner-work-panel">
-            <div class="card planner-mode-card">робоча панель</div>
-            <div class="card planner-content-card">День / Період…</div>
-          </section>
-        </div>
+          </div>
+        </main>
       </div>
     </div>
     <script>
       document.getElementById('wd').innerHTML = 'ПН,ВТ,СР,ЧТ,ПТ,СБ,НД'.split(',').map(d => `<span>${d}</span>`).join('')
       let html = ''
       for (let i = 28; i <= 30; i++) html += `<button class="month-grid-cell month-grid-cell--outside">${i}</button>`
-      for (let i = 1; i <= 31; i++) {
-        let mod = ''
-        if (i === 27) mod = 'month-grid-cell--today'
-        if (i === 28) mod = 'month-grid-cell--selected'
-        if (i === 8 || i === 15) mod = 'month-grid-cell--busy'
-        html += `<button class="month-grid-cell ${mod}">${i}</button>`
-      }
+      for (let i = 1; i <= 31; i++) html += `<button class="month-grid-cell ${i===27?'month-grid-cell--today':i===28?'month-grid-cell--selected':''}">${i}</button>`
       for (let i = 1; i <= 8; i++) html += `<button class="month-grid-cell month-grid-cell--outside">${i}</button>`
       document.getElementById('cells').innerHTML = html
       const p = document.getElementById('gridpanel').getBoundingClientRect()
       const g = document.querySelector('.month-grid-cells').getBoundingClientRect()
+      const mg = document.querySelector('.month-grid').getBoundingClientRect()
       const dbg = document.createElement('div')
-      dbg.style.cssText = 'position:fixed;bottom:0;left:0;background:#000;color:#0f0;font:12px monospace;padding:6px;z-index:99'
-      dbg.textContent = `panel: ${Math.round(p.left)}-${Math.round(p.right)} (w${Math.round(p.width)})  cells: ${Math.round(g.left)}-${Math.round(g.right)} (w${Math.round(g.width)})`
+      dbg.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font:12px monospace;padding:6px;z-index:99'
+      dbg.textContent=`panel ${Math.round(p.left)}-${Math.round(p.right)} w${Math.round(p.width)} | month-grid w${Math.round(mg.width)} | cells ${Math.round(g.left)}-${Math.round(g.right)} w${Math.round(g.width)} ${g.right>p.right+2?'*** OVERFLOW ***':'ok'}`
       document.body.appendChild(dbg)
     </script>
   </body>
