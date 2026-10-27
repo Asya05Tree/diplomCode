@@ -57,16 +57,12 @@ function AppContent() {
   const [themeMode, setThemeMode] = useState(getThemeMode)
   const [paletteStyle, setPaletteStyle] = useState(getPaletteStyle)
   const [palette, setPalette] = useState(getPalette)
-  // DEMO: тимчасовий обхід авторизації лише для візуальної перевірки /app у headless-збірці
-  // (vite build з VITE_DEMO_AUTH=1). У звичайному dev/прод — вимкнено, код неактивний.
-  const DEMO_AUTH = import.meta.env.VITE_DEMO_AUTH === '1'
   // Поки не перевірили збережений токен — нічого не рендеримо, щоб не мигнути landing перед /app
-  const [authChecked, setAuthChecked] = useState(DEMO_AUTH)
-  const [user, setUser] = useState(DEMO_AUTH ? { nickname: 'Демо', email: 'demo@vsetuta.local' } : null)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [user, setUser] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (DEMO_AUTH) return
     const token = localStorage.getItem(AUTH_TOKEN_KEY)
     if (!token) {
       setAuthChecked(true)
