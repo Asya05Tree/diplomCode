@@ -63,12 +63,23 @@
 /* ===== Панель приладів ===== */
 .cyc-dash { display: flex; flex-direction: column; gap: 18px; }
 
+/* Банер прив'язаний до обраної палітри (тонований акцентом), із легким натяком на
+   «цикловий» рожевий, щоб не вибивався із загальної теми сторінки. */
 .cyc-hero {
   display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-  background: linear-gradient(135deg, #fde7f0, #efe7fb);
+  background:
+    linear-gradient(135deg,
+      var(--color-accent-tint),
+      color-mix(in srgb, var(--cycle-period-soft) 45%, var(--color-surface)));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
   border-radius: var(--radius-lg); padding: 20px 22px;
 }
-.theme-dark .cyc-hero { background: linear-gradient(135deg, #3a2130, #2a2338); }
+.theme-dark .cyc-hero {
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--color-accent) 22%, var(--color-surface)),
+      color-mix(in srgb, #3a2130 55%, var(--color-surface)));
+}
 
 .cyc-hero-main { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
 .cyc-hero-label { font-size: 0.76rem; color: var(--color-text-muted); }
@@ -116,7 +127,7 @@
 }
 .cyc-day:not(.is-muted):hover { transform: translateY(-1px) scale(1.03); z-index: 1; }
 .cyc-day.is-muted { opacity: 0.3; }
-.cyc-day.is-today { outline: 2px solid var(--color-accent-2); outline-offset: -2px; font-weight: 700; }
+.cyc-day.is-today { outline: 2px solid var(--color-accent-ink); outline-offset: -2px; font-weight: 700; }
 .cyc-day.is-period { background: var(--cycle-period-soft); color: #8a2b5a; }
 .cyc-day.is-start { background: var(--cycle-start); color: #fff; }
 .cyc-day.is-end { background: var(--cycle-end); color: #fff; }
@@ -131,7 +142,7 @@
 .cyc-sw--end { background: var(--cycle-end); }
 .cyc-sw--period { background: var(--cycle-period-soft); border: 1px solid var(--cycle-period); }
 .cyc-sw--predicted { background: transparent; border: 1.5px dashed var(--cycle-predicted); }
-.cyc-sw--today { background: transparent; border: 2px solid var(--color-accent-2); }
+.cyc-sw--today { background: transparent; border: 2px solid var(--color-accent-ink); }
 
 /* ===== Фази циклу — плитки ===== */
 .cyc-phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
@@ -214,7 +225,7 @@
 .cycle-settings-row {
   display: flex; align-items: center; gap: 10px; font-size: 0.95rem; cursor: pointer;
 }
-.cycle-settings-row input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--color-accent-2); cursor: pointer; }
+.cycle-settings-row input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--color-accent-ink); cursor: pointer; }
 
 @media (max-width: 760px) {
   .cyc-spread { grid-template-columns: 1fr; }

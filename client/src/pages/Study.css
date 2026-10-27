@@ -85,6 +85,7 @@
 }
 .study-tab--active .study-tab-title {
   color: var(--color-on-accent);
+  text-shadow: var(--on-accent-shadow);
 }
 .study-tab--active .study-tab-meta {
   color: color-mix(in srgb, var(--color-on-accent) 72%, transparent);
@@ -95,7 +96,7 @@
 
 .study-tab-icon {
   display: inline-flex;
-  color: var(--color-accent-2);
+  color: var(--color-accent-ink);
 }
 .study-tab-icon .icon {
   width: 26px;
@@ -229,12 +230,12 @@
 
 /* --- Дзвінки: поля "від / до" --- */
 .time-field {
-  width: 110px;
+  width: 132px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 5px 8px;
   font-size: 0.86rem;
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
   font-family: inherit;
 }
@@ -369,7 +370,7 @@
   font-family: var(--font-display);
   font-size: 2.4rem;
   font-weight: 700;
-  color: var(--color-accent-2);
+  color: var(--color-accent-ink);
   line-height: 1;
 }
 

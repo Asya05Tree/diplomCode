@@ -111,10 +111,10 @@
   color: color-mix(in srgb, var(--color-todo) 70%, var(--color-text));
 }
 .todo-col--doing .todo-col-head {
-  border-bottom-color: var(--color-accent-2);
+  border-bottom-color: var(--color-accent-ink);
 }
 .todo-col--doing .todo-col-icon {
-  color: var(--color-accent-2);
+  color: var(--color-accent-ink);
 }
 .todo-col--done .todo-col-head {
   border-bottom-color: var(--color-success);

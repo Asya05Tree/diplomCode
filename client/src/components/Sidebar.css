@@ -89,6 +89,7 @@
 
 .sidebar-item--active .sidebar-label {
   color: var(--color-on-accent);
+  text-shadow: var(--on-accent-shadow);
 }
 
 .sidebar-item--active .sidebar-icon {

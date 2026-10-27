@@ -18,13 +18,20 @@
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.tab-group--active {
+.tab-group:hover {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
+.tab-group--active,
+.tab-group--active:hover {
   background: var(--color-accent-gradient);
   border-color: transparent;
 }
 
 .tab-group--active .tab-sublabel {
   color: var(--color-on-accent);
+  text-shadow: var(--on-accent-shadow);
 }
 
 .tab-sublabel {
@@ -39,6 +46,11 @@
   color: var(--color-text);
   font-weight: 600;
 }
+/* Активний підпис усередині активної (градієнтної) вкладки — лишається на акценті */
+.tab-group--active .tab-sublabel--active {
+  color: var(--color-on-accent);
+  font-weight: 700;
+}
 
 /* Android-стиль тумблер: сірий трек + білий повзунок ліворуч (день),
    кольоровий трек + повзунок праворуч (період) — плавна анімація transform/background */
@@ -49,14 +61,18 @@
   flex-shrink: 0;
   border: none;
   border-radius: 999px;
-  background: var(--color-border);
+  /* Вимкнений трек — помітний на будь-якому тлі (півпрозорий колір тексту + внутрішня
+     рамка), раніше брав --color-border і зливався з капсулою/карткою. */
+  background: color-mix(in srgb, var(--color-text) 24%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text) 14%, transparent);
   padding: 0;
   cursor: pointer;
-  transition: background-color 0.25s ease;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .android-switch--on {
   background: var(--color-accent-gradient);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
 .android-switch-thumb {
@@ -67,7 +83,8 @@
   height: 22px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: transform 0.25s ease;
 }
 
@@ -79,7 +96,7 @@
 .tab-pill {
   border: 1px solid var(--color-border);
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   border-radius: 999px;
   padding: 6px 16px;
   font-size: 0.9rem;
@@ -87,8 +104,16 @@
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.tab-pill--active {
+.tab-pill:hover {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-strong);
+  color: var(--color-accent-ink);
+}
+
+.tab-pill--active,
+.tab-pill--active:hover {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
+  text-shadow: var(--on-accent-shadow);
   border-color: transparent;
 }

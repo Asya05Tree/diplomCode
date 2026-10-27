@@ -112,8 +112,8 @@
 }
 
 .finance-tab-btn--active {
-  color: var(--color-heading);
-  border-bottom-color: var(--color-accent-2);
+  color: var(--color-accent-ink);
+  border-bottom-color: var(--color-accent-ink);
 }
 
 /* --- Таблиці --- */

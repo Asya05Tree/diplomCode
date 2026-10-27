@@ -29,9 +29,9 @@
 }
 
 .planner-free-hours input {
-  width: 72px;
+  width: 88px;
   text-align: center;
-  padding: 7px 8px;
+  padding: 7px 6px 7px 10px;
   font-size: 0.9rem;
 }
 
