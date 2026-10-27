@@ -1,109 +1,222 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import NumberStepper from '../components/NumberStepper'
+import {
+  getSubjects,
+  addSubject,
+  updateSubject,
+  removeSubject,
+  getAssignments,
+  addAssignment,
+  updateAssignment,
+  removeAssignment,
+  getBells,
+  setBells as apiSetBells,
+  getGradeScale,
+  setGradeScale as apiSetGradeScale,
+} from '../api/study'
+import { getRecurrenceRules } from '../api/tasks'
+import { getToken } from '../api/http'
 import './Study.css'
 
-// Розділ "Навчання" (мокап mockups/study-variants/variant-4 — чотири великі
-// плитки-вкладки). Дані демонстраційні (поки без бекенду): предмети, викладачі,
-// розклад на два тижні, дзвінки та місячний календар із завданнями й оцінкою.
+// Розділ "Навчання" (мокап mockups/study-variants/variant-4 — чотири великі плитки-вкладки).
+// Тепер усе з бекенда: предмети, завдання, сітка дзвінків і шкала оцінок редагуються й
+// зберігаються в БД (/api/study). Сам розклад пар живе як повторювані задачі з ModuleCode="study"
+// (api/recurrence-rules) — тут це перегляд лише для читання.
 
-// Предмет → кабінет і короткий підпис викладача (однакові в усіх клітинках розкладу).
-const SUBJECT_INFO = {
-  math: { name: { uk: 'Матаналіз', en: 'Calculus' }, place: { uk: 'ауд. 204', en: 'room 204' }, teacher: { uk: 'Іванов О.П.', en: 'Ivanov O.P.' } },
-  prog: { name: { uk: 'Програмування', en: 'Programming' }, place: { uk: 'Zoom', en: 'Zoom' }, teacher: { uk: 'Петренко І.В.', en: 'Petrenko I.V.' } },
-  db: { name: { uk: 'Бази даних', en: 'Databases' }, place: { uk: 'ауд. 205', en: 'room 205' }, teacher: { uk: 'Коваленко С.М.', en: 'Kovalenko S.M.' } },
-  eng: { name: { uk: 'Англ. мова', en: 'English' }, place: { uk: 'ауд. 112', en: 'room 112' }, teacher: { uk: 'Шевченко Н.Д.', en: 'Shevchenko N.D.' } },
-  phys: { name: { uk: 'Фізика', en: 'Physics' }, place: { uk: 'ауд. 301', en: 'room 301' }, teacher: { uk: 'Бондаренко А.І.', en: 'Bondarenko A.I.' } },
-  hist: { name: { uk: 'Історія України', en: 'History of Ukraine' }, place: { uk: 'ауд. 110', en: 'room 110' }, teacher: { uk: 'Мельник О.Р.', en: 'Melnyk O.R.' } },
-}
+const ASSIGNMENT_TYPES = ['homework', 'lab', 'exam', 'project', 'other']
 
-const TEACHERS = [
-  { name: 'Іванов Олексій Петрович', subj: 'math', contact: 'o.ivanov@univ.edu' },
-  { name: 'Петренко Ірина Василівна', subj: 'prog', contact: 'Telegram · @i_petrenko' },
-  { name: 'Коваленко Сергій Миколайович', subj: 'db', contact: 's.kovalenko@univ.edu' },
-  { name: 'Шевченко Наталія Дмитрівна', subj: 'eng', contact: 'n.shevchenko@univ.edu' },
-  { name: 'Бондаренко Андрій Ігорович', subj: 'phys', contact: 'Telegram · @a_bondarenko' },
-  { name: 'Мельник Ольга Романівна', subj: 'hist', contact: 'o.melnyk@univ.edu' },
-]
-
-// Розклад: 6 пар × 5 днів (Пн–Пт). Ключ предмета або null (вікно).
-const SCHEDULE = {
-  1: [
-    ['math', 'eng', 'prog', 'phys', null],
-    ['prog', 'db', 'math', 'hist', 'eng'],
-    ['phys', null, 'hist', 'db', 'prog'],
-    [null, 'math', null, null, 'phys'],
-    [null, null, null, null, null],
-    [null, null, null, null, null],
-  ],
-  2: [
-    ['db', 'math', 'eng', 'prog', 'phys'],
-    ['math', 'prog', 'db', 'eng', 'hist'],
-    ['hist', 'phys', null, 'math', null],
-    [null, null, 'prog', null, null],
-    [null, null, null, null, null],
-    [null, null, null, null, null],
-  ],
-}
-
-const DEFAULT_BELLS = [
-  ['08:30', '09:50'],
-  ['10:00', '11:20'],
-  ['11:40', '13:00'],
-  ['13:20', '14:40'],
-  ['15:00', '16:20'],
-  ['16:30', '17:50'],
-]
-
-const ASSIGNMENTS = [
-  { id: 1, task: { uk: 'Лабораторна №3', en: 'Lab #3' }, subj: 'prog', deadline: '05.10.2026', day: 5, status: 'done', grade: '95/100' },
-  { id: 2, task: { uk: 'ДЗ №4', en: 'HW #4' }, subj: 'math', deadline: '08.10.2026', day: 8, status: 'done', grade: '11/12' },
-  { id: 3, task: { uk: 'Лабораторна №2', en: 'Lab #2' }, subj: 'db', deadline: '12.10.2026', day: 12, status: 'done', grade: '88/100' },
-  { id: 4, task: { uk: 'Есе', en: 'Essay' }, subj: 'eng', deadline: '15.10.2026', day: 15, status: 'notDone', grade: null },
-  { id: 5, task: { uk: 'ДЗ №5', en: 'HW #5' }, subj: 'math', deadline: '19.10.2026', day: 19, status: 'today', grade: null },
-  { id: 6, task: { uk: 'Лабораторна №4', en: 'Lab #4' }, subj: 'phys', deadline: '22.10.2026', day: 22, status: 'notDone', grade: null },
-  { id: 7, task: { uk: 'Реферат', en: 'Term paper' }, subj: 'hist', deadline: '27.10.2026', day: 27, status: 'notDone', grade: null },
-  { id: 8, task: { uk: 'Лабораторна №3', en: 'Lab #3' }, subj: 'db', deadline: '30.10.2026', day: 30, status: 'notDone', grade: null },
-]
-
-// Жовтень 2026 починається в четвер → три приглушені дні попереднього місяця
-// спереду (Пн/Вт/Ср) і один день листопада в кінці.
-const LEAD_MUTED = [28, 29, 30]
-const MONTH_DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
-const TRAIL_MUTED = [1]
-const TODAY_DAY = 19
-const DEADLINE_DAYS = new Set(ASSIGNMENTS.map((a) => a.day))
-
-const STATUS_CLASS = { done: 'badge--ok', notDone: 'badge--bad', today: 'badge--warn' }
+const EMPTY_SUBJECT = { id: null, nameUk: '', nameEn: '', teacher: '', room: '' }
+const EMPTY_ASSIGNMENT = { subjectId: '', type: 'homework', title: '', dueDate: '', isDone: false }
 
 const TABS = [
-  { key: 'teachers', icon: 'user' },
-  { key: 'schedule', icon: 'calendar-days' },
+  { key: 'subjects', icon: 'user' },
+  { key: 'assignments', icon: 'clipboard' },
   { key: 'bells', icon: 'bell' },
-  { key: 'month', icon: 'calendar' },
+  { key: 'schedule', icon: 'calendar-days' },
 ]
 
 export default function Study() {
   const { t, language } = useI18n()
-  const [tab, setTab] = useState('teachers')
-  const [week, setWeek] = useState(1) // 1 | 2 — підвкладка розкладу
-  const [bells, setBells] = useState(DEFAULT_BELLS)
-  const [gradeScale, setGradeScale] = useState('school') // 'school' | 'univ'
 
-  const weekdays = t('planner.weekdaysShort').split(',')
-  const scheduleDays = weekdays.slice(0, 5)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  const subjectName = (key) => SUBJECT_INFO[key].name[language]
+  const [tab, setTab] = useState('subjects')
 
-  const handleBell = (pairIdx, edge, value) => {
-    setBells((prev) => prev.map((row, i) => (i === pairIdx ? (edge === 0 ? [value, row[1]] : [row[0], value]) : row)))
+  const [subjects, setSubjects] = useState([])
+  const [assignments, setAssignments] = useState([])
+  const [bells, setBells] = useState([]) // локальна редагована копія сітки дзвінків
+  const [gradeScale, setGradeScale] = useState([]) // локальна редагована копія шкали
+  const [rules, setRules] = useState([]) // розклад пар (перегляд)
+
+  const [subjectForm, setSubjectForm] = useState(EMPTY_SUBJECT)
+  const [assignmentForm, setAssignmentForm] = useState(EMPTY_ASSIGNMENT)
+  const [savedNote, setSavedNote] = useState('') // короткочасне "Збережено"
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getSubjects(), getAssignments(), getBells(), getGradeScale()])
+      .then(([subs, asg, bl, gs]) => {
+        if (cancelled) return
+        setSubjects(subs)
+        setAssignments(asg)
+        setBells(bl.map((b) => ({ index: b.index, startTime: b.startTime.slice(0, 5), endTime: b.endTime.slice(0, 5) })))
+        setGradeScale(gs.map((g) => ({ minPercent: g.minPercent, label: g.label })))
+        setLoading(false)
+        // Розклад — другорядний перегляд: вантажимо окремо, помилка не ламає сторінку.
+        getRecurrenceRules(getToken())
+          .then((list) => !cancelled && setRules((list || []).filter((r) => r.moduleCode === 'study')))
+          .catch(() => {})
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError(true)
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const subjectsById = useMemo(() => Object.fromEntries(subjects.map((s) => [s.id, s])), [subjects])
+  const subjectName = (s) => (language === 'en' && s?.nameEn ? s.nameEn : s?.nameUk)
+
+  const flashSaved = () => {
+    setSavedNote(t('study.saved'))
+    setTimeout(() => setSavedNote(''), 1800)
+  }
+
+  // ---- Предмети ----
+  const reloadSubjects = async () => setSubjects(await getSubjects())
+
+  const handleSubjectSubmit = async (e) => {
+    e.preventDefault()
+    const nameUk = subjectForm.nameUk.trim()
+    if (!nameUk) return
+    const payload = {
+      nameUk,
+      nameEn: subjectForm.nameEn.trim() || null,
+      teacher: subjectForm.teacher.trim() || null,
+      room: subjectForm.room.trim() || null,
+    }
+    if (subjectForm.id) await updateSubject(subjectForm.id, payload)
+    else await addSubject(payload)
+    setSubjectForm(EMPTY_SUBJECT)
+    await reloadSubjects()
+  }
+
+  const editSubject = (s) =>
+    setSubjectForm({ id: s.id, nameUk: s.nameUk, nameEn: s.nameEn ?? '', teacher: s.teacher ?? '', room: s.room ?? '' })
+
+  const handleRemoveSubject = async (id) => {
+    await removeSubject(id)
+    if (subjectForm.id === id) setSubjectForm(EMPTY_SUBJECT)
+    await reloadSubjects()
+  }
+
+  // ---- Завдання ----
+  const reloadAssignments = async () => setAssignments(await getAssignments())
+
+  const handleAssignmentSubmit = async (e) => {
+    e.preventDefault()
+    const title = assignmentForm.title.trim()
+    if (!title) return
+    await addAssignment({
+      subjectId: assignmentForm.subjectId ? Number(assignmentForm.subjectId) : null,
+      type: assignmentForm.type,
+      title,
+      dueDate: assignmentForm.dueDate || null,
+      isDone: assignmentForm.isDone,
+    })
+    setAssignmentForm(EMPTY_ASSIGNMENT)
+    await reloadAssignments()
+  }
+
+  const toggleAssignmentDone = async (a) => {
+    setAssignments((prev) => prev.map((x) => (x.id === a.id ? { ...x, isDone: !x.isDone } : x)))
+    await updateAssignment(a.id, {
+      subjectId: a.subjectId ?? null,
+      type: a.type,
+      title: a.title,
+      dueDate: a.dueDate ?? null,
+      isDone: !a.isDone,
+    })
+  }
+
+  const handleRemoveAssignment = async (id) => {
+    await removeAssignment(id)
+    await reloadAssignments()
+  }
+
+  // ---- Дзвінки (замінюємо всю сітку) ----
+  const handleBellChange = (idx, edge, value) =>
+    setBells((prev) => prev.map((row, i) => (i === idx ? { ...row, [edge]: value } : row)))
+
+  const addBellRow = () =>
+    setBells((prev) => [...prev, { index: prev.length + 1, startTime: '08:30', endTime: '09:50' }])
+
+  const removeBellRow = (idx) =>
+    setBells((prev) => prev.filter((_, i) => i !== idx).map((row, i) => ({ ...row, index: i + 1 })))
+
+  const saveBells = async () => {
+    await apiSetBells(bells.map((b, i) => ({ index: i + 1, startTime: `${b.startTime}:00`, endTime: `${b.endTime}:00` })))
+    flashSaved()
+  }
+
+  // ---- Шкала оцінок (замінюємо всю шкалу) ----
+  const handleGradeChange = (idx, field, value) =>
+    setGradeScale((prev) => prev.map((row, i) => (i === idx ? { ...row, [field]: value } : row)))
+
+  const addGradeRow = () => setGradeScale((prev) => [...prev, { minPercent: 0, label: '' }])
+
+  const removeGradeRow = (idx) => setGradeScale((prev) => prev.filter((_, i) => i !== idx))
+
+  const saveGradeScale = async () => {
+    const scale = gradeScale
+      .filter((g) => g.label.trim())
+      .map((g) => ({ minPercent: Math.max(0, Math.min(100, Number(g.minPercent) || 0)), label: g.label.trim() }))
+    await apiSetGradeScale(scale)
+    flashSaved()
+  }
+
+  const weekdayLabels = t('planner.weekdaysShort').split(',')
+  const summarizeRule = (rule) => {
+    const time = (rule.timeOfDay || '').slice(0, 5)
+    if (rule.type === 'WeekCycle') {
+      const days = new Set()
+      for (const part of (rule.weekDaysPattern ?? '').split('|').filter(Boolean)) {
+        const list = part.split(':')[1] ?? ''
+        for (const d of list.split(',').filter(Boolean)) days.add(Number(d))
+      }
+      const labels = [...days].sort((a, b) => a - b).map((d) => weekdayLabels[d - 1]).join(', ')
+      return `${labels || '—'}${time ? ` · ${time}` : ''}`
+    }
+    return `${t(`recurrence.type.${rule.type}`)}${time ? ` · ${time}` : ''}`
   }
 
   const tabMeta = {
-    teachers: t('study.tab.teachersMeta', { count: TEACHERS.length }),
-    schedule: t('study.tab.scheduleMeta'),
-    bells: t('study.tab.bellsMeta', { count: DEFAULT_BELLS.length }),
-    month: t('study.tab.monthMeta', { count: ASSIGNMENTS.length }),
+    subjects: t('study.tab.subjectsMeta', { count: subjects.length }),
+    assignments: t('study.tab.assignmentsMeta', { count: assignments.length }),
+    bells: t('study.tab.bellsMeta', { count: bells.length }),
+    schedule: t('study.tab.scheduleMetaView', { count: rules.length }),
+  }
+
+  if (loading) {
+    return (
+      <div className="study-page">
+        <p className="placeholder-text">{t('common.loading')}</p>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="study-page">
+        <p className="placeholder-text">{t('common.error')}</p>
+      </div>
+    )
   }
 
   return (
@@ -128,206 +241,358 @@ export default function Study() {
         ))}
       </div>
 
-      {tab === 'teachers' && (
-        <div className="card table-scroll">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t('study.col.name')}</th>
-                <th>{t('study.col.subject')}</th>
-                <th>{t('study.col.contact')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {TEACHERS.map((teacher) => (
-                <tr key={teacher.contact}>
-                  <td>{teacher.name}</td>
-                  <td>{subjectName(teacher.subj)}</td>
-                  <td>{teacher.contact}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {tab === 'subjects' && (
+        <div className="card">
+          <form className="study-form" onSubmit={handleSubjectSubmit}>
+            <input
+              type="text"
+              placeholder={t('study.subjectNameUk')}
+              value={subjectForm.nameUk}
+              onChange={(e) => setSubjectForm((f) => ({ ...f, nameUk: e.target.value }))}
+            />
+            <input
+              type="text"
+              placeholder={t('study.subjectNameEn')}
+              value={subjectForm.nameEn}
+              onChange={(e) => setSubjectForm((f) => ({ ...f, nameEn: e.target.value }))}
+            />
+            <input
+              type="text"
+              placeholder={t('study.subjectTeacher')}
+              value={subjectForm.teacher}
+              onChange={(e) => setSubjectForm((f) => ({ ...f, teacher: e.target.value }))}
+            />
+            <input
+              type="text"
+              placeholder={t('study.subjectRoom')}
+              value={subjectForm.room}
+              onChange={(e) => setSubjectForm((f) => ({ ...f, room: e.target.value }))}
+            />
+            <div className="study-form-actions">
+              {subjectForm.id && (
+                <button type="button" className="btn-ghost" onClick={() => setSubjectForm(EMPTY_SUBJECT)}>
+                  {t('study.cancelEdit')}
+                </button>
+              )}
+              <button type="submit" className="btn-accent" disabled={!subjectForm.nameUk.trim()}>
+                {subjectForm.id ? t('study.saveSubject') : t('study.addSubject')}
+              </button>
+            </div>
+          </form>
+
+          {subjects.length === 0 ? (
+            <p className="placeholder-text">{t('study.subjectsEmpty')}</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t('study.col.subject')}</th>
+                    <th>{t('study.col.teacher')}</th>
+                    <th>{t('study.col.room')}</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {subjects.map((s) => (
+                    <tr key={s.id}>
+                      <td>
+                        <span className="study-subject-name">
+                          {s.color && <span className="cat-dot" style={{ background: s.color }} />}
+                          {subjectName(s)}
+                        </span>
+                      </td>
+                      <td>{s.teacher || <span className="none-text">—</span>}</td>
+                      <td>{s.room || <span className="none-text">—</span>}</td>
+                      <td className="study-row-actions">
+                        <button
+                          type="button"
+                          className="study-icon-btn"
+                          onClick={() => editSubject(s)}
+                          aria-label={t('planner.actionEdit')}
+                          data-tooltip={t('planner.actionEdit')}
+                        >
+                          <Icon name="pencil" />
+                        </button>
+                        <button
+                          type="button"
+                          className="study-icon-btn study-icon-btn--danger"
+                          onClick={() => handleRemoveSubject(s.id)}
+                          aria-label={t('planner.actionDelete')}
+                          data-tooltip={t('planner.actionDelete')}
+                        >
+                          <Icon name="trash" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {tab === 'schedule' && (
+      {tab === 'assignments' && (
         <div className="card">
-          <div className="week-tabs-nav">
-            {[1, 2].map((w) => (
-              <button
-                key={w}
-                type="button"
-                className={week === w ? 'pill pill--active' : 'pill'}
-                onClick={() => setWeek(w)}
-              >
-                {t('study.week', { n: w })}
+          <form className="study-form" onSubmit={handleAssignmentSubmit}>
+            <input
+              type="text"
+              placeholder={t('study.assignmentTitle')}
+              value={assignmentForm.title}
+              onChange={(e) => setAssignmentForm((f) => ({ ...f, title: e.target.value }))}
+            />
+            <select
+              value={assignmentForm.subjectId}
+              onChange={(e) => setAssignmentForm((f) => ({ ...f, subjectId: e.target.value }))}
+            >
+              <option value="">{t('study.noSubject')}</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {subjectName(s)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={assignmentForm.type}
+              onChange={(e) => setAssignmentForm((f) => ({ ...f, type: e.target.value }))}
+            >
+              {ASSIGNMENT_TYPES.map((ty) => (
+                <option key={ty} value={ty}>
+                  {t(`study.type.${ty}`)}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              className="time-field"
+              value={assignmentForm.dueDate}
+              onChange={(e) => setAssignmentForm((f) => ({ ...f, dueDate: e.target.value }))}
+            />
+            <div className="study-form-actions">
+              <button type="submit" className="btn-accent" disabled={!assignmentForm.title.trim()}>
+                {t('study.addAssignment')}
               </button>
-            ))}
-          </div>
+            </div>
+          </form>
 
-          <div className="table-scroll" style={{ marginTop: 14 }}>
-            <table className="data-table schedule-table">
-              <thead>
-                <tr>
-                  <th>{t('study.col.pair')}</th>
-                  {scheduleDays.map((d) => (
-                    <th key={d}>{d}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {SCHEDULE[week].map((row, pairIdx) => (
-                  <tr key={pairIdx}>
-                    <td>{pairIdx + 1}</td>
-                    {row.map((key, dayIdx) => (
-                      <td key={dayIdx}>
-                        {key ? (
-                          <span className="schedule-cell">
-                            <strong>{subjectName(key)}</strong>
-                            <span>
-                              {SUBJECT_INFO[key].place[language]} · {SUBJECT_INFO[key].teacher[language]}
-                            </span>
-                          </span>
+          {assignments.length === 0 ? (
+            <p className="placeholder-text">{t('study.assignmentsEmpty')}</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t('study.col.task')}</th>
+                    <th>{t('study.col.subject')}</th>
+                    <th>{t('study.col.type')}</th>
+                    <th>{t('study.col.deadline')}</th>
+                    <th>{t('study.col.status')}</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignments.map((a) => (
+                    <tr key={a.id}>
+                      <td>{a.title}</td>
+                      <td>
+                        {a.subjectId && subjectsById[a.subjectId] ? (
+                          subjectName(subjectsById[a.subjectId])
                         ) : (
                           <span className="none-text">—</span>
                         )}
                       </td>
+                      <td>{t(`study.type.${a.type}`)}</td>
+                      <td>{a.dueDate || <span className="none-text">—</span>}</td>
+                      <td>
+                        <label className="study-done-toggle" title={t('study.toggleDone')}>
+                          <input type="checkbox" checked={a.isDone} onChange={() => toggleAssignmentDone(a)} />
+                          <span className={`badge ${a.isDone ? 'badge--ok' : 'badge--warn'}`}>
+                            {a.isDone ? t('study.status.done') : t('study.status.notDone')}
+                          </span>
+                        </label>
+                      </td>
+                      <td className="study-row-actions">
+                        <button
+                          type="button"
+                          className="study-icon-btn study-icon-btn--danger"
+                          onClick={() => handleRemoveAssignment(a.id)}
+                          aria-label={t('planner.actionDelete')}
+                          data-tooltip={t('planner.actionDelete')}
+                        >
+                          <Icon name="trash" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Шкала оцінок — редагується цілою сіткою (PUT) */}
+          <div className="grade-block">
+            <div className="grade-head">
+              <h4>{t('study.gradeScaleTitle')}</h4>
+              <div className="grade-switch">
+                {savedNote && <span className="study-saved-note">{savedNote}</span>}
+                <button type="button" className="pill" onClick={addGradeRow}>
+                  <Icon name="plus" /> {t('study.addGradeRow')}
+                </button>
+                <button type="button" className="btn-accent" onClick={saveGradeScale}>
+                  {t('study.saveGradeScale')}
+                </button>
+              </div>
+            </div>
+            <p className="placeholder-text">{t('study.gradeScaleHint')}</p>
+            {gradeScale.length === 0 ? (
+              <p className="placeholder-text">{t('study.gradeScaleEmpty')}</p>
+            ) : (
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t('study.gradeMinPercent')}</th>
+                      <th>{t('study.gradeLabel')}</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gradeScale.map((g, i) => (
+                      <tr key={i}>
+                        <td>
+                          <NumberStepper
+                            min={0}
+                            max={100}
+                            value={String(g.minPercent)}
+                            onChange={(v) => handleGradeChange(i, 'minPercent', v)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="time-field"
+                            value={g.label}
+                            onChange={(e) => handleGradeChange(i, 'label', e.target.value)}
+                          />
+                        </td>
+                        <td className="study-row-actions">
+                          <button
+                            type="button"
+                            className="study-icon-btn study-icon-btn--danger"
+                            onClick={() => removeGradeRow(i)}
+                            aria-label={t('planner.actionDelete')}
+                            data-tooltip={t('planner.actionDelete')}
+                          >
+                            <Icon name="close" />
+                          </button>
+                        </td>
+                      </tr>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {tab === 'bells' && (
-        <div className="card table-scroll">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t('study.col.pair')}</th>
-                <th>{t('study.col.start')}</th>
-                <th>{t('study.col.end')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bells.map((row, pairIdx) => (
-                <tr key={pairIdx}>
-                  <td>{pairIdx + 1}</td>
-                  <td>
-                    <input
-                      type="time"
-                      className="time-field"
-                      value={row[0]}
-                      onChange={(e) => handleBell(pairIdx, 0, e.target.value)}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="time"
-                      className="time-field"
-                      value={row[1]}
-                      onChange={(e) => handleBell(pairIdx, 1, e.target.value)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="card">
+          <div className="grade-head">
+            <h4>{t('study.tab.bells')}</h4>
+            <div className="grade-switch">
+              {savedNote && <span className="study-saved-note">{savedNote}</span>}
+              <button type="button" className="pill" onClick={addBellRow}>
+                <Icon name="plus" /> {t('study.addBell')}
+              </button>
+              <button type="button" className="btn-accent" onClick={saveBells}>
+                {t('study.saveBells')}
+              </button>
+            </div>
+          </div>
+          {bells.length === 0 ? (
+            <p className="placeholder-text">{t('study.bellsEmpty')}</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t('study.col.pair')}</th>
+                    <th>{t('study.col.start')}</th>
+                    <th>{t('study.col.end')}</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {bells.map((row, i) => (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>
+                        <input
+                          type="time"
+                          className="time-field"
+                          value={row.startTime}
+                          onChange={(e) => handleBellChange(i, 'startTime', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="time"
+                          className="time-field"
+                          value={row.endTime}
+                          onChange={(e) => handleBellChange(i, 'endTime', e.target.value)}
+                        />
+                      </td>
+                      <td className="study-row-actions">
+                        <button
+                          type="button"
+                          className="study-icon-btn study-icon-btn--danger"
+                          onClick={() => removeBellRow(i)}
+                          aria-label={t('planner.actionDelete')}
+                          data-tooltip={t('planner.actionDelete')}
+                        >
+                          <Icon name="close" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {tab === 'month' && (
+      {tab === 'schedule' && (
         <div className="card">
-          <div className="month-nav">
-            <button type="button" className="month-nav-btn" aria-label="prev" data-tooltip={t('study.monthLabel')}>
-              <Icon name="chevron-left" />
-            </button>
-            <span className="month-nav-label">{t('study.monthLabel')}</span>
-            <button type="button" className="month-nav-btn" aria-label="next" data-tooltip={t('study.monthLabel')}>
-              <Icon name="chevron-right" />
-            </button>
-          </div>
-
-          <div className="study-month-grid">
-            {weekdays.map((d) => (
-              <div key={d} className="month-weekday">{d}</div>
-            ))}
-            {LEAD_MUTED.map((d) => (
-              <div key={`lead-${d}`} className="month-day month-day--muted">{d}</div>
-            ))}
-            {MONTH_DAYS.map((d) => (
-              <div
-                key={d}
-                className={`month-day${d === TODAY_DAY ? ' month-day--today' : ''}`}
-              >
-                {d}
-                {DEADLINE_DAYS.has(d) && <span className="month-day-dot" />}
-              </div>
-            ))}
-            {TRAIL_MUTED.map((d) => (
-              <div key={`trail-${d}`} className="month-day month-day--muted">{d}</div>
-            ))}
-          </div>
-
-          <div className="table-scroll" style={{ marginTop: 18 }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t('study.col.task')}</th>
-                  <th>{t('study.col.subject')}</th>
-                  <th>{t('study.col.deadline')}</th>
-                  <th>{t('study.col.status')}</th>
-                  <th>{t('study.col.grade')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ASSIGNMENTS.map((a) => (
-                  <tr key={a.id}>
-                    <td>{a.task[language]}</td>
-                    <td>{subjectName(a.subj)}</td>
-                    <td>{a.deadline}</td>
-                    <td>
-                      <span className={`badge ${STATUS_CLASS[a.status]}`}>
-                        {t(`study.status.${a.status}`)}
-                      </span>
-                    </td>
-                    <td>{a.grade ?? <span className="none-text">—</span>}</td>
+          <p className="placeholder-text">{t('study.scheduleViewNote')}</p>
+          {rules.length === 0 ? (
+            <p className="placeholder-text">{t('study.scheduleEmpty')}</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table schedule-table">
+                <thead>
+                  <tr>
+                    <th>{t('study.col.subject')}</th>
+                    <th>{t('study.scheduleWhen')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="grade-block">
-            <div className="grade-head">
-              <h4>{t('study.gradeTitle')}</h4>
-              <div className="grade-switch">
-                <button
-                  type="button"
-                  className={gradeScale === 'school' ? 'pill pill--active' : 'pill'}
-                  onClick={() => setGradeScale('school')}
-                >
-                  {t('study.gradeSchool')}
-                </button>
-                <button
-                  type="button"
-                  className={gradeScale === 'univ' ? 'pill pill--active' : 'pill'}
-                  onClick={() => setGradeScale('univ')}
-                >
-                  {t('study.gradeUniv')}
-                </button>
-              </div>
+                </thead>
+                <tbody>
+                  {rules.map((rule) => (
+                    <tr key={rule.id}>
+                      <td>
+                        <span className="schedule-cell">
+                          <strong>{rule.title}</strong>
+                        </span>
+                      </td>
+                      <td>{summarizeRule(rule)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="grade-value-panel">
-              <span className="study-grade-value">{gradeScale === 'school' ? '10' : '87'}</span>
-              <span className="placeholder-text">
-                {gradeScale === 'school' ? t('study.gradeSchoolHint') : t('study.gradeUnivHint')}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '../i18n'
-import { addTodo, deleteTodo, getTodos, moveTodo } from '../utils/todo'
+import { addTodo, getTodos, moveTodo, removeTodo } from '../api/todo'
 import Icon from '../components/Icon'
 import './ToDo.css'
 
 // Дошка задач "To-Do" — три "листки" (Зробити / В процесі / Зроблено). Картку
-// додають у перший листок, а далі рухають стрілками між листками. Дані — у
-// localStorage (utils/todo.js), поки без бекенду.
+// додають у перший листок, а далі рухають стрілками між листками. Дані — з бекенда
+// (/api/todo): кожна картка має status (todo|doing|done) і orderIndex усередині колонки.
 const COLUMNS = [
   { status: 'todo', icon: 'list' },
   { status: 'doing', icon: 'wrench' },
@@ -15,18 +15,70 @@ const COLUMNS = [
 
 export default function ToDo() {
   const { t } = useI18n()
-  const [items, setItems] = useState(() => getTodos())
+
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [items, setItems] = useState([])
   const [draft, setDraft] = useState('')
 
-  const handleAdd = (e) => {
+  useEffect(() => {
+    let cancelled = false
+    getTodos()
+      .then((list) => {
+        if (cancelled) return
+        setItems(list)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError(true)
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const reload = async () => setItems(await getTodos())
+
+  const handleAdd = async (e) => {
     e.preventDefault()
-    if (!draft.trim()) return
-    setItems(addTodo(draft))
+    const text = draft.trim()
+    if (!text) return
     setDraft('')
+    await addTodo(text)
+    await reload()
   }
 
-  const handleMove = (id, dir) => setItems(moveTodo(id, dir))
-  const handleDelete = (id) => setItems(deleteTodo(id))
+  // Рух між листками: цільовий статус — сусідня колонка, orderIndex — у кінець цієї колонки.
+  const handleMove = async (item, colIdx, dir) => {
+    const target = COLUMNS[colIdx + dir]
+    if (!target) return
+    const orderIndex = items.filter((x) => x.status === target.status).length
+    await moveTodo(item.id, target.status, orderIndex)
+    await reload()
+  }
+
+  const handleDelete = async (id) => {
+    await removeTodo(id)
+    await reload()
+  }
+
+  if (loading) {
+    return (
+      <div className="todo-page">
+        <p className="placeholder-text">{t('common.loading')}</p>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="todo-page">
+        <p className="placeholder-text">{t('common.error')}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="todo-page">
@@ -47,7 +99,9 @@ export default function ToDo() {
 
       <div className="todo-board">
         {COLUMNS.map((col, colIdx) => {
-          const colItems = items.filter((item) => item.status === col.status)
+          const colItems = items
+            .filter((item) => item.status === col.status)
+            .sort((a, b) => a.orderIndex - b.orderIndex)
           return (
             <div key={col.status} className={`todo-col todo-col--${col.status}`}>
               <div className="todo-col-head">
@@ -70,7 +124,7 @@ export default function ToDo() {
                       disabled={colIdx === 0}
                       aria-label={t('todo.moveLeft')}
                       data-tooltip={t('todo.moveLeft')}
-                      onClick={() => handleMove(item.id, -1)}
+                      onClick={() => handleMove(item, colIdx, -1)}
                     >
                       <Icon name="chevron-left" />
                     </button>
@@ -80,7 +134,7 @@ export default function ToDo() {
                       disabled={colIdx === COLUMNS.length - 1}
                       aria-label={t('todo.moveRight')}
                       data-tooltip={t('todo.moveRight')}
-                      onClick={() => handleMove(item.id, 1)}
+                      onClick={() => handleMove(item, colIdx, 1)}
                     >
                       <Icon name="chevron-right" />
                     </button>

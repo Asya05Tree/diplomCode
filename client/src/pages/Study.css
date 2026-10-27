@@ -115,6 +115,100 @@
   color: var(--color-text-muted);
 }
 
+/* --- Форми додавання/редагування (предмети, завдання) --- */
+.study-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.study-form input[type='text'],
+.study-form select {
+  flex: 1 1 150px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 0.86rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.study-form .time-field {
+  flex: 0 0 auto;
+}
+
+.study-form-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* --- Дії в рядку таблиці (редагувати / видалити) --- */
+.study-row-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.study-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  margin-left: 6px;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.study-icon-btn .icon {
+  width: 16px;
+  height: 16px;
+}
+.study-icon-btn:hover {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+.study-icon-btn--danger:hover {
+  background: var(--status-bad-bg);
+  color: var(--status-bad-text);
+  border-color: var(--status-bad-text);
+}
+
+.study-subject-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.study-done-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.study-saved-note {
+  font-size: 0.8rem;
+  color: var(--status-ok-text);
+  align-self: center;
+}
+
 /* --- Таблиці --- */
 .table-scroll {
   overflow-x: auto;

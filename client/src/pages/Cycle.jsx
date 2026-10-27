@@ -1,22 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import { addDays, addMonths, fromApiDate, getMonthGridCells, toApiDate, todayApiDate } from '../utils/date'
-import {
-  buildCalendarMarks,
-  computeCyclePhases,
-  computeCycleStats,
-  computeForecast,
-  deleteCycleRecord,
-  getCycleRecords,
-  getCycleSettings,
-  getCycleStock,
-  getOpenRecord,
-  markCycleEnd,
-  markCycleStart,
-  setCycleStockState,
-  setReduceLoadOnHeavyDays,
-} from '../utils/cycle'
-import { addShoppingItem } from '../utils/shoppingList'
+import { addCycleRecord, endCycleRecord, getCycle, removeCycleRecord, setCycleSettings } from '../api/cycle'
 import Icon from '../components/Icon'
 import './Cycle.css'
 
@@ -30,6 +15,105 @@ function fmtShort(api) {
   return `${d}.${m}`
 }
 
+const DEFAULT_CYCLE_LENGTH = 28
+const DEFAULT_PERIOD_LENGTH = 6
+const REGULAR_SPREAD_THRESHOLD_DAYS = 3
+
+function daysBetween(aApi, bApi) {
+  return Math.round((fromApiDate(bApi) - fromApiDate(aApi)) / 86400000)
+}
+
+function addApiDays(api, n) {
+  return toApiDate(addDays(fromApiDate(api), n))
+}
+
+// Показники місячних (дашборд-варіант 6): день циклу, середня довжина циклу й менструації,
+// останній цикл, регулярність. Рахуються з реальних відміток користувача (прогноз приходить з
+// бекенда окремо) — це не медичні висновки, а статистика по його ж даних.
+function computeCycleStats(records) {
+  const starts = records.map((r) => r.startDate).sort()
+  if (starts.length === 0) {
+    return { hasData: false, avgCycleLength: DEFAULT_CYCLE_LENGTH }
+  }
+
+  const lastStart = starts[starts.length - 1]
+  const lastRecord = records.find((r) => r.startDate === lastStart)
+  const lastEnd = lastRecord?.endDate ?? null
+
+  const periodLengths = records.filter((r) => r.endDate).map((r) => daysBetween(r.startDate, r.endDate) + 1)
+  const avgPeriodLength = periodLengths.length
+    ? Math.round(periodLengths.reduce((s, n) => s + n, 0) / periodLengths.length)
+    : null
+
+  const cycleLengths = []
+  for (let i = 1; i < starts.length; i++) cycleLengths.push(daysBetween(starts[i - 1], starts[i]))
+  const avgCycleLength = cycleLengths.length
+    ? Math.round(cycleLengths.reduce((s, n) => s + n, 0) / cycleLengths.length)
+    : DEFAULT_CYCLE_LENGTH
+  const lastCycleLength = cycleLengths.length ? cycleLengths[cycleLengths.length - 1] : null
+  const spread = cycleLengths.length ? Math.max(...cycleLengths) - Math.min(...cycleLengths) : null
+  const isRegular = spread === null ? null : spread <= REGULAR_SPREAD_THRESHOLD_DAYS
+
+  const cycleDay = Math.max(1, daysBetween(lastStart, todayApiDate()) + 1)
+
+  return { hasData: true, lastStart, lastEnd, avgPeriodLength, avgCycleLength, lastCycleLength, isRegular, cycleDay }
+}
+
+// Усі фази циклу (орієнтовні — похідні від середніх, а не діагноз). Порядок:
+// менструація → фолікулярна → овуляція → лютеїнова → прогноз наступної.
+function computeCyclePhases(records, forecast, stats) {
+  if (!stats.hasData || !forecast?.predictedDate) return []
+
+  const periodLen = stats.avgPeriodLength ?? DEFAULT_PERIOD_LENGTH
+  const periodStart = stats.lastStart
+  const periodEnd = stats.lastEnd ?? addApiDays(periodStart, periodLen - 1)
+  const nextStart = forecast.predictedDate
+  const ovulation = addApiDays(nextStart, -14) // лютеїнова фаза ~14 днів — орієнтовно
+  const today = todayApiDate()
+
+  const phases = [
+    { key: 'menstruation', from: periodStart, to: periodEnd },
+    { key: 'follicular', from: addApiDays(periodEnd, 1), to: addApiDays(ovulation, -1) },
+    { key: 'ovulation', from: ovulation, to: ovulation, approx: true },
+    { key: 'luteal', from: addApiDays(ovulation, 1), to: addApiDays(nextStart, -1) },
+    { key: 'predicted', from: nextStart, to: addApiDays(nextStart, periodLen - 1), predicted: true },
+  ]
+
+  return phases.map((p) => ({ ...p, current: today >= p.from && today <= p.to }))
+}
+
+// Позначки для клітинок календаря: множини днів-початків, днів-кінців, днів менструації та
+// прогнозованих днів (apiDate-рядки "YYYY-MM-DD").
+function buildCalendarMarks(records, forecast, stats) {
+  const starts = new Set()
+  const ends = new Set()
+  const period = new Set()
+  const predicted = new Set()
+  const today = todayApiDate()
+
+  for (const r of records) {
+    starts.add(r.startDate)
+    const last = r.endDate ?? (r.startDate <= today ? today : r.startDate)
+    if (r.endDate) ends.add(r.endDate)
+    let cursor = r.startDate
+    for (let guard = 0; cursor <= last && guard < 40; guard++) {
+      period.add(cursor)
+      cursor = addApiDays(cursor, 1)
+    }
+  }
+
+  if (stats?.hasData && forecast?.predictedDate) {
+    const periodLen = stats.avgPeriodLength ?? DEFAULT_PERIOD_LENGTH
+    let cursor = forecast.predictedDate
+    for (let i = 0; i < periodLen; i++) {
+      predicted.add(cursor)
+      cursor = addApiDays(cursor, 1)
+    }
+  }
+
+  return { starts, ends, period, predicted }
+}
+
 const PHASE_META = [
   { key: 'menstruation', dot: 'menstruation' },
   { key: 'follicular', dot: 'follicular' },
@@ -40,17 +124,50 @@ const PHASE_META = [
 
 // Розділ "Цикл" (planner-spec.md §3.7) у вигляді дашборда (обраний макет — варіант 6):
 // панель приладів (день циклу + показники), двомісячний розворот календаря, фази циклу
-// плитками та реєстр історії. Усе — з ручних відміток користувача (localStorage), чесний
-// прогноз без діагнозів; фази/овуляція — орієнтовні (похідні від середніх, не медичні висновки).
+// плитками та реєстр історії. Відмітки й налаштування — з бекенда (/api/cycle), прогноз
+// рахується на сервері; фази/овуляція — орієнтовні (похідні від середніх, не медичні висновки).
 export default function Cycle() {
   const { t } = useI18n()
-  const [records, setRecords] = useState(() => getCycleRecords())
-  const [settings, setSettings] = useState(() => getCycleSettings())
-  const [stock, setStock] = useState(() => getCycleStock())
-  const [addedIds, setAddedIds] = useState(() => new Set())
 
-  const openRecord = getOpenRecord(records)
-  const forecast = useMemo(() => computeForecast(records), [records])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  const [records, setRecords] = useState([])
+  const [settings, setSettings] = useState({ reduceLoadOnHeavyDays: false })
+  const [forecast, setForecast] = useState({ hasData: false, predictedDate: null, rangeDays: 5, isRegular: null })
+
+  const applyData = (data) => {
+    // Порядок введення не гарантований (запис заднім числом тощо) — сортуємо за початком.
+    const sorted = [...data.records].sort((a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0))
+    setRecords(sorted)
+    setSettings(data.settings ?? { reduceLoadOnHeavyDays: false })
+    setForecast(data.forecast ?? { hasData: false, predictedDate: null, rangeDays: 5, isRegular: null })
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    getCycle()
+      .then((data) => {
+        if (cancelled) return
+        applyData(data)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError(true)
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const reload = async () => {
+    applyData(await getCycle())
+  }
+
+  const openRecord = records.find((r) => !r.endDate) ?? null
   const stats = useMemo(() => computeCycleStats(records), [records])
   const phases = useMemo(() => computeCyclePhases(records, forecast, stats), [records, forecast, stats])
   const marks = useMemo(() => buildCalendarMarks(records, forecast, stats), [records, forecast, stats])
@@ -58,37 +175,31 @@ export default function Cycle() {
   const today = todayApiDate()
   const weekdays = t('planner.weekdaysShort').split(',')
 
-  const handleMarkStart = () => {
-    markCycleStart(todayApiDate())
-    setRecords(getCycleRecords())
+  const handleMarkStart = async () => {
+    await addCycleRecord(todayApiDate())
+    await reload()
   }
 
-  const handleMarkEnd = () => {
+  const handleMarkEnd = async () => {
     if (!openRecord) return
-    markCycleEnd(openRecord.id, todayApiDate())
-    setRecords(getCycleRecords())
+    await endCycleRecord(openRecord.id, todayApiDate())
+    await reload()
   }
 
-  const handleDelete = (id) => {
-    deleteCycleRecord(id)
-    setRecords(getCycleRecords())
+  const handleDelete = async (id) => {
+    await removeCycleRecord(id)
+    await reload()
   }
 
-  const handleToggleReduceLoad = (e) => {
-    setReduceLoadOnHeavyDays(e.target.checked)
-    setSettings(getCycleSettings())
-  }
-
-  const handleStockState = (id, state) => setStock(setCycleStockState(id, state))
-
-  const handleAddToShoppingList = (item) => {
-    addShoppingItem(t(item.nameKey), null, 0)
-    setAddedIds((prev) => new Set(prev).add(item.id))
+  const handleToggleReduceLoad = async (e) => {
+    const value = e.target.checked
+    setSettings({ reduceLoadOnHeavyDays: value })
+    await setCycleSettings(value)
   }
 
   // Текст прогнозу в героєві: діапазон ± rangeDays і скільки днів лишилось.
   let forecastText = t('cycle.forecastNoData')
-  if (forecast.hasData) {
+  if (forecast.hasData && forecast.predictedDate) {
     const fromR = toApiDate(addDays(fromApiDate(forecast.predictedDate), -forecast.rangeDays))
     const toR = toApiDate(addDays(fromApiDate(forecast.predictedDate), forecast.rangeDays))
     const daysUntil = Math.round((fromApiDate(forecast.predictedDate) - fromApiDate(today)) / 86400000)
@@ -165,7 +276,20 @@ export default function Cycle() {
     )
   }
 
-  const lowStockItems = stock.filter((item) => item.state !== 'Available')
+  if (loading) {
+    return (
+      <div className="cycle-page">
+        <p className="placeholder-text">{t('common.loading')}</p>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="cycle-page">
+        <p className="placeholder-text">{t('common.error')}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="cycle-page">
@@ -300,7 +424,7 @@ export default function Cycle() {
                 </tr>
               </thead>
               <tbody>
-                {forecast.hasData && (
+                {forecast.hasData && forecast.predictedDate && (
                   <tr className="cyc-row-predicted">
                     <td>{fmtShort(toApiDate(addDays(fromApiDate(forecast.predictedDate), -forecast.rangeDays)))} – {fmt(toApiDate(addDays(fromApiDate(forecast.predictedDate), forecast.rangeDays)))}</td>
                     <td className="cyc-none">—</td>
@@ -333,35 +457,6 @@ export default function Cycle() {
           </div>
         )}
         <p className="placeholder-text" style={{ margin: '10px 0 0' }}>{t('cycle.manualNote')}</p>
-      </div>
-
-      {/* Перевірка запасів до прогнозованої дати (planner-spec §3.7 "цикл ↔ запаси") */}
-      <div className="card no-print">
-        <h3>{t('cycle.stockTitle')}</h3>
-        <p className="placeholder-text">{t('cycle.stockHint')}</p>
-        <ul className="cycle-stock-list">
-          {stock.map((item) => (
-            <li key={item.id} className="cycle-stock-row">
-              <span className="cycle-stock-name">{t(item.nameKey)}</span>
-              <select value={item.state} onChange={(e) => handleStockState(item.id, e.target.value)}>
-                <option value="Available">{t('cycle.stock.state.Available')}</option>
-                <option value="RunningLow">{t('cycle.stock.state.RunningLow')}</option>
-                <option value="OutOfStock">{t('cycle.stock.state.OutOfStock')}</option>
-              </select>
-              {item.state !== 'Available' && (
-                <button
-                  type="button"
-                  className="cyc-stock-add"
-                  disabled={addedIds.has(item.id)}
-                  onClick={() => handleAddToShoppingList(item)}
-                >
-                  {addedIds.has(item.id) ? t('cycle.addedToShoppingList') : t('cycle.addToShoppingList')}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-        {lowStockItems.length === 0 && <p className="placeholder-text">{t('cycle.stockAllGood')}</p>}
       </div>
 
       {/* Налаштування циклу */}

@@ -217,6 +217,108 @@
 .txn-amount--income { color: var(--color-success); }
 .txn-amount--expense { color: var(--color-danger); }
 
+/* --- Форма додавання операції --- */
+.finance-txn-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.finance-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.finance-field--grow {
+  flex: 1 1 160px;
+}
+
+.finance-field-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.finance-select,
+.finance-text {
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.finance-field--grow .finance-text {
+  width: 100%;
+}
+
+.finance-add-btn {
+  white-space: nowrap;
+}
+
+.finance-col-actions {
+  text-align: right;
+  width: 44px;
+}
+
+.finance-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+.finance-del:hover {
+  color: var(--color-danger);
+  background: var(--color-accent-soft);
+}
+.finance-del .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.finance-txn-totals {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- Ліміти --- */
+.finance-limits {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.finance-limit-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.finance-limit-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-width: 90px;
+}
+
 /* --- Статистика: стовпчиковий графік --- */
 .week-chart-head {
   display: flex;

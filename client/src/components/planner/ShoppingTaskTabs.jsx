@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../../i18n'
 import ComboList from '../common/ComboList'
 import { findMaximalCombos } from '../../utils/combos'
-import { getShoppingItems } from '../../utils/shoppingList'
-import { getFinanceBalance } from '../../utils/finance'
+import { getShoppingList } from '../../api/shopping'
+import { getFinance } from '../../api/finance'
 import '../../pages/Landing.css'
 import './ShoppingTaskTabs.css'
 
@@ -14,12 +14,35 @@ import './ShoppingTaskTabs.css'
 // Сума грошей більше не вводиться тут окремо — вона завжди береться з розділу "Фінанси"
 // (єдиний баланс на весь застосунок, planner-spec.md §3.6).
 export default function ShoppingTaskTabs() {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const navigate = useNavigate()
   const [tab, setTab] = useState('list')
-  const budget = getFinanceBalance()
+  const [budget, setBudget] = useState(0)
+  const [items, setItems] = useState([])
 
-  const items = useMemo(() => getShoppingItems(), [])
+  // Список і баланс тепер із бекенда (той самий єдиний список покупок і рахунок, що й на сторінках).
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getShoppingList(), getFinance().catch(() => ({ balance: 0 }))])
+      .then(([list, fin]) => {
+        if (cancelled) return
+        const mapped = (list?.items || []).map((it) => ({
+          id: it.id,
+          name: language === 'en' ? it.displayNameEn : it.displayNameUk,
+          price: it.estimatedPrice || 0,
+          owned: it.isChecked,
+        }))
+        setItems(mapped)
+        setBudget(Math.round(Number(fin?.balance) || 0))
+      })
+      .catch(() => {
+        if (!cancelled) setItems([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [language])
+
   const pricedItems = useMemo(() => items.filter((item) => !item.owned && item.price > 0), [items])
 
   const combos = useMemo(() => findMaximalCombos(pricedItems, budget), [pricedItems, budget])

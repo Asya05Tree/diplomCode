@@ -185,9 +185,102 @@
   color: var(--color-heading);
 }
 
+/* Поле категорії-хештега (вільний текст) — у формі додавання та інлайн у рядку */
+.shopping-list-cat-input {
+  width: 160px;
+  padding: 8px 10px;
+}
+.shopping-list-cat-inline {
+  width: 130px;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+}
+
+.shopping-list-price-age {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+/* Панель відмітки покупки (ціна необов'язкова) */
+.shopping-check-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.shopping-check-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+.shopping-check-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* «Часто купуєте» */
+.shopping-suggestions h3,
+.shopping-budget h3,
+.shopping-receipt h3,
+.shopping-trip h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+.shopping-suggestion-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.shopping-suggestion-pill {
+  cursor: pointer;
+}
+.shopping-suggestion-pill .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Докупити в межах бюджету + розподіл чека */
+.shopping-budget,
+.shopping-receipt,
+.shopping-trip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.shopping-receipt-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.shopping-budget-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shopping-budget-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+.shopping-budget-list li:last-child {
+  border-bottom: none;
+}
+
 @media (max-width: 520px) {
   .shopping-list-add input:first-child {
     flex: 1 1 100%;
+  }
+  .shopping-list-cat-input {
+    flex: 1 1 100%;
+    width: auto;
   }
   .shopping-list-row {
     flex-wrap: wrap;

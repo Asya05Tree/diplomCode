@@ -15,5 +15,21 @@ services:
     volumes:
       - planner-mysql-data:/var/lib/mysql
 
+  # Веб-перегляд БД: phpMyAdmin на http://localhost:8080 — автоматично логіниться
+  # під користувачем planner і показує всі таблиці БД planner з вкладками
+  # (Структура / SQL / Пошук / Експорт). Окремий інструмент лише для розробки.
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: planner-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: planner
+      PMA_PASSWORD: planner_dev_password
+    ports:
+      - "8080:80"
+
 volumes:
   planner-mysql-data:
