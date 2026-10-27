@@ -1,7 +1,7 @@
 .planner {
   display: grid;
-  grid-template-columns: minmax(300px, 36%) 1fr;
-  gap: 22px;
+  grid-template-columns: minmax(330px, 40%) 1fr;
+  gap: 24px;
   padding: clamp(16px, 3vw, 28px);
   flex: 1;
   align-items: start;
@@ -9,7 +9,8 @@
 
 .planner-grid-panel {
   position: sticky;
-  top: 88px;
+  top: 84px;
+  padding: 20px 22px;
 }
 
 .planner-free-hours {

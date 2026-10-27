@@ -205,8 +205,17 @@
 :root {
   --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
   /* М'яка версія акценту під підсвітки/ховери — читається на будь-якому фоні */
-  --color-accent-soft: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 30%, transparent);
   --color-accent-ring: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  /* ЧИТАБЕЛЬНИЙ акцент: пастельні палітри самі по собі дуже світлі, тож як колір
+     тексту/іконки/рамки на тлі сторінки вони зливаються. Підмішуємо колір заголовка
+     (майже чорний у світлій темі, майже білий у темній) — відтінок палітри лишається
+     впізнаваним, але контраст достатній у БУДЬ-ЯКІЙ темі (світла/темна × пастель/насичена). */
+  --color-accent-ink: color-mix(in srgb, var(--color-accent) 52%, var(--color-heading));
+  /* Трохи світліший за ink — для рамок/іконок, де не потрібен повний контраст тексту */
+  --color-accent-strong: color-mix(in srgb, var(--color-accent) 70%, var(--color-heading));
+  /* Заливка-підкладка під акцентні зони (активні вкладки на світлому, бейджі) */
+  --color-accent-tint: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
 
   /* Шрифти */
   --font-display: 'Karpaty', 'Montserrat', 'e-Ukraine', sans-serif;
@@ -292,12 +301,28 @@ p {
 }
 
 a {
-  color: color-mix(in srgb, var(--color-accent) 70%, var(--color-text));
+  color: var(--color-accent-ink);
   text-decoration: none;
+  font-weight: 500;
   transition: color var(--transition), opacity var(--transition);
 }
 a:hover {
-  opacity: 0.8;
+  opacity: 0.78;
+}
+
+/* Чекбокси, радіо, повзунки — у колір обраної палітри (раніше були системно-сірі
+   й "не оновлювались під палітру"). accent-ink читабельний на обох темах. */
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'],
+progress {
+  accent-color: var(--color-accent-ink);
+}
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.05em;
+  height: 1.05em;
+  cursor: pointer;
 }
 
 /* Форми: єдині дефолти, сторінки за потреби перекривають */
@@ -411,12 +436,13 @@ textarea::placeholder {
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.95rem;
-  border: none;
+  /* Тонка рамка кольором палітри — щоб світла пастельна кнопка не зливалася з фоном */
+  border: 1px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
   border-radius: var(--radius-md);
   padding: 10px 18px;
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent) 35%, transparent);
   transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 }
 .btn:hover:not(:disabled),
