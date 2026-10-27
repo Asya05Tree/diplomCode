@@ -251,7 +251,7 @@ export default function Study() {
             </button>
           </div>
 
-          <div className="month-grid">
+          <div className="study-month-grid">
             {weekdays.map((d) => (
               <div key={d} className="month-weekday">{d}</div>
             ))}

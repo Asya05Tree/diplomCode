@@ -278,7 +278,10 @@
   text-align: center;
 }
 
-.month-grid {
+/* Своя місячна сітка розкладу. Клас має бути УНІКАЛЬНИМ: голий .month-grid збігався
+   з класом сітки календаря планнера (MonthGrid.css) — через глобальний CSS той, що
+   вантажився пізніше, перебивав інший, і календар на головній "роз'їжджався". */
+.study-month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
