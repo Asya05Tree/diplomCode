@@ -26,7 +26,7 @@ export function setThemeMode(mode) {
 }
 
 export function getPaletteStyle() {
-  return localStorage.getItem(PALETTE_STYLE_KEY) === 'pastel' ? 'pastel' : 'vivid'
+  return localStorage.getItem(PALETTE_STYLE_KEY) === 'vivid' ? 'vivid' : 'pastel'
 }
 
 export function setPaletteStyle(style) {
@@ -35,7 +35,7 @@ export function setPaletteStyle(style) {
 
 export function getPalette() {
   const stored = localStorage.getItem(PALETTE_KEY)
-  return PALETTES.includes(stored) ? stored : 'amber'
+  return PALETTES.includes(stored) ? stored : 'ocean'
 }
 
 export function setPalette(palette) {

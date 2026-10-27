@@ -53,7 +53,7 @@ export default function Food() {
   const [addStockOpen, setAddStockOpen] = useState(false)
   const [stockSearch, setStockSearch] = useState('')
   // Дві вкладки розділу: "Страви" (стрічка рецептів, де обираються блюда) і "Запаси".
-  const [tab, setTab] = useState('stock') // 'dishes' | 'stock'
+  const [tab, setTab] = useState('dishes') // 'dishes' | 'stock'
   // Фільтр запасів: 'all' або група зберігання продукту (овочі/молочне/бакалія...).
   const [stockCat, setStockCat] = useState('all')
 
