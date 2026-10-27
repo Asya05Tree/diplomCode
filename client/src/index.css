@@ -201,6 +201,24 @@
   --color-accent: #56ab2f;
   --color-accent-2: #a8e063;
 }
+/* Жовта→помаранчева */
+[data-palette='amber'][data-style='pastel'] {
+  --color-accent: #fff1a8;
+  --color-accent-2: #ffd59e;
+}
+[data-palette='amber'][data-style='vivid'] {
+  --color-accent: #ffd200;
+  --color-accent-2: #ff8008;
+}
+/* Рожева→фіолетова */
+[data-palette='berry'][data-style='pastel'] {
+  --color-accent: #fac6e6;
+  --color-accent-2: #d7bbf0;
+}
+[data-palette='berry'][data-style='vivid'] {
+  --color-accent: #ff52a2;
+  --color-accent-2: #9b36d9;
+}
 
 /* Похідні від акценту токени мусять обчислюватись ТАМ, де визначено --color-accent
    (кореневий div має data-palette + data-style + клас теми одночасно), а не на :root.
@@ -238,9 +256,13 @@
   --color-on-accent: #ffffff;
   --on-accent-shadow: 0 1px 2px rgba(0, 0, 0, 0.32);
 }
-/* Зелений насичений — найсвітліший градієнт, білий на ньому слабкий; беремо темно-зелений */
+/* Світлі насичені градієнти (зелений, бурштиновий) — білий текст на них слабкий, беремо темний */
 [data-palette='green'][data-style='vivid'] {
   --color-on-accent: #16310a;
+  --on-accent-shadow: none;
+}
+[data-palette='amber'][data-style='vivid'] {
+  --color-on-accent: #3a2500;
   --on-accent-shadow: none;
 }
 

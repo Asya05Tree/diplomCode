@@ -430,6 +430,8 @@
   "settings.palette.lavender": "Lavender Sky",
   "settings.palette.orange": "Warm Orange",
   "settings.palette.green": "Natural Green",
+  "settings.palette.amber": "Sunny Amber",
+  "settings.palette.berry": "Berry Violet",
   "settings.logoutSection": "Account",
   "settings.logoutButton": "Log out"
 }

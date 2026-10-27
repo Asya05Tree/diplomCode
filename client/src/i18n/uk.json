@@ -430,6 +430,8 @@
   "settings.palette.lavender": "Lavender Sky",
   "settings.palette.orange": "Теплий помаранчевий",
   "settings.palette.green": "Природний зелений",
+  "settings.palette.amber": "Сонячний бурштин",
+  "settings.palette.berry": "Ягідний фіолет",
   "settings.logoutSection": "Акаунт",
   "settings.logoutButton": "Вийти з акаунта"
 }

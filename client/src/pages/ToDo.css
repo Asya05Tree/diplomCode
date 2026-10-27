@@ -104,11 +104,13 @@
   color: var(--color-text-muted);
 }
 
+/* Три листки — усі в тон обраної палітри, розрізняються насиченістю акценту:
+   «Зробити» м'який, «В процесі» основний, «Зроблено» найглибший. */
 .todo-col--todo .todo-col-head {
-  border-bottom-color: color-mix(in srgb, var(--color-todo) 58%, var(--color-heading));
+  border-bottom-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-text-muted));
 }
 .todo-col--todo .todo-col-icon {
-  color: color-mix(in srgb, var(--color-todo) 58%, var(--color-heading));
+  color: color-mix(in srgb, var(--color-accent) 50%, var(--color-text-muted));
 }
 .todo-col--doing .todo-col-head {
   border-bottom-color: var(--color-accent-ink);
@@ -117,10 +119,10 @@
   color: var(--color-accent-ink);
 }
 .todo-col--done .todo-col-head {
-  border-bottom-color: color-mix(in srgb, var(--color-success) 75%, var(--color-heading));
+  border-bottom-color: color-mix(in srgb, var(--color-accent) 80%, var(--color-heading));
 }
 .todo-col--done .todo-col-icon {
-  color: color-mix(in srgb, var(--color-success) 75%, var(--color-heading));
+  color: color-mix(in srgb, var(--color-accent) 80%, var(--color-heading));
 }
 
 .todo-col-empty {

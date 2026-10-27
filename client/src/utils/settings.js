@@ -2,7 +2,7 @@ const THEME_MODE_KEY = 'settings:themeMode'
 const PALETTE_STYLE_KEY = 'settings:paletteStyle'
 const PALETTE_KEY = 'settings:palette'
 
-export const PALETTES = ['ocean', 'sunset', 'lavender', 'orange', 'green']
+export const PALETTES = ['ocean', 'sunset', 'lavender', 'orange', 'green', 'amber', 'berry']
 
 // Акцентні пари кольорів на палітру/стиль (planner-spec.md §3.1 AccentColor,
 // §4.11 "пастельна палитра, светлая и тёмная темы") — не залежать від light/dark,
@@ -13,6 +13,8 @@ export const PALETTE_COLORS = {
   lavender: { pastel: ['#D1C4E9', '#F8BBD0'], vivid: ['#8360C3', '#FF8FBF'] },
   orange: { pastel: ['#FFCCBC', '#FFE0B2'], vivid: ['#FF7E5F', '#FEB47B'] },
   green: { pastel: ['#C8E6C9', '#DCEDC8'], vivid: ['#56AB2F', '#A8E063'] },
+  amber: { pastel: ['#FFF1A8', '#FFD59E'], vivid: ['#FFD200', '#FF8008'] },
+  berry: { pastel: ['#FAC6E6', '#D7BBF0'], vivid: ['#FF52A2', '#9B36D9'] },
 }
 
 export function getThemeMode() {

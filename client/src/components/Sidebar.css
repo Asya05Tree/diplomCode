@@ -52,7 +52,8 @@
   gap: 11px;
   padding: 9px 12px;
   border-radius: var(--radius-md);
-  border-left: 3px solid var(--item-color);
+  /* Кольорова смужка зліва — у тон обраної палітри, а не випадковий колір модуля */
+  border-left: 3px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
   cursor: pointer;
   text-decoration: none;
   position: relative;
@@ -67,9 +68,8 @@
 .sidebar-icon {
   width: 21px;
   height: 21px;
-  /* Колір модуля, підмішаний до кольору заголовка — світлі модульні тони (їжа/здоровʼя)
-     інакше зливалися з тонованим сайдбаром. Відтінок модуля лишається впізнаваним. */
-  color: color-mix(in srgb, var(--item-color) 58%, var(--color-heading));
+  /* Іконки — у тон обраної палітри (читабельний акцент-ink), щоб сайдбар був єдиним цілим */
+  color: var(--color-accent-ink);
   transition: transform var(--transition), color var(--transition);
 }
 
@@ -150,7 +150,7 @@
     gap: 3px;
     min-width: 62px;
     border-left: none;
-    border-bottom: 3px solid var(--item-color);
+    border-bottom: 3px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
     padding: 7px 10px;
     border-radius: var(--radius-sm);
   }
