@@ -10,7 +10,8 @@ public record CreateRecurrenceRuleRequest(
     string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
     int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
     int? IntervalDays,
-    string? MonthDayMode, string? MonthDays, string? MonthDayTimesPattern);
+    string? MonthDayMode, string? MonthDays, string? MonthDayTimesPattern,
+    string? ModuleCode = null); // null -> "tasks"; "study" для розкладу пар
 
 public record UpdateRecurrenceRuleRequest(
     string Title, string? Description, int? DurationMinutes,
@@ -86,7 +87,8 @@ public class RecurrenceRulesController : ControllerBase
             CurrentUserId, request.Title, request.Description, request.DurationMinutes,
             request.Type, request.TimeOfDay, request.StartDate, request.EndDate,
             request.CycleWeeks, request.CycleAnchorDate, request.WeekDaysPattern, request.WeekDayTimesPattern,
-            request.IntervalDays, request.MonthDayMode, request.MonthDays, request.MonthDayTimesPattern);
+            request.IntervalDays, request.MonthDayMode, request.MonthDays, request.MonthDayTimesPattern,
+            request.ModuleCode ?? "tasks");
         return Ok(rule);
     }
 

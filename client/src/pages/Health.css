@@ -584,3 +584,72 @@
     flex-wrap: wrap;
   }
 }
+
+/* --- Взаємодії (DDInter): колір за рівнем ризику --- */
+.conflict-tag--major {
+  background: var(--st-bad-soft);
+  color: var(--st-bad);
+}
+.conflict-tag--moderate {
+  background: var(--st-warn-soft);
+  color: var(--st-warn);
+}
+.conflict-tag--minor,
+.conflict-tag--unknown {
+  background: color-mix(in srgb, var(--color-text-muted) 16%, transparent);
+  color: var(--color-text-muted);
+}
+
+/* Підпис, що дані довідкові (ніколи не стверджуємо "конфліктів немає") */
+.health-disclaimer {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Рівень правила біля хронічного захворювання */
+.rule-badge {
+  font-size: 0.72rem;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.rule-badge--bad {
+  background: var(--st-bad-soft);
+  color: var(--st-bad);
+}
+.rule-badge--warn {
+  background: var(--st-warn-soft);
+  color: var(--st-warn);
+}
+
+/* Кнопка видалення захворювання */
+.cond-remove {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cond-remove:hover {
+  background: var(--st-bad-soft);
+  color: var(--st-bad);
+}
+.cond-remove svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Друга речовина в результатах пошуку ліків */
+.drawer-sub {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}

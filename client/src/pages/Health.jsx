@@ -1,23 +1,21 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import {
-  MEDICINE_CATEGORIES,
-  addCondition,
+  getCabinet,
+  searchMedicines,
   addMedicine,
-  categoryName,
-  conditionName,
-  conditionTag,
-  getRules,
-  listAddableMedicines,
-  listConditions,
-  listMedicines,
-  medConflicts,
+  setMedicineState as apiSetMedicineState,
+  getInteractions,
+  getConditions,
+  addCondition as apiAddCondition,
+  removeCondition as apiRemoveCondition,
   medName,
   medSubstance,
-  setMedicineState,
-  setRule,
-} from '../pseudo-db'
+  formName,
+  conditionName,
+} from '../api/medicineCabinet'
+import { getHealthProfile } from '../api/healthProfile'
 import './Health.css'
 
 const STOCK_TOGGLE = [
@@ -27,73 +25,144 @@ const STOCK_TOGGLE = [
 ]
 
 // Модуль "Здоровʼя" (planner-spec.md §3.5 аптечка, §3.1/§11 хронічні захворювання).
-// Дві вкладки: Аптечка (ліки, стан, конфлікти речовин — §4.7) та Хронічні захворювання,
-// де хвороба, що впливає на їжу, записується правилом на тег (Forbidden/Avoid) і далі
-// впливає на фільтрацію страв та запасів у модулі "Їжа". Дані — з псевдо-БД.
+// Дві вкладки: Аптечка (ліки користувача зі стану + взаємодії речовин із довідника DDInter) та
+// Хронічні захворювання, де хвороба, що впливає на їжу, стає правилом на тег і фільтрує страви.
+// Дані — з бекенда (/api/medicine-cabinet, /api/health-profile).
 export default function Health() {
   const { t, language } = useI18n()
 
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
   const [tab, setTab] = useState('meds') // 'meds' | 'cond'
-  const [medicines, setMedicines] = useState(() => listMedicines())
-  const [addable, setAddable] = useState(() => listAddableMedicines())
-  const [rules, setRules] = useState(() => getRules())
-  const [category, setCategory] = useState('all')
+  const [medicines, setMedicines] = useState([]) // аптечка користувача
+  const [interactions, setInteractions] = useState({}) // medicineId -> [{otherMedicineName.., level, mechanism}]
+  const [conditions, setConditions] = useState([])
+  const [profile, setProfile] = useState(null)
+
+  const [form, setForm] = useState('all') // фільтр за формою випуску
   const [addMedOpen, setAddMedOpen] = useState(false)
   const [medSearch, setMedSearch] = useState('')
-  // Хронічні захворювання: базові + додані користувачем. Форма додавання — з перемикачем
-  // "впливає на їжу"; коли увімкнено, зʼявляється поле тега-обмеження + рівень (не можна/небажано).
-  const [conditions, setConditions] = useState(() => listConditions())
+  const [searchResults, setSearchResults] = useState([])
+
   const [condForm, setCondForm] = useState({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getCabinet(), getConditions(), getHealthProfile().catch(() => null)])
+      .then(async ([meds, conds, prof]) => {
+        if (cancelled) return
+        setMedicines(meds)
+        setConditions(conds)
+        setProfile(prof)
+        // Взаємодії тягнемо для кожних ліків аптечки (пари, де друга речовина теж у користувача).
+        const entries = await Promise.all(
+          meds.map((m) =>
+            getInteractions(m.medicineId)
+              .then((list) => [m.medicineId, list])
+              .catch(() => [m.medicineId, []]),
+          ),
+        )
+        if (cancelled) return
+        setInteractions(Object.fromEntries(entries))
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError(true)
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const lowCount = medicines.filter((m) => m.state === 'RunningLow').length
   const foodConditions = conditions.filter((c) => c.affectsFood)
 
+  // Форми, наявні в аптечці користувача — для фільтр-пілюль (замість старих "категорій").
+  const forms = useMemo(() => {
+    const seen = new Map()
+    for (const m of medicines) if (!seen.has(m.formKey)) seen.set(m.formKey, m)
+    return [...seen.values()]
+  }, [medicines])
+
   const visibleMeds = useMemo(
-    () => (category === 'all' ? medicines : medicines.filter((m) => m.category === category)),
-    [medicines, category],
+    () => (form === 'all' ? medicines : medicines.filter((m) => m.formKey === form)),
+    [medicines, form],
   )
 
-  const handleMedState = (id, state) => {
-    setMedicineState(id, state)
-    setMedicines(listMedicines())
+  const reloadCabinet = async () => {
+    const meds = await getCabinet()
+    setMedicines(meds)
+    const entries = await Promise.all(
+      meds.map((m) =>
+        getInteractions(m.medicineId)
+          .then((list) => [m.medicineId, list])
+          .catch(() => [m.medicineId, []]),
+      ),
+    )
+    setInteractions(Object.fromEntries(entries))
   }
 
-  const handleAddMed = (id) => {
-    addMedicine(id)
-    setMedicines(listMedicines())
-    setAddable(listAddableMedicines())
+  const handleMedState = async (m, state) => {
+    setMedicines((prev) => prev.map((x) => (x.medicineId === m.medicineId ? { ...x, state } : x)))
+    await apiSetMedicineState(m.medicineId, state, m.expiresAt)
   }
 
-  // Увімкнути / вимкнути врахування хвороби в їжі (coding-guide.md §11 AffectsFood).
-  const handleToggleRule = (condition) => {
-    const current = rules[condition.tagKey]
-    const relation = current?.relation ?? condition.defaultRelation
-    const enabled = !(current?.enabled ?? false)
-    setRules({ ...setRule(condition.tagKey, { relation, enabled }) })
+  const handleMedSearch = (q) => {
+    setMedSearch(q)
+    const query = q.trim()
+    if (query.length < 2) {
+      setSearchResults([])
+      return
+    }
+    searchMedicines(query).then(setSearchResults).catch(() => setSearchResults([]))
   }
 
-  const handleRelation = (condition, relation) => {
-    setRules({ ...setRule(condition.tagKey, { relation, enabled: true }) })
+  const handleAddMed = async (id) => {
+    await addMedicine(id)
+    await reloadCabinet()
+    // Прибрати щойно додані з результатів пошуку (сервер і так виключає доданих при наступному запиті).
+    setSearchResults((prev) => prev.filter((m) => m.id !== id))
   }
 
   const resetCondForm = () => setCondForm({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
 
-  const handleAddCondition = () => {
+  const handleAddCondition = async () => {
     if (!condForm.name.trim()) return
-    addCondition({
-      name: condForm.name,
+    await apiAddCondition({
+      nameUk: condForm.name.trim(),
       affectsFood: condForm.affectsFood,
       tag: condForm.tag,
       relation: condForm.relation,
     })
-    setConditions(listConditions())
-    setRules(getRules())
+    setConditions(await getConditions())
     resetCondForm()
   }
 
-  const addableFiltered = addable.filter((m) =>
-    medName(m, language).toLowerCase().includes(medSearch.trim().toLowerCase()),
-  )
+  const handleRemoveCondition = async (id) => {
+    await apiRemoveCondition(id)
+    setConditions(await getConditions())
+  }
+
+  if (loading) {
+    return (
+      <div className="health-page">
+        <p className="placeholder-text">{t('common.loading')}</p>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="health-page">
+        <p className="placeholder-text">{t('common.error')}</p>
+      </div>
+    )
+  }
+
+  const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null
 
   return (
     <div className="health-page">
@@ -105,15 +174,19 @@ export default function Health() {
       <div className="profile-kv">
         <div className="profile-field">
           <span className="profile-field-label">{t('health.profile.weight')}</span>
-          <span className="profile-field-value">61 {t('health.unit.kg')}</span>
+          <span className="profile-field-value">
+            {profile?.weight != null ? `${profile.weight} ${t('health.unit.kg')}` : '—'}
+          </span>
         </div>
         <div className="profile-field">
           <span className="profile-field-label">{t('health.profile.age')}</span>
-          <span className="profile-field-value">27 {t('health.unit.years')}</span>
+          <span className="profile-field-value">{age != null ? `${age} ${t('health.unit.years')}` : '—'}</span>
         </div>
         <div className="profile-field">
           <span className="profile-field-label">{t('health.profile.height')}</span>
-          <span className="profile-field-value">168 {t('health.unit.cm')}</span>
+          <span className="profile-field-value">
+            {profile?.height != null ? `${profile.height} ${t('health.unit.cm')}` : '—'}
+          </span>
         </div>
       </div>
 
@@ -151,86 +224,94 @@ export default function Health() {
             </button>
           </div>
 
-          <div className="health-pills">
-            <button
-              type="button"
-              className={category === 'all' ? 'pill pill--active' : 'pill'}
-              onClick={() => setCategory('all')}
-            >
-              {t('health.filterAll')}
-            </button>
-            {MEDICINE_CATEGORIES.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                className={category === c.key ? 'pill pill--active' : 'pill'}
-                onClick={() => setCategory(c.key)}
-              >
-                {categoryName(c.key, language)}
-              </button>
-            ))}
-          </div>
+          {medicines.length === 0 ? (
+            <p className="placeholder-text">{t('health.cabinetEmpty')}</p>
+          ) : (
+            <>
+              <div className="health-pills">
+                <button
+                  type="button"
+                  className={form === 'all' ? 'pill pill--active' : 'pill'}
+                  onClick={() => setForm('all')}
+                >
+                  {t('health.filterAll')}
+                </button>
+                {forms.map((m) => (
+                  <button
+                    key={m.formKey}
+                    type="button"
+                    className={form === m.formKey ? 'pill pill--active' : 'pill'}
+                    onClick={() => setForm(m.formKey)}
+                  >
+                    {formName(m, language)}
+                  </button>
+                ))}
+              </div>
 
-          <div className="table-scroll">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t('health.col.name')}</th>
-                  <th>{t('health.col.category')}</th>
-                  <th>{t('health.col.substance')}</th>
-                  <th>{t('health.col.state')}</th>
-                  <th>{t('health.col.expiry')}</th>
-                  <th>{t('health.col.conflicts')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleMeds.map((m) => {
-                  const conflicts = medConflicts(m, language)
-                  const substance = medSubstance(m, language)
-                  return (
-                    <tr key={m.id}>
-                      <td>{medName(m, language)}</td>
-                      <td>
-                        <span className="category-badge">{categoryName(m.category, language)}</span>
-                      </td>
-                      <td>{substance || <span className="none-text">—</span>}</td>
-                      <td>
-                        <div className="stock-toggle">
-                          {STOCK_TOGGLE.map(({ state: s, cls }) => (
-                            <button
-                              key={s}
-                              type="button"
-                              title={t(`food.state.${s}`)}
-                              className={`stock-circle stock-circle--${cls}${m.state === s ? ' stock-circle--on' : ''}`}
-                              onClick={() => handleMedState(m.id, s)}
-                            />
-                          ))}
-                        </div>
-                      </td>
-                      <td>
-                        {m.expiry ? t('health.expiryPrefix', { date: m.expiry }) : <span className="none-text">—</span>}
-                      </td>
-                      <td>
-                        {conflicts.length > 0 ? (
-                          <div className="conflict-tags">
-                            {conflicts.map((c) => (
-                              <span key={c} className="conflict-tag">
-                                {c}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="none-text">
-                            {substance ? t('health.noConflicts') : t('health.notSubstance')}
-                          </span>
-                        )}
-                      </td>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t('health.col.name')}</th>
+                      <th>{t('health.col.category')}</th>
+                      <th>{t('health.col.substance')}</th>
+                      <th>{t('health.col.state')}</th>
+                      <th>{t('health.col.conflicts')}</th>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {visibleMeds.map((m) => {
+                      const inter = interactions[m.medicineId] || []
+                      const substance = medSubstance(m, language)
+                      const hasSubstance = !!(m.substanceUk || m.substanceEn)
+                      return (
+                        <tr key={m.medicineId}>
+                          <td>{medName(m, language)}</td>
+                          <td>
+                            <span className="category-badge">{formName(m, language)}</span>
+                          </td>
+                          <td>{substance || <span className="none-text">—</span>}</td>
+                          <td>
+                            <div className="stock-toggle">
+                              {STOCK_TOGGLE.map(({ state: s, cls }) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  title={t(`food.state.${s}`)}
+                                  className={`stock-circle stock-circle--${cls}${m.state === s ? ' stock-circle--on' : ''}`}
+                                  onClick={() => handleMedState(m, s)}
+                                />
+                              ))}
+                            </div>
+                          </td>
+                          <td>
+                            {inter.length > 0 ? (
+                              <div className="conflict-tags">
+                                {inter.map((it, i) => (
+                                  <span
+                                    key={i}
+                                    className={`conflict-tag conflict-tag--${(it.level || 'unknown').toLowerCase()}`}
+                                    title={it.mechanism || ''}
+                                  >
+                                    {language === 'en' ? it.otherMedicineNameEn : it.otherMedicineNameUk}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="none-text">
+                                {hasSubstance ? t('health.noConflicts') : t('health.notSubstance')}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="health-disclaimer">{t('health.interactionsDisclaimer')}</p>
+            </>
+          )}
         </div>
       ) : (
         <div className="card">
@@ -301,39 +382,30 @@ export default function Health() {
           )}
 
           <ul className="condition-list">
-            {conditions.map((condition) => {
-              const rule = rules[condition.tagKey]
-              const enabled = rule?.enabled ?? false
-              const relation = rule?.relation ?? condition.defaultRelation
-              return (
-                <li key={condition.id} className="condition-row">
-                  <span className="condition-name">{conditionName(condition, language)}</span>
-                  {condition.affectsFood ? (
-                    <>
-                      <span className="condition-tag">{conditionTag(condition, language)}</span>
-                      <select
-                        className="rule-select"
-                        value={relation}
-                        disabled={!enabled}
-                        onChange={(e) => handleRelation(condition, e.target.value)}
-                      >
-                        <option value="Forbidden">{t('health.rule.forbidden')}</option>
-                        <option value="Avoid">{t('health.rule.avoid')}</option>
-                      </select>
-                      <label className="switch-wrap">
-                        <span className="switch-label">{t('health.affectsFood')}</span>
-                        <span className="switch">
-                          <input type="checkbox" checked={enabled} onChange={() => handleToggleRule(condition)} />
-                          <span className="switch-track" />
-                        </span>
-                      </label>
-                    </>
-                  ) : (
-                    <span className="none-text">{t('health.affectsNo')}</span>
-                  )}
-                </li>
-              )
-            })}
+            {conditions.map((condition) => (
+              <li key={condition.id} className="condition-row">
+                <span className="condition-name">{conditionName(condition, language)}</span>
+                {condition.affectsFood ? (
+                  <>
+                    <span className="condition-tag">{condition.tagKey}</span>
+                    <span className={`rule-badge rule-badge--${condition.relation === 'Forbidden' ? 'bad' : 'warn'}`}>
+                      {condition.relation === 'Forbidden' ? t('health.rule.forbidden') : t('health.rule.avoid')}
+                    </span>
+                  </>
+                ) : (
+                  <span className="none-text">{t('health.affectsNo')}</span>
+                )}
+                <button
+                  type="button"
+                  className="cond-remove"
+                  onClick={() => handleRemoveCondition(condition.id)}
+                  aria-label={t('common.delete')}
+                  data-tooltip={t('common.delete')}
+                >
+                  <Icon name="close" />
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -359,18 +431,26 @@ export default function Health() {
               className="drawer-search"
               placeholder={t('health.searchMed')}
               value={medSearch}
-              onChange={(e) => setMedSearch(e.target.value)}
+              onChange={(e) => handleMedSearch(e.target.value)}
             />
             <ul className="drawer-product-list">
-              {addableFiltered.map((m) => (
+              {searchResults.map((m) => (
                 <li key={m.id}>
-                  <span>{medName(m, language)}</span>
+                  <span>
+                    {medName(m, language)}
+                    {(m.substanceUk || m.substanceEn) && (
+                      <span className="drawer-sub"> · {medSubstance(m, language)}</span>
+                    )}
+                  </span>
                   <button type="button" className="pill" onClick={() => handleAddMed(m.id)}>
                     {t('health.add')}
                   </button>
                 </li>
               ))}
-              {addableFiltered.length === 0 && <li className="none-text">{t('health.addMedEmpty')}</li>}
+              {medSearch.trim().length < 2 && <li className="none-text">{t('health.searchHint')}</li>}
+              {medSearch.trim().length >= 2 && searchResults.length === 0 && (
+                <li className="none-text">{t('health.addMedEmpty')}</li>
+              )}
             </ul>
           </aside>
         </div>

@@ -22,7 +22,8 @@ public class TaskService
     public record TaskItemDto(
         int Id, string Title, string? Description, DateTime? StartDateTime,
         int? DurationMinutes, DateTime? Deadline, string Status, bool IsPinned,
-        bool IsVirtual, int? RecurrenceRuleId, bool Overlaps);
+        bool IsVirtual, int? RecurrenceRuleId, bool Overlaps,
+        string ModuleCode, string? SourceModule, int? SourceEntityId);
 
     public record FreeDayDto(DateOnly Date, bool IsFreeEnough);
 
@@ -36,7 +37,7 @@ public class TaskService
         int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
         int? IntervalDays,
         string? MonthDayMode, string? MonthDays, string? MonthDayTimesPattern,
-        List<RecurrenceExceptionDto> Exceptions, List<DateOnly> ManualDates);
+        List<RecurrenceExceptionDto> Exceptions, List<DateOnly> ManualDates, string ModuleCode);
 
     // ---- Розгортання повторень ----------------------------------------------------------
 
@@ -250,7 +251,7 @@ public class TaskService
 
         var dtos = oneTime.Select(t => new TaskItemDto(
             t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
-            t.Status, t.IsPinned, false, null, false)).ToList();
+            t.Status, t.IsPinned, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId)).ToList();
 
         var rules = await _db.RecurrenceRules
             .Include(r => r.Exceptions)
@@ -272,7 +273,8 @@ public class TaskService
                 {
                     dtos.Add(new TaskItemDto(
                         template.Id, template.Title, template.Description, dt, template.DurationMinutes,
-                        template.Deadline, "Planned", false, true, rule.Id, false));
+                        template.Deadline, "Planned", false, true, rule.Id, false,
+                        template.ModuleCode, template.SourceModule, template.SourceEntityId));
                 }
             }
         }
@@ -385,7 +387,7 @@ public class TaskService
 
         return tasks.Select(t => new TaskItemDto(
             t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
-            t.Status, t.IsPinned, false, null, false)).ToList();
+            t.Status, t.IsPinned, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId)).ToList();
     }
 
     public async Task<int> GetUnassignedCountAsync(int userId)
@@ -406,7 +408,7 @@ public class TaskService
 
         return tasks.Select(t => new TaskItemDto(
             t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
-            t.Status, t.IsPinned, false, null, false)).ToList();
+            t.Status, t.IsPinned, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId)).ToList();
     }
 
     public async Task<bool> ResolveTaskAsync(int userId, int taskId, string action)
@@ -427,8 +429,11 @@ public class TaskService
 
     // ---- CRUD одноразової задачі -----------------------------------------------------------
 
+    // moduleCode/sourceModule/sourceEntityId — опційні: за замовчуванням звичайна задача ("tasks"),
+    // але інші модулі (напр. "Запланувати похід у магазин") створюють задачу з посиланням на своє джерело.
     public async Task<TaskItem> CreateTaskAsync(
-        int userId, string title, string? description, DateTime? startDateTime, int? durationMinutes, DateTime? deadline)
+        int userId, string title, string? description, DateTime? startDateTime, int? durationMinutes, DateTime? deadline,
+        string moduleCode = "tasks", string? sourceModule = null, int? sourceEntityId = null)
     {
         var task = new TaskItem
         {
@@ -439,6 +444,9 @@ public class TaskService
             DurationMinutes = durationMinutes,
             Deadline = deadline,
             Status = startDateTime is null ? "Unassigned" : "Planned",
+            ModuleCode = moduleCode,
+            SourceModule = sourceModule,
+            SourceEntityId = sourceEntityId,
         };
         _db.Tasks.Add(task);
         await _db.SaveChangesAsync();
@@ -481,7 +489,7 @@ public class TaskService
         r.IntervalDays,
         r.MonthDayMode, r.MonthDays, r.MonthDayTimesPattern,
         r.Exceptions.Select(e => new RecurrenceExceptionDto(e.Id, e.Date, e.ExceptionType, e.NewDateTime)).ToList(),
-        r.ManualDates.Select(m => m.Date).OrderBy(d => d).ToList());
+        r.ManualDates.Select(m => m.Date).OrderBy(d => d).ToList(), t.ModuleCode);
 
     public async Task<List<RecurrenceRuleDto>> GetRecurrenceRulesAsync(int userId)
     {
@@ -503,7 +511,8 @@ public class TaskService
         int userId, string title, string? description, int? durationMinutes,
         string type, TimeOnly timeOfDay, DateOnly startDate, DateOnly? endDate,
         int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern, string? weekDayTimesPattern,
-        int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern)
+        int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern,
+        string moduleCode = "tasks")
     {
         var rule = new RecurrenceRule
         {
@@ -532,6 +541,7 @@ public class TaskService
             DurationMinutes = durationMinutes,
             StartDateTime = startDate.ToDateTime(timeOfDay),
             RecurrenceRuleId = rule.Id,
+            ModuleCode = moduleCode,
         };
         _db.Tasks.Add(template);
         await _db.SaveChangesAsync();

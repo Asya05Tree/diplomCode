@@ -1,2 +1,4 @@
 bin/
 obj/
+# Великі сирі датасети Phase 2 (ДРЛЗ, DDInter, USDA FDC) — не комітимо; куровані файли лежать у DataImport/
+seed-data/
