@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import NumberStepper from '../components/NumberStepper'
 import {
   SHOPPING_CATEGORIES,
   addShoppingItem,
@@ -87,11 +88,11 @@ export default function ShoppingList() {
             ))}
           </select>
         </label>
-        <input
-          type="number"
-          min="0"
+        <NumberStepper
+          className="shopping-list-price-input"
+          min={0}
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(v) => setPrice(v)}
           placeholder={t('shoppingList.priceLabel')}
         />
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>

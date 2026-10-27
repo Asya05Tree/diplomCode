@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import MonthGrid from '../components/planner/MonthGrid'
 import ModeSwitch from '../components/planner/ModeSwitch'
+import NumberStepper from '../components/NumberStepper'
 import DayView from '../components/planner/DayView'
 import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
@@ -109,12 +110,11 @@ export default function Planner() {
           <div className="planner-free-hours">
             <label>
               {t('planner.minFreeHours')}
-              <input
-                type="number"
-                min="1"
-                max="24"
+              <NumberStepper
+                min={1}
+                max={24}
                 value={minFreeHours}
-                onChange={(e) => setMinFreeHours(Math.min(24, Math.max(1, Number(e.target.value) || 1)))}
+                onChange={(v) => setMinFreeHours(Math.min(24, Math.max(1, Number(v) || 1)))}
               />
             </label>
           </div>

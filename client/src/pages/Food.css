@@ -169,32 +169,8 @@
   color: var(--st-warn);
 }
 
-.btn-accent {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--color-accent-gradient);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 9px 18px;
-  font-family: var(--font-heading);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-on-accent);
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
-}
-.btn-accent:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-accent);
-  filter: brightness(1.03);
-}
-.btn-accent:active {
-  transform: translateY(0);
-}
+/* .btn-accent — спільна утиліта з index.css (щоб стилі не дублювались і не перебивали
+   одне одного між сторінками). Тут лишаємо лише специфічні для їжі кнопки. */
 
 .btn-outline {
   background: transparent;
@@ -440,6 +416,13 @@
 .food-stock {
   display: flex;
   flex-direction: column;
+}
+
+.food-stock-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .stock-list {

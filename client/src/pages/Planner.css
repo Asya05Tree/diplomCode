@@ -28,10 +28,11 @@
   color: var(--color-text-muted);
 }
 
+.planner-free-hours .num-stepper {
+  width: 96px;
+}
 .planner-free-hours input {
-  width: 88px;
   text-align: center;
-  padding: 7px 6px 7px 10px;
   font-size: 0.9rem;
 }
 

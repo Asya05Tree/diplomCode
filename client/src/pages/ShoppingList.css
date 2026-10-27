@@ -32,8 +32,8 @@
   min-width: 160px;
 }
 
-.shopping-list-add input[type='number'] {
-  width: 120px;
+.shopping-list-add .shopping-list-price-input {
+  width: 140px;
 }
 
 .shopping-list-cat-field {

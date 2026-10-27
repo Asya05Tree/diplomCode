@@ -137,6 +137,21 @@ function AppContent() {
           path="/login"
           element={user ? <Navigate to="/app" replace /> : <Login onLoggedIn={handleAuthed} />}
         />
+        {/* TEMP-VERIFY */}
+        <Route path="/_v/food" element={<Food />} />
+        <Route path="/_v/shopping" element={<ShoppingList />} />
+        <Route path="/_v/todo" element={<ToDo />} />
+        <Route
+          path="/_v/shell"
+          element={
+            <div className="app-shell">
+              <Sidebar />
+              <main className="app-main">
+                <div className="app-content"><Planner /></div>
+              </main>
+            </div>
+          }
+        />
         <Route
           path="/app"
           element={

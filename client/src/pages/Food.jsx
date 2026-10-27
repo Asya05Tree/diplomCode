@@ -53,7 +53,9 @@ export default function Food() {
   const [addStockOpen, setAddStockOpen] = useState(false)
   const [stockSearch, setStockSearch] = useState('')
   // Дві вкладки розділу: "Страви" (стрічка рецептів, де обираються блюда) і "Запаси".
-  const [tab, setTab] = useState('dishes') // 'dishes' | 'stock'
+  const [tab, setTab] = useState('stock') // 'dishes' | 'stock'
+  // Фільтр запасів: 'all' або група зберігання продукту (овочі/молочне/бакалія...).
+  const [stockCat, setStockCat] = useState('all')
 
   // Спливне вікно готовки: { recipe, step: 'confirm'|'result', have: {productId: bool}, states: {productId: state} }
   const [cooking, setCooking] = useState(null)
@@ -71,9 +73,6 @@ export default function Food() {
     for (const recipe of RECIPES) map[recipe.id] = recipeHealthStatus(recipe, rules)
     return map
   }, [rules])
-
-  // Скільки страв сховано жорсткими обмеженнями — показуємо чесним рядком (§4.6).
-  const hiddenByHealth = RECIPES.filter((r) => health[r.id].forbidden).length
 
   const visibleRecipes = useMemo(() => {
     return RECIPES.filter((recipe) => {
@@ -162,6 +161,10 @@ export default function Food() {
 
   const favoriteRecipes = RECIPES.filter((r) => selected.includes(r.id))
   const stockRows = listStock(stockMap)
+  // Групи зберігання, наявні у поточних запасах — для вкладок "Все / за категоріями".
+  const stockGroups = [...new Set(stockRows.map((r) => r.product.storageGroup))]
+  const visibleStock =
+    stockCat === 'all' ? stockRows : stockRows.filter((r) => r.product.storageGroup === stockCat)
   const addable = listAddableProducts(stockMap).filter((p) =>
     productName(p, language).toLowerCase().includes(stockSearch.trim().toLowerCase()),
   )
@@ -241,12 +244,6 @@ export default function Food() {
             </button>
           </div>
 
-          {hiddenByHealth > 0 && (
-            <p className="food-health-note">
-              {t('food.hiddenByHealth', { count: hiddenByHealth })}
-            </p>
-          )}
-
           {visibleRecipes.length === 0 ? (
             <p className="placeholder-text">{t('food.emptyRecipes')}</p>
           ) : (
@@ -301,8 +298,27 @@ export default function Food() {
           <div className="section-title">
             <h3>{t('food.stockTitle')}</h3>
           </div>
+          <div className="food-stock-cats">
+            <button
+              type="button"
+              className={stockCat === 'all' ? 'pill pill--active' : 'pill'}
+              onClick={() => setStockCat('all')}
+            >
+              {t('food.filterAll')}
+            </button>
+            {stockGroups.map((g) => (
+              <button
+                key={g}
+                type="button"
+                className={stockCat === g ? 'pill pill--active' : 'pill'}
+                onClick={() => setStockCat(g)}
+              >
+                {t(`food.group.${g}`)}
+              </button>
+            ))}
+          </div>
           <ul className="stock-list">
-            {stockRows.map(({ product, state }) => {
+            {visibleStock.map(({ product, state }) => {
               const hs = productHealthStatus(product, rules)
               return (
               <li key={product.id} className="stock-row">
