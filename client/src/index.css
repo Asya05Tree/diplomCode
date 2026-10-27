@@ -1,12 +1,81 @@
-/* Кольори прив'язані до модуля (coding-guide.md §5): один колір — для іконки в меню,
-   картки задач, підсвітки в календарі. Тема (light/dark) — це той самий тон, інша яскравість. */
+/* ============================================================================
+   ШРИФТИ (self-hosted, client/public/fonts)
+   KARPATY — декоративний, лише логотип + великі заголовки.
+   e-Ukraine — основний текст (чудова кирилиця, UI-шрифт).
+   Montserrat — підзаголовки/акценти.
+   ========================================================================== */
+@font-face {
+  font-family: 'Karpaty';
+  src: url('/fonts/Karpaty.ttf') format('truetype');
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-Ukraine-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-Ukraine-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-Ukraine-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'e-Ukraine';
+  src: url('/fonts/e-Ukraine-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ============================================================================
+   КОЛЬОРИ / ТОКЕНИ
+   Кольори прив'язані до модуля (coding-guide.md §5): один колір — для іконки в меню,
+   картки задач, підсвітки в календарі. Тема (light/dark) — той самий тон, інша яскравість.
+   ========================================================================== */
 :root,
 .theme-light {
-  --color-bg: #fafafd;
+  --color-bg: #f6f7fb;
+  --color-bg-2: #eef0f7;
   --color-surface: #ffffff;
+  --color-surface-2: #f7f8fc;
   --color-text: #2b2b2b;
   --color-text-muted: #6b7280;
   --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
   --color-heading: #111827;
   /* Текст на заливці акцентом (пілюлі, кнопка логауту): акцентні кольори — пастельні
      й доволі світлі навіть у "насиченому" стилі, тож білий текст на них нечитаємий.
@@ -18,6 +87,11 @@
   --pill-bg-hover: #e9ebef;
   --pill-text: #374151;
   --swatch-label: #374151;
+  --tooltip-bg: #1f2430;
+  --tooltip-text: #f8fafc;
+  --scrollbar-thumb: #cbd0da;
+  --scrollbar-thumb-hover: #aeb4c2;
+  --shadow-color: 220 25% 20%;
 
   --color-tasks: #8fb8de;
   --color-food: #ffe8b8;
@@ -32,18 +106,26 @@
 
 .theme-dark {
   --color-bg: #18181b;
+  --color-bg-2: #1f1f23;
   --color-surface: #27272a;
+  --color-surface-2: #303036;
   --color-text: #efeae2;
   --color-text-muted: #a39d94;
   --color-border: #3f3f46;
+  --color-border-strong: #52525b;
   --color-heading: #f9fafb;
   --color-on-accent: #1f2937;
   --sidebar-bg: var(--color-surface);
-  --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
   --pill-bg: #3f3f46;
   --pill-bg-hover: #4b4b52;
   --pill-text: #e5e7eb;
   --swatch-label: #e5e7eb;
+  --tooltip-bg: #e5e7eb;
+  --tooltip-text: #18181b;
+  --scrollbar-thumb: #4b4b52;
+  --scrollbar-thumb-hover: #5e5e66;
+  --shadow-color: 0 0% 0%;
 
   /* Той самий відтінок, приглушений — не інший колір (coding-guide.md §5) */
   --color-tasks: #5f7f9e;
@@ -58,22 +140,21 @@
 }
 
 /* Налаштування → Акцент (planner-spec.md §3.1 AccentColor, §4.10): фон сторінки для
-   "непастельного" стилю задається явно (біле/чорне тло), пастельний лишає тло теми вище.
-   Текст поза кнопками/картками — завжди протилежний вибраній темі: пастельний стиль
-   дає м'який (не чистий) відтінок, насичений — справжній чорний/білий. */
+   "непастельного" стилю задається явно (біле/чорне тло), пастельний лишає тло теми вище. */
 .theme-light[data-style='vivid'] {
   --color-bg: #faf6f0;
+  --color-bg-2: #f1ebe2;
   --color-text: #111827;
 }
 
 .theme-dark[data-style='vivid'] {
   --color-bg: #161b22;
+  --color-bg-2: #1c222b;
   --color-text: #f9fafb;
 }
 
 /* AccentColor — загальний акцент інтерфейсу (кнопки, активні елементи), окремо від
-   кольорів модулів вище (coding-guide.md §5). Не залежить від light/dark, лише від
-   обраної палітри (5 варіантів з Налаштувань) та стилю (пастельний/непастельний). */
+   кольорів модулів вище. Не залежить від light/dark, лише від обраної палітри + стилю. */
 [data-palette='ocean'][data-style='pastel'] {
   --color-accent: #b3e5fc;
   --color-accent-2: #c5cae9;
@@ -117,22 +198,60 @@
 
 :root {
   --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+  /* М'яка версія акценту під підсвітки/ховери — читається на будь-якому фоні */
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  --color-accent-ring: color-mix(in srgb, var(--color-accent) 55%, transparent);
+
+  /* Шрифти */
+  --font-display: 'Karpaty', 'Montserrat', 'e-Ukraine', sans-serif;
+  --font-heading: 'Montserrat', 'e-Ukraine', system-ui, sans-serif;
+  --font-body: 'e-Ukraine', 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Радіуси */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  /* Тіні (через hsl shadow-color, щоб у темній темі були щільніші) */
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.08);
+  --shadow-md: 0 4px 16px hsl(var(--shadow-color) / 0.1);
+  --shadow-lg: 0 12px 32px hsl(var(--shadow-color) / 0.14);
+  --shadow-accent: 0 6px 18px color-mix(in srgb, var(--color-accent) 40%, transparent);
+
+  /* Переходи */
+  --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
+/* ============================================================================
+   БАЗА
+   ========================================================================== */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
   background: var(--color-bg);
   color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Клас теми сидить на внутрішньому div (App.jsx), а не на <body> — самі лише CSS-змінні
-   вище не фарбують нічого, тож без цього правила в темній темі крізь прогалини
-   (там, де немає картки з власним фоном) просвічував би світлий фон <body>. */
+/* Клас теми сидить на внутрішньому div (App.jsx), а не на <body> — тому фарбуємо і його,
+   інакше крізь прогалини просвічував би дефолтний фон <body>. */
 .theme-light,
 .theme-dark {
   background: var(--color-bg);
@@ -143,16 +262,343 @@ body {
   min-height: 100vh;
 }
 
-/* Спільні утиліти — використовуються на кількох сторінках (Planner, Login/Register, Landing),
-   тому живуть тут, а не в CSS однієї конкретної сторінки */
+/* Заголовки */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  color: var(--color-heading);
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+p {
+  margin: 0 0 0.75em;
+}
+
+a {
+  color: color-mix(in srgb, var(--color-accent) 70%, var(--color-text));
+  text-decoration: none;
+  transition: color var(--transition), opacity var(--transition);
+}
+a:hover {
+  opacity: 0.8;
+}
+
+/* Форми: єдині дефолти, сторінки за потреби перекривають */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+input,
+select,
+textarea {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+input:hover:not(:disabled),
+select:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+/* Видима фокус-обводка для клавіатурної навігації */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Виділення тексту */
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-heading);
+}
+
+/* Скролбари */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+/* ============================================================================
+   СПІЛЬНІ УТИЛІТИ
+   ========================================================================== */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
 }
 
 .placeholder-text {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+/* Кнопка-акцент (основна дія) — спільний клас для всіх сторінок */
+.btn,
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.btn:hover:not(:disabled),
+.btn-accent:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  filter: brightness(1.03);
+}
+.btn:active:not(:disabled),
+.btn-accent:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Другорядна кнопка (пілюля) */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 0.92rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--pill-bg-hover);
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+
+/* Пілюля-бейдж */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   ІКОНКИ (Icon.jsx)
+   ========================================================================== */
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: -0.2em;
+  stroke-width: 1.7;
+}
+
+/* ============================================================================
+   ТУЛТИПИ (підказки при наведенні) — чистий CSS, без JS
+   Використання: додати атрибут data-tooltip="текст" на будь-який елемент.
+   data-tooltip-pos="bottom|left|right" — змінити бік (за замовчуванням зверху).
+   ========================================================================== */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::after,
+[data-tooltip]::before {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition);
+  z-index: 60;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+[data-tooltip]::before {
+  content: '';
+  left: 50%;
+  bottom: calc(100% + 3px);
+  transform: translateX(-50%) translateY(4px);
+  border: 5px solid transparent;
+  border-top-color: var(--tooltip-bg);
+}
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::after,
+[data-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Тултип знизу */
+[data-tooltip-pos='bottom']::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+[data-tooltip-pos='bottom']::before {
+  bottom: auto;
+  top: calc(100% + 3px);
+  border-top-color: transparent;
+  border-bottom-color: var(--tooltip-bg);
+}
+
+/* ============================================================================
+   АНІМАЦІЇ
+   ========================================================================== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.anim-fade-in-up {
+  animation: fade-in-up var(--transition-slow) both;
+}
+.anim-fade-in {
+  animation: fade-in var(--transition-slow) both;
+}
+.anim-pop {
+  animation: pop-in var(--transition-slow) both;
+}
+
+/* Поважаємо системне прохання про зменшення руху */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
