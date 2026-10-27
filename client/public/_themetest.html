@@ -64,7 +64,9 @@
         const acc = getComputedStyle(c).getPropertyValue('--color-accent')
         const d = document.createElement('div')
         d.style.cssText = 'font:11px monospace;color:var(--color-text);margin-top:8px;word-break:break-all'
-        d.textContent = `--color-accent:[${acc}] bgImg:${cs.backgroundImage.slice(0,60)} onAcc:${getComputedStyle(c).getPropertyValue('--color-on-accent')}`
+        const acc2 = getComputedStyle(c).getPropertyValue('--color-accent-2')
+        const grad = getComputedStyle(c).getPropertyValue('--color-accent-gradient')
+        d.textContent = `acc:[${acc}] acc2:[${acc2}] grad:[${grad.slice(0,40)}] bgImg:${cs.backgroundImage.slice(0,40)}`
         c.appendChild(d)
       })
     </script>
