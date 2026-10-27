@@ -222,6 +222,55 @@
   --color-accent-strong: color-mix(in srgb, var(--color-accent) 70%, var(--color-heading));
   /* Заливка-підкладка під акцентні зони (активні вкладки на світлому, бейджі) */
   --color-accent-tint: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  /* Тінь під текст/іконки, що лежать на акцентній заливці — потрібна лише для насиченого
+     стилю (градієнти темні/контрастні); у пастелі текст темний на світлому, тінь зайва. */
+  --on-accent-shadow: none;
+}
+
+/* Читабельний текст НА акценті залежить від стилю, а не від теми: пастельні заливки світлі
+   (треба темний текст), насичені — контрастні (треба білий + легка тінь). Раніше on-accent
+   був завжди темний, тож на насичених градієнтах (ocean/lavender vivid) текст/іконки зливались. */
+[data-style='pastel'] {
+  --color-on-accent: #20262f;
+  --on-accent-shadow: none;
+}
+[data-style='vivid'] {
+  --color-on-accent: #ffffff;
+  --on-accent-shadow: 0 1px 2px rgba(0, 0, 0, 0.32);
+}
+/* Зелений насичений — найсвітліший градієнт, білий на ньому слабкий; беремо темно-зелений */
+[data-palette='green'][data-style='vivid'] {
+  --color-on-accent: #16310a;
+  --on-accent-shadow: none;
+}
+
+/* Увесь інтерфейс (тло сторінки, сайдбар, картки, пілюлі, рамки) тонується обраною палітрою,
+   щоб хедер/сайдбар/тіло читались як одне ціле, а не різнобій нейтральних кольорів. Тонування
+   різне для світлої/темної теми (різні нейтральні бази), тому два блоки з вищою специфічністю
+   (.theme-*[data-palette] = 0,2,0), ніж прості блоки тем — і стоять ПІСЛЯ них у джерелі. */
+.theme-light[data-palette] {
+  --color-bg: color-mix(in srgb, var(--color-accent) 7%, #f7f6fa);
+  --color-bg-2: color-mix(in srgb, var(--color-accent) 13%, #eceef5);
+  --color-surface: color-mix(in srgb, var(--color-accent) 4%, #ffffff);
+  --color-surface-2: color-mix(in srgb, var(--color-accent) 9%, #f6f7fc);
+  --color-border: color-mix(in srgb, var(--color-accent) 22%, #e5e7eb);
+  --color-border-strong: color-mix(in srgb, var(--color-accent) 34%, #d1d5db);
+  --sidebar-bg: color-mix(in srgb, var(--color-accent) 11%, #ffffff);
+  --sidebar-hover: var(--color-accent-soft);
+  --pill-bg: color-mix(in srgb, var(--color-accent) 14%, #f1f2f6);
+  --pill-bg-hover: color-mix(in srgb, var(--color-accent) 24%, #f1f2f6);
+}
+.theme-dark[data-palette] {
+  --color-bg: color-mix(in srgb, var(--color-accent) 10%, #161619);
+  --color-bg-2: color-mix(in srgb, var(--color-accent) 14%, #1e1e22);
+  --color-surface: color-mix(in srgb, var(--color-accent) 11%, #26262a);
+  --color-surface-2: color-mix(in srgb, var(--color-accent) 15%, #2f2f35);
+  --color-border: color-mix(in srgb, var(--color-accent) 20%, #3f3f46);
+  --color-border-strong: color-mix(in srgb, var(--color-accent) 30%, #52525b);
+  --sidebar-bg: color-mix(in srgb, var(--color-accent) 13%, #1d1d21);
+  --sidebar-hover: var(--color-accent-soft);
+  --pill-bg: color-mix(in srgb, var(--color-accent) 16%, #3a3a41);
+  --pill-bg-hover: color-mix(in srgb, var(--color-accent) 26%, #3a3a41);
 }
 
 :root {
