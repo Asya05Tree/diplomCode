@@ -1,6 +1,7 @@
 .unassigned-list {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .unassigned-row {
@@ -9,12 +10,13 @@
 }
 
 .unassigned-row--urgent {
-  background: color-mix(in srgb, #c0524a 12%, transparent);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 .unassigned-deadline {
   font-size: 0.78rem;
-  color: #c0524a;
+  font-weight: 500;
+  color: var(--color-danger);
   padding: 0 0 6px 56px;
 }

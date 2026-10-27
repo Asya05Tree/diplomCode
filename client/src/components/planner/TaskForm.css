@@ -1,27 +1,28 @@
 .task-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  animation: fade-in-up var(--transition-slow) both;
 }
 
 .task-form label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   font-size: 0.85rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
 .task-form input,
 .task-form select,
 .task-form textarea {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 0.9rem;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: inherit;
+  padding: 8px 11px;
+  font-size: 0.92rem;
 }
 
 .task-form-when {
@@ -33,6 +34,7 @@
 
 .task-form-when-label {
   font-size: 0.85rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
@@ -43,6 +45,13 @@
   gap: 6px !important;
   color: var(--color-text) !important;
   font-size: 0.9rem !important;
+  cursor: pointer;
+}
+
+.task-form-radio input,
+.task-form-checkbox input {
+  accent-color: var(--color-accent);
+  width: auto;
 }
 
 .task-form-row {
@@ -61,29 +70,38 @@
   flex-direction: column;
   gap: 6px;
   font-size: 0.85rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
 .task-form-weekdays-list {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .task-form-weekday {
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 8px;
-  width: 34px;
-  height: 30px;
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 32px;
   cursor: pointer;
   font-size: 0.8rem;
+  font-weight: 500;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.task-form-weekday:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
 .task-form-weekday--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   border-color: transparent;
+  font-weight: 600;
 }
 
 .task-form-hint {
@@ -92,7 +110,10 @@
 }
 
 .task-form-error {
-  color: #c0524a;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+  padding: 7px 11px;
   font-size: 0.85rem;
   margin: 0;
 }
@@ -106,12 +127,20 @@
 .task-form-submit {
   background: var(--color-accent-gradient);
   border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  padding: 9px 18px;
+  font-family: var(--font-heading);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--color-on-accent);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.task-form-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  filter: brightness(1.03);
 }
 
 .task-form-cancel {
@@ -119,6 +148,10 @@
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   text-decoration: underline;
+  transition: color var(--transition);
+}
+.task-form-cancel:hover {
+  color: var(--color-text);
 }

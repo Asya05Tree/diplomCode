@@ -1,17 +1,12 @@
-/* Розділ "Фінанси" (planner-spec.md §3.6). Базується на макеті
-   mockups/finance-variants/variant-1 (баланс зверху, нижче вкладки
-   Категорії / Історія / Статистика), але вкладки — на React-стані, а не на
-   CSS-хаку. Кольори статусів і категорій scoped на .finance-page, щоб не
-   засмічувати глобальні змінні теми (index.css). */
+/* Розділ "Фінанси" (planner-spec.md §3.6). Баланс зверху, нижче вкладки
+   Категорії / Історія / Статистика на React-стані. Кольори категорій scoped на
+   .finance-page; статуси — через спільні токени --color-success / --color-danger. */
 
 .finance-page {
-  padding: 24px;
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 18px;
-
-  --status-ok-text: #1f8a4c;
-  --status-bad-text: #d1453c;
 
   --cat-color-1: #ffd9b3;
   --cat-color-2: #c9ead3;
@@ -25,6 +20,8 @@
 
 .finance-page h2 {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
 .finance-page h3 {
@@ -44,11 +41,11 @@
   font-size: 0.78rem;
   color: var(--color-text-muted);
   background: var(--pill-bg);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 6px 10px;
 }
 
-/* --- Баланс: усе ще поле ручного введення (інші модулі лише читають його) --- */
+/* --- Баланс --- */
 .finance-balance-field {
   display: flex;
   flex-direction: column;
@@ -58,6 +55,8 @@
 
 .kpi-label {
   font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
 
@@ -69,14 +68,9 @@
 
 .finance-money-field input {
   width: 160px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 1.2rem;
-  font-weight: 600;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 10px 14px;
 }
 
 .finance-money-currency {
@@ -84,19 +78,20 @@
   color: var(--color-text-muted);
 }
 
-/* --- Вкладки (Категорії / Історія / Статистика) --- */
+/* --- Вкладки --- */
 .finance-tabs-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 28px;
+  gap: clamp(16px, 4vw, 28px);
   border-bottom: 1px solid var(--color-border);
 }
 
 .finance-tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 2px;
+  gap: 7px;
+  padding: 10px 2px;
+  font-family: var(--font-heading);
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--color-text-muted);
@@ -104,7 +99,16 @@
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.finance-tab-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.finance-tab-btn:hover {
+  color: var(--color-heading);
 }
 
 .finance-tab-btn--active {
@@ -129,13 +133,13 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--color-text-muted);
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 
 .data-table td {
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
@@ -144,8 +148,16 @@
   border-bottom: none;
 }
 
+.data-table tbody tr {
+  transition: background var(--transition);
+}
+
 .data-table tbody tr:nth-child(odd) {
-  background: var(--color-bg);
+  background: var(--color-surface-2);
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-accent-soft);
 }
 
 .none-text {
@@ -181,18 +193,13 @@
   text-align: center;
 }
 
-.amount-sign--income { color: var(--status-ok-text); }
-.amount-sign--expense { color: var(--status-bad-text); }
+.amount-sign--income { color: var(--color-success); }
+.amount-sign--expense { color: var(--color-danger); }
 
 .amount-input input {
-  width: 90px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 5px 8px;
+  width: 92px;
+  padding: 6px 8px;
   font-size: 0.86rem;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: inherit;
 }
 
 .amount-unit {
@@ -207,29 +214,32 @@
   white-space: nowrap;
 }
 
-.txn-amount--income { color: var(--status-ok-text); }
-.txn-amount--expense { color: var(--status-bad-text); }
+.txn-amount--income { color: var(--color-success); }
+.txn-amount--expense { color: var(--color-danger); }
 
-/* --- Статистика: стовпчиковий графік тижневих витрат --- */
+/* --- Статистика: стовпчиковий графік --- */
 .week-chart-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 14px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 5px 13px;
+  border-radius: var(--radius-pill);
   background: var(--pill-bg);
   color: var(--pill-text);
   font-size: 0.85rem;
   border: none;
+}
+.pill .icon {
+  width: 16px;
+  height: 16px;
 }
 
 .week-chart-row {
@@ -247,15 +257,15 @@
   border-right: 1px solid var(--color-border);
   font-size: 0.7rem;
   color: var(--color-text-muted);
-  height: 120px;
+  height: 140px;
   flex-shrink: 0;
 }
 
 .week-chart {
   display: flex;
   align-items: flex-end;
-  gap: 18px;
-  height: 120px;
+  gap: clamp(10px, 3vw, 18px);
+  height: 140px;
   flex: 1;
 }
 
@@ -277,10 +287,26 @@
 
 .week-chart-bar {
   width: 100%;
-  max-width: 42px;
+  max-width: 44px;
   min-height: 4px;
-  border-radius: 6px 6px 0 0;
+  border-radius: 8px 8px 0 0;
   background: var(--color-accent-gradient);
+  box-shadow: var(--shadow-sm);
+  transform-origin: bottom;
+  animation: bar-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  transition: filter var(--transition);
+}
+.week-chart-col:hover .week-chart-bar {
+  filter: brightness(1.06);
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
 
 .week-chart-label {
@@ -294,14 +320,23 @@
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--color-border);
   font-size: 0.86rem;
   color: var(--color-text-muted);
 }
 
 .week-chart-avg strong {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--color-heading);
+}
+
+@media (max-width: 520px) {
+  .finance-money-field input {
+    width: 100%;
+  }
+  .finance-balance-field {
+    max-width: none;
+  }
 }

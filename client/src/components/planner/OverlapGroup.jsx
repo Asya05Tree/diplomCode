@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import { formatTime, fromApiDateTime } from '../../utils/date'
+import Icon from '../Icon'
 import './OverlapGroup.css'
 
 // Кілька задач на точно один час (§4.4) — замість плоского списку з позначкою "накладається"
@@ -14,8 +15,14 @@ export default function OverlapGroup({ tasks, renderItem }) {
     <div className="overlap-group">
       <button type="button" className="overlap-group-summary" onClick={() => setOpen((o) => !o)}>
         <span className="task-item-time">{time}</span>
-        <span className="overlap-group-count">⚠ {t('planner.overlapBadge')} · {t('planner.overlapCount', { count: tasks.length })}</span>
-        <span className="overlap-group-chevron">{open ? '▾' : '▸'}</span>
+        <span className="overlap-group-count">
+          <Icon name="warning" />
+          {t('planner.overlapBadge')} · {t('planner.overlapCount', { count: tasks.length })}
+        </span>
+        <Icon
+          name="chevron-right"
+          className={open ? 'overlap-group-chevron overlap-group-chevron--open' : 'overlap-group-chevron'}
+        />
       </button>
       {open && <div className="overlap-group-list">{tasks.map((task) => renderItem(task))}</div>}
     </div>

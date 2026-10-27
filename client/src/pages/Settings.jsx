@@ -1,6 +1,7 @@
 import { useOutletContext } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { PALETTES, PALETTE_COLORS } from '../utils/settings'
+import Icon from '../components/Icon'
 import './Settings.css'
 
 // Налаштування (planner-spec.md §4.10): мова, тема, акцентна палітра й вихід з акаунта.
@@ -41,6 +42,7 @@ export default function Settings() {
               className={themeMode === mode ? 'settings-option settings-option--active' : 'settings-option'}
               onClick={() => onSetThemeMode(mode)}
             >
+              <Icon name={mode === 'light' ? 'sun' : 'moon'} />
               {t(`settings.theme.${mode}`)}
             </button>
           ))}
@@ -93,6 +95,7 @@ export default function Settings() {
       <section className="settings-section">
         <h3>{t('settings.logoutSection')}</h3>
         <button type="button" className="settings-logout" onClick={onLogout}>
+          <Icon name="arrow-right" />
           {t('settings.logoutButton')}
         </button>
       </section>

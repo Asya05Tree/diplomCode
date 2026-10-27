@@ -1,5 +1,6 @@
 import { useI18n } from '../../i18n'
 import { getMonthGridCells, isSameDate, toApiDate } from '../../utils/date'
+import Icon from '../Icon'
 import './MonthGrid.css'
 
 const LOCALE_BY_LANGUAGE = { uk: 'uk-UA', en: 'en-US' }
@@ -24,12 +25,24 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
   return (
     <div className="month-grid">
       <div className="month-grid-header">
-        <button type="button" onClick={() => onMonthChange(new Date(year, month - 1, 1))} aria-label="prev-month">
-          ‹
+        <button
+          type="button"
+          className="month-grid-nav"
+          onClick={() => onMonthChange(new Date(year, month - 1, 1))}
+          aria-label="prev-month"
+          data-tooltip="Попередній місяць"
+        >
+          <Icon name="chevron-left" />
         </button>
         <span className="month-grid-title">{monthLabel}</span>
-        <button type="button" onClick={() => onMonthChange(new Date(year, month + 1, 1))} aria-label="next-month">
-          ›
+        <button
+          type="button"
+          className="month-grid-nav"
+          onClick={() => onMonthChange(new Date(year, month + 1, 1))}
+          aria-label="next-month"
+          data-tooltip="Наступний місяць"
+        >
+          <Icon name="chevron-right" />
         </button>
       </div>
 

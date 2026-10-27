@@ -218,6 +218,7 @@ export default function Landing() {
     <div className="landing">
       <header className="landing-header">
         <img src="/images/logo1.png" alt="Logo" className="landing-logo" />
+        <span className="landing-brand">Всетута</span>
       </header>
 
       <div className="landing-auth">

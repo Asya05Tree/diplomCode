@@ -1,12 +1,27 @@
 .shopping-task-tabs {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+}
+
+.shopping-task-tabs .landing-tabs-bar {
+  justify-content: center;
 }
 
 .shopping-task-list,
 .shopping-task-options {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  animation: fade-in 0.25s ease both;
+}
+
+/* Список покупок усередині задачі — не розтягує картку задачі безмежно */
+.shopping-task-list .landing-price-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.shopping-task-options .landing-panel-title {
+  font-family: var(--font-heading);
 }

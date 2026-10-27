@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
+import Icon from '../components/Icon'
 import {
   SHOPPING_CATEGORIES,
   addShoppingItem,
@@ -63,7 +64,7 @@ export default function ShoppingList() {
 
   return (
     <div className="shopping-list-page">
-      <h2>{t('shoppingList.title')}</h2>
+      <h2 className="shopping-list-title"><Icon name="cart" /> {t('shoppingList.title')}</h2>
 
       <form className="shopping-list-add card" onSubmit={handleAdd}>
         <input
@@ -78,7 +79,7 @@ export default function ShoppingList() {
           onChange={(e) => setPrice(e.target.value)}
           placeholder={t('shoppingList.priceLabel')}
         />
-        <button type="submit">{t('shoppingList.addButton')}</button>
+        <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
       </form>
 
       {items.length === 0 ? (
@@ -117,10 +118,12 @@ export default function ShoppingList() {
                     </select>
                     <button
                       type="button"
-                      className="task-item-action task-item-action--danger"
+                      className="shopping-list-del"
                       onClick={() => handleDelete(item.id)}
+                      aria-label={t('planner.actionDelete')}
+                      data-tooltip={t('planner.actionDelete')}
                     >
-                      {t('planner.actionDelete')}
+                      <Icon name="trash" />
                     </button>
                   </li>
                 ))}

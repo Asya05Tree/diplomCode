@@ -1,5 +1,6 @@
 import { useI18n } from '../../i18n'
 import { formatTime, fromApiDateTime } from '../../utils/date'
+import Icon from '../Icon'
 import './TaskItem.css'
 
 // Рядок задачі — спільний для Дня/Періоду/Нерозподілених. Набір кнопок задає той, хто рендерить
@@ -15,7 +16,9 @@ export default function TaskItem({ task, actions = [] }) {
       <div className="task-item-body">
         <span className="task-item-title">
           {task.isVirtual && (
-            <span className="task-item-recurring-icon" title={t('planner.modeRecurring')}>↻</span>
+            <span className="task-item-recurring-icon" data-tooltip={t('planner.modeRecurring')}>
+              <Icon name="recurring" title={t('planner.modeRecurring')} />
+            </span>
           )}
           {task.title}
         </span>

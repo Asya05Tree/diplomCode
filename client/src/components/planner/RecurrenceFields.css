@@ -14,17 +14,23 @@
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text-muted);
-  border-radius: 999px;
-  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  padding: 6px 15px;
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.recurrence-type-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
 }
 
 .recurrence-type-btn--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   border-color: transparent;
+  font-weight: 600;
 }
 
 .recurrence-week-cycle {
@@ -49,6 +55,7 @@
   width: 84px;
   flex-shrink: 0;
   font-size: 0.8rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
@@ -67,13 +74,8 @@
 .recurrence-weekday-time {
   width: 112px;
   flex-shrink: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 4px 6px;
+  padding: 5px 7px;
   font-size: 0.85rem;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: inherit;
 }
 
 .recurrence-time-mode-row {
@@ -85,7 +87,7 @@
 .recurrence-time-mode-label {
   font-size: 0.82rem;
   color: var(--color-text-muted);
-  transition: color 0.2s ease, font-weight 0.2s ease;
+  transition: color var(--transition);
 }
 
 .recurrence-time-mode-label--active {
@@ -99,11 +101,11 @@
   height: 22px;
   flex-shrink: 0;
   border: none;
-  border-radius: 999px;
-  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
   cursor: pointer;
   padding: 2px;
-  transition: background-color 0.2s ease;
+  transition: background var(--transition);
 }
 
 .recurrence-switch--on {
@@ -115,9 +117,9 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--color-surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition);
 }
 
 .recurrence-switch--on .recurrence-switch-knob {
@@ -144,20 +146,27 @@
 
 .recurrence-month-cell {
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.recurrence-month-cell:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
 .recurrence-month-cell--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   border-color: transparent;
+  font-weight: 600;
 }
 
 .recurrence-hint {

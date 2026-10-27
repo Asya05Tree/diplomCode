@@ -8,7 +8,7 @@
 
 .settings-page > h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: clamp(1.6rem, 3.5vw, 2.1rem);
   font-weight: 700;
   color: var(--color-heading);
 }
@@ -18,9 +18,13 @@
 .settings-section {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   padding: 20px 22px;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.settings-section:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .settings-section h3 {
@@ -39,29 +43,39 @@
 }
 
 .settings-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   border: none;
   background: var(--pill-bg);
   color: var(--pill-text);
-  border-radius: 999px;
-  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  min-height: 42px;
+  font-family: var(--font-heading);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   /* Без "background" у transition: активний стан заливається градієнтом, а градієнт
      (background-image) браузер не вміє плавно інтерполювати — спроба анімувати його
      саме й читалась як "лагає"/блимає. Колір тексту й тінь лишаються плавними. */
-  transition: color 0.15s ease, box-shadow 0.15s ease;
+  transition: color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.settings-option .icon {
+  width: 17px;
+  height: 17px;
 }
 
 .settings-option:hover {
   background: var(--pill-bg-hover);
+  transform: translateY(-1px);
 }
 
 .settings-option--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   font-weight: 600;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .settings-option--active:hover {
@@ -116,13 +130,27 @@
 }
 
 .settings-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  padding: 11px 22px;
+  font-family: var(--font-heading);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.settings-logout .icon {
+  width: 18px;
+  height: 18px;
+}
+.settings-logout:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  filter: brightness(1.03);
 }

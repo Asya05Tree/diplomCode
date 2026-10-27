@@ -92,6 +92,9 @@
   --scrollbar-thumb: #cbd0da;
   --scrollbar-thumb-hover: #aeb4c2;
   --shadow-color: 220 25% 20%;
+  --color-danger: #d6453c;
+  --color-danger-soft: #fdecea;
+  --color-success: #2f9e63;
 
   --color-tasks: #8fb8de;
   --color-food: #ffe8b8;
@@ -126,6 +129,9 @@
   --scrollbar-thumb: #4b4b52;
   --scrollbar-thumb-hover: #5e5e66;
   --shadow-color: 0 0% 0%;
+  --color-danger: #f0756b;
+  --color-danger-soft: color-mix(in srgb, #f0756b 18%, var(--color-surface));
+  --color-success: #5cc98c;
 
   /* Той самий відтінок, приглушений — не інший колір (coding-guide.md §5) */
   --color-tasks: #5f7f9e;

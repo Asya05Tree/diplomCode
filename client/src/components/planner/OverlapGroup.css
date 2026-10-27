@@ -5,37 +5,53 @@
   width: 100%;
   background: none;
   border: none;
-  border-top: 1px solid var(--color-border);
-  padding: 8px 0;
-  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  font-size: 0.92rem;
   color: inherit;
   cursor: pointer;
   text-align: left;
+  transition: background var(--transition);
 }
 
-.overlap-group:first-child .overlap-group-summary {
-  border-top: none;
+.overlap-group + .overlap-group .overlap-group-summary {
+  border-top: 1px solid var(--color-border);
+}
+
+.overlap-group-summary:hover {
+  background: var(--color-surface-2);
 }
 
 .overlap-group-count {
   flex: 1;
-  color: #c0524a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-danger);
   font-size: 0.85rem;
+  font-weight: 500;
+}
+.overlap-group-count .icon {
+  width: 16px;
+  height: 16px;
 }
 
 .overlap-group-chevron {
+  width: 16px;
+  height: 16px;
   color: var(--color-text-muted);
   flex-shrink: 0;
+  transition: transform var(--transition);
+}
+.overlap-group-chevron--open {
+  transform: rotate(90deg);
 }
 
 .overlap-group-list {
   display: flex;
   flex-direction: column;
-  padding-left: 16px;
-  margin-left: 22px;
+  padding-left: 14px;
+  margin-left: 24px;
   border-left: 2px solid var(--color-border);
-}
-
-.overlap-group-list .task-item:first-child {
-  border-top: none;
+  animation: fade-in var(--transition) both;
 }

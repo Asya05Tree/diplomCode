@@ -9,28 +9,28 @@
   gap: 18px;
   flex-wrap: wrap;
   align-items: center;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
 }
 
-/* Підпис З/По ліворуч, дата — одразу праворуч від нього (не під ним) */
+/* Підпис З/По ліворуч, дата — одразу праворуч від нього */
 .period-view-controls label {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
 .period-view-controls input {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 0.85rem;
-  background: var(--color-bg);
-  color: var(--color-text);
+  padding: 6px 9px;
+  font-size: 0.86rem;
 }
 
-/* Пояснення обмеження — завжди праворуч від обох полів */
 .period-view-hint {
   font-size: 0.78rem;
   color: var(--color-text-muted);
@@ -38,13 +38,20 @@
 }
 
 .period-view-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .period-view-group-date {
-  font-size: 0.8rem;
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: capitalize;
-  padding: 6px 0 2px;
+  padding: 8px 0 4px;
+}
+
+@media (max-width: 520px) {
+  .period-view-hint {
+    margin-left: 0;
+  }
 }

@@ -5,17 +5,32 @@
 }
 
 .landing-header {
-  height: 60px;
+  height: 66px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 0 clamp(16px, 4vw, 24px);
+  gap: 12px;
+  padding: 0 clamp(16px, 4vw, 28px);
   border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .landing-logo {
   height: 44px;
   width: auto;
+  border-radius: 10px;
+}
+
+.landing-brand {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--color-heading);
+  letter-spacing: 0.02em;
 }
 
 .landing-auth {
@@ -69,15 +84,20 @@
   position: relative;
   z-index: 2;
   margin-bottom: -16px;
-  padding: 2px 12px;
-  border-radius: 8px;
-  background: var(--color-surface);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  padding: 4px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-gradient);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-heading);
   font-size: clamp(0.95rem, 2.4vw, 1.15rem);
   font-weight: 600;
-  color: var(--color-text);
-  transition: font-size 0.4s ease-out;
+  color: var(--color-on-accent);
+  transition: font-size 0.4s ease-out, box-shadow var(--transition);
   white-space: nowrap;
+}
+
+.landing-choice:hover .landing-choice-label {
+  box-shadow: var(--shadow-accent);
 }
 
 .landing-choice:hover .landing-choice-label {
@@ -101,6 +121,11 @@
   display: flex;
   flex-direction: column;
   gap: clamp(16px, 3vw, 24px);
+  animation: fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.landing-panel.card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .landing-demo-heading {
@@ -130,19 +155,27 @@
 
 .landing-tab {
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text-muted);
-  border-radius: 999px;
-  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  padding: 7px 18px;
+  font-family: var(--font-heading);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition),
+    transform var(--transition);
 }
 
-.landing-tab--active {
-  background: var(--color-food);
-  color: var(--color-text);
+.landing-tab:hover {
+  background: var(--pill-bg-hover);
+  transform: translateY(-1px);
+}
+
+.landing-tab--active,
+.landing-tab--active:hover {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border-color: transparent;
 }
 
@@ -188,9 +221,15 @@
   align-items: center;
   gap: 8px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  background: var(--color-surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.landing-money-field:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
 }
 
 .landing-money-field input {
@@ -383,17 +422,26 @@
 
 .landing-weekday {
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 8px;
-  width: 38px;
-  height: 34px;
+  border-radius: var(--radius-sm);
+  width: 40px;
+  height: 38px;
+  font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
 }
 
-.landing-weekday--active {
-  background: var(--color-study);
+.landing-weekday:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.landing-weekday--active,
+.landing-weekday--active:hover {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
   border-color: transparent;
 }
 

@@ -12,20 +12,36 @@
 }
 
 .day-view-date {
+  font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 1rem;
-  color: var(--color-text);
+  font-size: 1.05rem;
+  color: var(--color-heading);
   text-transform: capitalize;
 }
 
 .day-view-add {
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  color: var(--color-text);
-  border-radius: 8px;
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-family: var(--font-heading);
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.day-view-add:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  filter: brightness(1.03);
+}
+.day-view-add:active {
+  transform: translateY(0);
 }
 
 .day-view-list {

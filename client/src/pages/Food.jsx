@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
+import Icon from '../components/Icon'
 import { getFinanceBalance } from '../utils/finance'
 import { addShoppingItem } from '../utils/shoppingList'
 import {
@@ -211,7 +212,7 @@ export default function Food() {
               </span>
             </div>
             <button type="button" className="pill" onClick={() => setFavoritesOpen(true)}>
-              🍲 {t('food.myFavorites', { count: selected.length })}
+              <Icon name="cake" /> {t('food.myFavorites', { count: selected.length })}
             </button>
           </div>
 
@@ -374,8 +375,14 @@ export default function Food() {
         <div className="cook-overlay" onClick={() => setCooking(null)}>
           <div className="cook-modal" onClick={(e) => e.stopPropagation()}>
             <div className="cook-photo">{cooking.recipe.emoji}</div>
-            <button type="button" className="cook-close" onClick={() => setCooking(null)}>
-              ✕
+            <button
+              type="button"
+              className="cook-close"
+              onClick={() => setCooking(null)}
+              aria-label={t('food.cookClose') || 'Закрити'}
+              data-tooltip="Закрити"
+            >
+              <Icon name="close" />
             </button>
 
             {cooking.step === 'confirm' ? (
@@ -454,8 +461,8 @@ function Drawer({ title, onClose, children }) {
       <aside className="drawer-panel">
         <div className="drawer-head">
           <h3>{title}</h3>
-          <button type="button" className="drawer-close" onClick={onClose}>
-            ✕
+          <button type="button" className="drawer-close" onClick={onClose} aria-label="Закрити" data-tooltip="Закрити">
+            <Icon name="close" />
           </button>
         </div>
         {children}

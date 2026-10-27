@@ -1,16 +1,17 @@
 /* Дошка задач "To-Do" — три колонки-"листки" (Зробити / В процесі / Зроблено).
-   Канбан у стилі мокапу work-variants/variant-3, але картки рухаються стрілками
+   Канбан у стилі мокапу work-variants/variant-3, картки рухаються стрілками
    на React-стані. Кольори — зі спільних змінних теми (index.css). */
 
 .todo-page {
-  padding: 24px;
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .todo-page h2 {
   margin: 0;
+  font-size: clamp(1.5rem, 3vw, 1.9rem);
 }
 
 .page-head {
@@ -25,8 +26,8 @@
   font-size: 0.78rem;
   color: var(--color-text-muted);
   background: var(--pill-bg);
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
 }
 
 /* --- Форма додавання --- */
@@ -39,24 +40,10 @@
 .todo-add input {
   flex: 1 1 240px;
   min-width: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-family: inherit;
+  min-height: 44px;
 }
 
-.btn-accent {
-  background: var(--color-accent-gradient);
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-on-accent);
-  cursor: pointer;
+.todo-add .btn-accent {
   white-space: nowrap;
 }
 
@@ -64,7 +51,7 @@
 .todo-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 16px;
   align-items: start;
 }
 
@@ -72,11 +59,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: var(--color-bg);
+  background: var(--color-bg-2);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 12px;
-  min-height: 120px;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  min-height: 140px;
+  transition: border-color var(--transition);
 }
 
 /* Кольорова шапка кожного листка — тон модуля "To-Do" */
@@ -84,19 +72,60 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.86rem;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
   font-weight: 700;
-  padding: 2px 4px 8px;
+  padding: 2px 4px 10px;
   border-bottom: 2px solid var(--color-border);
+  color: var(--color-heading);
 }
 
-.todo-col--todo .todo-col-head { border-bottom-color: var(--color-todo); }
-.todo-col--doing .todo-col-head { border-bottom-color: var(--color-accent-2); }
-.todo-col--done .todo-col-head { border-bottom-color: #1f8a4c; }
+.todo-col-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-col-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.todo-col-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.todo-col--todo .todo-col-head {
+  border-bottom-color: var(--color-todo);
+}
+.todo-col--todo .todo-col-icon {
+  color: color-mix(in srgb, var(--color-todo) 70%, var(--color-text));
+}
+.todo-col--doing .todo-col-head {
+  border-bottom-color: var(--color-accent-2);
+}
+.todo-col--doing .todo-col-icon {
+  color: var(--color-accent-2);
+}
+.todo-col--done .todo-col-head {
+  border-bottom-color: var(--color-success);
+}
+.todo-col--done .todo-col-icon {
+  color: var(--color-success);
+}
 
 .todo-col-empty {
   margin: 0;
-  padding: 8px 4px;
+  padding: 10px 4px;
   font-size: 0.82rem;
   color: var(--color-text-muted);
   font-style: italic;
@@ -106,15 +135,23 @@
 .todo-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.todo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
 }
 
 .todo-col--done .todo-card {
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 .todo-col--done .todo-card-text {
@@ -122,7 +159,7 @@
 }
 
 .todo-card-text {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   word-break: break-word;
 }
 
@@ -133,38 +170,41 @@
 }
 
 .todo-card-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
-  font-size: 0.8rem;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition),
+    color var(--transition);
+}
+.todo-card-btn .icon {
+  width: 16px;
+  height: 16px;
 }
 
 .todo-card-btn:hover:not(:disabled) {
-  background: var(--pill-bg-hover);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
 .todo-card-btn:disabled {
   opacity: 0.35;
-  cursor: default;
+  cursor: not-allowed;
 }
 
 .todo-card-btn--danger {
-  color: #d1453c;
+  color: var(--color-danger);
 }
 
-.todo-card-btn--danger:hover {
-  background: #fbdede;
-}
-
-.theme-dark .todo-card-btn--danger:hover {
-  background: #4a2320;
+.todo-card-btn--danger:hover:not(:disabled) {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
 }
 
 @media (max-width: 860px) {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n'
+import Icon from '../components/Icon'
 import { getFinanceBalance, setFinanceBalance } from '../utils/finance'
 import './Finance.css'
 
@@ -68,9 +69,9 @@ export default function Finance() {
   }
 
   const TABS = [
-    { key: 'categories', label: t('finance.tab.categories'), icon: '🏷️' },
-    { key: 'history', label: t('finance.tab.history'), icon: '🧾' },
-    { key: 'stats', label: t('finance.tab.stats'), icon: '📊' },
+    { key: 'categories', label: t('finance.tab.categories'), icon: 'tag' },
+    { key: 'history', label: t('finance.tab.history'), icon: 'receipt' },
+    { key: 'stats', label: t('finance.tab.stats'), icon: 'chart' },
   ]
 
   return (
@@ -97,7 +98,7 @@ export default function Finance() {
             className={tab === item.key ? 'finance-tab-btn finance-tab-btn--active' : 'finance-tab-btn'}
             onClick={() => setTab(item.key)}
           >
-            <span>{item.icon}</span>
+            <Icon name={item.icon} className="finance-tab-icon" />
             <span>{item.label}</span>
           </button>
         ))}
@@ -191,7 +192,7 @@ export default function Finance() {
           <div>
             <div className="week-chart-head">
               <h3>{t('finance.statsTitle')}</h3>
-              <span className="pill">📅 {t('finance.statsPeriod')}</span>
+              <span className="pill"><Icon name="calendar" /> {t('finance.statsPeriod')}</span>
             </div>
             <div className="week-chart-row">
               <div className="week-axis">

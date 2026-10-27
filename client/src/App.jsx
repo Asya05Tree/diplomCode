@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { I18nProvider } from './i18n'
 import Sidebar from './components/Sidebar'
 import './Layout.css'
@@ -28,14 +28,24 @@ import {
 const AUTH_TOKEN_KEY = 'authToken'
 
 function Layout({ user, outletContext }) {
+  const initial = (user?.nickname || user?.email || '?').trim().charAt(0).toUpperCase()
+  const location = useLocation()
   return (
     <div className="app-shell">
       <Sidebar />
       <main className="app-main">
         <header className="app-header">
-          <span className="app-header-user">{user?.nickname} · {user?.email}</span>
+          <div className="app-header-user" title={user?.email}>
+            <span className="app-header-avatar" aria-hidden="true">{initial}</span>
+            <span className="app-header-user-text">
+              <span className="app-header-nickname">{user?.nickname}</span>
+              <span className="app-header-email">{user?.email}</span>
+            </span>
+          </div>
         </header>
-        <Outlet context={outletContext} />
+        <div className="app-content" key={location.pathname}>
+          <Outlet context={outletContext} />
+        </div>
       </main>
     </div>
   )

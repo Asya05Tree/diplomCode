@@ -1,91 +1,131 @@
 .month-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .month-grid-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
-.month-grid-header button {
+.month-grid-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 8px;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.month-grid-nav .icon {
+  width: 18px;
+  height: 18px;
+}
+.month-grid-nav:hover {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+.month-grid-nav:active {
+  transform: translateY(0);
 }
 
 .month-grid-title {
+  font-family: var(--font-heading);
   font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-heading);
   text-transform: capitalize;
+  text-align: center;
+  flex: 1;
 }
 
 .month-grid-weekdays,
 .month-grid-cells {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 6px;
 }
 
 .month-grid-weekdays span {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--color-text-muted);
+  padding-bottom: 2px;
 }
 
 .month-grid-cell {
   aspect-ratio: 1;
-  border: none;
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text);
-  font-size: 0.85rem;
-  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0;
+  transition: background var(--transition), transform var(--transition), border-color var(--transition),
+    color var(--transition);
 }
 
 .month-grid-cell:hover {
-  background: var(--color-bg);
+  background: var(--color-accent-soft);
+  transform: translateY(-1px);
 }
 
 .month-grid-cell--outside {
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .month-grid-cell--today {
-  border: 1px solid var(--color-tasks);
+  border: 1.5px solid var(--color-accent);
+  font-weight: 700;
 }
 
-/* Обраний день має бути однозначно впізнаваним: жирна рамка + трохи більший розмір
-   (поверх сусідів через z-index, бо scale() не впливає на розмір комірки в гріді) */
+/* Обраний день — однозначно впізнаваний: заливка акцентом + масштаб поверх сусідів.
+   z-index бо scale() не впливає на розмір комірки в гріді. */
 .month-grid-cell--selected {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
-  border: 3px solid var(--color-text);
+  border-color: transparent;
   font-weight: 700;
-  transform: scale(1.12);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
   position: relative;
   z-index: 2;
+}
+.month-grid-cell--selected:hover {
+  transform: scale(1.1);
 }
 
 /* Базове відображення (§4.4): день із задачами або з недостатнім запасом вільного часу */
 .month-grid-cell--busy {
-  background: color-mix(in srgb, var(--color-tasks) 40%, transparent);
+  background: color-mix(in srgb, var(--color-tasks) 42%, transparent);
+  font-weight: 600;
 }
 
 /* Повторювані: прев'ю правила (§4.3) */
 .month-grid-cell--occurrence {
   background: color-mix(in srgb, var(--color-study) 55%, transparent);
+  font-weight: 600;
 }
 
 .month-grid-cell--cancelled,
 .month-grid-cell--moved-away {
-  background: color-mix(in srgb, var(--color-study) 25%, transparent);
+  background: color-mix(in srgb, var(--color-study) 22%, transparent);
   text-decoration: line-through;
   color: var(--color-text-muted);
 }
@@ -93,5 +133,6 @@
 .month-grid-cell--moved-in {
   background: color-mix(in srgb, var(--color-study) 55%, transparent);
   outline: 1px dashed var(--color-study);
-  outline-offset: -1px;
+  outline-offset: -2px;
+  font-weight: 600;
 }

@@ -1,17 +1,30 @@
-/* Стилі розділу "Їжа" (planner-spec.md §4.6). Базуються на макеті
-   mockups/food-variants, але перемикачі станів і панелі тут на React-стані,
-   а не на CSS-хаку з radio/checkbox, як у статичному макеті. Кольори — зі
-   спільних змінних теми (index.css), їжа має свій закріплений колір --color-food. */
+/* Розділ "Їжа" (planner-spec.md §4.6): лента рецептів з фільтрами, запаси з
+   триступеневим станом, обрані страви, вікно готовки. Кольори — зі спільних токенів
+   теми (index.css); статуси (ок/увага/немає) — у scoped-змінних нижче. */
 
 .food-page {
-  padding: 24px;
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 18px;
+
+  --st-ok: var(--color-success);
+  --st-warn: #c77c10;
+  --st-bad: var(--color-danger);
+  --st-ok-soft: color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+  --st-warn-soft: color-mix(in srgb, #c77c10 16%, var(--color-surface));
+  --st-bad-soft: var(--color-danger-soft);
+}
+
+.theme-dark .food-page {
+  --st-warn: #f0c488;
+  --st-warn-soft: color-mix(in srgb, #f0c488 18%, var(--color-surface));
 }
 
 .food-page h2 {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
 .food-page-head {
@@ -26,14 +39,14 @@
   font-size: 0.78rem;
   color: var(--color-text-muted);
   background: var(--pill-bg);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 6px 10px;
 }
 
 .food-layout {
   display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 16px;
+  grid-template-columns: 1fr 290px;
+  gap: 18px;
   align-items: start;
 }
 
@@ -47,24 +60,36 @@
   }
 }
 
-/* --- Спільні дрібні елементи (пілюля/бейдж/кнопки) розділу --- */
+/* --- Спільні дрібні елементи --- */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
   background: var(--pill-bg);
   color: var(--pill-text);
   font-size: 0.85rem;
   cursor: pointer;
   border: none;
+  transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+.pill .icon {
+  width: 16px;
+  height: 16px;
+}
+.pill:hover {
+  background: var(--pill-bg-hover);
 }
 
 .pill--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.pill--active:hover {
+  background: var(--color-accent-gradient);
 }
 
 .badge {
@@ -72,52 +97,62 @@
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .badge--ok {
-  background: #d9f2e1;
-  color: #1f8a4c;
+  background: var(--st-ok-soft);
+  color: var(--st-ok);
 }
 
 .badge--warn {
-  background: #ffead1;
-  color: #c77c10;
-}
-
-.theme-dark .badge--ok {
-  background: #234b36;
-  color: #9fe0b8;
-}
-
-.theme-dark .badge--warn {
-  background: #4d3a1d;
-  color: #f0c488;
+  background: var(--st-warn-soft);
+  color: var(--st-warn);
 }
 
 .btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: var(--color-accent-gradient);
   border: none;
-  border-radius: 8px;
-  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  padding: 9px 18px;
+  font-family: var(--font-heading);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-on-accent);
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  filter: brightness(1.03);
+}
+.btn-accent:active {
+  transform: translateY(0);
 }
 
 .btn-outline {
   background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  padding: 8px 15px;
   font-size: 0.85rem;
   color: var(--color-text);
   cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.btn-outline:hover {
+  background: var(--pill-bg-hover);
+  border-color: var(--color-border-strong);
 }
 
 .section-title {
@@ -125,7 +160,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .section-title h3 {
@@ -140,7 +175,7 @@
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .filter-bar-modes {
@@ -156,9 +191,10 @@
 }
 
 .price-range input {
-  width: 52px;
+  width: 54px;
   border: none;
   background: transparent;
+  padding: 0;
   font-size: 0.85rem;
   color: var(--pill-text);
   text-align: center;
@@ -166,6 +202,7 @@
 
 .price-range input:focus {
   outline: none;
+  box-shadow: none;
 }
 
 .price-range--off {
@@ -176,55 +213,57 @@
 .recipe-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .recipe-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(17, 24, 39, 0.05);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
   display: flex;
   flex-direction: column;
+  animation: pop-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .recipe-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.1);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .recipe-card--selected {
   border-color: var(--color-food);
-  box-shadow: 0 0 0 2px var(--color-food), 0 2px 10px rgba(17, 24, 39, 0.05);
+  box-shadow: 0 0 0 2px var(--color-food), var(--shadow-sm);
 }
 
 .recipe-card-photo {
   position: relative;
-  height: 108px;
+  height: 112px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.3rem;
+  font-size: 2.4rem;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--color-food), #fff6e0);
-}
-
-.theme-dark .recipe-card-photo {
-  background: linear-gradient(135deg, var(--color-food), #6b5733);
+  background: linear-gradient(135deg, var(--color-food), color-mix(in srgb, var(--color-food) 35%, var(--color-surface)));
 }
 
 .recipe-emoji {
   pointer-events: none;
+  transition: transform var(--transition-slow);
+}
+.recipe-card:hover .recipe-emoji {
+  transform: scale(1.12) rotate(-4deg);
 }
 
-/* Чекбокс "обране" зверху на картці (галочка) */
+/* Чекбокс "обране" */
 .recipe-check {
   position: absolute;
   top: 8px;
   right: 8px;
   cursor: pointer;
+  z-index: 2;
 }
 
 .recipe-check input {
@@ -236,13 +275,17 @@
 
 .recipe-check-box {
   display: block;
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.9);
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(17, 24, 39, 0.15);
-  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.15);
+  box-shadow: var(--shadow-sm);
   position: relative;
+  transition: transform var(--transition);
+}
+.recipe-check:hover .recipe-check-box {
+  transform: scale(1.08);
 }
 
 .recipe-check input:checked + .recipe-check-box {
@@ -256,7 +299,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--color-on-accent);
 }
@@ -270,19 +313,19 @@
   font-size: 0.68rem;
   font-weight: 700;
   padding: 2px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .recipe-card-time {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   color: #1f2937;
   font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .recipe-card-body {
@@ -297,29 +340,19 @@
   font-size: 0.94rem;
 }
 
-/* Чесний рядок про сховані обмеженнями страви (§4.6) */
+/* Чесний рядок про сховані обмеженнями страви */
 .food-health-note {
   margin: 0 0 12px;
   font-size: 0.82rem;
-  color: var(--status-bad-text, #d1453c);
-  background: #fbdede;
-  border-radius: 8px;
-  padding: 8px 12px;
+  color: var(--st-bad);
+  background: var(--st-bad-soft);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
 }
 
-.theme-dark .food-health-note {
-  background: #4a2320;
-  color: #f0a9a3;
-}
-
-/* Мʼяке правило (небажано) — маленька примітка на картці */
 .food-avoid-note {
   font-size: 0.74rem;
-  color: #c77c10;
-}
-
-.theme-dark .food-avoid-note {
-  color: #f0c488;
+  color: var(--st-warn);
 }
 
 /* Позначка "можна / небажано / не можна" в запасах */
@@ -327,39 +360,24 @@
   font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .health-flag--ok {
-  background: #d9f2e1;
-  color: #1f8a4c;
+  background: var(--st-ok-soft);
+  color: var(--st-ok);
 }
 
 .health-flag--warn {
-  background: #ffead1;
-  color: #c77c10;
+  background: var(--st-warn-soft);
+  color: var(--st-warn);
 }
 
 .health-flag--bad {
-  background: #fbdede;
-  color: #d1453c;
-}
-
-.theme-dark .health-flag--ok {
-  background: #234b36;
-  color: #9fe0b8;
-}
-
-.theme-dark .health-flag--warn {
-  background: #4d3a1d;
-  color: #f0c488;
-}
-
-.theme-dark .health-flag--bad {
-  background: #4a2320;
-  color: #f0a9a3;
+  background: var(--st-bad-soft);
+  color: var(--st-bad);
 }
 
 /* --- Запаси --- */
@@ -374,15 +392,20 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .stock-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 2px;
+  padding: 9px 4px;
+  border-radius: var(--radius-sm);
   border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition);
+}
+.stock-row:hover {
+  background: var(--color-surface-2);
 }
 
 .stock-row:last-child {
@@ -397,11 +420,11 @@
 }
 
 .stock-dot--ok {
-  background: #1f8a4c;
+  background: var(--st-ok);
 }
 
 .stock-dot--warn {
-  background: #c77c10;
+  background: var(--st-warn);
 }
 
 .stock-name {
@@ -428,26 +451,27 @@
   opacity: 0.3;
   border: none;
   padding: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
 }
 
 .stock-circle--ok {
-  background: #1f8a4c;
-  color: #1f8a4c;
+  background: var(--st-ok);
+  color: var(--st-ok);
 }
 
 .stock-circle--warn {
-  background: #c77c10;
-  color: #c77c10;
+  background: var(--st-warn);
+  color: var(--st-warn);
 }
 
 .stock-circle--bad {
-  background: #d1453c;
-  color: #d1453c;
+  background: var(--st-bad);
+  color: var(--st-bad);
 }
 
 .stock-circle:hover {
-  opacity: 0.65;
+  opacity: 0.7;
+  transform: scale(1.1);
 }
 
 .stock-circle--on {
@@ -458,10 +482,10 @@
 
 .stock-add-btn {
   align-self: flex-start;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
-/* --- Панель (drawer), що виїжджає справа --- */
+/* --- Панель (drawer) --- */
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -471,8 +495,9 @@
 .drawer-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(17, 24, 39, 0.35);
+  background: rgba(17, 24, 39, 0.4);
   cursor: pointer;
+  animation: fade-in 0.2s ease both;
 }
 
 .drawer-panel {
@@ -480,15 +505,15 @@
   top: 0;
   right: 0;
   height: 100%;
-  width: min(340px, 90vw);
+  width: min(360px, 92vw);
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: -6px 0 20px rgba(17, 24, 39, 0.1);
-  animation: drawer-in 0.25s ease;
+  box-shadow: var(--shadow-lg);
+  animation: drawer-in 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes drawer-in {
@@ -508,25 +533,37 @@
 
 .drawer-head h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
 
-.drawer-close {
+.drawer-close,
+.cook-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 1rem;
-  padding: 2px 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: none;
   border: none;
+  transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+.drawer-close:hover,
+.cook-close:hover {
+  background: var(--pill-bg-hover);
+  color: var(--color-heading);
+  transform: rotate(90deg);
+}
+.drawer-close .icon,
+.cook-close .icon {
+  width: 18px;
+  height: 18px;
 }
 
 .drawer-search {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  background: var(--color-bg);
-  color: var(--color-text);
+  width: 100%;
 }
 
 .drawer-product-list {
@@ -535,7 +572,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   overflow-y: auto;
 }
 
@@ -544,7 +581,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 2px;
+  padding: 9px 4px;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.88rem;
 }
@@ -568,7 +605,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 8px 2px;
+  padding: 9px 4px;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -580,73 +617,55 @@
   font-size: 0.9rem;
 }
 
-/* --- Спливне вікно готовки (над усім екраном) --- */
+/* --- Вікно готовки --- */
 .cook-overlay {
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgba(17, 24, 39, 0.45);
+  background: rgba(17, 24, 39, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  animation: fade-in 0.2s ease both;
 }
 
 .cook-modal {
   position: relative;
-  width: min(420px, 100%);
+  width: min(430px, 100%);
   max-height: 90vh;
   overflow-y: auto;
   background: var(--color-surface);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 0 22px 22px;
-  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.25);
-  animation: cook-in 0.2s ease;
-}
-
-@keyframes cook-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  box-shadow: var(--shadow-lg);
+  animation: pop-in 0.24s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cook-modal h3 {
   margin: 14px 0 6px;
 }
 
-/* "Картинка" страви зверху вікна */
 .cook-photo {
-  height: 140px;
+  height: 150px;
   margin: 0 -22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4rem;
-  border-radius: 16px 16px 0 0;
-  background: linear-gradient(135deg, var(--color-food), #fff6e0);
-}
-
-.theme-dark .cook-photo {
-  background: linear-gradient(135deg, var(--color-food), #6b5733);
+  font-size: 4.2rem;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: linear-gradient(135deg, var(--color-food), color-mix(in srgb, var(--color-food) 35%, var(--color-surface)));
 }
 
 .cook-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.9);
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.92);
   color: #1f2937;
-  cursor: pointer;
-  font-size: 0.9rem;
+}
+.cook-close:hover {
+  background: #ffffff;
 }
 
 .cook-ingredients,
@@ -656,7 +675,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .cook-ingredients li,
@@ -665,7 +684,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 2px;
+  padding: 9px 2px;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -691,4 +710,14 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .recipe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }

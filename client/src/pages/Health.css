@@ -1,17 +1,30 @@
-/* Стилі розділу "Здоровʼя" (planner-spec.md §3.5/§4.7). Базуються на макеті
-   mockups/health-variants/variant-4 (великі картки-вкладки), але вкладки,
-   перемикачі стану й правила — на React-стані, а не на CSS-хаку. Кольори — зі
-   спільних змінних теми (index.css); здоровʼя має свій колір --color-health. */
+/* Розділ "Здоровʼя" (planner-spec.md §3.5/§4.7): великі картки-вкладки Аптечка /
+   Хронічні захворювання. Кольори — зі спільних токенів теми (index.css); статуси —
+   у scoped-змінних нижче. Здоровʼя має свій колір --color-health. */
 
 .health-page {
-  padding: 24px;
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 18px;
+
+  --st-ok: var(--color-success);
+  --st-warn: #c77c10;
+  --st-bad: var(--color-danger);
+  --st-ok-soft: color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+  --st-warn-soft: color-mix(in srgb, #c77c10 16%, var(--color-surface));
+  --st-bad-soft: var(--color-danger-soft);
+}
+
+.theme-dark .health-page {
+  --st-warn: #f0c488;
+  --st-warn-soft: color-mix(in srgb, #f0c488 18%, var(--color-surface));
 }
 
 .health-page h2 {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
 .page-head {
@@ -26,22 +39,23 @@
   font-size: 0.78rem;
   color: var(--color-text-muted);
   background: var(--pill-bg);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 6px 10px;
 }
 
-/* --- Профіль (Зріст / Вага / Вік) --- */
+/* --- Профіль --- */
 .profile-kv {
   display: flex;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .profile-kv > .profile-field {
   flex: 1;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-right: 1px solid var(--color-border);
 }
 
@@ -57,12 +71,15 @@
 
 .profile-field-label {
   font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--color-text-muted);
 }
 
 .profile-field-value {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
+  color: var(--color-heading);
 }
 
 /* --- Великі картки-вкладки --- */
@@ -77,26 +94,40 @@
   flex-direction: column;
   gap: 4px;
   flex: 1 1 220px;
-  padding: 14px 18px;
-  border-radius: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   cursor: pointer;
   text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.health-tab:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
 }
 
 .health-tab--active {
-  border-color: var(--color-accent-2);
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-accent), var(--shadow-md);
 }
 
 .health-tab-icon {
-  font-size: 1.4rem;
+  display: inline-flex;
+  color: color-mix(in srgb, var(--color-health) 70%, var(--color-text));
+}
+.health-tab-icon .icon {
+  width: 26px;
+  height: 26px;
 }
 
 .health-tab-title {
+  font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.98rem;
+  font-size: 1rem;
   color: var(--color-heading);
 }
 
@@ -111,7 +142,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .section-title h3 {
@@ -120,44 +151,67 @@
 }
 
 .btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: var(--color-accent-gradient);
   border: none;
-  border-radius: 8px;
-  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  padding: 9px 18px;
+  font-family: var(--font-heading);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-on-accent);
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+}
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  filter: brightness(1.03);
+}
+.btn-accent:active {
+  transform: translateY(0);
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
   background: var(--pill-bg);
   color: var(--pill-text);
   font-size: 0.85rem;
   cursor: pointer;
   border: none;
+  transition: background var(--transition), color var(--transition);
+}
+.pill:hover {
+  background: var(--pill-bg-hover);
 }
 
 .pill--active {
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.pill--active:hover {
+  background: var(--color-accent-gradient);
 }
 
 .health-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
-/* --- Таблиця даних (аптечка) --- */
+/* --- Таблиця --- */
 .table-scroll {
   overflow-x: auto;
 }
@@ -174,13 +228,13 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--color-text-muted);
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 
 .data-table td {
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
@@ -189,15 +243,23 @@
   border-bottom: none;
 }
 
+.data-table tbody tr {
+  transition: background var(--transition);
+}
+
 .data-table tbody tr:nth-child(odd) {
-  background: var(--color-bg);
+  background: var(--color-surface-2);
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-accent-soft);
 }
 
 .category-badge {
   font-size: 0.74rem;
   color: var(--pill-text);
   background: var(--pill-bg);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 2px 9px;
   white-space: nowrap;
 }
@@ -210,16 +272,11 @@
 
 .conflict-tag {
   font-size: 0.72rem;
-  background: #fbdede;
-  color: #d1453c;
+  background: var(--st-bad-soft);
+  color: var(--st-bad);
   padding: 1px 7px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   white-space: nowrap;
-}
-
-.theme-dark .conflict-tag {
-  background: #4a2320;
-  color: #f0a9a3;
 }
 
 .none-text {
@@ -227,7 +284,7 @@
   font-size: 0.82rem;
 }
 
-/* --- Триступеневий перемикач стану (той самий, що у запасах їжі) --- */
+/* --- Триступеневий перемикач стану --- */
 .stock-toggle {
   display: flex;
   align-items: center;
@@ -242,26 +299,27 @@
   opacity: 0.3;
   border: none;
   padding: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
 }
 
 .stock-circle--ok {
-  background: #1f8a4c;
-  color: #1f8a4c;
+  background: var(--st-ok);
+  color: var(--st-ok);
 }
 
 .stock-circle--warn {
-  background: #c77c10;
-  color: #c77c10;
+  background: var(--st-warn);
+  color: var(--st-warn);
 }
 
 .stock-circle--bad {
-  background: #d1453c;
-  color: #d1453c;
+  background: var(--st-bad);
+  color: var(--st-bad);
 }
 
 .stock-circle:hover {
-  opacity: 0.65;
+  opacity: 0.7;
+  transform: scale(1.1);
 }
 
 .stock-circle--on {
@@ -281,15 +339,20 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .condition-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 2px;
+  padding: 10px 4px;
+  border-radius: var(--radius-sm);
   border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition);
+}
+.condition-row:hover {
+  background: var(--color-surface-2);
 }
 
 .condition-row:last-child {
@@ -306,18 +369,14 @@
   font-size: 0.72rem;
   color: var(--color-text-muted);
   background: var(--pill-bg);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 2px 9px;
   white-space: nowrap;
 }
 
 .rule-select {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 4px 8px;
+  padding: 6px 10px;
   font-size: 0.82rem;
-  background: var(--color-surface);
-  color: var(--color-text);
   cursor: pointer;
 }
 
@@ -343,8 +402,8 @@
 .switch {
   position: relative;
   display: inline-block;
-  width: 34px;
-  height: 19px;
+  width: 36px;
+  height: 20px;
   flex-shrink: 0;
 }
 
@@ -358,10 +417,10 @@
 .switch-track {
   position: absolute;
   inset: 0;
-  background: var(--color-border);
-  border-radius: 999px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--transition);
 }
 
 .switch-track::before {
@@ -369,23 +428,23 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: var(--color-surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition);
 }
 
 .switch input:checked + .switch-track {
-  background: #1f8a4c;
+  background: var(--st-ok);
 }
 
 .switch input:checked + .switch-track::before {
-  transform: translateX(15px);
+  transform: translateX(16px);
 }
 
-/* --- Панель "Додати ліки" (виїжджає справа) --- */
+/* --- Панель "Додати ліки" --- */
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -395,8 +454,9 @@
 .drawer-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(17, 24, 39, 0.35);
+  background: rgba(17, 24, 39, 0.4);
   cursor: pointer;
+  animation: fade-in 0.2s ease both;
 }
 
 .drawer-panel {
@@ -404,16 +464,16 @@
   top: 0;
   right: 0;
   height: 100%;
-  width: min(340px, 90vw);
+  width: min(360px, 92vw);
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: -6px 0 20px rgba(17, 24, 39, 0.1);
+  box-shadow: var(--shadow-lg);
   overflow-y: auto;
-  animation: drawer-in 0.25s ease;
+  animation: drawer-in 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes drawer-in {
@@ -433,25 +493,34 @@
 
 .drawer-head h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
 
 .drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 1rem;
-  padding: 2px 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: none;
   border: none;
+  transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+.drawer-close:hover {
+  background: var(--pill-bg-hover);
+  color: var(--color-heading);
+  transform: rotate(90deg);
+}
+.drawer-close .icon {
+  width: 18px;
+  height: 18px;
 }
 
 .drawer-search {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  background: var(--color-bg);
-  color: var(--color-text);
+  width: 100%;
 }
 
 .drawer-product-list {
@@ -460,7 +529,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   overflow-y: auto;
 }
 
@@ -469,7 +538,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 2px;
+  padding: 9px 4px;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.88rem;
 }

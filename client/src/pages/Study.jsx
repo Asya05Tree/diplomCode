@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n'
+import Icon from '../components/Icon'
 import './Study.css'
 
 // Розділ "Навчання" (мокап mockups/study-variants/variant-4 — чотири великі
@@ -76,10 +77,10 @@ const DEADLINE_DAYS = new Set(ASSIGNMENTS.map((a) => a.day))
 const STATUS_CLASS = { done: 'badge--ok', notDone: 'badge--bad', today: 'badge--warn' }
 
 const TABS = [
-  { key: 'teachers', icon: '🧑‍🏫' },
-  { key: 'schedule', icon: '🗓️' },
-  { key: 'bells', icon: '⏰' },
-  { key: 'month', icon: '📅' },
+  { key: 'teachers', icon: 'user' },
+  { key: 'schedule', icon: 'calendar-days' },
+  { key: 'bells', icon: 'bell' },
+  { key: 'month', icon: 'calendar' },
 ]
 
 export default function Study() {
@@ -120,7 +121,7 @@ export default function Study() {
             className={tab === item.key ? 'study-tab study-tab--active' : 'study-tab'}
             onClick={() => setTab(item.key)}
           >
-            <span className="study-tab-icon">{item.icon}</span>
+            <span className="study-tab-icon"><Icon name={item.icon} /></span>
             <span className="study-tab-title">{t(`study.tab.${item.key}`)}</span>
             <span className="study-tab-meta">{tabMeta[item.key]}</span>
           </button>
@@ -241,9 +242,13 @@ export default function Study() {
       {tab === 'month' && (
         <div className="card">
           <div className="month-nav">
-            <button type="button" className="month-nav-btn" aria-label="prev">◀</button>
+            <button type="button" className="month-nav-btn" aria-label="prev" data-tooltip={t('study.monthLabel')}>
+              <Icon name="chevron-left" />
+            </button>
             <span className="month-nav-label">{t('study.monthLabel')}</span>
-            <button type="button" className="month-nav-btn" aria-label="next">▶</button>
+            <button type="button" className="month-nav-btn" aria-label="next" data-tooltip={t('study.monthLabel')}>
+              <Icon name="chevron-right" />
+            </button>
           </div>
 
           <div className="month-grid">

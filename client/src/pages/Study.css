@@ -3,7 +3,7 @@
    кольори бейджів scoped на .study-page, щоб не чіпати глобальні змінні теми. */
 
 .study-page {
-  padding: 24px;
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -14,6 +14,10 @@
   --status-warn-text: #c77c10;
   --status-bad-bg: #fbdede;
   --status-bad-text: #d1453c;
+}
+
+.study-page h2 {
+  font-size: clamp(1.5rem, 3vw, 1.9rem);
 }
 
 .theme-dark .study-page {
@@ -42,8 +46,8 @@
   font-size: 0.78rem;
   color: var(--color-text-muted);
   background: var(--pill-bg);
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
 }
 
 /* --- Великі плитки-вкладки --- */
@@ -56,28 +60,52 @@
 .study-tab {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1 1 180px;
-  padding: 14px 16px;
-  border-radius: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   cursor: pointer;
   text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.study-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
 }
 
 .study-tab--active {
-  border-color: var(--color-accent-2);
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  border-color: transparent;
+  background: var(--color-accent-gradient);
+  box-shadow: var(--shadow-accent);
+}
+.study-tab--active .study-tab-title {
+  color: var(--color-on-accent);
+}
+.study-tab--active .study-tab-meta {
+  color: color-mix(in srgb, var(--color-on-accent) 72%, transparent);
+}
+.study-tab--active .study-tab-icon {
+  color: var(--color-on-accent);
 }
 
 .study-tab-icon {
-  font-size: 1.3rem;
+  display: inline-flex;
+  color: var(--color-accent-2);
+}
+.study-tab-icon .icon {
+  width: 26px;
+  height: 26px;
 }
 
 .study-tab-title {
+  font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.94rem;
+  font-size: 0.96rem;
   color: var(--color-heading);
 }
 
@@ -119,7 +147,14 @@
 }
 
 .data-table tbody tr:nth-child(odd) {
-  background: var(--color-bg);
+  background: var(--color-bg-2);
+}
+
+.data-table tbody tr {
+  transition: background var(--transition);
+}
+.data-table tbody tr:hover {
+  background: var(--color-accent-soft);
 }
 
 .none-text {
@@ -214,15 +249,26 @@
 }
 
 .month-nav-btn {
-  background: var(--pill-bg);
-  border: none;
-  border-radius: 8px;
-  width: 30px;
-  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
   cursor: pointer;
-  font-size: 0.9rem;
   color: var(--color-text);
-  font-family: inherit;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.month-nav-btn .icon {
+  width: 17px;
+  height: 17px;
+}
+.month-nav-btn:hover {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
 .month-nav-label {
@@ -249,11 +295,16 @@
 
 .month-day {
   position: relative;
-  min-height: 40px;
+  min-height: 42px;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--pill-bg);
   font-size: 0.82rem;
+  transition: transform var(--transition), background var(--transition);
+}
+.month-day:not(.month-day--muted):hover {
+  transform: translateY(-1px);
+  background: var(--color-accent-soft);
 }
 
 .month-day--muted {
@@ -312,13 +363,31 @@
 }
 
 .study-grade-value {
-  font-size: 2rem;
+  font-family: var(--font-display);
+  font-size: 2.4rem;
   font-weight: 700;
-  color: var(--color-heading);
+  color: var(--color-accent-2);
+  line-height: 1;
 }
 
 @media (max-width: 760px) {
   .study-tab {
-    flex-basis: 140px;
+    flex: 1 1 calc(50% - 12px);
+  }
+  .study-tab-meta {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .study-tab {
+    flex-basis: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .study-tab-meta {
+    display: block;
   }
 }

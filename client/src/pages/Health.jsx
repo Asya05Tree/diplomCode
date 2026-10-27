@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
+import Icon from '../components/Icon'
 import {
   CONDITIONS,
   MEDICINE_CATEGORIES,
@@ -102,7 +103,7 @@ export default function Health() {
           className={tab === 'meds' ? 'health-tab health-tab--active' : 'health-tab'}
           onClick={() => setTab('meds')}
         >
-          <span className="health-tab-icon">💊</span>
+          <span className="health-tab-icon"><Icon name="beaker" /></span>
           <span className="health-tab-title">{t('health.tab.meds')}</span>
           <span className="health-tab-meta">
             {t('health.tab.medsMeta', { count: medicines.length, low: lowCount })}
@@ -113,7 +114,7 @@ export default function Health() {
           className={tab === 'cond' ? 'health-tab health-tab--active' : 'health-tab'}
           onClick={() => setTab('cond')}
         >
-          <span className="health-tab-icon">🩺</span>
+          <span className="health-tab-icon"><Icon name="clipboard" /></span>
           <span className="health-tab-title">{t('health.tab.cond')}</span>
           <span className="health-tab-meta">
             {t('health.tab.condMeta', { count: CONDITIONS.length, food: foodConditions.length })}
@@ -259,8 +260,14 @@ export default function Health() {
           <aside className="drawer-panel">
             <div className="drawer-head">
               <h3>{t('health.addMedTitle')}</h3>
-              <button type="button" className="drawer-close" onClick={() => setAddMedOpen(false)}>
-                ✕
+              <button
+                type="button"
+                className="drawer-close"
+                onClick={() => setAddMedOpen(false)}
+                aria-label="Закрити"
+                data-tooltip="Закрити"
+              >
+                <Icon name="close" />
               </button>
             </div>
             <input

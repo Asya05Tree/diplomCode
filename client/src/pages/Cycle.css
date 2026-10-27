@@ -4,7 +4,7 @@
    Нижче — @media print для експорту сторінки у PDF (кнопка «Експорт у PDF» → window.print). */
 
 .cycle-page {
-  padding: 24px;
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -33,27 +33,32 @@
   --status-warn-bg: #3f3320;
 }
 
-.cycle-page h2 { margin: 0; }
-.cycle-page h3 { margin: 0 0 12px; font-size: 1rem; }
+.cycle-page h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 1.9rem); }
+.cycle-page h3 { margin: 0 0 12px; font-size: 1.05rem; }
 
 .page-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 
 /* ===== Кнопки відмітки й PDF ===== */
 .btn-period {
-  background: var(--cycle-start); border: none; border-radius: 8px;
-  padding: 8px 16px; font-size: 0.9rem; font-weight: 600; color: #fff;
-  cursor: pointer; font-family: inherit; white-space: nowrap;
+  background: var(--cycle-start); border: none; border-radius: var(--radius-md);
+  padding: 9px 18px; font-family: var(--font-heading); font-size: 0.9rem; font-weight: 600; color: #fff;
+  cursor: pointer; white-space: nowrap; box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 }
+.btn-period:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-md); filter: brightness(1.04); }
+.btn-period:active:not(:disabled) { transform: translateY(0); }
 .btn-period--end { background: var(--cycle-end); }
-.btn-period:disabled { opacity: 0.45; cursor: default; }
+.btn-period:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn-pdf {
   display: inline-flex; align-items: center; gap: 7px;
   background: var(--color-surface); border: 1px solid var(--color-border);
-  border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; font-weight: 600;
-  color: var(--color-text); cursor: pointer; font-family: inherit; white-space: nowrap;
+  border-radius: var(--radius-md); padding: 9px 16px; font-family: var(--font-heading);
+  font-size: 0.88rem; font-weight: 600; color: var(--color-text); cursor: pointer; white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
 }
-.btn-pdf:hover { background: var(--pill-bg-hover); }
+.btn-pdf .icon { width: 17px; height: 17px; }
+.btn-pdf:hover { background: var(--pill-bg-hover); border-color: var(--color-border-strong); transform: translateY(-1px); }
 
 /* ===== Панель приладів ===== */
 .cyc-dash { display: flex; flex-direction: column; gap: 18px; }
@@ -61,14 +66,14 @@
 .cyc-hero {
   display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
   background: linear-gradient(135deg, #fde7f0, #efe7fb);
-  border-radius: 14px; padding: 18px 20px;
+  border-radius: var(--radius-lg); padding: 20px 22px;
 }
 .theme-dark .cyc-hero { background: linear-gradient(135deg, #3a2130, #2a2338); }
 
 .cyc-hero-main { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
 .cyc-hero-label { font-size: 0.76rem; color: var(--color-text-muted); }
 .cyc-hero-num { display: flex; align-items: baseline; gap: 8px; }
-.cyc-hero-day { font-size: 3rem; font-weight: 800; color: var(--cycle-start); line-height: 1; }
+.cyc-hero-day { font-family: var(--font-display); font-size: 3.2rem; font-weight: 800; color: var(--cycle-start); line-height: 1; }
 .cyc-hero-of { font-size: 1rem; color: var(--color-text-muted); }
 
 .cyc-hero-info { display: flex; flex-direction: column; gap: 10px; flex: 1 1 260px; min-width: 220px; }
@@ -87,7 +92,9 @@
 .cyc-metric {
   flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px;
   padding: 12px 16px; border-right: 1px solid var(--color-border);
+  transition: background var(--transition);
 }
+.cyc-metric:hover { background: var(--color-accent-soft); }
 .cyc-metric:last-child { border-right: none; }
 .cyc-metric-label { font-size: 0.74rem; color: var(--color-text-muted); }
 .cyc-metric-value { font-size: 1.25rem; font-weight: 700; color: var(--color-heading); }
@@ -103,9 +110,11 @@
   text-transform: uppercase; letter-spacing: 0.02em; padding-bottom: 2px;
 }
 .cyc-day {
-  position: relative; min-height: 40px; padding: 5px 6px; border-radius: 9px;
+  position: relative; min-height: 42px; padding: 5px 6px; border-radius: var(--radius-sm);
   background: var(--pill-bg); font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px;
+  transition: transform var(--transition);
 }
+.cyc-day:not(.is-muted):hover { transform: translateY(-1px) scale(1.03); z-index: 1; }
 .cyc-day.is-muted { opacity: 0.3; }
 .cyc-day.is-today { outline: 2px solid var(--color-accent-2); outline-offset: -2px; font-weight: 700; }
 .cyc-day.is-period { background: var(--cycle-period-soft); color: #8a2b5a; }
@@ -128,15 +137,18 @@
 .cyc-phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .cyc-phase-tile {
   position: relative; display: flex; flex-direction: column; gap: 3px;
-  padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 12px;
+  padding: 13px 15px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
   background: var(--color-surface); border-top: 3px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
 }
+.cyc-phase-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .cyc-phase-tile--menstruation { border-top-color: var(--phase-menstruation); }
 .cyc-phase-tile--follicular { border-top-color: var(--phase-follicular); }
 .cyc-phase-tile--ovulation { border-top-color: var(--phase-ovulation); }
 .cyc-phase-tile--luteal { border-top-color: var(--phase-luteal); }
 .cyc-phase-tile--predicted { border-top-color: var(--phase-predicted); border-style: dashed; }
-.cyc-phase-tile--current { box-shadow: 0 2px 12px rgba(17, 24, 39, 0.1); outline: 1px solid var(--color-accent-2); }
+.cyc-phase-tile--current { box-shadow: var(--shadow-md); outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .cyc-phase-name { font-weight: 600; font-size: 0.9rem; }
 .cyc-phase-range { font-size: 0.82rem; color: var(--color-text-muted); }
 .cyc-phase-note { font-size: 0.7rem; color: var(--color-text-muted); font-style: italic; }
@@ -169,11 +181,11 @@
 .cyc-badge--warn { background: var(--status-warn-bg); color: var(--status-warn-text); }
 
 .cyc-del {
-  background: none; border: 1px solid var(--color-border); border-radius: 7px;
-  padding: 4px 10px; font-size: 0.78rem; color: #d1453c; cursor: pointer; font-family: inherit;
+  background: none; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  padding: 5px 12px; font-size: 0.78rem; color: var(--color-danger); cursor: pointer; font-family: inherit;
+  transition: background var(--transition), border-color var(--transition);
 }
-.cyc-del:hover { background: #fbdede; }
-.theme-dark .cyc-del:hover { background: #4a2320; }
+.cyc-del:hover { background: var(--color-danger-soft); border-color: var(--color-danger); }
 
 /* ===== Запаси (збережена функція) ===== */
 .cycle-stock-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -188,12 +200,27 @@
   font-size: 0.82rem; background: var(--color-bg); color: var(--color-text);
 }
 .cyc-stock-add {
-  background: var(--color-accent-gradient); border: none; border-radius: 8px;
-  padding: 6px 14px; font-size: 0.85rem; font-weight: 600; color: var(--color-on-accent); cursor: pointer; font-family: inherit;
+  background: var(--color-accent-gradient); border: none; border-radius: var(--radius-sm);
+  padding: 7px 15px; font-family: var(--font-heading); font-size: 0.85rem; font-weight: 600;
+  color: var(--color-on-accent); cursor: pointer; box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 }
-.cyc-stock-add:disabled { opacity: 0.5; cursor: default; }
+.cyc-stock-add:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-accent); filter: brightness(1.03); }
+.cyc-stock-add:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.cycle-settings-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; }
+.cyc-table tbody tr { transition: background var(--transition); }
+.cyc-table tbody tr:hover { background: var(--color-accent-soft); }
+
+.cycle-settings-row {
+  display: flex; align-items: center; gap: 10px; font-size: 0.95rem; cursor: pointer;
+}
+.cycle-settings-row input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--color-accent-2); cursor: pointer; }
+
+@media (max-width: 760px) {
+  .cyc-spread { grid-template-columns: 1fr; }
+  .cyc-hero { gap: 16px; padding: 16px; }
+  .cyc-hero-day { font-size: 2.6rem; }
+}
 
 /* ===== Друк / Експорт у PDF ===== */
 @media print {

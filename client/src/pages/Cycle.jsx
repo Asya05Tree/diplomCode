@@ -17,6 +17,7 @@ import {
   setReduceLoadOnHeavyDays,
 } from '../utils/cycle'
 import { addShoppingItem } from '../utils/shoppingList'
+import Icon from '../components/Icon'
 import './Cycle.css'
 
 function fmt(api) {
@@ -201,7 +202,7 @@ export default function Cycle() {
                 {t('cycle.markEnd')}
               </button>
               <button type="button" className="btn-pdf" onClick={() => window.print()}>
-                📄 {t('cycle.exportPdf')}
+                <Icon name="download" /> {t('cycle.exportPdf')}
               </button>
             </div>
           </div>

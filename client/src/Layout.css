@@ -13,20 +13,79 @@
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 12px clamp(16px, 4vw, 24px);
+  padding: 12px clamp(16px, 4vw, 28px);
   border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .app-header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.app-header-user:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header-avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.app-header-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.app-header-nickname {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-heading);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1 1 auto;
-  font-size: 0.9rem;
+}
+
+.app-header-email {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Обгортка контенту сторінки — лёгка анімація появи при зміні маршруту */
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  animation: fade-in-up 0.32s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 /* Сайдбар на вузьких екранах стає горизонтальною смугою (Sidebar.css) — тут лише
@@ -34,5 +93,13 @@
 @media (max-width: 760px) {
   .app-shell {
     flex-direction: column;
+  }
+
+  .app-header {
+    padding: 8px 14px;
+  }
+
+  .app-header-email {
+    display: none;
   }
 }
