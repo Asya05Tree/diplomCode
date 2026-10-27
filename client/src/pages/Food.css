@@ -234,8 +234,8 @@
 }
 
 .recipe-card--selected {
-  border-color: var(--color-food);
-  box-shadow: 0 0 0 2px var(--color-food), var(--shadow-sm);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent), var(--shadow-sm);
 }
 
 .recipe-card-photo {

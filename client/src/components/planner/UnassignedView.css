@@ -14,6 +14,12 @@
   border-radius: var(--radius-sm);
 }
 
+/* На терміновому (червоному) рядку наведення НЕ застосовує акцент палітри (зелений/
+   фіолетовий на червоному виглядав недоречно) — лишаємо червоний відтінок. */
+.unassigned-row--urgent .task-item:hover {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
 .unassigned-deadline {
   font-size: 0.78rem;
   font-weight: 500;

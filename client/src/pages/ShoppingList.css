@@ -17,7 +17,7 @@
 .shopping-list-title .icon {
   width: 28px;
   height: 28px;
-  color: color-mix(in srgb, var(--color-food) 70%, var(--color-text));
+  color: color-mix(in srgb, var(--color-food) 55%, var(--color-heading));
 }
 
 .shopping-list-add {

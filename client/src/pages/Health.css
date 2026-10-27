@@ -117,7 +117,13 @@
 
 .health-tab-icon {
   display: inline-flex;
-  color: color-mix(in srgb, var(--color-health) 70%, var(--color-text));
+  color: color-mix(in srgb, var(--color-health) 55%, var(--color-heading));
+}
+.health-tab--active .health-tab-icon {
+  color: var(--color-accent-ink);
+}
+.health-tab--active .health-tab-title {
+  color: var(--color-accent-ink);
 }
 .health-tab-icon .icon {
   width: 26px;
@@ -437,7 +443,7 @@
 }
 
 .switch input:checked + .switch-track {
-  background: var(--st-ok);
+  background: var(--color-accent-gradient);
 }
 
 .switch input:checked + .switch-track::before {

@@ -67,7 +67,9 @@
 .sidebar-icon {
   width: 21px;
   height: 21px;
-  color: color-mix(in srgb, var(--item-color) 75%, var(--color-text));
+  /* Колір модуля, підмішаний до кольору заголовка — світлі модульні тони (їжа/здоровʼя)
+     інакше зливалися з тонованим сайдбаром. Відтінок модуля лишається впізнаваним. */
+  color: color-mix(in srgb, var(--item-color) 58%, var(--color-heading));
   transition: transform var(--transition), color var(--transition);
 }
 

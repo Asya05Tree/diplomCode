@@ -105,10 +105,10 @@
 }
 
 .todo-col--todo .todo-col-head {
-  border-bottom-color: var(--color-todo);
+  border-bottom-color: color-mix(in srgb, var(--color-todo) 58%, var(--color-heading));
 }
 .todo-col--todo .todo-col-icon {
-  color: color-mix(in srgb, var(--color-todo) 70%, var(--color-text));
+  color: color-mix(in srgb, var(--color-todo) 58%, var(--color-heading));
 }
 .todo-col--doing .todo-col-head {
   border-bottom-color: var(--color-accent-ink);
@@ -117,10 +117,10 @@
   color: var(--color-accent-ink);
 }
 .todo-col--done .todo-col-head {
-  border-bottom-color: var(--color-success);
+  border-bottom-color: color-mix(in srgb, var(--color-success) 75%, var(--color-heading));
 }
 .todo-col--done .todo-col-icon {
-  color: var(--color-success);
+  color: color-mix(in srgb, var(--color-success) 75%, var(--color-heading));
 }
 
 .todo-col-empty {

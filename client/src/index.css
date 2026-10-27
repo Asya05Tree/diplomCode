@@ -444,6 +444,11 @@ input[type='number']::-webkit-outer-spin-button {
   margin-left: 6px;
   cursor: pointer;
 }
+/* У темній темі системні стрілки лічильника темні на темному — освітлюємо їх */
+.theme-dark input[type='number']::-webkit-inner-spin-button,
+.theme-dark input[type='number']::-webkit-outer-spin-button {
+  filter: invert(0.9);
+}
 /* Іконка годинника/календаря в полях часу й дати — у тон акценту, з підсвіткою при наведенні,
    щоб не «налазила» сірим квадратиком на значення. */
 input[type='time']::-webkit-calendar-picker-indicator,
