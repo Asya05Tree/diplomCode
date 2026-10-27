@@ -36,6 +36,25 @@
   width: 120px;
 }
 
+.shopping-list-cat-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.shopping-list-cat-field select {
+  padding: 8px 10px;
+}
+
+.shopping-list-group-empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 .shopping-list-add button {
   display: inline-flex;
   align-items: center;

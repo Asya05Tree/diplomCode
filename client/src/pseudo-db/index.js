@@ -15,6 +15,7 @@ const LAST_COOKED_KEY = 'food:lastCooked' // { recipeId: ISO-рядок }
 const RULES_KEY = 'health:rules' // { tagKey: { relation: 'Forbidden' | 'Avoid', enabled: bool } }
 const MED_STATE_KEY = 'health:medicineState' // { medicineId: 'Available' | 'RunningLow' | 'OutOfStock' }
 const MED_ADDED_KEY = 'health:medicineAdded' // [medicineId] — додані з довідника
+const CONDITIONS_ADDED_KEY = 'health:conditionsAdded' // [condition] — додані користувачем хвороби
 
 export { PRODUCTS, RECIPES }
 export const MEDICINE_CATEGORIES = HEALTH.categories
@@ -204,8 +205,9 @@ export function conditionTag(condition, language) {
 }
 
 // Назва тега-обмеження для показу в "Їжі" (бере підпис із відповідного захворювання).
+// Шукає серед базових І доданих користувачем захворювань.
 export function tagLabel(tagKey, language) {
-  const c = CONDITIONS.find((x) => x.tagKey === tagKey)
+  const c = listConditions().find((x) => x.tagKey === tagKey)
   if (!c) return tagKey
   return language === 'en' ? c.tagEn : c.tagUk
 }
@@ -300,6 +302,43 @@ export function setRule(tagKey, rule) {
   else map[tagKey] = rule
   localStorage.setItem(RULES_KEY, JSON.stringify(map))
   return map
+}
+
+// ---- Додані користувачем захворювання --------------------------------------
+// Довідник CONDITIONS статичний (майбутня таблиця), але користувач може додати власне
+// захворювання. Якщо воно впливає на їжу — одразу стає правилом на введений тег, і далі
+// працює так само, як базові (через той самий стор rules, §2.3 "обмеження як дані").
+
+function getAddedConditions() {
+  return readJson(CONDITIONS_ADDED_KEY, [])
+}
+
+// Повний список хронічних захворювань: базові з довідника + додані користувачем.
+export function listConditions() {
+  return [...CONDITIONS, ...getAddedConditions()]
+}
+
+export function addCondition({ name, affectsFood, tag, relation }) {
+  const trimmed = (name || '').trim()
+  if (!trimmed) return getAddedConditions()
+  const tagText = (tag || '').trim()
+  // Тег = ключ правила у нижньому регістрі (щоб збігався з product.tags на кшталт "lactose").
+  const tagKey = affectsFood && tagText ? tagText.toLowerCase() : null
+  const condition = {
+    id: `cond-${Date.now()}`,
+    nameUk: trimmed,
+    nameEn: trimmed,
+    affectsFood: !!(affectsFood && tagKey),
+    tagKey,
+    tagUk: tagText,
+    tagEn: tagText,
+    defaultRelation: relation === 'Forbidden' ? 'Forbidden' : 'Avoid',
+    custom: true,
+  }
+  const next = [...getAddedConditions(), condition]
+  localStorage.setItem(CONDITIONS_ADDED_KEY, JSON.stringify(next))
+  if (condition.affectsFood) setRule(tagKey, { relation: condition.defaultRelation, enabled: true })
+  return next
 }
 
 // Перетин тегів набору з активними правилами (єдина точка перевірки, §2.3).

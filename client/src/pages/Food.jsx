@@ -52,6 +52,8 @@ export default function Food() {
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [addStockOpen, setAddStockOpen] = useState(false)
   const [stockSearch, setStockSearch] = useState('')
+  // Дві вкладки розділу: "Страви" (стрічка рецептів, де обираються блюда) і "Запаси".
+  const [tab, setTab] = useState('dishes') // 'dishes' | 'stock'
 
   // Спливне вікно готовки: { recipe, step: 'confirm'|'result', have: {productId: bool}, states: {productId: state} }
   const [cooking, setCooking] = useState(null)
@@ -171,7 +173,30 @@ export default function Food() {
         <span className="variant-note">{t('food.note')}</span>
       </div>
 
-      <div className="food-layout">
+      <div className="food-tabs">
+        <button
+          type="button"
+          className={tab === 'dishes' ? 'food-tab food-tab--active' : 'food-tab'}
+          onClick={() => setTab('dishes')}
+        >
+          <span className="food-tab-icon"><Icon name="cake" /></span>
+          <span className="food-tab-title">{t('food.tabDishes')}</span>
+          <span className="food-tab-meta">
+            {t('food.tabDishesMeta', { count: RECIPES.length, sel: selected.length })}
+          </span>
+        </button>
+        <button
+          type="button"
+          className={tab === 'stock' ? 'food-tab food-tab--active' : 'food-tab'}
+          onClick={() => setTab('stock')}
+        >
+          <span className="food-tab-icon"><Icon name="cart" /></span>
+          <span className="food-tab-title">{t('food.tabStock')}</span>
+          <span className="food-tab-meta">{t('food.tabStockMeta', { count: stockRows.length })}</span>
+        </button>
+      </div>
+
+      {tab === 'dishes' ? (
         <div className="food-feed">
           <div className="filter-bar">
             <div className="filter-bar-modes">
@@ -271,7 +296,7 @@ export default function Food() {
             </div>
           )}
         </div>
-
+      ) : (
         <div className="card food-stock">
           <div className="section-title">
             <h3>{t('food.stockTitle')}</h3>
@@ -313,7 +338,7 @@ export default function Food() {
             {t('food.addStock')}
           </button>
         </div>
-      </div>
+      )}
 
       {/* Панель "Обрані страви" — виїжджає справа (planner-spec.md §4.6) */}
       {favoritesOpen && (

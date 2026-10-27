@@ -339,6 +339,56 @@
   margin-top: 0;
 }
 
+/* Форма додавання власного захворювання */
+.cond-add-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 12px 0 4px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-tint);
+  animation: fade-in-up var(--transition-slow) both;
+}
+
+.cond-add-name {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.cond-add-switch {
+  margin-left: auto;
+}
+
+.cond-add-food {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border-strong);
+}
+
+.cond-add-tag {
+  flex: 0 1 220px;
+  min-width: 140px;
+}
+
+.cond-add-hint {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.cond-add-actions {
+  flex: 1 1 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .condition-list {
   list-style: none;
   margin: 10px 0 0;

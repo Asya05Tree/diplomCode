@@ -2,14 +2,15 @@ import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import {
-  CONDITIONS,
   MEDICINE_CATEGORIES,
+  addCondition,
   addMedicine,
   categoryName,
   conditionName,
   conditionTag,
   getRules,
   listAddableMedicines,
+  listConditions,
   listMedicines,
   medConflicts,
   medName,
@@ -39,9 +40,13 @@ export default function Health() {
   const [category, setCategory] = useState('all')
   const [addMedOpen, setAddMedOpen] = useState(false)
   const [medSearch, setMedSearch] = useState('')
+  // Хронічні захворювання: базові + додані користувачем. Форма додавання — з перемикачем
+  // "впливає на їжу"; коли увімкнено, зʼявляється поле тега-обмеження + рівень (не можна/небажано).
+  const [conditions, setConditions] = useState(() => listConditions())
+  const [condForm, setCondForm] = useState({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
 
   const lowCount = medicines.filter((m) => m.state === 'RunningLow').length
-  const foodConditions = CONDITIONS.filter((c) => c.affectsFood)
+  const foodConditions = conditions.filter((c) => c.affectsFood)
 
   const visibleMeds = useMemo(
     () => (category === 'all' ? medicines : medicines.filter((m) => m.category === category)),
@@ -69,6 +74,21 @@ export default function Health() {
 
   const handleRelation = (condition, relation) => {
     setRules({ ...setRule(condition.tagKey, { relation, enabled: true }) })
+  }
+
+  const resetCondForm = () => setCondForm({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+
+  const handleAddCondition = () => {
+    if (!condForm.name.trim()) return
+    addCondition({
+      name: condForm.name,
+      affectsFood: condForm.affectsFood,
+      tag: condForm.tag,
+      relation: condForm.relation,
+    })
+    setConditions(listConditions())
+    setRules(getRules())
+    resetCondForm()
   }
 
   const addableFiltered = addable.filter((m) =>
@@ -117,7 +137,7 @@ export default function Health() {
           <span className="health-tab-icon"><Icon name="clipboard" /></span>
           <span className="health-tab-title">{t('health.tab.cond')}</span>
           <span className="health-tab-meta">
-            {t('health.tab.condMeta', { count: CONDITIONS.length, food: foodConditions.length })}
+            {t('health.tab.condMeta', { count: conditions.length, food: foodConditions.length })}
           </span>
         </button>
       </div>
@@ -214,10 +234,74 @@ export default function Health() {
         </div>
       ) : (
         <div className="card">
-          <h3 className="health-cond-title">{t('health.tab.cond')}</h3>
+          <div className="section-title">
+            <h3 className="health-cond-title">{t('health.tab.cond')}</h3>
+            {!condForm.open && (
+              <button type="button" className="btn-accent" onClick={() => setCondForm((f) => ({ ...f, open: true }))}>
+                {t('health.addCond')}
+              </button>
+            )}
+          </div>
           <p className="placeholder-text">{t('health.condHint')}</p>
+
+          {condForm.open && (
+            <div className="cond-add-form">
+              <input
+                type="text"
+                className="cond-add-name"
+                placeholder={t('health.addCondName')}
+                value={condForm.name}
+                onChange={(e) => setCondForm((f) => ({ ...f, name: e.target.value }))}
+              />
+              <label className="switch-wrap cond-add-switch">
+                <span className="switch-label">{t('health.affectsFood')}</span>
+                <span className="switch">
+                  <input
+                    type="checkbox"
+                    checked={condForm.affectsFood}
+                    onChange={(e) => setCondForm((f) => ({ ...f, affectsFood: e.target.checked }))}
+                  />
+                  <span className="switch-track" />
+                </span>
+              </label>
+              {condForm.affectsFood && (
+                <div className="cond-add-food">
+                  <input
+                    type="text"
+                    className="cond-add-tag"
+                    placeholder={t('health.condTagPlaceholder')}
+                    value={condForm.tag}
+                    onChange={(e) => setCondForm((f) => ({ ...f, tag: e.target.value }))}
+                  />
+                  <select
+                    className="rule-select"
+                    value={condForm.relation}
+                    onChange={(e) => setCondForm((f) => ({ ...f, relation: e.target.value }))}
+                  >
+                    <option value="Avoid">{t('health.rule.avoid')}</option>
+                    <option value="Forbidden">{t('health.rule.forbidden')}</option>
+                  </select>
+                  <span className="cond-add-hint">{t('health.condTagLabel')}</span>
+                </div>
+              )}
+              <div className="cond-add-actions">
+                <button type="button" className="btn-ghost" onClick={resetCondForm}>
+                  {t('health.condCancel')}
+                </button>
+                <button
+                  type="button"
+                  className="btn-accent"
+                  onClick={handleAddCondition}
+                  disabled={!condForm.name.trim()}
+                >
+                  {t('health.condSave')}
+                </button>
+              </div>
+            </div>
+          )}
+
           <ul className="condition-list">
-            {CONDITIONS.map((condition) => {
+            {conditions.map((condition) => {
               const rule = rules[condition.tagKey]
               const enabled = rule?.enabled ?? false
               const relation = rule?.relation ?? condition.defaultRelation

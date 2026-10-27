@@ -20,14 +20,17 @@ export default function ShoppingList() {
   const [items, setItems] = useState(() => getShoppingItems())
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
+  // Категорія для нової позиції обирається зверху у формі; '' = визначити автоматично за назвою.
+  const [category, setCategory] = useState('')
 
   const handleAdd = (e) => {
     e.preventDefault()
     if (!name.trim()) return
-    addShoppingItem(name, detectCategory(name), price)
+    addShoppingItem(name, category || detectCategory(name), price)
     setItems(getShoppingItems())
     setName('')
     setPrice('')
+    setCategory('')
   }
 
   const handleDelete = (id) => {
@@ -47,13 +50,14 @@ export default function ShoppingList() {
 
   const grouped = useMemo(() => {
     const map = new Map()
-    for (const category of SHOPPING_CATEGORIES) map.set(category, [])
+    for (const cat of SHOPPING_CATEGORIES) map.set(cat, [])
     map.set('uncategorized', [])
     for (const item of items) {
       const key = item.category && map.has(item.category) ? item.category : 'uncategorized'
       map.get(key).push(item)
     }
-    return Array.from(map.entries()).filter(([, list]) => list.length > 0)
+    // Усі визначені категорії показуємо завжди (навіть порожні); «без категорії» — лише коли є що.
+    return Array.from(map.entries()).filter(([key, list]) => key !== 'uncategorized' || list.length > 0)
   }, [items])
 
   // planner-spec.md §4.8 — "Итого" завжди чесно позначає, скільки позицій узято в суму:
@@ -72,6 +76,17 @@ export default function ShoppingList() {
           onChange={(e) => setName(e.target.value)}
           placeholder={t('shoppingList.addPlaceholder')}
         />
+        <label className="shopping-list-cat-field">
+          <span>{t('shoppingList.categoryFormLabel')}</span>
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">{t('shoppingList.autoCategory')}</option>
+            {SHOPPING_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {t(`shoppingList.category.${c}`)}
+              </option>
+            ))}
+          </select>
+        </label>
         <input
           type="number"
           min="0"
@@ -82,13 +97,13 @@ export default function ShoppingList() {
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
       </form>
 
-      {items.length === 0 ? (
-        <p className="placeholder-text">{t('shoppingList.empty')}</p>
-      ) : (
-        <div className="shopping-list-groups">
-          {grouped.map(([category, list]) => (
-            <div key={category} className="card shopping-list-group">
-              <h3>{t(`shoppingList.category.${category}`)}</h3>
+      <div className="shopping-list-groups">
+        {grouped.map(([groupKey, list]) => (
+          <div key={groupKey} className="card shopping-list-group">
+            <h3>{t(`shoppingList.category.${groupKey}`)}</h3>
+            {list.length === 0 ? (
+              <p className="shopping-list-group-empty">{t('shoppingList.groupEmpty')}</p>
+            ) : (
               <ul>
                 {list.map((item) => (
                   <li key={item.id} className={item.owned ? 'shopping-list-row is-owned' : 'shopping-list-row'}>
@@ -128,15 +143,15 @@ export default function ShoppingList() {
                   </li>
                 ))}
               </ul>
-            </div>
-          ))}
-          {toBuy.length > 0 && (
-            <p className="shopping-list-total">
-              {t('shoppingList.totalLabel', { amount: total, known: priced.length, total: toBuy.length })}
-            </p>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        ))}
+        {toBuy.length > 0 && (
+          <p className="shopping-list-total">
+            {t('shoppingList.totalLabel', { amount: total, known: priced.length, total: toBuy.length })}
+          </p>
+        )}
+      </div>
     </div>
   )
 }

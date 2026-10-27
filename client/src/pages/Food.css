@@ -54,6 +54,62 @@
   min-width: 0;
 }
 
+/* --- Великі плитки-вкладки "Страви / Запаси" --- */
+.food-tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.food-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 220px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.food-tab:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+.food-tab--active {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-accent), var(--shadow-md);
+}
+
+.food-tab-icon {
+  display: inline-flex;
+  color: color-mix(in srgb, var(--color-food) 55%, var(--color-heading));
+}
+.food-tab-icon .icon {
+  width: 26px;
+  height: 26px;
+}
+.food-tab--active .food-tab-icon,
+.food-tab--active .food-tab-title {
+  color: var(--color-accent-ink);
+}
+
+.food-tab-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-heading);
+}
+
+.food-tab-meta {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
 @media (max-width: 860px) {
   .food-layout {
     grid-template-columns: 1fr;
