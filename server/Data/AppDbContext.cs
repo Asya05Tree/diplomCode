@@ -54,6 +54,9 @@ public class AppDbContext : DbContext
     // ToDo
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
+    // Перегляд і читання (відео / книги)
+    public DbSet<MediaItem> MediaItems => Set<MediaItem>();
+
     // Навчання
     public DbSet<StudySubject> StudySubjects => Set<StudySubject>();
     public DbSet<StudyAssignment> StudyAssignments => Set<StudyAssignment>();
@@ -130,6 +133,13 @@ public class AppDbContext : DbContext
         // ToDo — проста таблиця, впорядкована за статусом+позицією
         modelBuilder.Entity<TodoItem>()
             .HasIndex(x => new { x.UserId, x.Status, x.OrderIndex });
+
+        // Перегляд і читання — фільтр за типом+статусом; FK на користувача каскадний (видалили
+        // акаунт — пішли записи). TaskId лишаємо простим int? без навігації (логічне посилання).
+        modelBuilder.Entity<MediaItem>()
+            .HasIndex(x => new { x.UserId, x.Kind, x.Status });
+        modelBuilder.Entity<MediaItem>()
+            .HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 
     // Загальне правило для нових таблиць: FK на користувача каскадний (видалили акаунт — пішли його дані),
