@@ -161,11 +161,18 @@ public class MediaController : ControllerBase
         item.Status = target;
         if (target == "done")
         {
-            // Рейтинг і відгук — для обох типів. Подію календаря не чіпаємо (дата лишається).
+            // Рейтинг і відгук — для обох типів.
             item.RatingStars = request.RatingStars.HasValue
                 ? Math.Clamp(request.RatingStars.Value, 1, 5)
                 : (int?)null;
             item.Review = Clean(request.Review, ReviewMax);
+            // Повʼязана подія календаря стає завершеною: у календарі її можна лише видалити
+            // (а видалення там прибере й цей запис).
+            if (item.TaskId.HasValue)
+            {
+                var task = await _db.Tasks.FirstOrDefaultAsync(x => x.Id == item.TaskId.Value && x.UserId == CurrentUserId);
+                if (task is not null) task.Status = "Done";
+            }
         }
         await _db.SaveChangesAsync();
         return Ok(ToDto(item));
@@ -202,7 +209,8 @@ public class MediaController : ControllerBase
         var item = await _db.MediaItems.FirstOrDefaultAsync(x => x.Id == id && x.UserId == CurrentUserId);
         if (item is null) return NotFound();
 
-        if (item.TaskId.HasValue) await _tasks.DeleteTaskAsync(CurrentUserId, item.TaskId.Value);
+        // cascadeSource:false — цей запис прибираємо тут самі, інакше буде подвійне видалення
+        if (item.TaskId.HasValue) await _tasks.DeleteTaskAsync(CurrentUserId, item.TaskId.Value, cascadeSource: false);
         _db.MediaItems.Remove(item);
         await _db.SaveChangesAsync();
         return Ok();

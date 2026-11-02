@@ -416,13 +416,17 @@ public class TaskService
         var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == taskId && t.UserId == userId);
         if (task is null) return false;
 
-        task.Status = action switch
+        // «Пропущено»/«Відкласти» — задача повертається в «Нерозподілені» без дати, щоб її можна
+        // було перепланувати (а не зникала безслідно). «Готово» лишає дату.
+        if (action == "Done")
         {
-            "Done" => "Done",
-            "Skipped" => "Skipped",
-            "Postpone" => "Unassigned",
-            _ => task.Status,
-        };
+            task.Status = "Done";
+        }
+        else if (action is "Skipped" or "Postpone")
+        {
+            task.Status = "Unassigned";
+            task.StartDateTime = null;
+        }
         await _db.SaveChangesAsync();
         return true;
     }
@@ -471,10 +475,20 @@ public class TaskService
         return true;
     }
 
-    public async Task<bool> DeleteTaskAsync(int userId, int taskId)
+    // cascadeSource=true: якщо задачу створив інший модуль (напр. «Перегляд і читання»), видаляємо
+    // й повʼязаний запис-джерело — щоб видалення події в календарі прибирало запис і там.
+    // MediaController.Delete викликає з cascadeSource=false (він сам прибирає свій запис).
+    public async Task<bool> DeleteTaskAsync(int userId, int taskId, bool cascadeSource = true)
     {
         var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == taskId && t.UserId == userId && t.RecurrenceRuleId == null);
         if (task is null) return false;
+
+        if (cascadeSource && task.SourceModule == "media" && task.SourceEntityId.HasValue)
+        {
+            var media = await _db.MediaItems.FirstOrDefaultAsync(m => m.Id == task.SourceEntityId.Value && m.UserId == userId);
+            if (media is not null) _db.MediaItems.Remove(media);
+        }
+
         _db.Tasks.Remove(task);
         await _db.SaveChangesAsync();
         return true;

@@ -143,10 +143,15 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
       )
     }
 
+    // Події з вкладки «Перегляд і читання» незмінні в календарі — лише видалення (прибирає й запис у вкладці).
     const actions = task.isVirtual
       ? [
           { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
           { label: t('planner.actionDelete'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
+        ]
+      : task.sourceModule === 'media'
+      ? [
+          { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
         ]
       : [
           { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },

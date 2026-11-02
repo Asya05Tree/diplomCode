@@ -365,6 +365,25 @@
   min-height: 46px;
 }
 
+.watch-save-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.watch-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--color-accent-ink);
+}
+
+.watch-saved .icon {
+  width: 15px;
+  height: 15px;
+}
+
 .watch-stars {
   display: inline-flex;
   gap: 2px;

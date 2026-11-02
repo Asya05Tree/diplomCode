@@ -59,6 +59,7 @@ export default function Watchlist() {
   const [draft, setDraft] = useState(emptyDraft)
   const [sched, setSched] = useState(null) // { id, date, time, genre, type }
   const [edits, setEdits] = useState({}) // { [id]: { rating, review } }
+  const [savedIds, setSavedIds] = useState(() => new Set()) // підсвітка «Збережено»
 
   useEffect(() => {
     let cancelled = false
@@ -131,24 +132,37 @@ export default function Watchlist() {
   }
 
   const getEdit = (item) => edits[item.id] ?? { rating: item.ratingStars || 0, review: item.review || '' }
-  const setEdit = (item, patch) =>
+  const setEdit = (item, patch) => {
     setEdits((prev) => ({ ...prev, [item.id]: { ...getEdit(item), ...patch } }))
+    // Почали редагувати знову — прибираємо позначку «Збережено»
+    setSavedIds((prev) => {
+      if (!prev.has(item.id)) return prev
+      const next = new Set(prev)
+      next.delete(item.id)
+      return next
+    })
+  }
 
   const handleSaveDone = async (item) => {
     const { rating, review } = getEdit(item)
-    await updateMedia(item.id, {
-      title: item.title,
-      author: item.author,
-      ratingStars: rating || null,
-      review: review || null,
-      genre: item.genre || null, // поточні вид/жанр, щоб не затерти класифікацію
-      mediaType: item.mediaType || null,
-    })
+    try {
+      await updateMedia(item.id, {
+        title: item.title,
+        author: item.author,
+        ratingStars: rating || null,
+        review: review || null,
+        genre: item.genre || null, // поточні вид/жанр, щоб не затерти класифікацію
+        mediaType: item.mediaType || null,
+      })
+    } catch {
+      return // лишаємо введений текст, якщо зберегти не вдалося
+    }
     setEdits((prev) => {
       const next = { ...prev }
       delete next[item.id]
       return next
     })
+    setSavedIds((prev) => new Set(prev).add(item.id))
     await reload()
   }
 
@@ -340,9 +354,16 @@ export default function Watchlist() {
                       maxLength={MAX_LEN.description}
                       onChange={(e) => setEdit(item, { review: limitText(e.target.value, MAX_LEN.description) })}
                     />
-                    <button type="button" className="watch-btn-save" onClick={() => handleSaveDone(item)}>
-                      {t('watchlist.saveReview')}
-                    </button>
+                    <div className="watch-save-row">
+                      <button type="button" className="watch-btn-save" onClick={() => handleSaveDone(item)}>
+                        {t('watchlist.saveReview')}
+                      </button>
+                      {savedIds.has(item.id) && !edits[item.id] && (
+                        <span className="watch-saved">
+                          <Icon name="check" /> {t('watchlist.saved')}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
 
