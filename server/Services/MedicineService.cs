@@ -82,7 +82,7 @@ public class MedicineService
                 var name = lang == "en" ? m.NameEn : m.NameUk;
                 var substance = lang == "en" ? m.SubstanceEn : m.SubstanceUk;
                 // Збіг або за назвою, або за діючою речовиною — беремо кращий із двох
-                var score = Math.Max(TrigramScore(queryGrams, name), TrigramScore(queryGrams, substance));
+                var score = Math.Max(Relevance(queryGrams, q, name), Relevance(queryGrams, q, substance));
                 return (m, score);
             })
             .Where(x => x.score > 0)
@@ -136,6 +136,19 @@ public class MedicineService
         if (hasCyrillic && !hasLatin) return "uk";
         if (hasLatin && !hasCyrillic) return "en";
         return null;
+    }
+
+    // Релевантність кандидата до запиту: збіги-підрядки стоять ВИЩЕ за суто триграмні,
+    // а з-поміж підрядкових перевагу має коротша/точніша назва (дрібний штраф за довжину).
+    // Інакше «КОРВАЛТАБ» (коротка, але не містить «корвалол») обганяла б «КОРВАЛОЛ-ДАРНИЦЯ».
+    private static double Relevance(HashSet<string> queryGrams, string query, string? candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate)) return 0;
+        var c = candidate.Trim().ToLowerInvariant();
+        if (c == query) return 1000;
+        if (c.StartsWith(query, StringComparison.Ordinal)) return 900 - c.Length * 0.001;
+        if (c.Contains(query, StringComparison.Ordinal)) return 800 - c.Length * 0.001;
+        return TrigramScore(queryGrams, candidate) * 100;
     }
 
     // Набір 3-грам рядка з пробілом-доповненням з боків (щоб короткі запити/префікси теж давали грами).
