@@ -9,6 +9,7 @@ import './Sidebar.css'
 const NAV_ITEMS = [
   { key: 'nav.calendar', icon: 'calendar-days', color: 'var(--color-tasks)', to: '/app' },
   { key: 'nav.todo', icon: 'board', color: 'var(--color-todo)', to: '/app/todo' },
+  { key: 'nav.watchlist', icon: 'film', color: 'var(--color-media)', to: '/app/watchlist' },
   { key: 'nav.shoppingList', icon: 'cart', color: 'var(--color-food)', to: '/app/shopping-list' },
   { key: 'nav.food', icon: 'cake', color: 'var(--color-food)', to: '/app/food' },
   { key: 'nav.health', icon: 'health', color: 'var(--color-health)', to: '/app/health' },

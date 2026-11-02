@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
+import { addMedia, scheduleMedia } from '../../api/media'
 import { toApiDate, toApiDateTime, formatTime, todayApiDate } from '../../utils/date'
+import { MAX_LEN, filterWords, limitText } from '../../utils/validation'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
 import RecurrenceFields from './RecurrenceFields'
 import ShoppingTaskTabs from './ShoppingTaskTabs'
@@ -9,7 +11,10 @@ import './TaskForm.css'
 
 // Дефолтні назви у випадаючому списку справа від заголовка — обрання одного з них просто
 // підставляє текст у поле назви (користувач може далі змінити його вручну як завгодно).
-const TITLE_PRESETS = ['cookFood', 'goShopping']
+// watchMedia/readMedia — особливі: замість задачі "як є" створюють елемент у вкладці
+// «Перегляд і читання» (в процесі) з привʼязаною подією календаря.
+const TITLE_PRESETS = ['cookFood', 'goShopping', 'watchMedia', 'readMedia']
+const MEDIA_PRESETS = { watchMedia: 'video', readMedia: 'book' }
 
 // Спільна форма створення задачі, за шаблоном coding-guide.md §8: назва, коли (один раз /
 // повторюється — тип правила й розклад делегуються RecurrenceFields), тривалість і дедлайн — необов'язкові.
@@ -21,6 +26,9 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   const [title, setTitle] = useState('')
   const [titlePreset, setTitlePreset] = useState('')
   const [description, setDescription] = useState('')
+  // Поля медіа-пресета (назва фільму/книги та автор) тримаємо окремо від title задачі
+  const [mediaTitle, setMediaTitle] = useState('')
+  const [mediaAuthor, setMediaAuthor] = useState('')
   const [repeats, setRepeats] = useState(defaultRecurring)
   const [date, setDate] = useState(toApiDate(initialDate))
   const [time, setTime] = useState(formatTime(initialDate))
@@ -42,20 +50,57 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   const handlePresetSelect = (e) => {
     const key = e.target.value
     setTitlePreset(key)
-    if (key) setTitle(presetLabel(key))
+    // Медіа-пресет не підставляє текст у title задачі — у нього своє поле назви
+    if (key in MEDIA_PRESETS) setTitle('')
+    else if (key) setTitle(presetLabel(key))
   }
 
   const isShoppingTask = title.trim() === presetLabel('goShopping')
+  const mediaKind = MEDIA_PRESETS[titlePreset] ?? null // 'video' | 'book' | null
+  const isMediaTask = mediaKind !== null
 
-  // Похід у магазин завжди прив'язаний до конкретного моменту — повторення для нього
-  // немає сенсу, тому перемикач "коли" ховаємо і примусово скидаємо на "один раз"
+  // Похід у магазин / перегляд-читання завжди прив'язані до конкретного моменту —
+  // повторення для них немає сенсу, тому перемикач "коли" ховаємо і скидаємо на "один раз"
   useEffect(() => {
-    if (isShoppingTask) setRepeats(false)
-  }, [isShoppingTask])
+    if (isShoppingTask || isMediaTask) setRepeats(false)
+  }, [isShoppingTask, isMediaTask])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+
+    // Медіа-пресет: створюємо елемент вкладки «Перегляд і читання» (в процесі) з подією
+    // календаря на обрану дату/час — замість звичайної задачі.
+    if (isMediaTask) {
+      const mt = mediaTitle.trim()
+      if (!mt) {
+        setError(t('taskForm.errorTitleRequired'))
+        return
+      }
+      if (date < todayApiDate()) {
+        setError(t('taskForm.errorDateInPast'))
+        return
+      }
+      setBusy(true)
+      try {
+        const created = await addMedia({
+          kind: mediaKind,
+          title: mt,
+          author: mediaKind === 'book' ? mediaAuthor.trim() : null,
+        })
+        const [y, m, d] = date.split('-').map(Number)
+        const [h, min] = time.split(':').map(Number)
+        const startDateTime = toApiDateTime(new Date(y, m - 1, d, h, min))
+        await scheduleMedia(created.id, { startDateTime, durationMinutes: null })
+        onSaved(created)
+      } catch {
+        setError(t('taskForm.errorSave'))
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
+
     if (!title.trim()) {
       setError(t('taskForm.errorTitleRequired'))
       return
@@ -110,15 +155,28 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   return (
     <form className="task-form" onSubmit={handleSubmit}>
       <div className="task-form-row">
-        <label>
-          {t('taskForm.titleLabel')}
-          <input
-            value={title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder={t('taskForm.titlePlaceholder')}
-            required
-          />
-        </label>
+        {isMediaTask ? (
+          <label>
+            {t(`taskForm.mediaTitle.${mediaKind}`)}
+            <input
+              value={mediaTitle}
+              onChange={(e) => setMediaTitle(limitText(e.target.value, MAX_LEN.title))}
+              placeholder={t(`taskForm.mediaTitlePlaceholder.${mediaKind}`)}
+              maxLength={MAX_LEN.title}
+              required
+            />
+          </label>
+        ) : (
+          <label>
+            {t('taskForm.titleLabel')}
+            <input
+              value={title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder={t('taskForm.titlePlaceholder')}
+              required
+            />
+          </label>
+        )}
         <label>
           {t('taskForm.presetLabel')}
           <select value={titlePreset} onChange={handlePresetSelect}>
@@ -134,6 +192,18 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
 
       {isShoppingTask ? (
         <ShoppingTaskTabs />
+      ) : isMediaTask ? (
+        mediaKind === 'book' ? (
+          <label>
+            {t('taskForm.mediaAuthor')}
+            <input
+              value={mediaAuthor}
+              onChange={(e) => setMediaAuthor(filterWords(e.target.value, MAX_LEN.name))}
+              placeholder={t('taskForm.mediaAuthorPlaceholder')}
+              maxLength={MAX_LEN.name}
+            />
+          </label>
+        ) : null
       ) : (
         <label>
           {t('taskForm.description')}
@@ -141,7 +211,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         </label>
       )}
 
-      {!isShoppingTask && (
+      {!isShoppingTask && !isMediaTask && (
         <div className="task-form-when">
           <span className="task-form-when-label">{t('taskForm.when')}</span>
           <label className="task-form-radio">
@@ -170,7 +240,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         </div>
       )}
 
-      {!isShoppingTask && (
+      {!isShoppingTask && !isMediaTask && (
         <div className="task-form-row">
           <label>
             {t('taskForm.duration')}

@@ -105,6 +105,7 @@
   --color-todo: #bfe3cf;
   --color-cycle: #f3c9dd;
   --color-notes: #e3d3c1;
+  --color-media: #bfe0e3;
 }
 
 .theme-dark {
@@ -143,6 +144,7 @@
   --color-todo: #4f7e63;
   --color-cycle: #a6748c;
   --color-notes: #8a7562;
+  --color-media: #4f7e82;
 }
 
 /* Налаштування → Акцент (planner-spec.md §3.1 AccentColor, §4.10): фон сторінки для
