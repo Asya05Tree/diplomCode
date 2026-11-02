@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
+import Icon from '../components/Icon'
 import MonthGrid from '../components/planner/MonthGrid'
 import ComboList from '../components/common/ComboList'
+import { PALETTES } from '../utils/settings'
 import { clamp, findMaximalCombos } from '../utils/combos'
 import { addDays, addMonths, isoDayOfWeek, startOfDay, toApiDate } from '../utils/date'
 import './Landing.css'
@@ -101,7 +103,7 @@ function occursOnDate(date, today, repeatType, selectedWeekDays, intervalDays) {
 
 // Публічна сторінка для тих, хто ще не увійшов. Реєстрація/вхід — окремі URL (/reg, /login),
 // щоб на них можна було перейти напряму або оновити сторінку без втрати екрана.
-export default function Landing() {
+export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalette }) {
   const { t } = useI18n()
 
   const [activeDemo, setActiveDemo] = useState('food')
@@ -219,6 +221,38 @@ export default function Landing() {
       <header className="landing-header">
         <img src="/images/logo1.png" alt="Logo" className="landing-logo" />
         <span className="landing-brand">Всетута</span>
+
+        <div className="landing-header-controls">
+          {/* Вибір кольору (палітра) — ліворуч від перемикача теми */}
+          <label className="landing-palette">
+            <span className="landing-palette-label">{t('landing.colorLabel')}</span>
+            <select
+              className="landing-palette-select"
+              value={palette}
+              onChange={(e) => onSetPalette(e.target.value)}
+            >
+              {PALETTES.map((name) => (
+                <option key={name} value={name}>
+                  {t(`settings.palette.${name}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* Перемикач темної теми — стилізований слайдер (.switch зі спільних стилів) */}
+          <label className="switch-wrap" title={t('landing.themeToggle')}>
+            <Icon name={themeMode === 'dark' ? 'moon' : 'sun'} className="landing-theme-icon" />
+            <span className="switch">
+              <input
+                type="checkbox"
+                checked={themeMode === 'dark'}
+                onChange={(e) => onSetThemeMode(e.target.checked ? 'dark' : 'light')}
+                aria-label={t('landing.themeToggle')}
+              />
+              <span className="switch-track" />
+            </span>
+          </label>
+        </div>
       </header>
 
       <div className="landing-auth">

@@ -33,10 +33,64 @@
   letter-spacing: 0.02em;
 }
 
+/* Керування виглядом до входу: вибір кольору + перемикач теми, притиснуті праворуч */
+.landing-header-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 18px);
+}
+
+.landing-palette {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-palette-label {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Стилізовано під решту полів сайту (поверхня/рамка/радіус + focus-ring як у .landing-money-field) */
+.landing-palette-select {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 0.85rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.landing-palette-select:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+.landing-theme-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 560px) {
+  .landing-palette-label {
+    display: none;
+  }
+}
+
 .landing-auth {
   display: flex;
   justify-content: center;
-  padding: clamp(24px, 5vw, 40px) 16px clamp(12px, 3vw, 20px);
+  /* Збільшений верхній відступ дає піднятому при наведенні блоку запас місця,
+     щоб підпис/картинка не залазили під sticky-хедер (z-index 20). */
+  padding: clamp(72px, 12vw, 120px) 16px clamp(12px, 3vw, 20px);
 }
 
 .landing-choices {
@@ -73,9 +127,10 @@
 }
 
 /* Піднімається саме внутрішній блок — зона наведення (.landing-choice) при цьому не зсувається.
-   Хід скорочено вдвічі відносно попередньої версії (-22vh), щоб картинка не вилітала так високо. */
+   Хід зменшено до -6vh (разом зі збільшеним верхнім відступом .landing-auth), щоб підпис/картинка
+   лишались нижче хедера й не зникали під ним. */
 .landing-choice:hover .landing-choice-visual {
-  transform: translateY(-11vh);
+  transform: translateY(-6vh);
 }
 
 /* Підпис навмисно "лягає" на верхній край картинки (negative margin замість gap) —

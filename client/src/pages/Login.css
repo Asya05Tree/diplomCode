@@ -21,8 +21,9 @@
 
 .login-image-wrap {
   position: relative;
-  width: min(260px, 60vw);
-  height: min(260px, 60vw);
+  /* Приблизно завбільшки з форму входу (її max-width ~380px), у межах viewport */
+  width: clamp(300px, 42vw, 400px);
+  height: clamp(300px, 42vw, 400px);
   animation: float-soft 5s ease-in-out infinite;
 }
 

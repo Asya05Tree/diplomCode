@@ -29,6 +29,11 @@ export function getInteractions(medicineId) {
   return apiGet(`/api/medicine-cabinet/${medicineId}/interactions`)
 }
 
+// Підказки тегів для форми захворювання — лише теги, що стоять на продуктах (запасах).
+export function searchTags(query) {
+  return apiGet(`/api/medicine-cabinet/tags?q=${encodeURIComponent(query)}`)
+}
+
 export function getConditions() {
   return apiGet('/api/medicine-cabinet/conditions')
 }

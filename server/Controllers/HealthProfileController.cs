@@ -38,8 +38,14 @@ public class HealthProfileController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateHealthProfileRequest request)
     {
+        // Upsert: зазвичай профіль створюється при реєстрації, але якщо його чомусь немає —
+        // заводимо, щоб збереження параметрів ніколи не падало (NotFound).
         var profile = await _db.UserProfiles.FindAsync(CurrentUserId);
-        if (profile is null) return NotFound();
+        if (profile is null)
+        {
+            profile = new UserProfile { UserId = CurrentUserId };
+            _db.UserProfiles.Add(profile);
+        }
 
         profile.Height = request.Height;
         profile.Weight = request.Weight;

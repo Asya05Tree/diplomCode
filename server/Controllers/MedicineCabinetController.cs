@@ -66,6 +66,13 @@ public class MedicineCabinetController : ControllerBase
         return Ok(interactions);
     }
 
+    [HttpGet("tags")]
+    public async Task<IActionResult> SearchTags([FromQuery] string q)
+    {
+        var results = await _medicineService.SearchTagsAsync(q);
+        return Ok(results);
+    }
+
     [HttpGet("conditions")]
     public async Task<IActionResult> GetConditions()
     {

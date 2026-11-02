@@ -128,7 +128,21 @@ function AppContent() {
       style={{ minHeight: '100vh' }}
     >
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/app" replace /> : <Landing />} />
+        <Route
+          path="/"
+          element={
+            user ? (
+              <Navigate to="/app" replace />
+            ) : (
+              <Landing
+                themeMode={themeMode}
+                onSetThemeMode={handleSetThemeMode}
+                palette={palette}
+                onSetPalette={handleSetPalette}
+              />
+            )
+          }
+        />
         <Route
           path="/reg"
           element={user ? <Navigate to="/app" replace /> : <Register onRegistered={handleAuthed} />}

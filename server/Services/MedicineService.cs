@@ -51,25 +51,111 @@ public class MedicineService
 
     public async Task<List<SearchResultDto>> SearchAsync(int userId, string query)
     {
-        var q = (query ?? "").Trim();
+        var q = (query ?? "").Trim().ToLowerInvariant();
         if (q.Length == 0) return new List<SearchResultDto>();
+
+        // Мова запиту визначається за алфавітом: суто латиниця → англ. поля, суто кирилиця → укр.
+        // Змішаний алфавіт або лише цифри/символи (нi укр., нi англ.) — результатів не даємо.
+        var lang = DetectScript(q);
+        if (lang is null) return new List<SearchResultDto>();
+
+        var queryGrams = Trigrams(q);
+        if (queryGrams.Count == 0) return new List<SearchResultDto>();
 
         var inCabinet = await _db.UserMedicines.Where(x => x.UserId == userId).Select(x => x.MedicineId).ToListAsync();
 
-        // Пошук за торговою назвою (укр/англ) або назвою діючої речовини; ~30 рядків для пікера
-        return await _db.Medicines
-            .Include(m => m.Form)
-            .Include(m => m.Substance)
-            .Where(m => !inCabinet.Contains(m.Id) && (
-                m.NameUk.Contains(q) || m.NameEn.Contains(q) ||
-                (m.Substance != null && (m.Substance.NameUk.Contains(q) || m.Substance.NameEn.Contains(q)))))
-            .OrderBy(m => m.NameUk)
-            .Take(30)
-            .Select(m => new SearchResultDto(
-                m.Id, m.NameUk, m.NameEn, m.Form!.Key,
-                m.Substance != null ? m.Substance.NameUk : null,
-                m.Substance != null ? m.Substance.NameEn : null))
+        // Довідник невеликий (~2 тис. рядків), тож тягнемо легку проекцію й рахуємо триграмну
+        // подібність у памʼяті — пошук терпить до одруків, на відміну від простого Contains.
+        var candidates = await _db.Medicines
+            .Where(m => !inCabinet.Contains(m.Id))
+            .Select(m => new
+            {
+                m.Id, m.NameUk, m.NameEn, FormKey = m.Form!.Key,
+                SubstanceUk = m.Substance != null ? m.Substance.NameUk : null,
+                SubstanceEn = m.Substance != null ? m.Substance.NameEn : null,
+            })
             .ToListAsync();
+
+        return candidates
+            .Select(m =>
+            {
+                var name = lang == "en" ? m.NameEn : m.NameUk;
+                var substance = lang == "en" ? m.SubstanceEn : m.SubstanceUk;
+                // Збіг або за назвою, або за діючою речовиною — беремо кращий із двох
+                var score = Math.Max(TrigramScore(queryGrams, name), TrigramScore(queryGrams, substance));
+                return (m, score);
+            })
+            .Where(x => x.score > 0)
+            .OrderByDescending(x => x.score)
+            .ThenBy(x => lang == "en" ? x.m.NameEn : x.m.NameUk)
+            .Take(20)
+            .Select(x => new SearchResultDto(x.m.Id, x.m.NameUk, x.m.NameEn, x.m.FormKey, x.m.SubstanceUk, x.m.SubstanceEn))
+            .ToList();
+    }
+
+    // Підказки тегів для форми захворювання: ТІЛЬКИ теги, що реально стоять на продуктах (запасах),
+    // бо хвороба фільтрує саме страви/продукти. Збіг за ключем або укр. назвою (підрядок або триграми).
+    public async Task<List<TagSuggestionDto>> SearchTagsAsync(string query)
+    {
+        var q = (query ?? "").Trim().ToLowerInvariant();
+        if (q.Length == 0) return new List<TagSuggestionDto>();
+
+        var tagIds = await _db.ProductTags.Select(pt => pt.TagId).Distinct().ToListAsync();
+        var tags = await _db.Tags.Where(t => tagIds.Contains(t.Id)).ToListAsync();
+
+        var grams = Trigrams(q);
+        return tags
+            .Select(t =>
+            {
+                var key = t.Key.ToLowerInvariant();
+                var name = t.DisplayName.ToLowerInvariant();
+                var score = Math.Max(
+                    key.Contains(q) ? 1.0 : TrigramScore(grams, key),
+                    name.Contains(q) ? 1.0 : TrigramScore(grams, name));
+                return (t, score);
+            })
+            .Where(x => x.score > 0)
+            .OrderByDescending(x => x.score)
+            .ThenBy(x => x.t.Key)
+            .Take(5)
+            .Select(x => new TagSuggestionDto(x.t.Key, x.t.DisplayName))
+            .ToList();
+    }
+
+    // Алфавіт запиту: "en" (суто латиниця), "uk" (суто кирилиця) або null (змішаний/без літер).
+    private static string? DetectScript(string s)
+    {
+        bool hasLatin = false, hasCyrillic = false;
+        foreach (var ch in s)
+        {
+            if (ch is >= 'a' and <= 'z') hasLatin = true;
+            else if (ch is >= 'Ѐ' and <= 'ӿ') hasCyrillic = true;
+        }
+        if (hasCyrillic && !hasLatin) return "uk";
+        if (hasLatin && !hasCyrillic) return "en";
+        return null;
+    }
+
+    // Набір 3-грам рядка з пробілом-доповненням з боків (щоб короткі запити/префікси теж давали грами).
+    private static HashSet<string> Trigrams(string? text)
+    {
+        var result = new HashSet<string>();
+        if (string.IsNullOrWhiteSpace(text)) return result;
+        var padded = " " + text.Trim().ToLowerInvariant() + " ";
+        for (var i = 0; i + 3 <= padded.Length; i++)
+            result.Add(padded.Substring(i, 3));
+        return result;
+    }
+
+    // Подібність Жаккара між готовим набором грам запиту й грамами кандидата (0..1).
+    private static double TrigramScore(HashSet<string> queryGrams, string? candidate)
+    {
+        var other = Trigrams(candidate);
+        if (other.Count == 0 || queryGrams.Count == 0) return 0;
+        var intersection = queryGrams.Count(g => other.Contains(g));
+        if (intersection == 0) return 0;
+        var union = queryGrams.Count + other.Count - intersection;
+        return (double)intersection / union;
     }
 
     public async Task<bool> AddToCabinetAsync(int userId, int medicineId)
@@ -155,12 +241,23 @@ public class MedicineService
 
     public async Task<List<ConditionDto>> GetConditionsAsync(int userId)
     {
-        return await _db.UserConditions
+        var conditions = await _db.UserConditions
             .Where(x => x.UserId == userId)
             .Include(x => x.Tag)
-            .Select(x => new ConditionDto(x.Id, x.NameUk, x.NameEn, x.AffectsFood,
-                x.Tag != null ? x.Tag.Key : null, x.Relation))
             .ToListAsync();
+
+        // Тег "відомий", якщо він стоїть хоч на одному продукті (запасах) — лише такі реально фільтрують страви
+        var tagIds = conditions.Where(c => c.TagId != null).Select(c => c.TagId!.Value).Distinct().ToList();
+        var knownTagIds = (await _db.ProductTags
+            .Where(pt => tagIds.Contains(pt.TagId))
+            .Select(pt => pt.TagId)
+            .Distinct()
+            .ToListAsync()).ToHashSet();
+
+        return conditions
+            .Select(x => new ConditionDto(x.Id, x.NameUk, x.NameEn, x.AffectsFood,
+                x.Tag?.Key, x.Relation, x.TagId != null && knownTagIds.Contains(x.TagId.Value)))
+            .ToList();
     }
 
     public async Task<ConditionDto> AddConditionAsync(int userId, string nameUk, bool affectsFood, string? tag, string relation)
@@ -168,6 +265,7 @@ public class MedicineService
         var rel = relation == "Forbidden" ? "Forbidden" : "Avoid";
         int? tagId = null;
         string? tagKey = null;
+        var tagKnown = false;
 
         // Якщо хвороба впливає на їжу й задано тег — гарантуємо наявність тега (ключ у нижньому регістрі,
         // щоб збігався з довідником продуктів) і заводимо UserTagPreference для рушія правил "Їжі".
@@ -182,6 +280,10 @@ public class MedicineService
                 await _db.SaveChangesAsync();
             }
             tagId = tagEntity.Id;
+
+            // Тег "відомий" лише якщо він реально стоїть на продуктах (запасах) — лише такий фільтруватиме страви.
+            // Невідомий (напр. вигадана "вафлі") усе одно зберігаємо, але клієнт попередить користувача.
+            tagKnown = await _db.ProductTags.AnyAsync(pt => pt.TagId == tagId.Value);
 
             var pref = await _db.UserTagPreferences.FirstOrDefaultAsync(p => p.UserId == userId && p.TagId == tagId);
             if (pref is null)
@@ -202,7 +304,7 @@ public class MedicineService
         _db.UserConditions.Add(condition);
         await _db.SaveChangesAsync();
 
-        return new ConditionDto(condition.Id, condition.NameUk, condition.NameEn, condition.AffectsFood, tagKey, rel);
+        return new ConditionDto(condition.Id, condition.NameUk, condition.NameEn, condition.AffectsFood, tagKey, rel, tagKnown);
     }
 
     public async Task<bool> DeleteConditionAsync(int userId, int conditionId)
