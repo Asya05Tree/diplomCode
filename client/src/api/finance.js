@@ -24,6 +24,22 @@ export function addTransaction({ amount, type, category, description, occurredAt
   })
 }
 
+// Редагування операції в історії (сума/тип/категорія/опис). «Є зараз» і статистика
+// перераховуються автоматично; перенос у сховану категорію робить її активною (на бекенді).
+export function updateTransaction(id, { amount, type, category, description }) {
+  return apiSend('PUT', `/api/finance/transactions/${id}`, {
+    amount,
+    type,
+    category: category ?? null,
+    description: description ?? null,
+  })
+}
+
 export function removeTransaction(id) {
   return apiSend('DELETE', `/api/finance/transactions/${id}`)
+}
+
+// Приховати / повернути категорію (сховані не враховуються у статистиці, писати в них не можна).
+export function setCategoryHidden(key, hidden) {
+  return apiSend('PUT', `/api/finance/categories/${encodeURIComponent(key)}/hidden`, { hidden })
 }

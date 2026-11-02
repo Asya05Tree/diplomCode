@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
 import { addMedia, scheduleMedia } from '../../api/media'
+import { genresFor, VIDEO_TYPES } from '../../utils/watchlistTaxonomy'
 import { toApiDate, toApiDateTime, formatTime, todayApiDate } from '../../utils/date'
 import { MAX_LEN, filterWords, limitText } from '../../utils/validation'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
@@ -19,16 +20,18 @@ const MEDIA_PRESETS = { watchMedia: 'video', readMedia: 'book' }
 // Спільна форма створення задачі, за шаблоном coding-guide.md §8: назва, коли (один раз /
 // повторюється — тип правила й розклад делегуються RecurrenceFields), тривалість і дедлайн — необов'язкові.
 export default function TaskForm({ token, initialDate, defaultRecurring = false, onSaved, onCancel }) {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
 
   const presetLabel = (key) => t(`taskForm.preset.${key}`)
 
   const [title, setTitle] = useState('')
   const [titlePreset, setTitlePreset] = useState('')
   const [description, setDescription] = useState('')
-  // Поля медіа-пресета (назва фільму/книги та автор) тримаємо окремо від title задачі
+  // Поля медіа-пресета (назва фільму/книги, автор, необовʼязкові вид/жанр) окремо від title задачі
   const [mediaTitle, setMediaTitle] = useState('')
   const [mediaAuthor, setMediaAuthor] = useState('')
+  const [mediaGenre, setMediaGenre] = useState('')
+  const [mediaType, setMediaType] = useState('')
   const [repeats, setRepeats] = useState(defaultRecurring)
   const [date, setDate] = useState(toApiDate(initialDate))
   const [time, setTime] = useState(formatTime(initialDate))
@@ -51,8 +54,13 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
     const key = e.target.value
     setTitlePreset(key)
     // Медіа-пресет не підставляє текст у title задачі — у нього своє поле назви
-    if (key in MEDIA_PRESETS) setTitle('')
-    else if (key) setTitle(presetLabel(key))
+    if (key in MEDIA_PRESETS) {
+      setTitle('')
+      setMediaGenre('')
+      setMediaType('')
+    } else if (key) {
+      setTitle(presetLabel(key))
+    }
   }
 
   const isShoppingTask = title.trim() === presetLabel('goShopping')
@@ -87,6 +95,8 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           kind: mediaKind,
           title: mt,
           author: mediaKind === 'book' ? mediaAuthor.trim() : null,
+          genre: mediaGenre || null,
+          mediaType: mediaKind === 'video' ? mediaType || null : null,
         })
         const [y, m, d] = date.split('-').map(Number)
         const [h, min] = time.split(':').map(Number)
@@ -193,17 +203,43 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
       {isShoppingTask ? (
         <ShoppingTaskTabs />
       ) : isMediaTask ? (
-        mediaKind === 'book' ? (
+        <div className="task-form-row">
+          {mediaKind === 'book' && (
+            <label>
+              {t('taskForm.mediaAuthor')}
+              <input
+                value={mediaAuthor}
+                onChange={(e) => setMediaAuthor(filterWords(e.target.value, MAX_LEN.name))}
+                placeholder={t('taskForm.mediaAuthorPlaceholder')}
+                maxLength={MAX_LEN.name}
+              />
+            </label>
+          )}
           <label>
-            {t('taskForm.mediaAuthor')}
-            <input
-              value={mediaAuthor}
-              onChange={(e) => setMediaAuthor(filterWords(e.target.value, MAX_LEN.name))}
-              placeholder={t('taskForm.mediaAuthorPlaceholder')}
-              maxLength={MAX_LEN.name}
-            />
+            {t('watchlist.genreLabel')}
+            <select value={mediaGenre} onChange={(e) => setMediaGenre(e.target.value)}>
+              <option value="">{t('watchlist.genreOptional')}</option>
+              {genresFor(mediaKind).map((g) => (
+                <option key={g.key} value={g.key}>
+                  {language === 'en' ? g.en : g.uk}
+                </option>
+              ))}
+            </select>
           </label>
-        ) : null
+          {mediaKind === 'video' && (
+            <label>
+              {t('watchlist.typeLabel')}
+              <select value={mediaType} onChange={(e) => setMediaType(e.target.value)}>
+                <option value="">{t('watchlist.typeOptional')}</option>
+                {VIDEO_TYPES.map((v) => (
+                  <option key={v.key} value={v.key}>
+                    {language === 'en' ? v.en : v.uk}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
       ) : (
         <label>
           {t('taskForm.description')}
