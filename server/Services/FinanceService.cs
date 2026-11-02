@@ -18,9 +18,16 @@ public class FinanceService
 
     public record LimitDto(string PeriodType, decimal Amount);
     public record TransactionDto(int Id, decimal Amount, string Type, string? Category, string? Description, DateTime OccurredAt, int? TaskId);
-    public record FinanceDto(decimal Balance, List<LimitDto> Limits, List<TransactionDto> Transactions);
+    public record CategoryNetDto(string Category, decimal Net);
+    public record FinanceDto(decimal Balance, List<LimitDto> Limits, List<TransactionDto> Transactions, List<CategoryNetDto> CategoryNets);
+    public record WeekBucketDto(int Week, decimal Amount);
+    public record StatsDto(List<WeekBucketDto> Weeks, decimal Average);
 
     private const int RecentTransactions = 100;
+
+    // Реалістичні межі сум (грн): 0…1 млрд, 2 знаки — захист БД навіть в обхід UI.
+    private const decimal MoneyMax = 1_000_000_000m;
+    private static decimal ClampMoney(decimal v) => Math.Round(Math.Clamp(v, 0m, MoneyMax), 2);
 
     public async Task<FinanceDto> GetAsync(int userId)
     {
@@ -44,7 +51,40 @@ public class FinanceService
             .Select(x => new TransactionDto(x.Id, x.Amount, x.Type, x.Category, x.Description, x.OccurredAt, x.TaskId))
             .ToListAsync();
 
-        return new FinanceDto(account.Balance, limits, transactions);
+        // «Є зараз» по категоріях = дохід − витрата за ВСІМА транзакціями (не лише останніми 100).
+        var all = await _db.FinanceTransactions
+            .Where(x => x.UserId == userId && x.Category != null)
+            .Select(x => new { x.Category, x.Type, x.Amount })
+            .ToListAsync();
+        var categoryNets = all
+            .GroupBy(x => x.Category!)
+            .Select(g => new CategoryNetDto(g.Key, g.Sum(t => t.Type == "Income" ? t.Amount : -t.Amount)))
+            .ToList();
+
+        return new FinanceDto(account.Balance, limits, transactions, categoryNets);
+    }
+
+    // Тижнева динаміка витрат за місяць: кошики днів 1–7 / 8–14 / 15–21 / 22–кінець + середнє.
+    public async Task<StatsDto> GetStatsAsync(int userId, int year, int month)
+    {
+        if (month is < 1 or > 12) month = 1;
+        var start = new DateTime(year, month, 1);
+        var end = start.AddMonths(1);
+        var tx = await _db.FinanceTransactions
+            .Where(x => x.UserId == userId && x.Type == "Expense" && x.OccurredAt >= start && x.OccurredAt < end)
+            .Select(x => new { x.OccurredAt, x.Amount })
+            .ToListAsync();
+
+        var buckets = new decimal[4];
+        foreach (var t in tx)
+        {
+            var d = t.OccurredAt.Day;
+            var idx = d <= 7 ? 0 : d <= 14 ? 1 : d <= 21 ? 2 : 3;
+            buckets[idx] += t.Amount;
+        }
+        var weeks = buckets.Select((a, i) => new WeekBucketDto(i + 1, a)).ToList();
+        var average = Math.Round(buckets.Sum() / buckets.Length, 2);
+        return new StatsDto(weeks, average);
     }
 
     public async Task SetBalanceAsync(int userId, decimal balance)
@@ -55,7 +95,7 @@ public class FinanceService
             account = new FinanceAccount { UserId = userId };
             _db.FinanceAccounts.Add(account);
         }
-        account.Balance = balance;
+        account.Balance = ClampMoney(balance);
         account.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync();
     }
@@ -77,6 +117,8 @@ public class FinanceService
     public async Task<int?> AddTransactionAsync(int userId, decimal amount, string type, string? category, string? description, DateTime? occurredAt)
     {
         if (type is not ("Income" or "Expense")) return null;
+        amount = ClampMoney(amount);
+        if (amount <= 0) return null; // нульові/відʼємні операції не додаємо
         var tx = new FinanceTransaction
         {
             UserId = userId,

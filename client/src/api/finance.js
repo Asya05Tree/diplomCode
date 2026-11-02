@@ -9,8 +9,9 @@ export function setBalance(balance) {
   return apiSend('PUT', '/api/finance/balance', { balance })
 }
 
-export function setLimit(periodType, amount) {
-  return apiSend('PUT', '/api/finance/limit', { periodType, amount })
+// Тижнева динаміка витрат за місяць (для вкладки «Статистика»).
+export function getStats(year, month) {
+  return apiGet(`/api/finance/stats?year=${year}&month=${month}`)
 }
 
 export function addTransaction({ amount, type, category, description, occurredAt }) {

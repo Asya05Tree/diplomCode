@@ -31,6 +31,13 @@ public class FinanceController : ControllerBase
         return Ok(finance);
     }
 
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats([FromQuery] int year, [FromQuery] int month)
+    {
+        var stats = await _financeService.GetStatsAsync(CurrentUserId, year, month);
+        return Ok(stats);
+    }
+
     [HttpPut("balance")]
     public async Task<IActionResult> SetBalance([FromBody] SetBalanceRequest request)
     {

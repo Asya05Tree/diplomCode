@@ -47,9 +47,11 @@ public class HealthProfileController : ControllerBase
             _db.UserProfiles.Add(profile);
         }
 
-        profile.Height = request.Height;
-        profile.Weight = request.Weight;
-        profile.BirthYear = request.BirthYear;
+        // Реалістичні межі (захист БД навіть в обхід UI): зріст 30–300 см, вага 1–500 кг, вік 1–120 років.
+        var nowYear = DateTime.Now.Year;
+        profile.Height = request.Height is double h ? Math.Clamp(h, 30, 300) : null;
+        profile.Weight = request.Weight is double w ? Math.Clamp(w, 1, 500) : null;
+        profile.BirthYear = request.BirthYear is int by ? Math.Clamp(by, nowYear - 120, nowYear - 1) : null;
         if (!string.IsNullOrWhiteSpace(request.Gender)) profile.Gender = request.Gender;
         await _db.SaveChangesAsync();
         return Ok();

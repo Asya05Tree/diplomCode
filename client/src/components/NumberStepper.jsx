@@ -10,8 +10,10 @@ export default function NumberStepper({
   min,
   max,
   step = 1,
+  allowDecimal = false,
   disabled = false,
   className = '',
+  onBlur,
   ...rest
 }) {
   const toNum = (v) => (v === '' || v == null ? 0 : Number(v) || 0)
@@ -20,9 +22,27 @@ export default function NumberStepper({
     if (max != null && v > Number(max)) v = Number(max)
     return v
   }
+  // Лишаємо лише цифри (і один роздільник, якщо дозволені дроби) — літери/символи не з'являються
+  const sanitize = (raw) => {
+    let s = String(raw).replace(allowDecimal ? /[^\d.,]/g : /\D/g, '')
+    if (allowDecimal) {
+      s = s.replace(',', '.')
+      const i = s.indexOf('.')
+      if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, '')
+    }
+    return s
+  }
   const bump = (dir) => {
     if (disabled) return
     onChange(String(clamp(toNum(value) + dir * step)))
+  }
+  // На blur приводимо значення до меж [min, max] (порожнє лишаємо порожнім)
+  const handleBlur = (e) => {
+    if (value !== '' && value != null) {
+      const clamped = clamp(toNum(value))
+      if (String(clamped) !== String(value)) onChange(String(clamped))
+    }
+    if (onBlur) onBlur(e)
   }
 
   return (
@@ -34,7 +54,8 @@ export default function NumberStepper({
         max={max}
         step={step}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(sanitize(e.target.value))}
+        onBlur={handleBlur}
         {...rest}
       />
       <span className="num-stepper-btns">
