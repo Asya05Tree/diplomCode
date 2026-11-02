@@ -8,10 +8,10 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record AddMediaRequest(string Kind, string Title, string? Author);
-public record ScheduleMediaRequest(DateTime StartDateTime, int? DurationMinutes);
+public record AddMediaRequest(string Kind, string Title, string? Author, string? Genre, string? MediaType);
+public record ScheduleMediaRequest(DateTime StartDateTime, int? DurationMinutes, string? Genre, string? MediaType);
 public record SetMediaStatusRequest(string Status, int? RatingStars, string? Review);
-public record UpdateMediaRequest(string Title, string? Author, int? RatingStars, string? Review);
+public record UpdateMediaRequest(string Title, string? Author, int? RatingStars, string? Review, string? Genre, string? MediaType);
 
 // Список "що подивитися / що прочитати". Прямий CRUD через AppDbContext (як TodoController),
 // але інжектимо TaskService, бо планування елемента створює подію в календарі.
@@ -27,6 +27,15 @@ public class MediaController : ControllerBase
     private static readonly string[] Kinds = { "video", "book" };
     // Порядок станів — індекс у масиві задає напрям (вперед = більший індекс)
     private static readonly string[] StatusOrder = { "planned", "in_progress", "done" };
+
+    // Дозволені ключі класифікації — дзеркало client/src/utils/watchlistTaxonomy.js.
+    // Невідомий ключ трактуємо як null (не зберігаємо «сміття» навіть в обхід UI).
+    private static readonly HashSet<string> VideoTypes =
+        new() { "film", "series", "anime", "dorama", "cartoon", "other" };
+    private static readonly HashSet<string> VideoGenres =
+        new() { "drama", "comedy", "action", "scifi", "fantasy", "horror", "thriller", "melodrama", "detective", "adventure", "documentary", "other" };
+    private static readonly HashSet<string> BookGenres =
+        new() { "fiction", "nonfiction", "scifi", "fantasy", "detective", "melodrama", "thriller", "poetry", "biography", "selfdev", "history", "other" };
 
     private readonly AppDbContext _db;
     private readonly TaskService _tasks;
@@ -46,9 +55,26 @@ public class MediaController : ControllerBase
         return t.Length > max ? t[..max] : t;
     }
 
+    // Жанр — з довідника за типом (video|book); невідоме → null.
+    private static string? CleanGenre(string kind, string? genre)
+    {
+        if (string.IsNullOrWhiteSpace(genre)) return null;
+        var g = genre.Trim();
+        var set = kind == "book" ? BookGenres : VideoGenres;
+        return set.Contains(g) ? g : null;
+    }
+
+    // Вид — лише для відео; невідоме → null.
+    private static string? CleanType(string kind, string? type)
+    {
+        if (kind != "video" || string.IsNullOrWhiteSpace(type)) return null;
+        var t = type.Trim();
+        return VideoTypes.Contains(t) ? t : null;
+    }
+
     private static object ToDto(MediaItem x) => new
     {
-        x.Id, x.Kind, x.Title, x.Author, x.Status, x.StartDate, x.RatingStars, x.Review, x.TaskId,
+        x.Id, x.Kind, x.Title, x.Author, x.Status, x.Genre, x.MediaType, x.StartDate, x.RatingStars, x.Review, x.TaskId,
     };
 
     [HttpGet]
@@ -75,6 +101,8 @@ public class MediaController : ControllerBase
             Kind = kind,
             Title = title,
             Author = kind == "book" ? Clean(request.Author, AuthorMax) : null,
+            Genre = CleanGenre(kind, request.Genre),
+            MediaType = CleanType(kind, request.MediaType),
             Status = "planned",
         };
         _db.MediaItems.Add(item);
@@ -89,6 +117,12 @@ public class MediaController : ControllerBase
         var item = await _db.MediaItems.FirstOrDefaultAsync(x => x.Id == id && x.UserId == CurrentUserId);
         if (item is null) return NotFound();
         if (item.Status != "planned") return BadRequest(new { error = "already_scheduled" });
+
+        // Вид/жанр можна доввести саме під час планування (поле необовʼязкове в "У планах").
+        var g = CleanGenre(item.Kind, request.Genre);
+        if (g != null) item.Genre = g;
+        var mt = CleanType(item.Kind, request.MediaType);
+        if (mt != null) item.MediaType = mt;
 
         var duration = request.DurationMinutes.HasValue
             ? Math.Clamp(request.DurationMinutes.Value, 1, 1440)
@@ -127,8 +161,8 @@ public class MediaController : ControllerBase
         item.Status = target;
         if (target == "done")
         {
-            // Рейтинг — лише для книг; відгук — для обох. Подію календаря не чіпаємо (дата лишається).
-            item.RatingStars = item.Kind == "book" && request.RatingStars.HasValue
+            // Рейтинг і відгук — для обох типів. Подію календаря не чіпаємо (дата лишається).
+            item.RatingStars = request.RatingStars.HasValue
                 ? Math.Clamp(request.RatingStars.Value, 1, 5)
                 : (int?)null;
             item.Review = Clean(request.Review, ReviewMax);
@@ -150,9 +184,12 @@ public class MediaController : ControllerBase
         item.Title = title;
         item.Author = item.Kind == "book" ? Clean(request.Author, AuthorMax) : null;
         item.Review = Clean(request.Review, ReviewMax);
-        item.RatingStars = item.Kind == "book" && request.RatingStars.HasValue
+        item.RatingStars = request.RatingStars.HasValue
             ? Math.Clamp(request.RatingStars.Value, 1, 5)
             : (int?)null;
+        // Клієнт завжди надсилає поточні вид/жанр, тож перезапис безпечний (не затирає класифікацію).
+        item.Genre = CleanGenre(item.Kind, request.Genre);
+        item.MediaType = CleanType(item.Kind, request.MediaType);
         await _db.SaveChangesAsync();
         return Ok(ToDto(item));
     }

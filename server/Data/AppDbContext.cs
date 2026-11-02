@@ -41,6 +41,7 @@ public class AppDbContext : DbContext
     public DbSet<FinanceAccount> FinanceAccounts => Set<FinanceAccount>();
     public DbSet<FinanceLimit> FinanceLimits => Set<FinanceLimit>();
     public DbSet<FinanceTransaction> FinanceTransactions => Set<FinanceTransaction>();
+    public DbSet<FinanceHiddenCategory> FinanceHiddenCategories => Set<FinanceHiddenCategory>();
 
     // Цикл
     public DbSet<CycleRecord> CycleRecords => Set<CycleRecord>();
@@ -221,6 +222,11 @@ public class AppDbContext : DbContext
 
         b.Entity<FinanceLimit>().HasKey(x => new { x.UserId, x.PeriodType });
         b.Entity<FinanceTransaction>().HasIndex(x => new { x.UserId, x.OccurredAt });
+
+        // Приховані категорії: одна на пару {користувач, ключ категорії}; FK на користувача каскадний.
+        b.Entity<FinanceHiddenCategory>().HasIndex(x => new { x.UserId, x.CategoryKey }).IsUnique();
+        b.Entity<FinanceHiddenCategory>()
+            .HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureCycle(ModelBuilder b)

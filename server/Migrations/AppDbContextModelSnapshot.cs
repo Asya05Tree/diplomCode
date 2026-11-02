@@ -132,6 +132,29 @@ namespace Server.Migrations
                     b.ToTable("FinanceAccounts");
                 });
 
+            modelBuilder.Entity("Server.Models.FinanceHiddenCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CategoryKey")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CategoryKey")
+                        .IsUnique();
+
+                    b.ToTable("FinanceHiddenCategories");
+                });
+
             modelBuilder.Entity("Server.Models.FinanceLimit", b =>
                 {
                     b.Property<int>("UserId")
@@ -247,9 +270,15 @@ namespace Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("Genre")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
+
+                    b.Property<string>("MediaType")
+                        .HasColumnType("longtext");
 
                     b.Property<int?>("RatingStars")
                         .HasColumnType("int");
@@ -1269,6 +1298,17 @@ namespace Server.Migrations
                 });
 
             modelBuilder.Entity("Server.Models.FinanceAccount", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.FinanceHiddenCategory", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
                         .WithMany()

@@ -21,6 +21,17 @@ public class FinanceLimit
     public decimal Amount { get; set; }
 }
 
+// Прихована (неактивна) категорія витрат/доходів користувача. Наявність запису = категорія схована:
+// у неї не можна вносити нові операції і її транзакції не враховуються у статистиці. Дані самих
+// транзакцій лишаються. (PK = Id; унікальність по {UserId, CategoryKey} задано в AppDbContext.)
+public class FinanceHiddenCategory
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public User? User { get; set; }
+    public string CategoryKey { get; set; } = string.Empty;
+}
+
 // Транзакція. TaskId — необов'язкове посилання на задачу-похід у магазин (зв'язок зі списком покупок).
 public class FinanceTransaction
 {

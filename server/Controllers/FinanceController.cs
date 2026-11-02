@@ -8,6 +8,8 @@ namespace Server.Controllers;
 public record SetBalanceRequest(decimal Balance);
 public record SetLimitRequest(string PeriodType, decimal Amount); // Week | Month
 public record AddTransactionRequest(decimal Amount, string Type, string? Category, string? Description, DateTime? OccurredAt);
+public record UpdateTransactionRequest(decimal Amount, string Type, string? Category, string? Description);
+public record SetCategoryHiddenRequest(bool Hidden);
 
 // planner-spec.md §3.6. Фінанси: баланс, ліміти, транзакції. Уся логіка — у FinanceService.
 [ApiController]
@@ -60,10 +62,25 @@ public class FinanceController : ControllerBase
         return id is null ? BadRequest(new { error = "invalid_type" }) : Ok(new { id });
     }
 
+    [HttpPut("transactions/{id}")]
+    public async Task<IActionResult> UpdateTransaction(int id, [FromBody] UpdateTransactionRequest request)
+    {
+        var ok = await _financeService.UpdateTransactionAsync(
+            CurrentUserId, id, request.Amount, request.Type, request.Category, request.Description);
+        return ok ? Ok() : BadRequest(new { error = "invalid_transaction" });
+    }
+
     [HttpDelete("transactions/{id}")]
     public async Task<IActionResult> DeleteTransaction(int id)
     {
         var ok = await _financeService.DeleteTransactionAsync(CurrentUserId, id);
         return ok ? Ok() : NotFound();
+    }
+
+    [HttpPut("categories/{key}/hidden")]
+    public async Task<IActionResult> SetCategoryHidden(string key, [FromBody] SetCategoryHiddenRequest request)
+    {
+        var ok = await _financeService.SetCategoryHiddenAsync(CurrentUserId, key, request.Hidden);
+        return ok ? Ok() : BadRequest(new { error = "invalid_category" });
     }
 }
