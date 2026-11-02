@@ -267,21 +267,33 @@ public class MedicineService
         var rel = relation == "Forbidden" ? "Forbidden" : "Avoid";
         int? tagId = null;
         string? tagKey = null;
+        string? tagNameUk = null;
         var tagKnown = false;
 
-        // Якщо хвороба впливає на їжу й задано тег — гарантуємо наявність тега (ключ у нижньому регістрі,
-        // щоб збігався з довідником продуктів) і заводимо UserTagPreference для рушія правил "Їжі".
+        // Якщо хвороба впливає на їжу й задано тег — знаходимо/створюємо тег і заводимо UserTagPreference
+        // для рушія правил "Їжі".
         if (affectsFood && !string.IsNullOrWhiteSpace(tag))
         {
-            tagKey = tag.Trim().ToLowerInvariant();
-            var tagEntity = await _db.Tags.FirstOrDefaultAsync(t => t.Key == tagKey);
+            var raw = tag.Trim();
+            var norm = raw.ToLowerInvariant();
+
+            // Синхронізація мов: введене укр. чи англ. зіставляємо з наявними тегами і за КЛЮЧЕМ (англ.),
+            // і за ВІДОБРАЖУВАНОЮ НАЗВОЮ (укр.). Тож «яйце»/«Яйця»/«egg» → один і той самий тег egg.
+            // Таблиця тегів маленька, тож порівнюємо в памʼяті (надійніше для кирилиці, ніж LOWER() у SQL).
+            var allTags = await _db.Tags.ToListAsync();
+            var tagEntity = allTags.FirstOrDefault(t =>
+                string.Equals(t.Key, norm, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(t.DisplayName, raw, StringComparison.OrdinalIgnoreCase));
+
             if (tagEntity is null)
             {
-                tagEntity = new Tag { Namespace = "allergen", Key = tagKey, DisplayName = tag.Trim() };
+                tagEntity = new Tag { Namespace = "allergen", Key = norm, DisplayName = raw };
                 _db.Tags.Add(tagEntity);
                 await _db.SaveChangesAsync();
             }
             tagId = tagEntity.Id;
+            tagKey = tagEntity.Key;
+            tagNameUk = tagEntity.DisplayName;
 
             // Тег "відомий" лише якщо він реально стоїть на продуктах (запасах) — лише такий фільтруватиме страви.
             // Невідомий (напр. вигадана "вафлі") усе одно зберігаємо, але клієнт попередить користувача.
@@ -306,7 +318,7 @@ public class MedicineService
         _db.UserConditions.Add(condition);
         await _db.SaveChangesAsync();
 
-        return new ConditionDto(condition.Id, condition.NameUk, condition.NameEn, condition.AffectsFood, tagKey, rel, tagKnown);
+        return new ConditionDto(condition.Id, condition.NameUk, condition.NameEn, condition.AffectsFood, tagKey, tagNameUk, rel, tagKnown);
     }
 
     public async Task<bool> DeleteConditionAsync(int userId, int conditionId)

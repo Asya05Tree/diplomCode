@@ -52,7 +52,7 @@ export default function Health() {
   const [heightInput, setHeightInput] = useState('')
   const [ageInput, setAgeInput] = useState('')
 
-  const [condForm, setCondForm] = useState({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+  const [condForm, setCondForm] = useState({ open: false, name: '', affectsFood: false, tag: '', tagKey: '', relation: 'Avoid' })
   const [tagSuggestions, setTagSuggestions] = useState([])
   const [tagNotice, setTagNotice] = useState('') // текст тега, якого немає серед тегів продуктів
 
@@ -162,13 +162,14 @@ export default function Health() {
   }
 
   const resetCondForm = () => {
-    setCondForm({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+    setCondForm({ open: false, name: '', affectsFood: false, tag: '', tagKey: '', relation: 'Avoid' })
     setTagSuggestions([])
   }
 
-  // Пошук тега по тегах продуктів (запасах), поки користувач вводить
+  // Пошук тега по тегах продуктів (запасах), поки користувач вводить (укр. або англ.).
+  // Поки це вільний текст — канонічний ключ скидаємо (проставиться, коли оберуть підказку).
   const handleTagSearch = (q) => {
-    setCondForm((f) => ({ ...f, tag: q }))
+    setCondForm((f) => ({ ...f, tag: q, tagKey: '' }))
     const query = q.trim()
     if (query.length < 2) {
       setTagSuggestions([])
@@ -177,8 +178,9 @@ export default function Health() {
     searchTags(query).then(setTagSuggestions).catch(() => setTagSuggestions([]))
   }
 
-  const pickTag = (key) => {
-    setCondForm((f) => ({ ...f, tag: key }))
+  // Обрали підказку: у полі показуємо назву мовою інтерфейсу, але зберігаємо канонічний ключ (англ.)
+  const pickTag = (s) => {
+    setCondForm((f) => ({ ...f, tag: language === 'en' ? s.key : s.displayName, tagKey: s.key }))
     setTagSuggestions([])
   }
 
@@ -189,7 +191,8 @@ export default function Health() {
     const created = await apiAddCondition({
       nameUk: condForm.name.trim(),
       affectsFood,
-      tag: condForm.tag,
+      // Якщо обрано підказку — шлемо канонічний ключ; інакше вільний текст (сервер зіставить за укр/англ назвою)
+      tag: condForm.tagKey || condForm.tag,
       relation: condForm.relation,
     })
     setConditions(await getConditions())
@@ -502,9 +505,13 @@ export default function Health() {
                       <ul className="cond-tag-suggestions">
                         {tagSuggestions.map((s) => (
                           <li key={s.key}>
-                            <button type="button" onClick={() => pickTag(s.key)}>
-                              <span className="cond-tag-suggestion-key">{s.key}</span>
-                              <span className="cond-tag-suggestion-name">{s.displayName}</span>
+                            <button type="button" onClick={() => pickTag(s)}>
+                              <span className="cond-tag-suggestion-key">
+                                {language === 'en' ? s.key : s.displayName}
+                              </span>
+                              <span className="cond-tag-suggestion-name">
+                                {language === 'en' ? s.displayName : s.key}
+                              </span>
                             </button>
                           </li>
                         ))}
@@ -544,7 +551,9 @@ export default function Health() {
                 <span className="condition-name">{conditionName(condition, language)}</span>
                 {condition.affectsFood ? (
                   <>
-                    <span className="condition-tag">{condition.tagKey}</span>
+                    <span className="condition-tag">
+                      {language === 'en' ? condition.tagKey : condition.tagNameUk || condition.tagKey}
+                    </span>
                     {!condition.tagKnown && (
                       <span className="tag-unknown-badge">{t('health.tagUnknownBadge')}</span>
                     )}
