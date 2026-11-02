@@ -2,14 +2,21 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import NumberStepper from '../components/NumberStepper'
+import { FINANCE_CATEGORIES, categoryName } from '../utils/financeCategories'
+import { RANGES } from '../utils/validation'
 import {
   getFinance,
+  getStats,
   setBalance as apiSetBalance,
-  setLimit as apiSetLimit,
   addTransaction as apiAddTransaction,
   removeTransaction as apiRemoveTransaction,
 } from '../api/finance'
 import './Finance.css'
+
+const MONTHS = {
+  uk: ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+}
 
 // Пробіл-роздільник тисяч ("18 450") — як у макеті фінансів.
 function formatMoney(value) {
@@ -23,38 +30,39 @@ function formatDate(occurredAt) {
   return `${d}.${m}.${y}`
 }
 
-// Модуль "Фінанси" (planner-spec.md §3.6). Баланс — єдине значення, яке користувач вводить
-// вручну (інші модулі лише читають його); нижче — історія операцій (з можливістю додати/видалити)
-// та періодичні ліміти (тиждень / місяць). Дані — з бекенда (/api/finance).
+// Лишаємо лише цифри й один роздільник (швидкий ввід сум у таблиці категорій).
+function sanitizeMoney(s) {
+  return String(s).replace(/[^\d.,]/g, '').replace(',', '.').replace(/(\..*)\./g, '$1')
+}
+
+// Модуль "Фінанси" (planner-spec.md §3.6). Баланс («Наявні гроші») вводиться вручну зверху;
+// нижче — вкладки Категорії (швидкий ввід +дохід/−витрата, «Є зараз» по категорії), Історія
+// (список операцій) і Статистика (тижнева динаміка витрат). Дані — з бекенда (/api/finance).
 export default function Finance() {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   const [balance, setBalance] = useState(0)
-  const [limits, setLimits] = useState([]) // [{periodType, amount}]
   const [transactions, setTransactions] = useState([])
+  const [categoryNets, setCategoryNets] = useState([]) // [{category, net}]
 
-  const [tab, setTab] = useState('transactions') // 'transactions' | 'limits'
+  const [tab, setTab] = useState('categories') // 'categories' | 'history' | 'stats'
+  const [drafts, setDrafts] = useState({}) // "key_income" / "key_expense" -> рядок
 
-  // Форма додавання операції.
-  const [form, setForm] = useState({ amount: '', type: 'Expense', category: '', description: '' })
-
-  // Локальний стан полів лімітів (щоб редагувати перед збереженням).
-  const [weekLimit, setWeekLimit] = useState('')
-  const [monthLimit, setMonthLimit] = useState('')
+  // Статистика: обраний місяць (за замовчуванням поточний) + дані з бекенда.
+  const now = useMemo(() => new Date(), [])
+  const [statsYear, setStatsYear] = useState(now.getFullYear())
+  const [statsMonth, setStatsMonth] = useState(now.getMonth() + 1) // 1..12
+  const [stats, setStats] = useState(null)
 
   const currency = t('landing.moneyCurrency')
 
   const applyData = (fin) => {
     setBalance(Math.round(Number(fin?.balance) || 0))
-    setLimits(fin?.limits ?? [])
     setTransactions(fin?.transactions ?? [])
-    const wk = (fin?.limits ?? []).find((l) => l.periodType === 'Week')
-    const mo = (fin?.limits ?? []).find((l) => l.periodType === 'Month')
-    setWeekLimit(wk ? String(wk.amount) : '')
-    setMonthLimit(mo ? String(mo.amount) : '')
+    setCategoryNets(fin?.categoryNets ?? [])
   }
 
   useEffect(() => {
@@ -76,28 +84,50 @@ export default function Finance() {
     }
   }, [])
 
+  // Статистику тягнемо, коли відкрита її вкладка або змінився місяць
+  useEffect(() => {
+    if (tab !== 'stats') return
+    let cancelled = false
+    getStats(statsYear, statsMonth)
+      .then((s) => {
+        if (!cancelled) setStats(s)
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tab, statsYear, statsMonth])
+
   const refetch = async () => {
     const fin = await getFinance()
     applyData(fin)
   }
 
   const handleBalanceChange = (v) => {
-    const value = Math.max(0, Math.round(Number(v) || 0))
+    const value = Math.min(RANGES.money.max, Math.max(0, Math.round(Number(v) || 0)))
     setBalance(value)
     apiSetBalance(value).catch(() => {})
   }
 
-  const handleAddTransaction = async (e) => {
-    e.preventDefault()
-    const amount = Math.round(Number(form.amount) || 0)
-    if (amount <= 0) return
-    await apiAddTransaction({
-      amount,
-      type: form.type,
-      category: form.category.trim() || null,
-      description: form.description.trim() || null,
-    })
-    setForm({ amount: '', type: 'Expense', category: '', description: '' })
+  const netByKey = useMemo(() => {
+    const map = new Map()
+    for (const c of categoryNets) map.set(c.category, Number(c.net) || 0)
+    return map
+  }, [categoryNets])
+
+  // Швидкий ввід суми по категорії → додає операцію (дата = сьогодні на бекенді)
+  const commitQuick = async (key, type) => {
+    const field = type === 'Income' ? 'income' : 'expense'
+    const draftKey = `${key}_${field}`
+    const amount = Math.min(RANGES.money.max, Math.round((Number(drafts[draftKey]) || 0) * 100) / 100)
+    if (!(amount > 0)) {
+      setDrafts((d) => ({ ...d, [draftKey]: '' }))
+      return
+    }
+    await apiAddTransaction({ amount, type, category: key })
+    setDrafts((d) => ({ ...d, [draftKey]: '' }))
     await refetch()
   }
 
@@ -107,21 +137,19 @@ export default function Finance() {
     await refetch()
   }
 
-  const handleSaveLimit = async (periodType, value) => {
-    const amount = Math.max(0, Math.round(Number(value) || 0))
-    await apiSetLimit(periodType, amount)
-    await refetch()
-  }
-
-  const totals = useMemo(() => {
-    let income = 0
-    let expense = 0
-    for (const txn of transactions) {
-      if (txn.type === 'Income') income += txn.amount
-      else expense += txn.amount
+  const stepMonth = (delta) => {
+    let m = statsMonth + delta
+    let y = statsYear
+    if (m < 1) {
+      m = 12
+      y -= 1
+    } else if (m > 12) {
+      m = 1
+      y += 1
     }
-    return { income, expense }
-  }, [transactions])
+    setStatsMonth(m)
+    setStatsYear(y)
+  }
 
   if (loading) {
     return (
@@ -139,9 +167,14 @@ export default function Finance() {
   }
 
   const TABS = [
-    { key: 'transactions', label: t('finance.tab.transactions'), icon: 'receipt' },
-    { key: 'limits', label: t('finance.tab.limits'), icon: 'tag' },
+    { key: 'categories', label: t('finance.tab.categories'), icon: 'tag' },
+    { key: 'history', label: t('finance.tab.history'), icon: 'receipt' },
+    { key: 'stats', label: t('finance.tab.stats'), icon: 'chart' },
   ]
+
+  const maxWeek = stats ? Math.max(1, ...stats.weeks.map((w) => Number(w.amount) || 0)) : 1
+  const isCurrentMonth = statsYear === now.getFullYear() && statsMonth === now.getMonth() + 1
+  const currentWeekIdx = isCurrentMonth ? Math.min(3, Math.floor((now.getDate() - 1) / 7)) : -1
 
   return (
     <div className="finance-page">
@@ -152,7 +185,7 @@ export default function Finance() {
       <label className="finance-balance-field card">
         <span className="kpi-label">{t('finance.balanceLabel')}</span>
         <div className="finance-money-field">
-          <NumberStepper min={0} value={String(balance)} onChange={handleBalanceChange} />
+          <NumberStepper min={0} max={RANGES.money.max} value={String(balance)} onChange={handleBalanceChange} />
           <span className="finance-money-currency">{currency}</span>
         </div>
         <span className="placeholder-text">{t('finance.balanceHint')}</span>
@@ -172,54 +205,78 @@ export default function Finance() {
         ))}
       </div>
 
-      {tab === 'transactions' && (
+      {tab === 'categories' && (
         <div className="card">
-          <form className="finance-txn-form" onSubmit={handleAddTransaction}>
-            <div className="finance-field">
-              <span className="finance-field-label">{t('finance.amountLabel')}</span>
-              <NumberStepper
-                min={0}
-                value={form.amount}
-                onChange={(v) => setForm((f) => ({ ...f, amount: v }))}
-                placeholder="0"
-              />
-            </div>
-            <div className="finance-field">
-              <span className="finance-field-label">{t('finance.typeLabel')}</span>
-              <select
-                className="finance-select"
-                value={form.type}
-                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-              >
-                <option value="Expense">{t('finance.type.expense')}</option>
-                <option value="Income">{t('finance.type.income')}</option>
-              </select>
-            </div>
-            <div className="finance-field">
-              <span className="finance-field-label">{t('finance.col.category')}</span>
-              <input
-                type="text"
-                className="finance-text"
-                value={form.category}
-                placeholder={t('finance.categoryPlaceholder')}
-                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              />
-            </div>
-            <div className="finance-field finance-field--grow">
-              <span className="finance-field-label">{t('finance.col.description')}</span>
-              <input
-                type="text"
-                className="finance-text"
-                value={form.description}
-                placeholder={t('finance.descriptionPlaceholder')}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              />
-            </div>
-            <button type="submit" className="btn-accent finance-add-btn">
-              <Icon name="plus" /> {t('finance.addTransaction')}
-            </button>
-          </form>
+          <p className="placeholder-text">{t('finance.categoriesHint')}</p>
+          <div className="table-scroll">
+            <table className="data-table finance-cat-table">
+              <thead>
+                <tr>
+                  <th>{t('finance.col.category')}</th>
+                  <th>{t('finance.col.income')}</th>
+                  <th>{t('finance.col.expense')}</th>
+                  <th>{t('finance.col.current')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FINANCE_CATEGORIES.map((c) => {
+                  const net = netByKey.get(c.key) || 0
+                  const netCls = net > 0 ? 'income' : net < 0 ? 'expense' : 'zero'
+                  return (
+                    <tr key={c.key}>
+                      <td>
+                        <span className="finance-cat-name">
+                          <span className="cat-dot" style={{ background: c.color }} />
+                          {categoryName(c.key, language)}
+                        </span>
+                      </td>
+                      {['Income', 'Expense'].map((type) => {
+                        const field = type === 'Income' ? 'income' : 'expense'
+                        const draftKey = `${c.key}_${field}`
+                        return (
+                          <td key={type}>
+                            <span className="amount-input">
+                              <span className={`amount-sign amount-sign--${field}`}>
+                                {type === 'Income' ? '+' : '−'}
+                              </span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                placeholder="0"
+                                value={drafts[draftKey] || ''}
+                                onChange={(e) =>
+                                  setDrafts((d) => ({ ...d, [draftKey]: sanitizeMoney(e.target.value) }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    commitQuick(c.key, type)
+                                  }
+                                }}
+                                onBlur={() => commitQuick(c.key, type)}
+                              />
+                              <span className="amount-unit">{currency}</span>
+                            </span>
+                          </td>
+                        )
+                      })}
+                      <td>
+                        <span className={`fin-net fin-net--${netCls}`}>
+                          {net < 0 ? '−' : ''}
+                          {formatMoney(net)} {currency}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
+      {tab === 'history' && (
+        <div className="card">
           {transactions.length === 0 ? (
             <p className="placeholder-text">{t('finance.noTransactions')}</p>
           ) : (
@@ -227,10 +284,10 @@ export default function Finance() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>{t('finance.col.date')}</th>
-                    <th>{t('finance.col.category')}</th>
-                    <th>{t('finance.col.description')}</th>
                     <th>{t('finance.col.amount')}</th>
+                    <th>{t('finance.col.description')}</th>
+                    <th>{t('finance.col.category')}</th>
+                    <th>{t('finance.col.date')}</th>
                     <th className="finance-col-actions" />
                   </tr>
                 </thead>
@@ -239,14 +296,15 @@ export default function Finance() {
                     const kind = txn.type === 'Income' ? 'income' : 'expense'
                     return (
                       <tr key={txn.id}>
-                        <td>{formatDate(txn.occurredAt)}</td>
-                        <td>{txn.category || <span className="none-text">—</span>}</td>
-                        <td>{txn.description || <span className="none-text">—</span>}</td>
                         <td>
                           <span className={`txn-amount txn-amount--${kind}`}>
-                            {txn.type === 'Income' ? '+' : '−'}{formatMoney(txn.amount)} {currency}
+                            {txn.type === 'Income' ? '+' : '−'}
+                            {formatMoney(txn.amount)} {currency}
                           </span>
                         </td>
+                        <td>{txn.description || <span className="none-text">—</span>}</td>
+                        <td>{txn.category ? categoryName(txn.category, language) : <span className="none-text">—</span>}</td>
+                        <td>{formatDate(txn.occurredAt)}</td>
                         <td className="finance-col-actions">
                           <button
                             type="button"
@@ -263,34 +321,52 @@ export default function Finance() {
                   })}
                 </tbody>
               </table>
-              <div className="finance-txn-totals">
-                <span className="txn-amount txn-amount--income">+{formatMoney(totals.income)} {currency}</span>
-                <span className="txn-amount txn-amount--expense">−{formatMoney(totals.expense)} {currency}</span>
-              </div>
             </div>
           )}
         </div>
       )}
 
-      {tab === 'limits' && (
-        <div className="card finance-limits">
-          <p className="placeholder-text">{t('finance.limitsHint')}</p>
-          <div className="finance-limit-row">
-            <span className="finance-limit-label">{t('finance.limitWeek')}</span>
-            <NumberStepper min={0} value={weekLimit} onChange={setWeekLimit} placeholder="0" />
-            <span className="amount-unit">{currency}</span>
-            <button type="button" className="btn-accent" onClick={() => handleSaveLimit('Week', weekLimit)}>
-              {t('finance.saveLimit')}
-            </button>
+      {tab === 'stats' && (
+        <div className="card">
+          <div className="week-chart-head">
+            <h3>{t('finance.statsTitle')}</h3>
+            <div className="period-picker">
+              <button type="button" className="period-step" onClick={() => stepMonth(-1)} aria-label="−">
+                <Icon name="chevron-left" />
+              </button>
+              <span className="period-label">
+                {MONTHS[language === 'en' ? 'en' : 'uk'][statsMonth - 1]} {statsYear}
+              </span>
+              <button type="button" className="period-step" onClick={() => stepMonth(1)} aria-label="+">
+                <Icon name="chevron-right" />
+              </button>
+            </div>
           </div>
-          <div className="finance-limit-row">
-            <span className="finance-limit-label">{t('finance.limitMonth')}</span>
-            <NumberStepper min={0} value={monthLimit} onChange={setMonthLimit} placeholder="0" />
-            <span className="amount-unit">{currency}</span>
-            <button type="button" className="btn-accent" onClick={() => handleSaveLimit('Month', monthLimit)}>
-              {t('finance.saveLimit')}
-            </button>
-          </div>
+
+          {stats && stats.weeks.some((w) => Number(w.amount) > 0) ? (
+            <>
+              <div className="week-chart">
+                {stats.weeks.map((w, i) => (
+                  <div key={w.week} className="week-chart-col">
+                    <span className="week-chart-amount">{formatMoney(w.amount)}</span>
+                    <div
+                      className="week-chart-bar"
+                      style={{ height: `${Math.round((Number(w.amount) / maxWeek) * 120)}px` }}
+                    />
+                    <span className="week-chart-label">
+                      {i === currentWeekIdx ? t('finance.weekCurrent', { n: w.week }) : t('finance.weekShort', { n: w.week })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="week-chart-avg">
+                <span>{t('finance.statsAvgLabel')}</span>
+                <strong>{formatMoney(stats.average)} {currency}</strong>
+              </div>
+            </>
+          ) : (
+            <p className="placeholder-text">{t('finance.statsEmpty')}</p>
+          )}
         </div>
       )}
     </div>

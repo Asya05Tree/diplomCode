@@ -256,6 +256,8 @@
   "finance.statsTitle": "Weekly spending dynamics",
   "finance.statsPeriod": "October 2026",
   "finance.statsAvgLabel": "Weekly average:",
+  "finance.categoriesHint": "Enter an amount in “+income” or “−expense” next to a category and press Enter — the transaction is added and “Now” updates.",
+  "finance.statsEmpty": "No expenses for this month yet",
   "finance.weekShort": "Wk {n}",
   "finance.weekCurrent": "Wk {n} (current)",
   "finance.tab.transactions": "Transactions",

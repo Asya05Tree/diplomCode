@@ -256,6 +256,8 @@
   "finance.statsTitle": "Тижнева динаміка витрат",
   "finance.statsPeriod": "Жовтень 2026",
   "finance.statsAvgLabel": "Середнє за тиждень:",
+  "finance.categoriesHint": "Введіть суму в «+дохід» або «−витрата» навпроти категорії та натисніть Enter — операція додасться, «Є зараз» оновиться.",
+  "finance.statsEmpty": "За цей місяць витрат ще немає",
   "finance.weekShort": "Тиж {n}",
   "finance.weekCurrent": "Тиж {n} (поточний)",
   "finance.tab.transactions": "Операції",

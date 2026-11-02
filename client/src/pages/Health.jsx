@@ -17,6 +17,7 @@ import {
   conditionName,
 } from '../api/medicineCabinet'
 import { getHealthProfile, setHealthProfile } from '../api/healthProfile'
+import { RANGES, MAX_LEN, clampNumber, filterWords, limitText } from '../utils/validation'
 import './Health.css'
 
 const STOCK_TOGGLE = [
@@ -94,19 +95,17 @@ export default function Health() {
     setAgeInput(profile?.birthYear != null ? String(currentYear - profile.birthYear) : '')
   }, [profile, currentYear])
 
-  // Зберегти параметри людини: вік конвертуємо у рік народження, порожнє → null
+  // Зберегти параметри людини: клампимо у реалістичні межі (і показуємо назад), вік → рік народження.
   const saveProfile = async () => {
-    const toNum = (s) => (s.trim() === '' ? null : Number(s))
-    const weight = toNum(weightInput)
-    const height = toNum(heightInput)
-    const age = toNum(ageInput)
-    const birthYear = age != null && age > 0 && age < 150 ? currentYear - Math.round(age) : null
-    const payload = {
-      weight: Number.isFinite(weight) ? weight : null,
-      height: Number.isFinite(height) ? height : null,
-      birthYear,
-      gender: profile?.gender ?? null,
-    }
+    const empty = (s) => s.trim() === ''
+    let weight = empty(weightInput) ? null : clampNumber(weightInput, RANGES.weight.min, RANGES.weight.max)
+    let height = empty(heightInput) ? null : clampNumber(heightInput, RANGES.height.min, RANGES.height.max)
+    let age = empty(ageInput) ? null : Math.round(clampNumber(ageInput, RANGES.age.min, RANGES.age.max))
+    if (weight != null) setWeightInput(String(weight))
+    if (height != null) setHeightInput(String(height))
+    if (age != null) setAgeInput(String(age))
+    const birthYear = age != null ? currentYear - age : null
+    const payload = { weight, height, birthYear, gender: profile?.gender ?? null }
     setProfile((p) => ({ ...(p || {}), ...payload }))
     await setHealthProfile(payload).catch(() => {})
   }
@@ -169,8 +168,10 @@ export default function Health() {
   // Пошук тега по тегах продуктів (запасах), поки користувач вводить (укр. або англ.).
   // Поки це вільний текст — канонічний ключ скидаємо (проставиться, коли оберуть підказку).
   const handleTagSearch = (q) => {
-    setCondForm((f) => ({ ...f, tag: q, tagKey: '' }))
-    const query = q.trim()
+    // Тег — назва алергену/продукту: лише укр/англ літери (щоб збігався з тегами продуктів)
+    const clean = filterWords(q, 40)
+    setCondForm((f) => ({ ...f, tag: clean, tagKey: '' }))
+    const query = clean.trim()
     if (query.length < 2) {
       setTagSuggestions([])
       return
@@ -237,8 +238,8 @@ export default function Health() {
               type="number"
               className="profile-field-input"
               inputMode="decimal"
-              min="0"
-              max="500"
+              min={RANGES.weight.min}
+              max={RANGES.weight.max}
               step="0.1"
               placeholder="—"
               value={weightInput}
@@ -255,8 +256,8 @@ export default function Health() {
               type="number"
               className="profile-field-input"
               inputMode="numeric"
-              min="0"
-              max="149"
+              min={RANGES.age.min}
+              max={RANGES.age.max}
               step="1"
               placeholder="—"
               value={ageInput}
@@ -273,8 +274,8 @@ export default function Health() {
               type="number"
               className="profile-field-input"
               inputMode="decimal"
-              min="0"
-              max="300"
+              min={RANGES.height.min}
+              max={RANGES.height.max}
               step="0.1"
               placeholder="—"
               value={heightInput}
@@ -478,7 +479,8 @@ export default function Health() {
                 className="cond-add-name"
                 placeholder={t('health.addCondName')}
                 value={condForm.name}
-                onChange={(e) => setCondForm((f) => ({ ...f, name: e.target.value }))}
+                maxLength={MAX_LEN.name}
+                onChange={(e) => setCondForm((f) => ({ ...f, name: limitText(e.target.value, MAX_LEN.name) }))}
               />
               <label className="switch-wrap cond-add-switch">
                 <span className="switch-label">{t('health.affectsFood')}</span>
