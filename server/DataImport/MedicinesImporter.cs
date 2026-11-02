@@ -10,7 +10,8 @@ namespace Server.DataImport;
 // Імпорт довідника ліків із Державного реєстру лікарських засобів (ДРЛЗ, data.gov.ua).
 // CSV у кодуванні Windows-1251, роздільник ';'. Беремо ЛИШЕ: торгову назву, діючу речовину (МНН) і форму випуску.
 // Фільтри: тільки безрецептурні ("без рецепта" в "Умовах відпуску") і тільки побутові форми.
-// Дублікати (та сама назва+форма, що різняться лише дозуванням/виробником) згортаємо в одну картку.
+// Дублікати (та сама назва+діюча речовина, що різняться лише формою/дозуванням/виробником) згортаємо
+// в ОДНУ картку — користувачу в аптечці достатньо однієї позиції «КОРВАЛОЛ®», а не окремо табл./краплі.
 // Інструкції/дозування/показання НЕ імпортуємо.
 public static class MedicinesImporter
 {
@@ -71,10 +72,6 @@ public static class MedicinesImporter
                 var formKey = MapForm(form);
                 if (formKey == null) { skippedForm++; continue; }
 
-                var dupKey = name.ToLowerInvariant() + "|" + formKey;
-                if (!seen.Add(dupKey)) continue; // згортаємо дозування/виробників у одну картку
-                rowsOtcHousehold++;
-
                 // Діюча речовина: монопрепарат — заводимо Substance; комбінації/заглушки — SubstanceId=null
                 Substance? sub = null;
                 var cleaned = CleanInn(inn);
@@ -95,6 +92,12 @@ public static class MedicinesImporter
                     else if (sub.AtcCode == null && atc.Length > 0) sub.AtcCode = atc;
                 }
 
+                // Згортаємо однакові: та сама торгова назва + та сама діюча речовина (форму ігноруємо).
+                // Комбіновані засоби (sub=null) розрізняємо лише за назвою.
+                var dupKey = name.ToLowerInvariant() + "|" + (sub != null ? sub.NameEn.ToLowerInvariant() : "comb");
+                if (!seen.Add(dupKey)) continue;
+                rowsOtcHousehold++;
+
                 toAdd.Add(new Medicine
                 {
                     NameUk = name,
@@ -113,6 +116,48 @@ public static class MedicinesImporter
 
         Console.WriteLine($"  Medicines: {rowsOtcHousehold} cards (collapsed), Substances: {substances.Count}");
         Console.WriteLine($"  (skipped: {skippedRx} prescription-only, {skippedForm} non-household forms)");
+    }
+
+    // Прибирає дублікати у вже заповненій БД (без повторного завантаження датасетів): лишає одну картку
+    // на (NameUk + діюча речовина), посилання з аптечок користувачів (UserMedicine) переносить на лишену.
+    public static void Dedupe(AppDbContext db)
+    {
+        var meds = db.Medicines.Where(m => m.IsSystem).OrderBy(m => m.Id).ToList();
+        var kept = new Dictionary<string, int>();   // dupKey -> лишений MedicineId
+        var remap = new Dictionary<int, int>();      // дублікат Id -> лишений Id
+        foreach (var m in meds)
+        {
+            var key = m.NameUk.ToLowerInvariant() + "|" + (m.SubstanceId?.ToString() ?? "comb");
+            if (kept.TryGetValue(key, out var keptId)) remap[m.Id] = keptId;
+            else kept[key] = m.Id;
+        }
+        if (remap.Count == 0) { Console.WriteLine("  Medicines: no duplicates to remove."); return; }
+
+        // Переносимо аптечки користувачів зі старих карток на лишені (без порушення складеного PK)
+        var dupIds = remap.Keys.ToHashSet();
+        var affected = db.UserMedicines.Where(x => dupIds.Contains(x.MedicineId)).ToList();
+        if (affected.Count > 0)
+        {
+            db.UserMedicines.RemoveRange(affected);
+            db.SaveChanges();
+            var existing = db.UserMedicines.Select(x => new { x.UserId, x.MedicineId }).ToHashSet();
+            foreach (var grp in affected.GroupBy(x => new { x.UserId, Kept = remap[x.MedicineId] }))
+            {
+                var target = new { grp.Key.UserId, MedicineId = grp.Key.Kept };
+                if (existing.Contains(target)) continue;
+                var first = grp.First();
+                db.UserMedicines.Add(new UserMedicine
+                {
+                    UserId = grp.Key.UserId, MedicineId = grp.Key.Kept, State = first.State, ExpiresAt = first.ExpiresAt,
+                });
+                existing.Add(target);
+            }
+            db.SaveChanges();
+        }
+
+        db.Medicines.RemoveRange(db.Medicines.Where(m => dupIds.Contains(m.Id)));
+        db.SaveChanges();
+        Console.WriteLine($"  Medicines: removed {remap.Count} duplicates (kept {kept.Count}).");
     }
 
     private static string? MapForm(string form)

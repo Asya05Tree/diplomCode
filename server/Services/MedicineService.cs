@@ -28,7 +28,7 @@ public class MedicineService
         string OtherMedicineNameUk, string OtherMedicineNameEn, string SubstanceUk, string SubstanceEn,
         string Level, string? Mechanism);
 
-    public record ConditionDto(int Id, string NameUk, string? NameEn, bool AffectsFood, string? TagKey, string Relation, bool TagKnown);
+    public record ConditionDto(int Id, string NameUk, string? NameEn, bool AffectsFood, string? TagKey, string? TagNameUk, string Relation, bool TagKnown);
 
     public record TagSuggestionDto(string Key, string DisplayName);
 
@@ -70,7 +70,7 @@ public class MedicineService
             .Where(m => !inCabinet.Contains(m.Id))
             .Select(m => new
             {
-                m.Id, m.NameUk, m.NameEn, FormKey = m.Form!.Key,
+                m.Id, m.NameUk, m.NameEn, m.SubstanceId, FormKey = m.Form!.Key,
                 SubstanceUk = m.Substance != null ? m.Substance.NameUk : null,
                 SubstanceEn = m.Substance != null ? m.Substance.NameEn : null,
             })
@@ -88,6 +88,8 @@ public class MedicineService
             .Where(x => x.score > 0)
             .OrderByDescending(x => x.score)
             .ThenBy(x => lang == "en" ? x.m.NameEn : x.m.NameUk)
+            // Підстраховка: однакові за назвою+речовиною картки не дублюємо у видачі (лишаємо кращу)
+            .DistinctBy(x => (x.m.NameUk, x.m.SubstanceId))
             .Take(20)
             .Select(x => new SearchResultDto(x.m.Id, x.m.NameUk, x.m.NameEn, x.m.FormKey, x.m.SubstanceUk, x.m.SubstanceEn))
             .ToList();
@@ -256,7 +258,7 @@ public class MedicineService
 
         return conditions
             .Select(x => new ConditionDto(x.Id, x.NameUk, x.NameEn, x.AffectsFood,
-                x.Tag?.Key, x.Relation, x.TagId != null && knownTagIds.Contains(x.TagId.Value)))
+                x.Tag?.Key, x.Tag?.DisplayName, x.Relation, x.TagId != null && knownTagIds.Contains(x.TagId.Value)))
             .ToList();
     }
 

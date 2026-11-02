@@ -21,6 +21,8 @@ public static class ImportRunner
                 Console.WriteLine("[medicines]"); MedicinesImporter.Run(db); break;
             case "import-interactions":
                 Console.WriteLine("[interactions]"); InteractionsImporter.Run(db); break;
+            case "dedup-medicines":
+                Console.WriteLine("[dedup-medicines]"); MedicinesImporter.Dedupe(db); break;
             case "import-all":
                 Console.WriteLine("[forms]"); FormsImporter.Run(db);
                 Console.WriteLine("[ingredients]"); var m = IngredientsImporter.Run(db);
