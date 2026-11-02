@@ -221,7 +221,6 @@ export default function Food() {
     <div className="food-page">
       <div className="food-page-head">
         <h2>{t('nav.food')}</h2>
-        <span className="variant-note">{t('food.note')}</span>
       </div>
 
       <div className="food-tabs">

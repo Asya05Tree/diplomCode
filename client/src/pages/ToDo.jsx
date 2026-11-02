@@ -84,7 +84,6 @@ export default function ToDo() {
     <div className="todo-page">
       <div className="page-head">
         <h2>{t('nav.todo')}</h2>
-        <span className="variant-note">{t('todo.note')}</span>
       </div>
 
       <form className="todo-add" onSubmit={handleAdd}>

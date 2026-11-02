@@ -223,7 +223,6 @@ export default function Study() {
     <div className="study-page">
       <div className="page-head">
         <h2>{t('nav.study')}</h2>
-        <span className="variant-note">{t('study.note')}</span>
       </div>
 
       <div className="study-tabs">

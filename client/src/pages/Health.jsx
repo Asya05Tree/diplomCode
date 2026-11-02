@@ -226,7 +226,6 @@ export default function Health() {
     <div className="health-page">
       <div className="page-head">
         <h2>{t('nav.health')}</h2>
-        <span className="variant-note">{t('health.note')}</span>
       </div>
 
       {/* Параметри людини редагуються прямо тут: поле не видно, лише стилізоване число + одиниця */}

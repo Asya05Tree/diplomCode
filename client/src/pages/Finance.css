@@ -402,3 +402,138 @@
     max-width: none;
   }
 }
+
+/* --- Категорії: сховати / повернути --- */
+.finance-cat-toggle {
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.finance-cat-toggle:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-ink);
+  background: var(--color-accent-soft);
+}
+
+.finance-cat-toggle--restore {
+  border-color: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.finance-hidden-block {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.finance-sub-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--color-heading);
+}
+
+.finance-row-hidden {
+  opacity: 0.72;
+}
+
+.finance-row-hidden .finance-cat-name {
+  font-style: italic;
+}
+
+/* --- Історія: редагування рядка --- */
+.finance-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  transition: color var(--transition), background var(--transition);
+}
+
+.finance-edit:hover {
+  color: var(--color-accent-ink);
+  background: var(--color-accent-soft);
+}
+
+.finance-edit .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.finance-row-editing td {
+  vertical-align: top;
+  background: var(--color-accent-soft);
+}
+
+.finance-edit-type {
+  margin-top: 6px;
+  width: 100%;
+  min-height: 34px;
+}
+
+.finance-edit-save,
+.finance-edit-cancel {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.finance-edit-save {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.finance-edit-cancel {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* --- Статистика: три графіки + знакові стовпці балансу --- */
+.finance-stats-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.finance-stats-section + .finance-stats-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.finance-stats-caption {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: var(--color-heading);
+}
+
+.week-chart-bar--pos {
+  background: linear-gradient(to top, #4caf50, #81c784);
+}
+
+.week-chart-bar--neg {
+  background: linear-gradient(to top, #e57373, #ef9a9a);
+}
+
+.week-chart-amount--pos {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.week-chart-amount--neg {
+  color: var(--color-danger);
+  font-weight: 600;
+}
