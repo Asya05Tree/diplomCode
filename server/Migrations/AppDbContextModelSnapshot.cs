@@ -233,6 +233,54 @@ namespace Server.Migrations
                     b.ToTable("ManualRecurrenceDates");
                 });
 
+            modelBuilder.Entity("Server.Models.MediaItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Author")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int?>("RatingStars")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Review")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Kind", "Status");
+
+                    b.ToTable("MediaItems");
+                });
+
             modelBuilder.Entity("Server.Models.Medicine", b =>
                 {
                     b.Property<int>("Id")
@@ -1273,6 +1321,17 @@ namespace Server.Migrations
                         .IsRequired();
 
                     b.Navigation("RecurrenceRule");
+                });
+
+            modelBuilder.Entity("Server.Models.MediaItem", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Server.Models.Medicine", b =>
