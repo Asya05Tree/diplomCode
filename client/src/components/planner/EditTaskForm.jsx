@@ -63,7 +63,14 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
       <div className="task-form-row">
         <label>
           {t('taskForm.duration')}
-          <input type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} />
+          <input
+            type="number"
+            min="1"
+            max="1440"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            onBlur={(e) => setDuration(String(Math.min(1440, Math.max(1, Math.round(Number(e.target.value) || 1)))))}
+          />
         </label>
         <label>
           {t('taskForm.deadline')}

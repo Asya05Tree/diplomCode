@@ -245,8 +245,10 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
             <input
               type="number"
               min="1"
+              max="1440"
               value={editDuration}
               onChange={(e) => setEditDuration(e.target.value)}
+              onBlur={(e) => setEditDuration(String(Math.min(1440, Math.max(1, Math.round(Number(e.target.value) || 1)))))}
             />
           </label>
 

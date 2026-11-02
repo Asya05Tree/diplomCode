@@ -202,8 +202,9 @@ export default function RecurrenceFields({ value, onChange }) {
           <input
             type="number"
             min="1"
+            max="365"
             value={value.intervalDays}
-            onChange={(e) => set({ intervalDays: Number(e.target.value) || 1 })}
+            onChange={(e) => set({ intervalDays: Math.min(365, Math.max(1, Math.round(Number(e.target.value) || 1))) })}
           />
         </label>
       )}

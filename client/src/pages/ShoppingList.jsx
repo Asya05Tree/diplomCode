@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import NumberStepper from '../components/NumberStepper'
+import { RANGES } from '../utils/validation'
 import {
   getShoppingList,
   addShoppingItem,
@@ -274,6 +275,8 @@ export default function ShoppingList() {
               <span>{t('shoppingList.priceOptional')}</span>
               <NumberStepper
                 min={0}
+                max={RANGES.money.max}
+                allowDecimal
                 value={checkPrice}
                 onChange={(v) => setCheckPrice(v)}
                 placeholder={t('shoppingList.priceOptional')}
@@ -315,7 +318,7 @@ export default function ShoppingList() {
         <h3>{t('shoppingList.budgetTitle')}</h3>
         <label className="shopping-check-field">
           <span>{byCount ? t('shoppingList.budgetCountLabel') : t('shoppingList.budgetSumLabel')}</span>
-          <NumberStepper min={0} value={budget} onChange={(v) => setBudget(v)} />
+          <NumberStepper min={0} max={RANGES.money.max} value={budget} onChange={(v) => setBudget(v)} />
         </label>
         {byCount && priceCoverage.total > 0 && (
           <p className="placeholder-text">{t('shoppingList.budgetCountNote')}</p>
@@ -346,7 +349,7 @@ export default function ShoppingList() {
         <h3>{t('shoppingList.receiptTitle')}</h3>
         <p className="placeholder-text">{t('shoppingList.receiptHint')}</p>
         <div className="shopping-receipt-form">
-          <NumberStepper min={0} value={receiptTotal} onChange={(v) => setReceiptTotal(v)} />
+          <NumberStepper min={0} max={RANGES.money.max} allowDecimal value={receiptTotal} onChange={(v) => setReceiptTotal(v)} />
           <button type="button" className="btn-accent" onClick={handleReceipt}>
             {t('shoppingList.receiptButton')}
           </button>
