@@ -14,6 +14,8 @@
 
   "landing.register": "Реєстрація",
   "landing.login": "Вхід",
+  "landing.colorLabel": "Колір",
+  "landing.themeToggle": "Темна тема",
   "landing.heroHeading": "Як це працює",
   "landing.heroText": "Сайт аналізує введені дані — скільки у вас грошей і які є обмеження — і сам добирає, що підходить. Нижче два приклади: страви та побутові покупки.",
   "landing.demoTab.food": "Страви",
@@ -443,6 +445,8 @@
   "health.affectsNo": "не впливає на їжу",
   "health.rule.forbidden": "не можна",
   "health.rule.avoid": "небажано",
+  "health.tagUnknownNotice": "Тег «{tag}» нам невідомий — страви з ним не фільтруватимуться",
+  "health.tagUnknownBadge": "невідомий тег",
 
   "cycle.forecastTitle": "Прогноз",
   "cycle.forecastNoData": "Немає жодного запису — відмітьте початок, щоб побачити прогноз",

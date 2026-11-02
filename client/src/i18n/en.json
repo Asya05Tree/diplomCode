@@ -14,6 +14,8 @@
 
   "landing.register": "Register",
   "landing.login": "Log in",
+  "landing.colorLabel": "Color",
+  "landing.themeToggle": "Dark theme",
   "landing.heroHeading": "How it works",
   "landing.heroText": "The site analyzes what you enter — how much money you have and which restrictions apply — and figures out what fits. Below are two examples: dishes and household purchases.",
   "landing.demoTab.food": "Dishes",
@@ -443,6 +445,8 @@
   "health.affectsNo": "doesn't affect food",
   "health.rule.forbidden": "not allowed",
   "health.rule.avoid": "not advised",
+  "health.tagUnknownNotice": "We don't know the tag “{tag}” — dishes with it won't be filtered",
+  "health.tagUnknownBadge": "unknown tag",
 
   "cycle.forecastTitle": "Forecast",
   "cycle.forecastNoData": "No records yet — mark a start date to see a forecast",

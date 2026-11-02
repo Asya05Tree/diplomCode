@@ -82,6 +82,53 @@
   color: var(--color-heading);
 }
 
+/* Редагований параметр: саме поле невидиме — показуємо лише стилізоване число + одиницю */
+.profile-field-edit {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.profile-field-input {
+  width: 3.2em;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  font-family: inherit;
+  border-bottom: 1px dashed transparent;
+  border-radius: 0;
+  transition: border-color var(--transition);
+}
+
+.profile-field-input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* Поле «проявляється» лише при наведенні/фокусі — натяк, що число можна змінити */
+.profile-field:hover .profile-field-input {
+  border-bottom-color: var(--color-border-strong);
+}
+
+.profile-field-input:focus {
+  outline: none;
+  border-bottom-color: var(--color-accent);
+}
+
+.profile-field-unit {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.profile-kv > label.profile-field {
+  cursor: text;
+}
+
 /* --- Великі картки-вкладки --- */
 .health-tabs {
   display: flex;
@@ -356,6 +403,188 @@
 .cond-add-hint {
   font-size: 0.74rem;
   color: var(--color-text-muted);
+}
+
+/* --- Рядок пошуку ліків над аптечкою --- */
+.med-search {
+  margin: 12px 0 16px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-tint);
+  animation: fade-in-up var(--transition-slow) both;
+}
+
+.med-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  background: var(--color-surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.med-search-field:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+.med-search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.med-search-field input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  box-shadow: none;
+  min-height: 0;
+  padding: 0;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+/* Макс. 5 видимих варіантів (≈44px кожен) — решту прокручуємо */
+.med-search-results {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.med-search-results li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+
+.med-search-results li:last-child {
+  border-bottom: none;
+}
+
+/* --- Пошукові підказки тега захворювання --- */
+.cond-tag-field {
+  position: relative;
+  flex: 0 1 220px;
+  min-width: 140px;
+}
+
+.cond-tag-field .cond-add-tag {
+  flex: none;
+  width: 100%;
+}
+
+.cond-tag-suggestions {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cond-tag-suggestions button {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.cond-tag-suggestions button:hover {
+  background: var(--pill-bg-hover);
+}
+
+.cond-tag-suggestion-key {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.cond-tag-suggestion-name {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Попередження про невідомий тег --- */
+.tag-unknown-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--st-warn-soft);
+  color: var(--st-warn);
+  font-size: 0.85rem;
+  animation: fade-in 0.2s ease both;
+}
+
+.tag-unknown-notice .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.tag-unknown-notice span {
+  flex: 1;
+}
+
+.tag-unknown-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tag-unknown-dismiss .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.tag-unknown-badge {
+  font-size: 0.72rem;
+  color: var(--st-warn);
+  background: var(--st-warn-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+  white-space: nowrap;
 }
 
 .cond-add-actions {

@@ -4,6 +4,7 @@ import Icon from '../components/Icon'
 import {
   getCabinet,
   searchMedicines,
+  searchTags,
   addMedicine,
   setMedicineState as apiSetMedicineState,
   getInteractions,
@@ -15,7 +16,7 @@ import {
   formName,
   conditionName,
 } from '../api/medicineCabinet'
-import { getHealthProfile } from '../api/healthProfile'
+import { getHealthProfile, setHealthProfile } from '../api/healthProfile'
 import './Health.css'
 
 const STOCK_TOGGLE = [
@@ -45,7 +46,15 @@ export default function Health() {
   const [medSearch, setMedSearch] = useState('')
   const [searchResults, setSearchResults] = useState([])
 
+  // Редаговані параметри людини — локальні рядки, синхронізуються з профілем на blur
+  const currentYear = new Date().getFullYear()
+  const [weightInput, setWeightInput] = useState('')
+  const [heightInput, setHeightInput] = useState('')
+  const [ageInput, setAgeInput] = useState('')
+
   const [condForm, setCondForm] = useState({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+  const [tagSuggestions, setTagSuggestions] = useState([])
+  const [tagNotice, setTagNotice] = useState('') // текст тега, якого немає серед тегів продуктів
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +86,30 @@ export default function Health() {
       cancelled = true
     }
   }, [])
+
+  // Коли профіль завантажився — заповнюємо поля введення (вік рахуємо з року народження)
+  useEffect(() => {
+    setWeightInput(profile?.weight != null ? String(profile.weight) : '')
+    setHeightInput(profile?.height != null ? String(profile.height) : '')
+    setAgeInput(profile?.birthYear != null ? String(currentYear - profile.birthYear) : '')
+  }, [profile, currentYear])
+
+  // Зберегти параметри людини: вік конвертуємо у рік народження, порожнє → null
+  const saveProfile = async () => {
+    const toNum = (s) => (s.trim() === '' ? null : Number(s))
+    const weight = toNum(weightInput)
+    const height = toNum(heightInput)
+    const age = toNum(ageInput)
+    const birthYear = age != null && age > 0 && age < 150 ? currentYear - Math.round(age) : null
+    const payload = {
+      weight: Number.isFinite(weight) ? weight : null,
+      height: Number.isFinite(height) ? height : null,
+      birthYear,
+      gender: profile?.gender ?? null,
+    }
+    setProfile((p) => ({ ...(p || {}), ...payload }))
+    await setHealthProfile(payload).catch(() => {})
+  }
 
   const lowCount = medicines.filter((m) => m.state === 'RunningLow').length
   const foodConditions = conditions.filter((c) => c.affectsFood)
@@ -128,17 +161,40 @@ export default function Health() {
     setSearchResults((prev) => prev.filter((m) => m.id !== id))
   }
 
-  const resetCondForm = () => setCondForm({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+  const resetCondForm = () => {
+    setCondForm({ open: false, name: '', affectsFood: false, tag: '', relation: 'Avoid' })
+    setTagSuggestions([])
+  }
+
+  // Пошук тега по тегах продуктів (запасах), поки користувач вводить
+  const handleTagSearch = (q) => {
+    setCondForm((f) => ({ ...f, tag: q }))
+    const query = q.trim()
+    if (query.length < 2) {
+      setTagSuggestions([])
+      return
+    }
+    searchTags(query).then(setTagSuggestions).catch(() => setTagSuggestions([]))
+  }
+
+  const pickTag = (key) => {
+    setCondForm((f) => ({ ...f, tag: key }))
+    setTagSuggestions([])
+  }
 
   const handleAddCondition = async () => {
     if (!condForm.name.trim()) return
-    await apiAddCondition({
+    const tagText = condForm.tag.trim()
+    const affectsFood = condForm.affectsFood
+    const created = await apiAddCondition({
       nameUk: condForm.name.trim(),
-      affectsFood: condForm.affectsFood,
+      affectsFood,
       tag: condForm.tag,
       relation: condForm.relation,
     })
     setConditions(await getConditions())
+    // Невідомий тег (немає серед тегів продуктів) — зберегли, але попереджаємо користувача
+    setTagNotice(affectsFood && tagText && created && created.tagKnown === false ? tagText : '')
     resetCondForm()
   }
 
@@ -162,8 +218,6 @@ export default function Health() {
     )
   }
 
-  const age = profile?.birthYear ? new Date().getFullYear() - profile.birthYear : null
-
   return (
     <div className="health-page">
       <div className="page-head">
@@ -171,23 +225,62 @@ export default function Health() {
         <span className="variant-note">{t('health.note')}</span>
       </div>
 
+      {/* Параметри людини редагуються прямо тут: поле не видно, лише стилізоване число + одиниця */}
       <div className="profile-kv">
-        <div className="profile-field">
+        <label className="profile-field">
           <span className="profile-field-label">{t('health.profile.weight')}</span>
-          <span className="profile-field-value">
-            {profile?.weight != null ? `${profile.weight} ${t('health.unit.kg')}` : '—'}
+          <span className="profile-field-edit">
+            <input
+              type="number"
+              className="profile-field-input"
+              inputMode="decimal"
+              min="0"
+              max="500"
+              step="0.1"
+              placeholder="—"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              onBlur={saveProfile}
+            />
+            <span className="profile-field-unit">{t('health.unit.kg')}</span>
           </span>
-        </div>
-        <div className="profile-field">
+        </label>
+        <label className="profile-field">
           <span className="profile-field-label">{t('health.profile.age')}</span>
-          <span className="profile-field-value">{age != null ? `${age} ${t('health.unit.years')}` : '—'}</span>
-        </div>
-        <div className="profile-field">
-          <span className="profile-field-label">{t('health.profile.height')}</span>
-          <span className="profile-field-value">
-            {profile?.height != null ? `${profile.height} ${t('health.unit.cm')}` : '—'}
+          <span className="profile-field-edit">
+            <input
+              type="number"
+              className="profile-field-input"
+              inputMode="numeric"
+              min="0"
+              max="149"
+              step="1"
+              placeholder="—"
+              value={ageInput}
+              onChange={(e) => setAgeInput(e.target.value)}
+              onBlur={saveProfile}
+            />
+            <span className="profile-field-unit">{t('health.unit.years')}</span>
           </span>
-        </div>
+        </label>
+        <label className="profile-field">
+          <span className="profile-field-label">{t('health.profile.height')}</span>
+          <span className="profile-field-edit">
+            <input
+              type="number"
+              className="profile-field-input"
+              inputMode="decimal"
+              min="0"
+              max="300"
+              step="0.1"
+              placeholder="—"
+              value={heightInput}
+              onChange={(e) => setHeightInput(e.target.value)}
+              onBlur={saveProfile}
+            />
+            <span className="profile-field-unit">{t('health.unit.cm')}</span>
+          </span>
+        </label>
       </div>
 
       <div className="health-tabs">
@@ -219,10 +312,45 @@ export default function Health() {
         <div className="card">
           <div className="section-title">
             <h3>{t('health.tab.meds')}</h3>
-            <button type="button" className="btn-accent" onClick={() => setAddMedOpen(true)}>
+            <button type="button" className="btn-accent" onClick={() => setAddMedOpen((v) => !v)}>
               {t('health.addMed')}
             </button>
           </div>
+
+          {/* Рядок пошуку над аптечкою: стилізований, як решта полів; макс. 5 видимих варіантів зі скролом */}
+          {addMedOpen && (
+            <div className="med-search">
+              <div className="med-search-field">
+                <Icon name="search" className="med-search-icon" />
+                <input
+                  type="text"
+                  placeholder={t('health.searchMed')}
+                  value={medSearch}
+                  onChange={(e) => handleMedSearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <ul className="med-search-results">
+                {searchResults.map((m) => (
+                  <li key={m.id}>
+                    <span>
+                      {medName(m, language)}
+                      {(m.substanceUk || m.substanceEn) && (
+                        <span className="drawer-sub"> · {medSubstance(m, language)}</span>
+                      )}
+                    </span>
+                    <button type="button" className="pill" onClick={() => handleAddMed(m.id)}>
+                      {t('health.add')}
+                    </button>
+                  </li>
+                ))}
+                {medSearch.trim().length < 2 && <li className="none-text">{t('health.searchHint')}</li>}
+                {medSearch.trim().length >= 2 && searchResults.length === 0 && (
+                  <li className="none-text">{t('health.addMedEmpty')}</li>
+                )}
+              </ul>
+            </div>
+          )}
 
           {medicines.length === 0 ? (
             <p className="placeholder-text">{t('health.cabinetEmpty')}</p>
@@ -325,6 +453,21 @@ export default function Health() {
           </div>
           <p className="placeholder-text">{t('health.condHint')}</p>
 
+          {tagNotice && (
+            <div className="tag-unknown-notice">
+              <Icon name="warning" />
+              <span>{t('health.tagUnknownNotice', { tag: tagNotice })}</span>
+              <button
+                type="button"
+                className="tag-unknown-dismiss"
+                onClick={() => setTagNotice('')}
+                aria-label={t('common.delete')}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+          )}
+
           {condForm.open && (
             <div className="cond-add-form">
               <input
@@ -347,13 +490,27 @@ export default function Health() {
               </label>
               {condForm.affectsFood && (
                 <div className="cond-add-food">
-                  <input
-                    type="text"
-                    className="cond-add-tag"
-                    placeholder={t('health.condTagPlaceholder')}
-                    value={condForm.tag}
-                    onChange={(e) => setCondForm((f) => ({ ...f, tag: e.target.value }))}
-                  />
+                  <div className="cond-tag-field">
+                    <input
+                      type="text"
+                      className="cond-add-tag"
+                      placeholder={t('health.condTagPlaceholder')}
+                      value={condForm.tag}
+                      onChange={(e) => handleTagSearch(e.target.value)}
+                    />
+                    {tagSuggestions.length > 0 && (
+                      <ul className="cond-tag-suggestions">
+                        {tagSuggestions.map((s) => (
+                          <li key={s.key}>
+                            <button type="button" onClick={() => pickTag(s.key)}>
+                              <span className="cond-tag-suggestion-key">{s.key}</span>
+                              <span className="cond-tag-suggestion-name">{s.displayName}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   <select
                     className="rule-select"
                     value={condForm.relation}
@@ -388,6 +545,9 @@ export default function Health() {
                 {condition.affectsFood ? (
                   <>
                     <span className="condition-tag">{condition.tagKey}</span>
+                    {!condition.tagKnown && (
+                      <span className="tag-unknown-badge">{t('health.tagUnknownBadge')}</span>
+                    )}
                     <span className={`rule-badge rule-badge--${condition.relation === 'Forbidden' ? 'bad' : 'warn'}`}>
                       {condition.relation === 'Forbidden' ? t('health.rule.forbidden') : t('health.rule.avoid')}
                     </span>
@@ -410,51 +570,6 @@ export default function Health() {
         </div>
       )}
 
-      {addMedOpen && (
-        <div className="drawer-overlay drawer-overlay--open">
-          <div className="drawer-backdrop" onClick={() => setAddMedOpen(false)} />
-          <aside className="drawer-panel">
-            <div className="drawer-head">
-              <h3>{t('health.addMedTitle')}</h3>
-              <button
-                type="button"
-                className="drawer-close"
-                onClick={() => setAddMedOpen(false)}
-                aria-label="Закрити"
-                data-tooltip="Закрити"
-              >
-                <Icon name="close" />
-              </button>
-            </div>
-            <input
-              type="text"
-              className="drawer-search"
-              placeholder={t('health.searchMed')}
-              value={medSearch}
-              onChange={(e) => handleMedSearch(e.target.value)}
-            />
-            <ul className="drawer-product-list">
-              {searchResults.map((m) => (
-                <li key={m.id}>
-                  <span>
-                    {medName(m, language)}
-                    {(m.substanceUk || m.substanceEn) && (
-                      <span className="drawer-sub"> · {medSubstance(m, language)}</span>
-                    )}
-                  </span>
-                  <button type="button" className="pill" onClick={() => handleAddMed(m.id)}>
-                    {t('health.add')}
-                  </button>
-                </li>
-              ))}
-              {medSearch.trim().length < 2 && <li className="none-text">{t('health.searchHint')}</li>}
-              {medSearch.trim().length >= 2 && searchResults.length === 0 && (
-                <li className="none-text">{t('health.addMedEmpty')}</li>
-              )}
-            </ul>
-          </aside>
-        </div>
-      )}
     </div>
   )
 }
