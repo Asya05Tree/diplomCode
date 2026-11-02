@@ -24,7 +24,7 @@
   /* Приблизно завбільшки з форму входу (її max-width ~380px), у межах viewport */
   width: clamp(300px, 42vw, 400px);
   height: clamp(300px, 42vw, 400px);
-  animation: float-soft 5s ease-in-out infinite;
+  /* Картинка нерухома — без плавання, лише плавна зміна stop<->go за opacity */
 }
 
 .login-image {
@@ -34,7 +34,7 @@
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(var(--shadow-md));
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.4s ease;
 }
 
 .login-image--stop {
@@ -43,17 +43,14 @@
 
 .login-image--go {
   opacity: 0;
-  transform: scale(0.9);
 }
 
 .login-image-wrap--go .login-image--stop {
   opacity: 0;
-  transform: scale(0.9);
 }
 
 .login-image-wrap--go .login-image--go {
   opacity: 1;
-  transform: scale(1);
 }
 
 /* На телефоні/планшеті ховаємо декоративну половину з картинкою — лишаємо тільки форму */
