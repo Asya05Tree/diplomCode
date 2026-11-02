@@ -28,7 +28,9 @@ public class MedicineService
         string OtherMedicineNameUk, string OtherMedicineNameEn, string SubstanceUk, string SubstanceEn,
         string Level, string? Mechanism);
 
-    public record ConditionDto(int Id, string NameUk, string? NameEn, bool AffectsFood, string? TagKey, string Relation);
+    public record ConditionDto(int Id, string NameUk, string? NameEn, bool AffectsFood, string? TagKey, string Relation, bool TagKnown);
+
+    public record TagSuggestionDto(string Key, string DisplayName);
 
     // ---- Аптечка -------------------------------------------------------------
 
