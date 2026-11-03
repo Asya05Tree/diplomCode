@@ -46,7 +46,7 @@ function Stars({ value = 0, onChange, readOnly = false }) {
 }
 
 export default function Watchlist() {
-  const { t, language } = useI18n()
+  const { t, language, formatDate } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -441,7 +441,7 @@ export default function Watchlist() {
                     <span className="watch-library-label">{t('watchlist.libraryNote')}</span>
                     {item.returnDeadline && !item.isReturned && (
                       <span className="watch-library-due">
-                        {t('watchlist.returnBy', { date: new Date(item.returnDeadline).toLocaleDateString() })}
+                        {t('watchlist.returnBy', { date: formatDate(item.returnDeadline) })}
                       </span>
                     )}
                     {item.isReturned && <span className="watch-library-returned">{t('watchlist.returnedNote')}</span>}
@@ -451,7 +451,7 @@ export default function Watchlist() {
                 {item.startDate && (
                   <Link to="/app" className="watch-card-when">
                     <Icon name="calendar" className="watch-when-icon" />
-                    {new Date(item.startDate).toLocaleDateString()}
+                    {formatDate(item.startDate)}
                   </Link>
                 )}
 

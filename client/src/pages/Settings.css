@@ -36,10 +36,37 @@
   color: var(--color-text-muted);
 }
 
+/* Пояснювальний рядок під заголовком секції (напр. як працює перший день тижня) */
+.settings-hint {
+  margin: -6px 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
 .settings-options {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Варіант пігулки у два рядки: назва формату + приклад дати під нею */
+.settings-option--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 18px;
+  min-height: 48px;
+  line-height: 1.25;
+}
+.settings-option-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.settings-option-example {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 
 .settings-option {

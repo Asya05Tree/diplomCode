@@ -1,14 +1,20 @@
 import { useOutletContext } from 'react-router-dom'
 import { useI18n } from '../i18n'
-import { PALETTES, PALETTE_COLORS } from '../utils/settings'
+import { PALETTES, PALETTE_COLORS, DATE_FORMATS } from '../utils/settings'
+import { formatDateFor } from '../utils/date'
 import Icon from '../components/Icon'
 import './Settings.css'
+
+// Зразкова дата для прев'ю формату — день (9) і місяць (3) різні, рік окремий, тож порядок
+// елементів видно однозначно (planner-spec.md §4.10).
+const SAMPLE_DATE = new Date(2026, 2, 9)
+const ISO_WEEK_DAYS = [1, 2, 3, 4, 5, 6, 7]
 
 // Налаштування (planner-spec.md §4.10): мова, тема, акцентна палітра й вихід з акаунта.
 // Тема/стиль/палітра підняті в App.jsx (застосовуються до всього додатку через
 // data-* атрибути на кореневому div), тому сюди приходять через Outlet context.
 export default function Settings() {
-  const { t, language, setLanguage } = useI18n()
+  const { t, language, setLanguage, weekStart, setWeekStart, dateFormat, setDateFormat, weekdaysIso } = useI18n()
   const {
     onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette,
     studentType, isWorking, onSetStudyStatus, gender, onSetGender,
@@ -94,6 +100,44 @@ export default function Settings() {
               </button>
             )
           })}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>{t('settings.weekStartLabel')}</h3>
+        <p className="settings-hint">{t('settings.weekStartHint')}</p>
+        <div className="settings-options">
+          {ISO_WEEK_DAYS.map((day) => (
+            <button
+              key={day}
+              type="button"
+              className={weekStart === day ? 'settings-option settings-option--active' : 'settings-option'}
+              onClick={() => setWeekStart(day)}
+            >
+              {weekdaysIso[day - 1]}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>{t('settings.dateFormatLabel')}</h3>
+        <div className="settings-options">
+          {DATE_FORMATS.map((format) => (
+            <button
+              key={format}
+              type="button"
+              className={
+                dateFormat === format
+                  ? 'settings-option settings-option--stacked settings-option--active'
+                  : 'settings-option settings-option--stacked'
+              }
+              onClick={() => setDateFormat(format)}
+            >
+              <span className="settings-option-title">{t(`settings.dateFormat.${format}`)}</span>
+              <span className="settings-option-example">{formatDateFor(SAMPLE_DATE, format)}</span>
+            </button>
+          ))}
         </div>
       </section>
 

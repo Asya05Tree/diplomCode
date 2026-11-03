@@ -61,7 +61,6 @@ const SHOPPING_MONEY_MAX = 600
 const SHOPPING_MONEY_DEFAULT = 600
 
 const REPEAT_TYPES = ['WeekCycle', 'EveryNDays']
-const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7]
 const DEFAULT_RECURRING_WEEKDAYS = [1, 3, 5]
 const RECURRING_MONTHS_AHEAD = 3
 
@@ -104,7 +103,7 @@ function occursOnDate(date, today, repeatType, selectedWeekDays, intervalDays) {
 // Публічна сторінка для тих, хто ще не увійшов. Реєстрація/вхід — окремі URL (/reg, /login),
 // щоб на них можна було перейти напряму або оновити сторінку без втрати екрана.
 export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalette }) {
-  const { t } = useI18n()
+  const { t, weekdays, orderedWeekDays } = useI18n()
 
   const [activeDemo, setActiveDemo] = useState('food')
 
@@ -214,7 +213,6 @@ export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalet
   const selectedDayHasPlans =
     selectedDate != null && occursOnDate(selectedDate, today, repeatType, selectedWeekDays, intervalDays)
 
-  const weekdayLabels = t('planner.weekdaysShort').split(',')
 
   return (
     <div className="landing">
@@ -451,14 +449,14 @@ export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalet
 
             {repeatType === 'WeekCycle' ? (
               <div className="landing-weekday-row">
-                {ISO_WEEKDAYS.map((day, idx) => (
+                {orderedWeekDays.map((day, idx) => (
                   <button
                     key={day}
                     type="button"
                     className={selectedWeekDays.has(day) ? 'landing-weekday landing-weekday--active' : 'landing-weekday'}
                     onClick={() => toggleWeekDay(day)}
                   >
-                    {weekdayLabels[idx]}
+                    {weekdays[idx]}
                   </button>
                 ))}
               </div>

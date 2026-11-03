@@ -51,7 +51,7 @@ function summarizeRule(rule, t) {
 // Прев'ю обраного правила прокидається наверх у ліву сітку (§4.4); для типу Manual та сама
 // сітка стає засобом введення — клік по дню передається наверх через onManualHandlerChange.
 export default function RecurringView({ token, visibleRange, onPreviewChange, onManualHandlerChange }) {
-  const { t } = useI18n()
+  const { t, formatDate } = useI18n()
 
   const [rules, setRules] = useState([])
   const [version, setVersion] = useState(0)
@@ -259,7 +259,7 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
                 <div className="recurring-manual-dates-list">
                   {selected.manualDates.map((d) => (
                     <span key={d} className="recurring-manual-date-chip">
-                      {d}
+                      {formatDate(d)}
                       <button type="button" onClick={() => handleRemoveManualDate(d)}>×</button>
                     </span>
                   ))}
@@ -287,8 +287,8 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
             {selected.exceptions.map((ex) => (
               <div key={ex.id} className="recurring-exception-row">
                 <span>
-                  {ex.date} — {ex.exceptionType === 'Cancelled' ? t('recurrence.exceptionCancelled') : t('recurrence.exceptionMoved')}
-                  {ex.exceptionType === 'Moved' && ex.newDateTime && ` → ${ex.newDateTime.replace('T', ' ').slice(0, 16)}`}
+                  {formatDate(ex.date)} — {ex.exceptionType === 'Cancelled' ? t('recurrence.exceptionCancelled') : t('recurrence.exceptionMoved')}
+                  {ex.exceptionType === 'Moved' && ex.newDateTime && ` → ${formatDate(ex.newDateTime)} ${ex.newDateTime.slice(11, 16)}`}
                 </span>
                 <button
                   type="button"

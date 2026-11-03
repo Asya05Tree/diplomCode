@@ -10,11 +10,6 @@ import './Cycle.css'
 
 const HYGIENE_OPTIONS = ['pads', 'tampons', 'cup', 'liners', 'other']
 
-function fmt(api) {
-  const [y, m, d] = api.split('-')
-  return `${d}.${m}.${y}`
-}
-
 function fmtShort(api) {
   const [, m, d] = api.split('-')
   return `${d}.${m}`
@@ -132,7 +127,7 @@ const PHASE_META = [
 // плитками та реєстр історії. Відмітки й налаштування — з бекенда (/api/cycle), прогноз
 // рахується на сервері; фази/овуляція — орієнтовні (похідні від середніх, не медичні висновки).
 export default function Cycle() {
-  const { t } = useI18n()
+  const { t, weekStart, weekdays, formatDate } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -179,7 +174,6 @@ export default function Cycle() {
   const marks = useMemo(() => buildCalendarMarks(records, forecast, stats), [records, forecast, stats])
 
   const today = todayApiDate()
-  const weekdays = t('planner.weekdaysShort').split(',')
 
   const handleMarkStart = async () => {
     await markCycleStart(todayApiDate())
@@ -230,7 +224,7 @@ export default function Cycle() {
     const fromR = toApiDate(addDays(fromApiDate(forecast.predictedDate), -forecast.rangeDays))
     const toR = toApiDate(addDays(fromApiDate(forecast.predictedDate), forecast.rangeDays))
     const daysUntil = Math.round((fromApiDate(forecast.predictedDate) - fromApiDate(today)) / 86400000)
-    forecastText = `${t('cycle.nextStart')}: ${fmtShort(fromR)} – ${fmt(toR)}`
+    forecastText = `${t('cycle.nextStart')}: ${fmtShort(fromR)} – ${formatDate(toR)}`
     if (daysUntil > 0) forecastText += ` · ${t('cycle.inDays', { n: daysUntil })}`
   }
 
@@ -259,7 +253,7 @@ export default function Cycle() {
   const renderMonth = (base) => {
     const year = base.getFullYear()
     const month = base.getMonth()
-    const cells = getMonthGridCells(year, month)
+    const cells = getMonthGridCells(year, month, weekStart)
     const label = base.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
     return (
       <div className="cyc-month">
@@ -466,7 +460,7 @@ export default function Cycle() {
               <tbody>
                 {forecast.hasData && forecast.predictedDate && (
                   <tr className="cyc-row-predicted">
-                    <td>{fmtShort(toApiDate(addDays(fromApiDate(forecast.predictedDate), -forecast.rangeDays)))} – {fmt(toApiDate(addDays(fromApiDate(forecast.predictedDate), forecast.rangeDays)))}</td>
+                    <td>{fmtShort(toApiDate(addDays(fromApiDate(forecast.predictedDate), -forecast.rangeDays)))} – {formatDate(toApiDate(addDays(fromApiDate(forecast.predictedDate), forecast.rangeDays)))}</td>
                     <td className="cyc-none">—</td>
                     <td>{stats.avgPeriodLength ? `~${t('cycle.daysN', { n: stats.avgPeriodLength })}` : '—'}</td>
                     <td className="cyc-none">—</td>
@@ -476,8 +470,8 @@ export default function Cycle() {
                 )}
                 {historyRows.map((r) => (
                   <tr key={r.id}>
-                    <td><span className="cyc-badge cyc-badge--start">{fmt(r.startDate)}</span></td>
-                    <td>{r.endDate ? <span className="cyc-badge cyc-badge--end">{fmt(r.endDate)}</span> : <span className="cyc-none">{t('cycle.historyOngoing')}</span>}</td>
+                    <td><span className="cyc-badge cyc-badge--start">{formatDate(r.startDate)}</span></td>
+                    <td>{r.endDate ? <span className="cyc-badge cyc-badge--end">{formatDate(r.endDate)}</span> : <span className="cyc-none">{t('cycle.historyOngoing')}</span>}</td>
                     <td>{r.periodLen ? t('cycle.daysN', { n: r.periodLen }) : <span className="cyc-none">—</span>}</td>
                     <td>{r.cycleLen ? t('cycle.daysN', { n: r.cycleLen }) : <span className="cyc-none">—</span>}</td>
                     <td>

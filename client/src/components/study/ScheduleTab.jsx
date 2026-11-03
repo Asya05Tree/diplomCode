@@ -5,15 +5,15 @@ import { setStudySettings, getScheduleEntries, addScheduleEntry, removeScheduleE
 import { encodeWeekDaysPattern } from '../../utils/recurrence'
 import { summarizeEntry } from './studyShared'
 
-const ISO_DAYS = [1, 2, 3, 4, 5, 6, 7]
 const PARITIES = ['weekly', 'num', 'denom'] // щотижня / чисельник / знаменник
 
 // Розклад. Угорі — період навчання/канікул і дати семестру/року (пишуть у StudySettings).
 // Нижче — генератор: предмет + (студент) лекція/семінар + номер пари + дні + парність → створюється
 // правило повторення на весь семестр (час береться з обраної пари), яке видно і в спільному календарі.
 export default function ScheduleTab({ subjects, bells, settings, reloadSettings, isPupil }) {
-  const { t } = useI18n()
-  const weekdayLabels = t('planner.weekdaysShort').split(',')
+  const { t, weekdays, orderedWeekDays, weekdaysIso } = useI18n()
+  // ISO-мітки (Пн..Нд) — для summarizeEntry, яке шукає назву за номером дня (label[d-1]).
+  const weekdayLabels = weekdaysIso
 
   const [cfg, setCfg] = useState(settings)
   const [savedNote, setSavedNote] = useState('')
@@ -166,14 +166,14 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
             </div>
 
             <div className="study-weekdays">
-              {ISO_DAYS.map((d, idx) => (
+              {orderedWeekDays.map((d, idx) => (
                 <button
                   key={d}
                   type="button"
                   className={lesson.days.has(d) ? 'task-form-weekday task-form-weekday--active' : 'task-form-weekday'}
                   onClick={() => toggleDay(d)}
                 >
-                  {weekdayLabels[idx]}
+                  {weekdays[idx]}
                 </button>
               ))}
             </div>

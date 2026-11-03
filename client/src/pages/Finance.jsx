@@ -25,13 +25,6 @@ function formatMoney(value) {
   return String(Math.abs(Math.round(value))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 }
 
-// occurredAt — datetime-рядок із бекенда ("2026-10-18T09:30:00"). Показуємо лише дату DD.MM.YYYY.
-function formatDate(occurredAt) {
-  if (!occurredAt) return '—'
-  const [y, m, d] = occurredAt.slice(0, 10).split('-')
-  return `${d}.${m}.${y}`
-}
-
 // Лишаємо лише цифри й один роздільник (швидкий ввід сум у таблиці категорій).
 function sanitizeMoney(s) {
   return String(s).replace(/[^\d.,]/g, '').replace(',', '.').replace(/(\..*)\./g, '$1')
@@ -72,7 +65,7 @@ function WeekChart({ weeks, signed, currentWeekIdx, t }) {
 // нижче — вкладки Категорії (активні/сховані, швидкий ввід +дохід/−витрата, «Є зараз»), Історія
 // (список операцій із редагуванням) і Статистика (тижнева динаміка витрат/доходів/балансу).
 export default function Finance() {
-  const { t, language } = useI18n()
+  const { t, language, formatDate } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
