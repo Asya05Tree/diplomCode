@@ -203,7 +203,7 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
               {entries.map((en) => (
                 <tr key={en.id}>
                   <td>{en.subjectName || subjectName(en.subjectId)}</td>
-                  {!isPupil && <td>{en.sessionKind ? t(`study.${en.sessionKind}`) : <span className="none-text">—</span>}</td>
+                  {!isPupil && <td>{en.sessionKind ? t(`study.${en.sessionKind}`) : <span className="none-text">—</span>}</td>}
                   <td>{en.pairNumber ?? <span className="none-text">—</span>}</td>
                   <td>{summarizeEntry(en, t, weekdayLabels)}</td>
                   <td className="study-row-actions">
