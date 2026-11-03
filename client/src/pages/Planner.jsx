@@ -5,6 +5,7 @@ import MonthGrid from '../components/planner/MonthGrid'
 import ModeSwitch from '../components/planner/ModeSwitch'
 import NumberStepper from '../components/NumberStepper'
 import DayView from '../components/planner/DayView'
+import QuickAdd from '../components/planner/QuickAdd'
 import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
 import UnassignedView from '../components/planner/UnassignedView'
@@ -184,6 +185,8 @@ export default function Planner() {
       </section>
 
       <section className="planner-work-panel">
+        <QuickAdd token={token} onCreated={notifyTasksChanged} />
+
         <div className="card planner-mode-card">
           <ModeSwitch
             activeTab={activeTab}

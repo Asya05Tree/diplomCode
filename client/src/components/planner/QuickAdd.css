@@ -1,0 +1,252 @@
+/* Швидке додавання з природномовного рядка — панель над робочою областю планувальника. */
+.quick-add {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-add-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-heading);
+}
+.quick-add-head .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-accent-ink);
+}
+
+.quick-add-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.quick-add-input {
+  flex: 1;
+  min-width: 220px;
+}
+.quick-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.quick-add-btn .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.quick-add-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+.quick-add-note {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--color-accent-ink);
+}
+
+/* --- Екран підтвердження --- */
+.quick-add-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+.quick-add-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-md);
+}
+.quick-add-modal h3 {
+  margin: 0 0 4px;
+  color: var(--color-heading);
+}
+.quick-add-modal-hint {
+  margin: 0 0 16px;
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+}
+
+.quick-add-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qa-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  transition: opacity var(--transition), border-color var(--transition);
+}
+.qa-row--off {
+  opacity: 0.55;
+}
+
+.qa-check {
+  padding-top: 4px;
+}
+.qa-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.qa-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+.qa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+.qa-field > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.qa-field > span .icon {
+  width: 14px;
+  height: 14px;
+}
+.qa-field--title {
+  grid-column: 1 / -1;
+}
+.qa-field input,
+.qa-field select {
+  width: 100%;
+}
+.qa-warn {
+  font-weight: 500;
+  color: var(--color-danger);
+}
+
+.qa-field--dur span {
+  margin-bottom: 1px;
+}
+.qa-dur {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.qa-dur input {
+  width: 58px;
+}
+.qa-dur em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Уточнення неоднозначного числа (напр. «4» = 4 число / 4:00 / 16:00) */
+.qa-ambiguous {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+}
+.qa-amb-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-accent-ink);
+}
+.qa-amb-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.qa-amb-opt {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.qa-amb-opt:hover {
+  border-color: var(--color-accent);
+}
+.qa-amb-opt--skip {
+  color: var(--color-text-muted);
+}
+
+/* Блок «не розпізнано» */
+.qa-unrec {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+.qa-unrec-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.qa-unrec-title .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-danger);
+}
+.qa-unrec-hint {
+  margin: 6px 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+.qa-unrec ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.qa-unrec li {
+  font-size: 0.86rem;
+  color: var(--color-text);
+}
+
+.quick-add-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 560px) {
+  .qa-fields {
+    grid-template-columns: 1fr;
+  }
+}
