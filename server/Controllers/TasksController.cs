@@ -5,7 +5,7 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record CreateTaskRequest(string Title, string? Description, DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline);
+public record CreateTaskRequest(string Title, string? Description, DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline, string? ModuleCode = null);
 public record UpdateTaskRequest(string Title, string? Description, DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline);
 public record ResolveTaskRequest(string Action); // Done | Skipped | Postpone
 
@@ -69,14 +69,27 @@ public class TasksController : ControllerBase
         return Ok(tasks);
     }
 
+    // Дозволені коди модулів для звичайної задачі (напр. швидке додавання з розбору тексту
+    // проставляє модуль покупок/перегляду/їжі, щоб подія в календарі мала відповідний колір).
+    // Невідомий/порожній код → звичайна задача "tasks".
+    private static readonly HashSet<string> AllowedModules = new()
+    {
+        "tasks", "shopping", "media", "food", "health", "work", "study", "finance", "cycle", "notes",
+    };
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTaskRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
             return BadRequest(new { error = "missing_title" });
 
+        var moduleCode = request.ModuleCode is not null && AllowedModules.Contains(request.ModuleCode)
+            ? request.ModuleCode
+            : "tasks";
+
         var task = await _taskService.CreateTaskAsync(
-            CurrentUserId, request.Title, request.Description, request.StartDateTime, request.DurationMinutes, request.Deadline);
+            CurrentUserId, request.Title, request.Description, request.StartDateTime, request.DurationMinutes, request.Deadline,
+            moduleCode);
         return Ok(new { task.Id });
     }
 

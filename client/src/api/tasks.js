@@ -54,8 +54,8 @@ export function resolveTask(token, id, action) {
 
 // ---- CRUD одноразової задачі ---------------------------------------------------------------
 
-export function createTask(token, { title, description, startDateTime, durationMinutes, deadline }) {
-  return apiSend('POST', '/api/tasks', token, { title, description, startDateTime, durationMinutes, deadline })
+export function createTask(token, { title, description, startDateTime, durationMinutes, deadline, moduleCode }) {
+  return apiSend('POST', '/api/tasks', token, { title, description, startDateTime, durationMinutes, deadline, moduleCode })
 }
 
 export function updateTask(token, id, { title, description, startDateTime, durationMinutes, deadline }) {
