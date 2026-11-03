@@ -3,89 +3,118 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Робота · Варіант 6 — колеги та контакти</title>
+<title>Робота · Варіант 6 — директорія контактів</title>
 <link rel="stylesheet" href="shared.css" />
-<style>
-  .org-group { margin-bottom: 14px; }
-  .org-group h4 { margin: 0 0 8px; font-size: 0.8rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-  .org-row { display:flex; align-items:center; gap:12px; padding:8px 2px; border-bottom:1px solid var(--color-border); }
-  .org-row:last-child { border-bottom: none; }
-  .org-avatar { width:34px; height:34px; border-radius:50%; background:var(--color-accent-gradient); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; color:var(--color-on-accent); flex-shrink:0; }
-  .org-main { flex:1; display:flex; flex-direction:column; }
-  .org-name { font-size:0.9rem; font-weight:600; }
-  .org-role { font-size:0.76rem; color:var(--color-text-muted); }
-  .org-contact { font-size:0.78rem; color:var(--color-text-muted); white-space:nowrap; }
-</style>
 </head>
 <body>
 <div class="app-shell">
   <nav class="sidebar">
-    <span class="sidebar-title">Макети розділу «Робота»</span>
-    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
-    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
-    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
-    <a href="variant-4.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
-    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
+    <span class="sidebar-title">Робота — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
     <a href="variant-6.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
-    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
-    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
-    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
-    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
   </nav>
   <main class="app-main">
     <header class="app-header">
-      <span class="app-header-user">Олена К. · olena@example.com</span>
+      <span class="app-header-user">Софія Р. · sofiia@example.com</span>
     </header>
 
     <div class="page-content">
       <div class="page-head">
         <h2>Робота</h2>
-        <span class="variant-note">Варіант 6 · колеги та контакти — хто за що відповідає на роботі, згруповано за відділами</span>
+        <span class="variant-note">Варіант 6 · акцент на контактах (директорія за групами); графік — компактним тижнем збоку</span>
       </div>
 
-      <div class="card">
-        <div class="org-group">
-          <h4>Керівництво</h4>
-          <div class="org-row">
-            <span class="org-avatar">ОК</span>
-            <div class="org-main"><span class="org-name">Олег Костенко</span><span class="org-role">Керівник відділу</span></div>
-            <span class="org-contact">Telegram · @o_kostenko</span>
+      <div class="card work-top">
+        <div class="work-top-avatar">☕</div>
+        <div class="work-top-main">
+          <span class="work-name">Кав'ярня «Світанок»</span>
+          <span class="work-role">Бариста-адміністратор · ФОП Коваленко І.</span>
+        </div>
+        <div class="work-top-meta">
+          <span class="chip"><span class="chip-label">Оплата</span> Погодинна · 180 грн/год</span>
+          <span class="chip"><span class="chip-label">Графік</span> 2/2</span>
+        </div>
+      </div>
+
+      <div class="cols-2">
+        <!-- ЛІВОРУЧ: ДИРЕКТОРІЯ КОНТАКТІВ (головний блок) -->
+        <div class="card">
+          <div class="section-title"><h3>Робочі контакти</h3><button class="btn-accent">+ Контакт</button></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <span class="pill pill--active">Усі</span><span class="pill">Керівництво</span><span class="pill">Зміна</span><span class="pill">Суміжні</span>
+          </div>
+
+          <div class="contact-group-head"><h4>Керівництво</h4><span class="contact-count">1</span></div>
+          <div class="contact-list">
+            <div class="contact-card"><div class="contact-avatar">ІК</div><div class="contact-body"><span class="contact-name">Ірина Коваленко</span><span class="contact-role">Керуюча · власниця</span><span class="cstatus cstatus--on">онлайн</span><span class="contact-line">📞 +380 67 123 45 67</span><span class="contact-line">✉ iryna@svitanok.ua · 🎂 12.03</span><span class="contact-socials">📷 @iryna.cava · 💬 @iryna_k</span></div></div>
+          </div>
+          <div class="contact-group-head"><h4>Зміна · бариста</h4><span class="contact-count">3</span></div>
+          <div class="contact-list">
+            <div class="contact-card"><div class="contact-avatar">ОП</div><div class="contact-body"><span class="contact-name">Олег Петренко</span><span class="contact-role">Бариста</span><span class="cstatus cstatus--on">на зміні</span><span class="contact-line">📞 +380 93 222 11 00 · 🎂 28.07</span><span class="contact-line none-text">пошта не вказана</span><span class="contact-socials">💬 @olehp</span></div></div>
+            <div class="contact-card"><div class="contact-avatar">МС</div><div class="contact-body"><span class="contact-name">Марія Сидоренко</span><span class="contact-role">Бариста</span><span class="cstatus cstatus--vac">у відпустці</span><span class="contact-line">📞 +380 50 333 22 11</span><span class="contact-line">✉ maria.s@gmail.com</span><span class="contact-socials">📷 @mariposa</span></div></div>
+            <div class="contact-card"><div class="contact-avatar">ДТ</div><div class="contact-body"><span class="contact-name">Денис Ткаченко</span><span class="contact-role">Бариста-стажер</span><span class="cstatus cstatus--off">вихідний</span><span class="contact-line">📞 +380 97 444 55 66</span><span class="contact-line none-text">пошта, день народження, соцмережі — за бажанням</span></div></div>
+          </div>
+          <div class="contact-group-head"><h4>Суміжні · постачання</h4><span class="contact-count">2</span></div>
+          <div class="contact-list">
+            <div class="contact-card"><div class="contact-avatar">АБ</div><div class="contact-body"><span class="contact-name">Андрій Бондар</span><span class="contact-role">Постачальник кави · Beans Co.</span><span class="cstatus cstatus--off">офлайн</span><span class="contact-line">📞 +380 44 555 66 77</span><span class="contact-line">✉ andriy@beans.ua</span><span class="contact-socials">💬 @beans_andriy</span></div></div>
+            <div class="contact-card"><div class="contact-avatar">ОГ</div><div class="contact-body"><span class="contact-name">Олена Гриценко</span><span class="contact-role">Бухгалтер · аутсорс</span><span class="cstatus cstatus--off">офлайн</span><span class="contact-line">📞 +380 63 777 88 99</span><span class="contact-line">✉ o.hrytsenko@buh.ua</span></div></div>
           </div>
         </div>
 
-        <div class="org-group">
-          <h4>Команда розробки</h4>
-          <div class="org-row">
-            <span class="org-avatar">МЛ</span>
-            <div class="org-main"><span class="org-name">Марина Литвин</span><span class="org-role">Тімлід</span></div>
-            <span class="org-contact">m.lytvyn@company.com</span>
+        <!-- ПРАВОРУЧ: ГРАФІК (тиждень) + ВІДСУТНОСТІ + ЗУСТРІЧІ -->
+        <div class="stack">
+          <div class="next-shift">
+            <span class="next-shift-icon">🌆</span>
+            <div class="next-shift-text">
+              <span class="next-shift-when">Наступна — чт, 05.11</span>
+              <span class="next-shift-sub">Вечірня · сьогодні вихідний</span>
+            </div>
+            <span class="next-shift-time">15:00–23:00</span>
           </div>
-          <div class="org-row">
-            <span class="org-avatar">ДП</span>
-            <div class="org-main"><span class="org-name">Данило Поліщук</span><span class="org-role">Розробник</span></div>
-            <span class="org-contact">Slack · @d.polishchuk</span>
-          </div>
-          <div class="org-row">
-            <span class="org-avatar">ВВ</span>
-            <div class="org-main"><span class="org-name">Вікторія Вовк</span><span class="org-role">QA-інженер</span></div>
-            <span class="org-contact">v.vovk@company.com</span>
-          </div>
-        </div>
 
-        <div class="org-group">
-          <h4>Суміжні відділи</h4>
-          <div class="org-row">
-            <span class="org-avatar">ТК</span>
-            <div class="org-main"><span class="org-name">Тетяна Крамар</span><span class="org-role">HR-менеджер</span></div>
-            <span class="org-contact">t.kramar@company.com</span>
+          <div class="card">
+            <div class="section-title"><h3>Поточний тиждень</h3><span class="chip">2/2</span></div>
+            <div class="week-strip">
+              <div class="week-col"><div class="week-col-head">Пн<b>02</b></div><div class="week-shift shift-chip--day">Денна<small>11–19</small></div></div>
+              <div class="week-col week-col--today"><div class="week-col-head">Вт<b>03</b></div><div class="week-rest">вихідний</div></div>
+              <div class="week-col"><div class="week-col-head">Ср<b>04</b></div><div class="week-rest">вихідний</div></div>
+              <div class="week-col"><div class="week-col-head">Чт<b>05</b></div><div class="week-shift shift-chip--evening">Вечірня<small>15–23</small></div></div>
+              <div class="week-col"><div class="week-col-head">Пт<b>06</b></div><div class="week-shift shift-chip--evening">Вечірня<small>15–23</small></div></div>
+              <div class="week-col"><div class="week-col-head">Сб<b>07</b></div><div class="week-rest">вихідний</div></div>
+              <div class="week-col"><div class="week-col-head">Нд<b>08</b></div><div class="week-rest">вихідний</div></div>
+            </div>
+            <div class="legend" style="margin-top:12px;">
+              <span class="legend-item"><span class="sh-dot sh-dot--morning"></span>Ранкова</span>
+              <span class="legend-item"><span class="sh-dot sh-dot--day"></span>Денна</span>
+              <span class="legend-item"><span class="sh-dot sh-dot--evening"></span>Вечірня</span>
+              <span class="legend-item"><span class="sh-dot sh-dot--night"></span>Нічна</span>
+            </div>
+            <table class="data-table" style="margin-top:12px;">
+              <thead><tr><th>Тип зміни</th><th>Колір</th><th>Час</th></tr></thead>
+              <tbody>
+                <tr><td>Ранкова</td><td><span class="color-dot-lg sh-swatch--morning"></span></td><td>07:00–15:00</td></tr>
+                <tr><td>Денна</td><td><span class="color-dot-lg sh-swatch--day"></span></td><td>11:00–19:00</td></tr>
+                <tr><td>Вечірня</td><td><span class="color-dot-lg sh-swatch--evening"></span></td><td>15:00–23:00</td></tr>
+                <tr><td>Нічна</td><td><span class="color-dot-lg sh-swatch--night"></span></td><td>23:00–07:00</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:10px;"><span class="chip-label">Оплата</span> <span class="pill pill--active">Погодинна</span> <span class="pill">За місяць</span> <span class="pill">За проєкт</span></div>
           </div>
-          <div class="org-row">
-            <span class="org-avatar">РБ</span>
-            <div class="org-main"><span class="org-name">Руслан Бойко</span><span class="org-role">Бухгалтерія</span></div>
-            <span class="org-contact">внутр. 104</span>
+
+          <div class="card">
+            <div class="section-title"><h3>Відпустки й зустрічі</h3></div>
+            <div class="leave-kpis" style="grid-template-columns:1fr 1fr;">
+              <div class="leave-tile"><span class="kpi-label">Відпустка</span><span class="kpi-value">12 / 24 дн</span><div class="leave-bar"><div class="leave-bar-fill" style="width:50%;"></div></div></div>
+              <div class="leave-tile"><span class="kpi-label">Лікарняні</span><span class="kpi-value">3 дн</span></div>
+            </div>
+            <div class="meet-list" style="margin-top:12px;">
+              <div class="meet-row"><span class="meet-time">Пн 03.11 · 10:00</span><div class="meet-main"><div class="meet-title">Планерка зміни</div><div class="meet-people">з Іриною Коваленко</div></div><span class="pill">у залі</span></div>
+              <div class="meet-row"><span class="meet-time">Ср 05.11 · 14:00</span><div class="meet-main"><div class="meet-title">Дегустація сорту</div><div class="meet-people">з Андрієм Бондарем</div></div><span class="pill">Zoom</span></div>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
   </main>
 </div>
