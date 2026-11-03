@@ -432,14 +432,19 @@ function normalizeApostrophes(text) {
 // --- Крок 1. Розбиття рядка на фрагменти-задачі за роздільниками та комою. ---
 function splitTasks(text, m) {
   const delim = alt(m.delimiters)
-  // Спершу замінюємо роздільники-фрази на кому (незалежно від того, чи поруч уже є кома).
-  // Також крапку/;/!/? перед пробілом або кінцем рядка вважаємо межею речення → кома
-  // (не чіпає "4.5" і "15.11" — там після крапки цифра). Потім ділимо по комі,
-  // яка не стоїть між цифрами (щоб не ламати десяткове "4,5").
+  const HARD = '' // службовий маркер "твердої" межі речення
+  // Роздільники-фрази та кома — "м'яка" межа (задачі одного ланцюжка, дата успадковується).
+  // Крапка/;/!/? перед пробілом або кінцем рядка — "тверда" межа речення (дата НЕ успадковується).
+  // Крапка не чіпає "4.5"/"15.11" — там після неї цифра.
   const withSep = text
     .replace(new RegExp(`${BB}(?:${delim})${BE}`, 'giu'), ',')
-    .replace(/[.;!?]+(?=\s|$)/gu, ',')
-  return withSep.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
+    .replace(/[.;!?]+(?=\s|$)/gu, HARD)
+  const out = []
+  withSep.split(HARD).forEach((segment, hi) => {
+    segment.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
+      .forEach((text2, si) => out.push({ text: text2, hardBreak: hi > 0 && si === 0 }))
+  })
+  return out
 }
 
 // Визначення мови за наявністю кирилиці/латиниці (окремого перемикача немає).
@@ -465,7 +470,8 @@ export function parseInput(text, dicts, now = new Date()) {
   // inheritedDate позначаємо такі, щоб на екрані підтвердження це було видно.
   let lastDate = ''
   for (const piece of pieces) {
-    const task = assemble(piece, m, now)
+    if (piece.hardBreak) lastDate = '' // нове речення — не успадковуємо дату з попереднього
+    const task = assemble(piece.text, m, now)
     const empty = !task.title && !task.date && !task.time && !task.durationMinutes && !task.module && !task.ambiguous.length
     if (empty) { notRecognized.push(task.raw); continue }
     if (task.date) lastDate = task.date
