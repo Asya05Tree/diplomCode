@@ -396,7 +396,7 @@
   "watchlist.finish": "Завершити",
   "watchlist.reviewPlaceholder": "Короткий відгук (необов'язково)",
   "watchlist.saveReview": "Зберегти",
-  "watchlist.saved": "Збережено",
+  "watchlist.noReview": "Відгуку ще немає — натисніть олівець, щоб додати",
   "watchlist.delete": "Видалити",
 
   "food.filterAll": "Все",

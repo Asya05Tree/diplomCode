@@ -371,17 +371,36 @@
   gap: 8px;
 }
 
-.watch-saved {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.8rem;
-  color: var(--color-accent-ink);
+/* Перегляд відгуку (не в режимі редагування): текст/зірки + кнопка-олівець праворуч */
+.watch-review-ro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.watch-saved .icon {
-  width: 15px;
-  height: 15px;
+.watch-review-ro .watch-stars {
+  flex-shrink: 0;
+}
+
+.watch-review-text {
+  margin: 0;
+  flex: 1;
+  font-size: 0.86rem;
+  color: var(--color-text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.watch-review-empty {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.watch-review-ro .watch-card-btn {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .watch-stars {

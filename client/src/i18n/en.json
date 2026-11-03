@@ -396,7 +396,7 @@
   "watchlist.finish": "Finish",
   "watchlist.reviewPlaceholder": "Short review (optional)",
   "watchlist.saveReview": "Save",
-  "watchlist.saved": "Saved",
+  "watchlist.noReview": "No review yet — click the pencil to add",
   "watchlist.delete": "Delete",
 
   "food.filterAll": "All",

@@ -59,7 +59,7 @@ export default function Watchlist() {
   const [draft, setDraft] = useState(emptyDraft)
   const [sched, setSched] = useState(null) // { id, date, time, genre, type }
   const [edits, setEdits] = useState({}) // { [id]: { rating, review } }
-  const [savedIds, setSavedIds] = useState(() => new Set()) // підсвітка «Збережено»
+  const [reviewEditId, setReviewEditId] = useState(null) // який відгук зараз редагується
 
   useEffect(() => {
     let cancelled = false
@@ -132,15 +132,21 @@ export default function Watchlist() {
   }
 
   const getEdit = (item) => edits[item.id] ?? { rating: item.ratingStars || 0, review: item.review || '' }
-  const setEdit = (item, patch) => {
+  const setEdit = (item, patch) =>
     setEdits((prev) => ({ ...prev, [item.id]: { ...getEdit(item), ...patch } }))
-    // Почали редагувати знову — прибираємо позначку «Збережено»
-    setSavedIds((prev) => {
-      if (!prev.has(item.id)) return prev
-      const next = new Set(prev)
-      next.delete(item.id)
+
+  const dropEdit = (id) =>
+    setEdits((prev) => {
+      const next = { ...prev }
+      delete next[id]
       return next
     })
+
+  // Відкрити/закрити режим редагування відгуку (кнопка-олівець ↔ форма зі «Зберегти»)
+  const startReview = (item) => setReviewEditId(item.id)
+  const cancelReview = (item) => {
+    dropEdit(item.id)
+    setReviewEditId(null)
   }
 
   const handleSaveDone = async (item) => {
@@ -157,12 +163,8 @@ export default function Watchlist() {
     } catch {
       return // лишаємо введений текст, якщо зберегти не вдалося
     }
-    setEdits((prev) => {
-      const next = { ...prev }
-      delete next[item.id]
-      return next
-    })
-    setSavedIds((prev) => new Set(prev).add(item.id))
+    dropEdit(item.id)
+    setReviewEditId(null) // після збереження повертаємось до перегляду з кнопкою-олівцем
     await reload()
   }
 
@@ -343,27 +345,50 @@ export default function Watchlist() {
                   </Link>
                 )}
 
-                {/* "Завершено": зірки (обидва типи) + відгук із збереженням */}
+                {/* "Завершено": зірки (обидва типи) + відгук. У режимі перегляду — кнопка-олівець;
+                    у режимі редагування — поля + «Зберегти». Після збереження кнопка зникає. */}
                 {item.status === 'done' && (
                   <div className="watch-done-review">
-                    <Stars value={edit.rating} onChange={(r) => setEdit(item, { rating: r })} />
-                    <textarea
-                      rows={2}
-                      value={edit.review}
-                      placeholder={t('watchlist.reviewPlaceholder')}
-                      maxLength={MAX_LEN.description}
-                      onChange={(e) => setEdit(item, { review: limitText(e.target.value, MAX_LEN.description) })}
-                    />
-                    <div className="watch-save-row">
-                      <button type="button" className="watch-btn-save" onClick={() => handleSaveDone(item)}>
-                        {t('watchlist.saveReview')}
-                      </button>
-                      {savedIds.has(item.id) && !edits[item.id] && (
-                        <span className="watch-saved">
-                          <Icon name="check" /> {t('watchlist.saved')}
-                        </span>
-                      )}
-                    </div>
+                    {reviewEditId === item.id ? (
+                      <>
+                        <Stars value={edit.rating} onChange={(r) => setEdit(item, { rating: r })} />
+                        <textarea
+                          rows={2}
+                          value={edit.review}
+                          placeholder={t('watchlist.reviewPlaceholder')}
+                          maxLength={MAX_LEN.description}
+                          onChange={(e) => setEdit(item, { review: limitText(e.target.value, MAX_LEN.description) })}
+                        />
+                        <div className="watch-save-row">
+                          <button type="button" className="watch-btn-save" onClick={() => handleSaveDone(item)}>
+                            {t('watchlist.saveReview')}
+                          </button>
+                          <button type="button" className="watch-btn-ghost" onClick={() => cancelReview(item)}>
+                            {t('watchlist.cancel')}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="watch-review-ro">
+                        {(item.ratingStars || item.review) ? (
+                          <>
+                            {item.ratingStars ? <Stars value={item.ratingStars} readOnly /> : null}
+                            {item.review && <p className="watch-review-text">{item.review}</p>}
+                          </>
+                        ) : (
+                          <span className="watch-review-empty">{t('watchlist.noReview')}</span>
+                        )}
+                        <button
+                          type="button"
+                          className="watch-card-btn"
+                          aria-label={t('common.edit')}
+                          data-tooltip={t('common.edit')}
+                          onClick={() => startReview(item)}
+                        >
+                          <Icon name="pencil" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

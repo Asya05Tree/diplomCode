@@ -133,17 +133,24 @@ export default function DayView({ token, date, onTasksChanged }) {
 
     // Назву/опис повторюваної задачі можна змінити лише для правила цілком (RecurringView),
     // тому тут для віртуальних інстансів лише перенесення/скасування цього дня (§3.3)
-    // Події з вкладки «Перегляд і читання» незмінні в календарі — назву/статус задає сама вкладка.
-    // Тут лише видалення (воно ж прибирає запис у вкладці).
+    // Події з вкладки «Перегляд і читання»: поки не завершені — можна редагувати/перенести/видалити
+    // (без «готово/пропущено» — завершення робиться у вкладці). Завершені — лише видалити
+    // (видалення прибирає й запис у вкладці).
     const actions = task.isVirtual
       ? [
           { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
           { label: t('planner.actionDelete'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
         ]
       : task.sourceModule === 'media'
-      ? [
-          { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
-        ]
+      ? task.status === 'Done'
+        ? [
+            { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
+          ]
+        : [
+            { label: t('planner.actionEdit'), onClick: () => setEditingTaskId(itemKey) },
+            { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
+            { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
+          ]
       : [
           { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },
           { label: t('planner.actionSkipped'), onClick: () => handleResolve(task.id, 'Skipped') },
