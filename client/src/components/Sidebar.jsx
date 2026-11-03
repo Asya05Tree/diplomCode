@@ -7,6 +7,7 @@ import './Sidebar.css'
 // Пізніше список фільтрується по UserModule.IsEnabled — вимкнений модуль тут не з'являється.
 // Іконки — Heroicons (Icon.jsx), колір модуля лишається смужкою зліва + відтінком іконки.
 const NAV_ITEMS = [
+  { key: 'nav.quickAdd', icon: 'sparkles', color: 'var(--color-tasks)', to: '/app/quick-add' },
   { key: 'nav.calendar', icon: 'calendar-days', color: 'var(--color-tasks)', to: '/app' },
   { key: 'nav.watchlist', icon: 'film', color: 'var(--color-media)', to: '/app/watchlist' },
   { key: 'nav.shoppingList', icon: 'cart', color: 'var(--color-food)', to: '/app/shopping-list' },

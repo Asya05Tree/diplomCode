@@ -4,6 +4,7 @@ import { I18nProvider } from './i18n'
 import Sidebar from './components/Sidebar'
 import './Layout.css'
 import Planner from './pages/Planner'
+import QuickAddPage from './pages/QuickAddPage'
 import ShoppingList from './pages/ShoppingList'
 import Food from './pages/Food'
 import Health from './pages/Health'
@@ -204,6 +205,7 @@ function AppContent() {
           }
         >
           <Route index element={<Planner />} />
+          <Route path="quick-add" element={<QuickAddPage />} />
           <Route path="food" element={<Food />} />
           <Route path="health" element={<Health />} />
           <Route path="shopping-list" element={<ShoppingList />} />

@@ -816,6 +816,7 @@
   "study.stepName": "Work stage",
   "study.addStep": "Add stage",
 
+  "nav.quickAdd": "Quick add",
   "quickAdd.heading": "Quick add",
   "quickAdd.placeholder": "Type your to-dos in plain language — e.g. “buy milk tomorrow at 5pm, then watch a movie”",
   "quickAdd.hint": "Ukrainian or English. The language is detected automatically. Tasks are created only after you confirm.",

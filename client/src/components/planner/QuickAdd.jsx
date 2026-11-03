@@ -93,10 +93,6 @@ export default function QuickAdd({ token, onCreated }) {
 
   return (
     <div className="quick-add card">
-      <div className="quick-add-head">
-        <Icon name="sparkles" />
-        <span>{t('quickAdd.heading')}</span>
-      </div>
       <div className="quick-add-bar">
         <input
           type="text"
