@@ -10,18 +10,15 @@ import {
   setWorkSettings, getShiftTypes, addShiftType, updateShiftType, removeShiftType,
   getScheduleEntries, addScheduleEntry, removeScheduleEntry, getScheduleCalendar, getNextShift,
 } from '../../api/work'
-import { PAY_TYPES, SHIFT_COLORS, hhmm, shiftRange } from './workShared'
+import {
+  PAY_TYPES, SHIFT_COLORS, WORK_REGIMES, WORKPLACES, SHIFT_KINDS, REGIMES_WITH_NORM,
+  hhmm, shiftRange, shiftRangeOf, shiftTotalHours,
+} from './workShared'
 
 const LOCALE = { uk: 'uk-UA', en: 'en-US' }
 
-// Тривалість зміни в годинах (з урахуванням нічних, коли кінець <= початок)
-function shiftHours(startTime, endTime) {
-  const [sh, sm] = hhmm(startTime).split(':').map(Number)
-  const [eh, em] = hhmm(endTime).split(':').map(Number)
-  let mins = (eh * 60 + em) - (sh * 60 + sm)
-  if (mins <= 0) mins += 24 * 60
-  return mins / 60
-}
+// Округлення годин до 0.5 для показу
+const round1 = (h) => Math.round(h * 2) / 2
 
 export default function ScheduleTab({ settings, onSettingsChange, onScheduleChange }) {
   const { t, language, weekStart, weekdays, weekdaysIso } = useI18n()
@@ -32,12 +29,17 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
   useEffect(() => { setProfile(settings) }, [settings])
 
   const saveProfile = async () => {
+    const regime = profile.regime ?? 'standard'
     const payload = {
       jobName: profile.jobName ?? '', position: profile.position ?? null, employer: profile.employer ?? null,
       payType: profile.payType ?? 'hourly', rate: profile.rate ? Number(profile.rate) : null,
+      regime, workplace: profile.workplace ?? 'onsite',
+      normHours: profile.normHours ? Number(profile.normHours) : null,
+      fullRateRetained: regime === 'reduced' ? Boolean(profile.fullRateRetained) : false,
+      extraVacationDays: regime === 'irregular' && profile.extraVacationDays ? Number(profile.extraVacationDays) : null,
     }
     await setWorkSettings(payload)
-    onSettingsChange({ ...profile, rate: payload.rate })
+    onSettingsChange({ ...profile, ...payload })
     setSavedNote(t('work.saved'))
     setTimeout(() => setSavedNote(''), 1800)
   }
@@ -72,19 +74,36 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
   }
 
   // --- Форма типу зміни ---
-  const emptyType = { name: '', color: SHIFT_COLORS[1], startTime: '09:00', endTime: '17:00' }
+  const emptyType = { name: '', color: SHIFT_COLORS[1], startTime: '09:00', endTime: '17:00', kind: 'normal', startTime2: '', endTime2: '', onCallMultiplier: '' }
   const [showTypeForm, setShowTypeForm] = useState(false)
   const [editingTypeId, setEditingTypeId] = useState(null)
   const [typeForm, setTypeForm] = useState(emptyType)
 
   const openAddType = () => { setEditingTypeId(null); setTypeForm(emptyType); setShowTypeForm(true) }
-  const openEditType = (tp) => { setEditingTypeId(tp.id); setTypeForm({ name: tp.name, color: tp.color, startTime: hhmm(tp.startTime), endTime: hhmm(tp.endTime) }); setShowTypeForm(true) }
+  const openEditType = (tp) => {
+    setEditingTypeId(tp.id)
+    setTypeForm({
+      name: tp.name, color: tp.color, startTime: hhmm(tp.startTime), endTime: hhmm(tp.endTime),
+      kind: tp.kind ?? 'normal', startTime2: hhmm(tp.startTime2) || '', endTime2: hhmm(tp.endTime2) || '',
+      onCallMultiplier: tp.onCallMultiplier ?? '',
+    })
+    setShowTypeForm(true)
+  }
   // Бекенд (System.Text.Json → TimeOnly) очікує "HH:MM:SS"; поля <input type="time"> дають "HH:MM"
-  const withSeconds = (tm) => (tm && tm.length === 5 ? `${tm}:00` : tm)
+  const withSeconds = (tm) => (tm && tm.length === 5 ? `${tm}:00` : tm || null)
   const submitType = async (e) => {
     e.preventDefault()
     if (!typeForm.name.trim()) return
-    const payload = { name: typeForm.name.trim(), color: typeForm.color, startTime: withSeconds(typeForm.startTime), endTime: withSeconds(typeForm.endTime) }
+    const kind = typeForm.kind ?? 'normal'
+    if (kind === 'split' && (!typeForm.startTime2 || !typeForm.endTime2)) { return }
+    const payload = {
+      name: typeForm.name.trim(), color: typeForm.color,
+      startTime: withSeconds(typeForm.startTime), endTime: withSeconds(typeForm.endTime),
+      kind,
+      startTime2: kind === 'split' ? withSeconds(typeForm.startTime2) : null,
+      endTime2: kind === 'split' ? withSeconds(typeForm.endTime2) : null,
+      onCallMultiplier: kind === 'oncall' && typeForm.onCallMultiplier ? Number(typeForm.onCallMultiplier) : null,
+    }
     if (editingTypeId) await updateShiftType(editingTypeId, payload)
     else await addShiftType(payload)
     setShowTypeForm(false); setTypeForm(emptyType); setEditingTypeId(null)
@@ -143,12 +162,14 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
   const monthStats = useMemo(() => {
     const m = visibleMonth.getMonth()
     const inMonth = calendar.filter((s) => fromApiDate(s.date).getMonth() === m)
-    const hours = inMonth.reduce((sum, s) => sum + shiftHours(s.startTime, s.endTime), 0)
-    return { shifts: inMonth.length, hours: Math.round(hours) }
+    const hours = inMonth.reduce((sum, s) => sum + shiftTotalHours(s), 0)
+    // Оплачувані години: зміни-чергування тарифікуються з коефіцієнтом (окрема тарифікація on-call)
+    const paidHours = inMonth.reduce((sum, s) => sum + shiftTotalHours(s) * (s.kind === 'oncall' && s.onCallMultiplier ? Number(s.onCallMultiplier) : 1), 0)
+    return { shifts: inMonth.length, hours: Math.round(hours), paidHours }
   }, [calendar, visibleMonth])
 
   const earnings = profile?.payType === 'hourly' && profile?.rate
-    ? Math.round(monthStats.hours * Number(profile.rate))
+    ? Math.round(monthStats.paidHours * Number(profile.rate))
     : null
 
   const today = new Date()
@@ -196,6 +217,39 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
             ))}
           </div>
         </div>
+
+        {/* Режим і місце роботи (спеціальні формати організації праці) */}
+        <div className="work-form-grid">
+          <label>{t('work.regime')}
+            <select value={profile?.regime ?? 'standard'} onChange={(e) => setProfile({ ...profile, regime: e.target.value })}>
+              {WORK_REGIMES.map((r) => <option key={r} value={r}>{t(`work.regime.${r}`)}</option>)}
+            </select>
+          </label>
+          <label>{t('work.workplace')}
+            <select value={profile?.workplace ?? 'onsite'} onChange={(e) => setProfile({ ...profile, workplace: e.target.value })}>
+              {WORKPLACES.map((w) => <option key={w} value={w}>{t(`work.workplace.${w}`)}</option>)}
+            </select>
+          </label>
+          {REGIMES_WITH_NORM.includes(profile?.regime) && (
+            <label>{t('work.normHours')} <span className="work-optional">({t('work.perWeek')})</span>
+              <input type="number" min="0" max="60" value={profile?.normHours ?? ''} onChange={(e) => setProfile({ ...profile, normHours: e.target.value })} />
+            </label>
+          )}
+          {profile?.regime === 'irregular' && (
+            <label>{t('work.extraVacation')} <span className="work-optional">({t('work.daysShort')})</span>
+              <input type="number" min="0" max="35" value={profile?.extraVacationDays ?? ''} onChange={(e) => setProfile({ ...profile, extraVacationDays: e.target.value })} />
+            </label>
+          )}
+        </div>
+        {profile?.regime === 'reduced' && (
+          <label className="work-check-row">
+            <input type="checkbox" checked={Boolean(profile?.fullRateRetained)} onChange={(e) => setProfile({ ...profile, fullRateRetained: e.target.checked })} />
+            {t('work.fullRateRetained')}
+          </label>
+        )}
+        {profile?.regime && profile.regime !== 'standard' && (
+          <p className="placeholder-text work-regime-hint">{t(`work.regimeHint.${profile.regime}`)}</p>
+        )}
       </div>
 
       {/* --- Підсумки + календар --- */}
@@ -260,8 +314,22 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
         {showTypeForm && (
           <form className="work-form work-inline-form" onSubmit={submitType}>
             <label className="work-form-grow">{t('work.shiftName')}<input value={typeForm.name} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} placeholder={t('work.shiftNamePlaceholder')} /></label>
-            <label>{t('work.shiftStart')}<input type="time" value={typeForm.startTime} onChange={(e) => setTypeForm({ ...typeForm, startTime: e.target.value })} /></label>
-            <label>{t('work.shiftEnd')}<input type="time" value={typeForm.endTime} onChange={(e) => setTypeForm({ ...typeForm, endTime: e.target.value })} /></label>
+            <label>{t('work.shiftKind')}
+              <select value={typeForm.kind} onChange={(e) => setTypeForm({ ...typeForm, kind: e.target.value })}>
+                {SHIFT_KINDS.map((k) => <option key={k} value={k}>{t(`work.shiftKind.${k}`)}</option>)}
+              </select>
+            </label>
+            <label>{typeForm.kind === 'split' ? t('work.shiftStart1') : t('work.shiftStart')}<input type="time" value={typeForm.startTime} onChange={(e) => setTypeForm({ ...typeForm, startTime: e.target.value })} /></label>
+            <label>{typeForm.kind === 'split' ? t('work.shiftEnd1') : t('work.shiftEnd')}<input type="time" value={typeForm.endTime} onChange={(e) => setTypeForm({ ...typeForm, endTime: e.target.value })} /></label>
+            {typeForm.kind === 'split' && (
+              <>
+                <label>{t('work.shiftStart2')}<input type="time" value={typeForm.startTime2} onChange={(e) => setTypeForm({ ...typeForm, startTime2: e.target.value })} /></label>
+                <label>{t('work.shiftEnd2')}<input type="time" value={typeForm.endTime2} onChange={(e) => setTypeForm({ ...typeForm, endTime2: e.target.value })} /></label>
+              </>
+            )}
+            {typeForm.kind === 'oncall' && (
+              <label>{t('work.onCallMultiplier')}<input type="number" min="1" step="0.1" placeholder="1.5" value={typeForm.onCallMultiplier} onChange={(e) => setTypeForm({ ...typeForm, onCallMultiplier: e.target.value })} /></label>
+            )}
             <div className="work-color-field">
               <span className="work-field-label">{t('work.shiftColor')}</span>
               <div className="work-color-swatches">
@@ -279,15 +347,18 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
         ) : (
           <div className="table-scroll">
             <table className="data-table">
-              <thead><tr><th>{t('work.shiftName')}</th><th>{t('work.shiftColor')}</th><th>{t('work.shiftStart')}</th><th>{t('work.shiftEnd')}</th><th>{t('work.shiftDuration')}</th><th /></tr></thead>
+              <thead><tr><th>{t('work.shiftName')}</th><th>{t('work.shiftKind')}</th><th>{t('work.shiftColor')}</th><th>{t('work.shiftTime')}</th><th>{t('work.shiftDuration')}</th><th /></tr></thead>
               <tbody>
                 {shiftTypes.map((tp) => (
                   <tr key={tp.id}>
                     <td>{tp.name}</td>
+                    <td>
+                      <span className="work-kind-badge">{t(`work.shiftKind.${tp.kind ?? 'normal'}`)}</span>
+                      {tp.kind === 'oncall' && tp.onCallMultiplier ? <span className="work-kind-mult"> ×{tp.onCallMultiplier}</span> : null}
+                    </td>
                     <td><span className="work-color-dot" style={{ background: tp.color }} /></td>
-                    <td>{hhmm(tp.startTime)}</td>
-                    <td>{hhmm(tp.endTime)}</td>
-                    <td>{shiftHours(tp.startTime, tp.endTime)} {t('work.hoursShort')}</td>
+                    <td>{shiftRangeOf(tp)}</td>
+                    <td>{round1(shiftTotalHours(tp))} {t('work.hoursShort')}</td>
                     <td className="work-row-actions">
                       <button type="button" className="work-icon-btn" onClick={() => openEditType(tp)} aria-label={t('common.edit')}><Icon name="pencil" /></button>
                       <button type="button" className="work-icon-btn work-icon-btn--danger" onClick={() => deleteType(tp.id)} aria-label={t('common.delete')}><Icon name="trash" /></button>

@@ -1568,9 +1568,19 @@ namespace Server.Migrations
                     b.Property<string>("Employer")
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("ExtraVacationDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("FullRateRetained")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("JobName")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<decimal?>("NormHours")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("PayType")
                         .IsRequired()
@@ -1582,6 +1592,14 @@ namespace Server.Migrations
                     b.Property<decimal?>("Rate")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Regime")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Workplace")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("UserId");
 
@@ -1629,11 +1647,25 @@ namespace Server.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time(6)");
 
+                    b.Property<TimeOnly?>("EndTime2")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<decimal?>("OnCallMultiplier")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeOnly?>("StartTime2")
                         .HasColumnType("time(6)");
 
                     b.Property<int>("UserId")
