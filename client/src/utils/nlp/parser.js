@@ -43,9 +43,10 @@ function toApiDate(d) {
 export function mergeDicts(dicts) {
   const merged = {
     delimiters: [], relativeDates: {}, weekdays: {}, weekdayMarkers: [], nextWeekMarkers: [],
-    months: {}, timeMarkers: [], dayParts: {}, oclockWords: [],
+    months: {}, ordinalWords: {}, timeMarkers: [], dayParts: {}, oclockWords: [],
     durationHours: [], durationMinutes: [], dayOfMonthWords: [], ordinalSuffixes: [],
-    modules: { shopping: [], media: [], food: [] }, edgeWords: [],
+    fillerWords: [], modules: {}, edgeWords: [],
+    lessonMarkers: [], teacherMarkers: [], linkWords: [], noneWords: [],
   }
   for (const d of dicts) {
     merged.delimiters.push(...(d.delimiters || []))
@@ -54,6 +55,7 @@ export function mergeDicts(dicts) {
     merged.weekdayMarkers.push(...(d.weekdayMarkers || []))
     merged.nextWeekMarkers.push(...(d.nextWeekMarkers || []))
     Object.assign(merged.months, d.months)
+    Object.assign(merged.ordinalWords, d.ordinalWords)
     merged.timeMarkers.push(...(d.timeMarkers || []))
     Object.assign(merged.dayParts, d.dayParts)
     merged.oclockWords.push(...(d.oclockWords || []))
@@ -61,8 +63,17 @@ export function mergeDicts(dicts) {
     merged.durationMinutes.push(...(d.durationMinutes || []))
     merged.dayOfMonthWords.push(...(d.dayOfMonthWords || []))
     merged.ordinalSuffixes.push(...(d.ordinalSuffixes || []))
+    merged.fillerWords.push(...(d.fillerWords || []))
     merged.edgeWords.push(...(d.edgeWords || []))
-    for (const key of Object.keys(merged.modules)) merged.modules[key].push(...((d.modules || {})[key] || []))
+    merged.lessonMarkers.push(...(d.lessonMarkers || []))
+    merged.teacherMarkers.push(...(d.teacherMarkers || []))
+    merged.linkWords.push(...(d.linkWords || []))
+    merged.noneWords.push(...(d.noneWords || []))
+    // Коди модулів беремо з самих словників — додати модуль = дописати ключ у dict.*.js.
+    for (const key of Object.keys(d.modules || {})) {
+      merged.modules[key] = merged.modules[key] || []
+      merged.modules[key].push(...d.modules[key])
+    }
   }
   return merged
 }
@@ -113,6 +124,7 @@ function buildMatchers(m, now) {
   const durM = alt(m.durationMinutes)
   const domWords = alt(m.dayOfMonthWords)
   const ord = alt(m.ordinalSuffixes)
+  const ordWords = alt(Object.keys(m.ordinalWords))
   const nextSet = new Set(m.nextWeekMarkers.map((w) => w.toLowerCase()))
 
   const applyMeridiem = (hour, suffix) => {
@@ -174,6 +186,17 @@ function buildMatchers(m, now) {
       read: (mm) => {
         const day = Number(mm[1] || mm[2])
         if (day < 1 || day > 31) return null
+        return { dateStr: resolveDayOfMonth(day, now) }
+      },
+    },
+    // 4б) Число місяця словом ("п'ятого", "twenty-first", "the fifth"). Форми — лише ті,
+    //     що в ordinalWords (родовий відмінок), щоб "друга пара" не читалось як 2 число.
+    {
+      type: 'date', priority: 85,
+      re: () => new RegExp(`${BB}(${ordWords})${BE}`, 'giu'),
+      read: (mm) => {
+        const day = m.ordinalWords[mm[1].toLowerCase()]
+        if (!day) return null
         return { dateStr: resolveDayOfMonth(day, now) }
       },
     },
@@ -270,11 +293,15 @@ function buildTitle(piece, accepted, m) {
 
   const edge = new Set(m.edgeWords.map((w) => w.toLowerCase()))
   const trimPunct = (x) => x.replace(/^[\s,.;:–—-]+/, '').replace(/[\s,.;:–—-]+$/, '')
+  // Слова-пустушки зрізаємо лише з ПОЧАТКУ (фрази теж, напр. "не забути", "i want to").
+  const fillerRe = new RegExp(`^(?:${alt(m.fillerWords)})(?![${L}\\d])`, 'iu')
   let changed = true
   while (changed) {
     changed = false
     const before = s
     s = trimPunct(s)
+    const f = s.match(fillerRe)
+    if (f && f[0].length) { s = s.slice(f[0].length); changed = true }
     const tokens = s.split(' ').filter(Boolean)
     if (tokens.length && edge.has(tokens[0].toLowerCase())) { tokens.shift(); s = tokens.join(' '); changed = true }
     const t2 = s.split(' ').filter(Boolean)
@@ -284,15 +311,70 @@ function buildTitle(piece, accepted, m) {
   return s.trim()
 }
 
+// Модуль визначаємо по ОСНОВІ слова: основа зі словника + будь-яке закінчення (${L}*).
+// Перемагає найраніша за позицією основа; за рівної позиції — довша (точніша).
 function detectModule(piece, m) {
   const lower = piece.toLowerCase()
   let best = null
   for (const code of Object.keys(m.modules)) {
-    const re = new RegExp(`${BB}(?:${alt(m.modules[code])})${BE}`, 'giu')
-    const mm = re.exec(lower)
-    if (mm && (best === null || mm.index < best.index)) best = { code, index: mm.index }
+    if (!m.modules[code]?.length) continue
+    const re = new RegExp(`${BB}(?:${alt(m.modules[code])})${L}*${BE}`, 'giu')
+    let mm
+    while ((mm = re.exec(lower)) !== null) {
+      if (mm.index === re.lastIndex) re.lastIndex++
+      if (best === null || mm.index < best.index || (mm.index === best.index && mm[0].length > best.len)) {
+        best = { code, index: mm.index, len: mm[0].length }
+      }
+    }
   }
   return best ? best.code : ''
+}
+
+function cap(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s
+}
+
+// Для модуля "Навчання": витягти предмет (після маркера заняття), викладача (після
+// маркера викладача, до стоп-слова) і стан посилання. Усе редаговане на екрані підтвердження.
+function extractStudy(piece, m) {
+  const out = { subject: '', teacher: '', link: '' }
+  const W = `[${L}'0-9.\\-]` // символи "слова" для імен/назв (з апострофом, крапкою, дефісом)
+
+  const lm = alt(m.lessonMarkers)
+  if (m.lessonMarkers.length) {
+    const re = new RegExp(`${BB}(?:${lm})${L}*\\s+(${W}+)`, 'iu')
+    const mm = re.exec(piece)
+    if (mm) out.subject = mm[1]
+  }
+
+  const tm = alt(m.teacherMarkers)
+  if (m.teacherMarkers.length) {
+    const re = new RegExp(`${BB}(?:${tm})${L}*\\s+(${W}+(?:\\s+${W}+){0,2})`, 'iu')
+    const mm = re.exec(piece)
+    if (mm) {
+      const stop = new Set([...m.lessonMarkers, ...m.linkWords, ...m.noneWords].map((w) => w.toLowerCase()))
+      const kept = []
+      for (const w of mm[1].split(/\s+/)) {
+        if (!w) continue
+        if (stop.has(w.toLowerCase()) || /\d/.test(w)) break
+        kept.push(w)
+      }
+      out.teacher = kept.join(' ')
+    }
+  }
+
+  // Посилання: URL після слова-маркера, або явна відмітка "немає".
+  const lw = alt(m.linkWords)
+  if (m.linkWords.length) {
+    const re = new RegExp(`${BB}(?:${lw})\\s*:?\\s*(\\S+)?`, 'iu')
+    const mm = re.exec(piece)
+    if (mm) {
+      const tail = (mm[1] || '').toLowerCase()
+      if (/^https?:\/\//.test(mm[1] || '')) out.link = mm[1]
+      else if (m.noneWords.some((n) => tail.startsWith(n.toLowerCase()))) out.link = ''
+    }
+  }
+  return out
 }
 
 // --- Складання однієї задачі з фрагмента (кроки 2–5) ---
@@ -327,9 +409,18 @@ function assemble(piece, m, now) {
     }
   }
 
-  const title = buildTitle(piece, accepted, m)
+  let title = buildTitle(piece, accepted, m)
   const module = detectModule(piece, m)
-  return { raw: piece.trim(), title, date, time, durationMinutes, module, ambiguous }
+
+  // Навчання: витягаємо предмет/викладача/посилання. Якщо є предмет — він стає назвою
+  // задачі (сирий рядок "пара математики викладач…" у назві не потрібен).
+  let study = null
+  if (module === 'study') {
+    study = extractStudy(piece, m)
+    if (study.subject) title = cap(study.subject)
+  }
+
+  return { raw: piece.trim(), title, date, time, durationMinutes, module, ambiguous, study }
 }
 
 // Різні символи апострофа (ʼ ' ' ` ´) → один прямий, щоб "пʼятницю" збігалося зі словником.
@@ -341,9 +432,13 @@ function normalizeApostrophes(text) {
 // --- Крок 1. Розбиття рядка на фрагменти-задачі за роздільниками та комою. ---
 function splitTasks(text, m) {
   const delim = alt(m.delimiters)
-  // Спершу замінюємо роздільники-фрази на кому (незалежно від того, чи поруч уже є кома),
-  // потім ділимо по комі, яка не стоїть між цифрами (щоб не ламати десяткове "4,5").
-  const withSep = text.replace(new RegExp(`${BB}(?:${delim})${BE}`, 'giu'), ',')
+  // Спершу замінюємо роздільники-фрази на кому (незалежно від того, чи поруч уже є кома).
+  // Також крапку/;/!/? перед пробілом або кінцем рядка вважаємо межею речення → кома
+  // (не чіпає "4.5" і "15.11" — там після крапки цифра). Потім ділимо по комі,
+  // яка не стоїть між цифрами (щоб не ламати десяткове "4,5").
+  const withSep = text
+    .replace(new RegExp(`${BB}(?:${delim})${BE}`, 'giu'), ',')
+    .replace(/[.;!?]+(?=\s|$)/gu, ',')
   return withSep.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
 }
 
@@ -365,11 +460,17 @@ export function parseInput(text, dicts, now = new Date()) {
 
   const tasks = []
   const notRecognized = []
+  // Успадкування дати: якщо задача не має своєї дати, бере дату попередньої розпізнаної
+  // (напр. "...завтра потім піти на прогулянку" → прогулянка теж на завтра). Прапорцем
+  // inheritedDate позначаємо такі, щоб на екрані підтвердження це було видно.
+  let lastDate = ''
   for (const piece of pieces) {
     const task = assemble(piece, m, now)
     const empty = !task.title && !task.date && !task.time && !task.durationMinutes && !task.module && !task.ambiguous.length
-    if (empty) notRecognized.push(task.raw)
-    else tasks.push(task)
+    if (empty) { notRecognized.push(task.raw); continue }
+    if (task.date) lastDate = task.date
+    else if (lastDate) { task.date = lastDate; task.inheritedDate = true }
+    tasks.push(task)
   }
   return { language: detectLanguage(raw), tasks, notRecognized }
 }

@@ -1,11 +1,14 @@
 // English dictionary for the natural-language parser (nlp/parser.js). Mirror of dict.uk.js.
 // The engine is language-agnostic; adding a word or a whole language means editing/adding
 // one such config file only. Keys are lowercase — the engine lowercases text before matching.
+//
+// modules / lessonMarkers / teacherMarkers are matched BY STEM (prefix + any ending), so
+// "pay" catches pay/pays/payment. Pick stems carefully to avoid false matches.
 
 export default {
   code: 'en',
 
-  // Step 1. Task delimiters (phrases). Comma is handled separately by the engine.
+  // Step 1. Task delimiters (phrases). Comma and period are handled separately by the engine.
   delimiters: ['and then', 'then', 'after that', 'and also', 'also', 'plus', 'as well as'],
 
   // Relative dates: word → day offset from today.
@@ -48,6 +51,18 @@ export default {
     december: 12, dec: 12,
   },
 
+  // Spelled-out day-of-month ordinals ("the fifth", "twenty-first"). Digit forms ("5th")
+  // are handled by the ordinalSuffixes matcher instead.
+  ordinalWords: {
+    first: 1, second: 2, third: 3, fourth: 4, fifth: 5,
+    sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10,
+    eleventh: 11, twelfth: 12, thirteenth: 13, fourteenth: 14, fifteenth: 15,
+    sixteenth: 16, seventeenth: 17, eighteenth: 18, nineteenth: 19, twentieth: 20,
+    'twenty-first': 21, 'twenty-second': 22, 'twenty-third': 23, 'twenty-fourth': 24, 'twenty-fifth': 25,
+    'twenty-sixth': 26, 'twenty-seventh': 27, 'twenty-eighth': 28, 'twenty-ninth': 29, thirtieth: 30,
+    'thirty-first': 31,
+  },
+
   // Markers before a time ("at 4", "at 16:00").
   timeMarkers: ['at'],
   dayParts: {}, // English uses am/pm, handled directly by the engine.
@@ -61,12 +76,29 @@ export default {
   dayOfMonthWords: [],
   ordinalSuffixes: ['st', 'nd', 'rd', 'th'],
 
-  // Module verbs/objects → module code.
+  // Filler words — trimmed only from the START of a title (phrases too). Action verbs are kept.
+  fillerWords: [
+    "don't forget to", 'dont forget to', 'remind me to', 'i want to', 'i need to', 'i have to',
+    'i should', 'remember to', 'need to', 'have to', 'want to', 'gotta', 'let me', 'please',
+  ],
+
+  // Module stems (prefix + any ending) → module code.
   modules: {
-    shopping: ['buy', 'purchase', 'order', 'grab'],
-    media: ['read', 'watch', 'view'],
-    food: ['cook', 'bake', 'boil', 'fry', 'roast', 'prepare'],
+    shopping: ['buy', 'purchase', 'order', 'grab', 'grocer', 'shop'],
+    media: ['read', 'watch', 'view', 'movie', 'film', 'book', 'series', 'episode', 'video'],
+    food: ['cook', 'bake', 'boil', 'fry', 'roast', 'prepare', 'breakfast', 'lunch', 'dinner', 'recipe', 'meal'],
+    health: ['doctor', 'dentist', 'pharmac', 'pill', 'vitamin', 'appointment', 'clinic', 'vaccin', 'checkup'],
+    study: ['lecture', 'seminar', 'class', 'lesson', 'exam', 'homework', 'assignment', 'quiz', 'course', 'professor', 'teacher', 'tutorial'],
+    work: ['meeting', 'deadline', 'shift', 'client', 'standup', 'interview', 'overtime'],
+    finance: ['pay', 'bill', 'invoice', 'rent', 'credit', 'loan', 'tax', 'deposit'],
+    notes: ['note', 'jot', 'memo'],
   },
+
+  // --- Study-module markers to pull out subject / teacher / link ---
+  lessonMarkers: ['class', 'lecture', 'seminar', 'lesson', 'course'],
+  teacherMarkers: ['teacher', 'professor', 'prof', 'lecturer', 'instructor'],
+  linkWords: ['link', 'url'],
+  noneWords: ['none', 'no'],
 
   // Prepositions/conjunctions — trimmed only at the EDGES of a title.
   edgeWords: ['a', 'an', 'the', 'at', 'on', 'to', 'in', 'of', 'for', 'by', 'and'],
