@@ -489,3 +489,215 @@
     display: block;
   }
 }
+
+/* ===== Нові елементи переробленого модуля "Навчання" ===== */
+
+/* Верхній перемикач форми навчання + сегментовані перемикачі */
+.study-form-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.study-form-switch-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+.study-seg {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--pill-bg);
+  border-radius: var(--radius-pill);
+}
+.study-seg--inline {
+  margin-bottom: 14px;
+}
+.study-seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--pill-text);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition), color var(--transition);
+}
+.study-seg-btn--active {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Групи полів кабінет/посилання (лекція/семінар/заняття) */
+.study-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 100%;
+}
+.study-slot-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  min-width: 64px;
+}
+
+/* Опис завдання */
+.study-textarea {
+  flex: 1 1 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  resize: vertical;
+}
+.study-desc-cell {
+  max-width: 340px;
+  white-space: normal;
+}
+
+/* Сортування завдань */
+.study-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* Оцінки */
+.study-grade-input,
+.study-grade-select {
+  width: 90px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: 0.86rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+/* Розклад: періоди й дати */
+.study-periods {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.study-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.study-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.study-date-field input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.86rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+/* Форма додавання пари / консультації */
+.study-lesson-form {
+  margin-bottom: 16px;
+}
+.study-lesson-form h4 {
+  margin-bottom: 12px;
+}
+.study-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+/* Великі роботи */
+.study-project {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-top: 14px;
+  background: var(--color-bg-2);
+}
+.study-project-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.study-project-head h4 {
+  font-size: 1.05rem;
+}
+.study-project-curator {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.study-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.study-progress-bar {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  overflow: hidden;
+}
+.study-progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent-gradient);
+  transition: width var(--transition);
+}
+.study-progress-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-accent-ink);
+  min-width: 42px;
+  text-align: right;
+}
+.study-step-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+.study-step-form input[type='text'],
+.study-step-form input[type='date'] {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.84rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+.study-step-form input[type='text'] {
+  flex: 1 1 160px;
+}
