@@ -147,6 +147,52 @@
   font-weight: 500;
   color: var(--color-danger);
 }
+.qa-hint-inline {
+  font-weight: 500;
+  color: var(--color-accent-ink);
+}
+
+/* Навчання: предмет + викладач + пропозиція додати предмет */
+.qa-study {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  gap: 10px 14px;
+  margin-top: 2px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-study-soft, var(--color-accent-soft));
+}
+.qa-study-found {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-accent-ink);
+}
+.qa-study-found .icon {
+  width: 15px;
+  height: 15px;
+}
+.qa-study-new {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.qa-study-new input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
 
 .qa-field--dur span {
   margin-bottom: 1px;
@@ -246,7 +292,8 @@
 }
 
 @media (max-width: 560px) {
-  .qa-fields {
+  .qa-fields,
+  .qa-study {
     grid-template-columns: 1fr;
   }
 }

@@ -3,15 +3,27 @@ import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { parseInput } from '../../utils/nlp'
 import { createTask } from '../../api/tasks'
+import { addSubject } from '../../api/study'
 import { combineDuration, splitDuration, todayApiDate } from '../../utils/date'
 import './QuickAdd.css'
 
 // Модулі, у які вміє класифікувати парсер (+ "звичайна"). none-модуль → "tasks".
-const MODULES = ['tasks', 'shopping', 'media', 'food']
+const MODULES = ['tasks', 'shopping', 'media', 'food', 'health', 'study', 'work', 'finance', 'notes']
+
+// Грубе зіставлення назв предметів (родовий відмінок «математики» ≈ «Математика»):
+// порівнюємо перші літери основ без урахування регістру.
+function sameSubject(a, b) {
+  const norm = (x) => (x || '').trim().toLowerCase()
+  const x = norm(a); const y = norm(b)
+  if (!x || !y) return false
+  const k = Math.min(5, x.length, y.length)
+  return x.slice(0, k) === y.slice(0, k)
+}
 
 // Розпізнаний task → редагований рядок форми підтвердження.
 function toRow(task) {
   const { hours, minutes } = splitDuration(task.durationMinutes || 0)
+  const s = task.study || {}
   return {
     title: task.title,
     date: task.date,
@@ -21,19 +33,28 @@ function toRow(task) {
     module: task.module || 'tasks',
     ambiguous: task.ambiguous,
     raw: task.raw,
+    inheritedDate: Boolean(task.inheritedDate),
+    subject: s.subject || '',
+    teacher: s.teacher || '',
+    link: s.link || '',
+    createSubject: false, // проставляємо під час розбору, якщо предмет новий
     include: Boolean(task.title), // задачі без назви лишаємо непозначеними, доки назву не додано
   }
 }
 
 // Швидке додавання задач із природномовного рядка (укр./англ.). Розбір — на правилах
 // (utils/nlp), задачі ніколи не створюються автоматично: спершу екран підтвердження.
-export default function QuickAdd({ token, onCreated }) {
+// subjects — наявні предмети Навчання (для зіставлення/створення); canAddSubjects —
+// чи користувач школяр/студент (інакше предмет у Навчанні створити не можна).
+export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjects = false }) {
   const { t } = useI18n()
   const [text, setText] = useState('')
   const [result, setResult] = useState(null) // { tasks, notRecognized, language } або null
   const [rows, setRows] = useState([])
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
+
+  const findSubject = (name) => subjects.find((s) => sameSubject(s.name, name))
 
   const handleParse = () => {
     setNote('')
@@ -43,7 +64,14 @@ export default function QuickAdd({ token, onCreated }) {
       return
     }
     setResult(parsed)
-    setRows(parsed.tasks.map(toRow))
+    setRows(parsed.tasks.map((task) => {
+      const r = toRow(task)
+      // Новий предмет (є назва, але немає в Навчанні) — за замовчуванням пропонуємо додати.
+      if (r.module === 'study' && r.subject && canAddSubjects && !findSubject(r.subject)) {
+        r.createSubject = true
+      }
+      return r
+    }))
   }
 
   const close = () => {
@@ -70,6 +98,21 @@ export default function QuickAdd({ token, onCreated }) {
     setBusy(true)
     try {
       for (const r of toCreate) {
+        // Навчання: за потреби спершу створюємо предмет (помилка не зриває створення задачі).
+        if (r.module === 'study' && r.createSubject && r.subject.trim() && canAddSubjects && !findSubject(r.subject)) {
+          try {
+            await addSubject({
+              name: r.subject.trim(),
+              teacher: r.teacher.trim() || null,
+              color: null,
+              lectureRoom: null,
+              lectureLink: r.link.trim() || null,
+              seminarRoom: null,
+              seminarLink: null,
+            })
+          } catch { /* предмет не критичний — задачу все одно створюємо */ }
+        }
+
         let startDateTime = null
         if (r.date) startDateTime = `${r.date}T${r.time || '09:00'}:00`
         else if (r.time) startDateTime = `${todayApiDate()}T${r.time}:00`
@@ -132,7 +175,8 @@ export default function QuickAdd({ token, onCreated }) {
 
                     <label className="qa-field">
                       <span><Icon name="calendar" /> {t('quickAdd.field.date')}</span>
-                      <input type="date" value={r.date} onChange={(e) => patch(i, { date: e.target.value })} />
+                      <input type="date" value={r.date} onChange={(e) => patch(i, { date: e.target.value, inheritedDate: false })} />
+                      {r.inheritedDate && <small className="qa-hint-inline">{t('quickAdd.inheritedDate')}</small>}
                     </label>
 
                     <label className="qa-field">
@@ -159,6 +203,30 @@ export default function QuickAdd({ token, onCreated }) {
                       </select>
                     </label>
                   </div>
+
+                  {/* Навчання: предмет + викладач (+ пропозиція додати у Навчання, якщо новий) */}
+                  {r.module === 'study' && (
+                    <div className="qa-study">
+                      <label className="qa-field">
+                        <span>{t('quickAdd.field.subject')}</span>
+                        <input type="text" value={r.subject} onChange={(e) => patch(i, { subject: e.target.value })} />
+                      </label>
+                      <label className="qa-field">
+                        <span>{t('quickAdd.field.teacher')}</span>
+                        <input type="text" value={r.teacher} onChange={(e) => patch(i, { teacher: e.target.value })} />
+                      </label>
+                      {canAddSubjects && r.subject.trim() && (
+                        findSubject(r.subject) ? (
+                          <span className="qa-study-found"><Icon name="check" /> {t('quickAdd.subjectFound')}</span>
+                        ) : (
+                          <label className="qa-study-new">
+                            <input type="checkbox" checked={r.createSubject} onChange={(e) => patch(i, { createSubject: e.target.checked })} />
+                            {t('quickAdd.subjectNew')}
+                          </label>
+                        )
+                      )}
+                    </div>
+                  )}
 
                   {r.ambiguous.map((amb, ambIndex) => (
                     <div className="qa-ambiguous" key={ambIndex}>

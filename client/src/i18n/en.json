@@ -840,8 +840,18 @@
   "quickAdd.create": "Create",
   "quickAdd.creating": "Creating…",
   "quickAdd.created": "Tasks created: {count}",
+  "quickAdd.field.subject": "Subject",
+  "quickAdd.field.teacher": "Teacher",
+  "quickAdd.inheritedDate": "date from the previous task",
+  "quickAdd.subjectNew": "Add subject to Study",
+  "quickAdd.subjectFound": "Subject already in Study",
   "quickAdd.module.tasks": "Plain",
   "quickAdd.module.shopping": "Shopping",
   "quickAdd.module.media": "Watch & Read",
-  "quickAdd.module.food": "Food"
+  "quickAdd.module.food": "Food",
+  "quickAdd.module.health": "Health",
+  "quickAdd.module.study": "Study",
+  "quickAdd.module.work": "Work",
+  "quickAdd.module.finance": "Finance",
+  "quickAdd.module.notes": "Notes"
 }

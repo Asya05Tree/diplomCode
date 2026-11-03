@@ -840,8 +840,18 @@
   "quickAdd.create": "Створити",
   "quickAdd.creating": "Створюємо…",
   "quickAdd.created": "Створено задач: {count}",
+  "quickAdd.field.subject": "Предмет",
+  "quickAdd.field.teacher": "Викладач",
+  "quickAdd.inheritedDate": "дата з попередньої задачі",
+  "quickAdd.subjectNew": "Додати предмет у Навчання",
+  "quickAdd.subjectFound": "Предмет уже є в Навчанні",
   "quickAdd.module.tasks": "Звичайна",
   "quickAdd.module.shopping": "Покупки",
   "quickAdd.module.media": "Перегляд і читання",
-  "quickAdd.module.food": "Їжа"
+  "quickAdd.module.food": "Їжа",
+  "quickAdd.module.health": "Здоров'я",
+  "quickAdd.module.study": "Навчання",
+  "quickAdd.module.work": "Робота",
+  "quickAdd.module.finance": "Фінанси",
+  "quickAdd.module.notes": "Нотатки"
 }
