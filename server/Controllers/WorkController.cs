@@ -5,8 +5,10 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record WorkSettingsRequest(string JobName, string? Position, string? Employer, string PayType, decimal? Rate);
-public record WorkShiftTypeRequest(string Name, string Color, TimeOnly StartTime, TimeOnly EndTime);
+public record WorkSettingsRequest(string JobName, string? Position, string? Employer, string PayType, decimal? Rate,
+    string? Regime, string? Workplace, decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
+public record WorkShiftTypeRequest(string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
+    string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier);
 public record WorkScheduleRequest(int ShiftTypeId, WorkService.Recurrence Recurrence);
 public record WorkContactRequest(string GroupName, string Status, string FullName, string Phone,
     string? Email, DateOnly? Birthday, string? Socials);
@@ -40,7 +42,8 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> UpdateSettings([FromBody] WorkSettingsRequest r)
     {
         await _work.UpdateSettingsAsync(CurrentUserId,
-            new WorkService.SettingsDto(r.JobName ?? "", r.Position, r.Employer, r.PayType, r.Rate));
+            new WorkService.SettingsDto(r.JobName ?? "", r.Position, r.Employer, r.PayType, r.Rate,
+                r.Regime ?? "standard", r.Workplace ?? "onsite", r.NormHours, r.FullRateRetained, r.ExtraVacationDays));
         return Ok();
     }
 
@@ -53,7 +56,8 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> AddShiftType([FromBody] WorkShiftTypeRequest r)
     {
         if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
-        var id = await _work.AddShiftTypeAsync(CurrentUserId, new WorkService.ShiftTypeDto(0, r.Name, r.Color, r.StartTime, r.EndTime));
+        var id = await _work.AddShiftTypeAsync(CurrentUserId, new WorkService.ShiftTypeDto(0, r.Name, r.Color, r.StartTime, r.EndTime,
+            r.Kind ?? "normal", r.StartTime2, r.EndTime2, r.OnCallMultiplier));
         return Ok(new { id });
     }
 
@@ -61,7 +65,8 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> UpdateShiftType(int id, [FromBody] WorkShiftTypeRequest r)
     {
         if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
-        var ok = await _work.UpdateShiftTypeAsync(CurrentUserId, id, new WorkService.ShiftTypeDto(id, r.Name, r.Color, r.StartTime, r.EndTime));
+        var ok = await _work.UpdateShiftTypeAsync(CurrentUserId, id, new WorkService.ShiftTypeDto(id, r.Name, r.Color, r.StartTime, r.EndTime,
+            r.Kind ?? "normal", r.StartTime2, r.EndTime2, r.OnCallMultiplier));
         return ok ? Ok() : NotFound();
     }
 

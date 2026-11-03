@@ -21,19 +21,23 @@ public class WorkService
 
     // ---- DTO ------------------------------------------------------------------
 
-    public record SettingsDto(string JobName, string? Position, string? Employer, string PayType, decimal? Rate);
+    public record SettingsDto(string JobName, string? Position, string? Employer, string PayType, decimal? Rate,
+        string Regime, string Workplace, decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
 
-    public record ShiftTypeDto(int Id, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime);
+    public record ShiftTypeDto(int Id, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
+        string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier);
 
     public record ShiftEntryDto(int Id, int ShiftTypeId, string ShiftTypeName, string Color,
         TimeOnly StartTime, TimeOnly EndTime, int RecurrenceRuleId, string RuleType, TimeOnly TimeOfDay,
         int? CycleWeeks, string? WeekDaysPattern, int? IntervalDays, string? MonthDayMode, string? MonthDays,
-        DateOnly StartDate, DateOnly? EndDate);
+        DateOnly StartDate, DateOnly? EndDate, string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2);
 
     public record CalendarShiftDto(DateOnly Date, int ShiftTypeId, string Name, string Color,
-        TimeOnly StartTime, TimeOnly EndTime);
+        TimeOnly StartTime, TimeOnly EndTime, string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2,
+        decimal? OnCallMultiplier);
 
-    public record NextShiftDto(DateOnly Date, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime);
+    public record NextShiftDto(DateOnly Date, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
+        string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2);
 
     public record ContactDto(int Id, string GroupName, string Status, string FullName, string Phone,
         string? Email, DateOnly? Birthday, string? Socials);
@@ -54,6 +58,13 @@ public class WorkService
 
     private static string? Trim(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
+    // Допустимі значення режимів/видів (решта зводиться до безпечного дефолту)
+    private static readonly string[] PayTypes = { "hourly", "monthly", "project" };
+    private static readonly string[] Regimes =
+        { "standard", "flexible", "irregular", "split", "rotational", "parttime", "reduced", "project", "oncall" };
+    private static readonly string[] Workplaces = { "onsite", "remote", "home" };
+    private static readonly string[] ShiftKinds = { "normal", "flexible", "split", "oncall" };
+
     // ---- Профіль роботи -------------------------------------------------------
 
     public async Task<SettingsDto> GetSettingsAsync(int userId)
@@ -65,7 +76,8 @@ public class WorkService
             _db.WorkSettings.Add(s);
             await _db.SaveChangesAsync();
         }
-        return new SettingsDto(s.JobName, s.Position, s.Employer, s.PayType, s.Rate);
+        return new SettingsDto(s.JobName, s.Position, s.Employer, s.PayType, s.Rate,
+            s.Regime, s.Workplace, s.NormHours, s.FullRateRetained, s.ExtraVacationDays);
     }
 
     public async Task UpdateSettingsAsync(int userId, SettingsDto dto)
@@ -79,8 +91,13 @@ public class WorkService
         s.JobName = (dto.JobName ?? "").Trim();
         s.Position = Trim(dto.Position);
         s.Employer = Trim(dto.Employer);
-        s.PayType = Normalize(dto.PayType, new[] { "hourly", "monthly", "project" }, "hourly");
+        s.PayType = Normalize(dto.PayType, PayTypes, "hourly");
         s.Rate = dto.Rate is > 0 ? dto.Rate : null;
+        s.Regime = Normalize(dto.Regime, Regimes, "standard");
+        s.Workplace = Normalize(dto.Workplace, Workplaces, "onsite");
+        s.NormHours = dto.NormHours is > 0 ? dto.NormHours : null;
+        s.FullRateRetained = dto.FullRateRetained;
+        s.ExtraVacationDays = dto.ExtraVacationDays is > 0 ? dto.ExtraVacationDays : null;
         await _db.SaveChangesAsync();
     }
 
@@ -90,8 +107,18 @@ public class WorkService
         await _db.WorkShiftTypes
             .Where(x => x.UserId == userId)
             .OrderBy(x => x.StartTime)
-            .Select(x => new ShiftTypeDto(x.Id, x.Name, x.Color, x.StartTime, x.EndTime))
+            .Select(x => new ShiftTypeDto(x.Id, x.Name, x.Color, x.StartTime, x.EndTime,
+                x.Kind, x.StartTime2, x.EndTime2, x.OnCallMultiplier))
             .ToListAsync();
+
+    // Приводить поля виду до узгодженого стану: друга частина — лише для split, коефіцієнт — лише для oncall
+    private static void ApplyKind(WorkShiftType type, ShiftTypeDto dto)
+    {
+        type.Kind = Normalize(dto.Kind, ShiftKinds, "normal");
+        type.StartTime2 = type.Kind == "split" ? dto.StartTime2 : null;
+        type.EndTime2 = type.Kind == "split" ? dto.EndTime2 : null;
+        type.OnCallMultiplier = type.Kind == "oncall" && dto.OnCallMultiplier is > 0 ? dto.OnCallMultiplier : null;
+    }
 
     public async Task<int> AddShiftTypeAsync(int userId, ShiftTypeDto dto)
     {
@@ -103,6 +130,7 @@ public class WorkService
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
         };
+        ApplyKind(type, dto);
         _db.WorkShiftTypes.Add(type);
         await _db.SaveChangesAsync();
         return type.Id;
@@ -116,6 +144,7 @@ public class WorkService
         type.Color = dto.Color;
         type.StartTime = dto.StartTime;
         type.EndTime = dto.EndTime;
+        ApplyKind(type, dto);
 
         // Синхронізуємо заголовок/опис шаблон-задач залежних правил, щоб календар не відставав
         var entries = await _db.WorkShiftEntries.Where(e => e.UserId == userId && e.ShiftTypeId == id).ToListAsync();
@@ -149,8 +178,17 @@ public class WorkService
         return true;
     }
 
-    private static string BuildShiftDescription(WorkShiftType type) =>
-        $"{type.StartTime:HH\\:mm}–{type.EndTime:HH\\:mm}";
+    // Опис події календаря для зміни з урахуванням виду: розділений день показує обидві частини,
+    // чергування/гнучка зміна — відповідну позначку (текст статичний, як опис шаблон-задачі)
+    private static string BuildShiftDescription(WorkShiftType type)
+    {
+        var main = $"{type.StartTime:HH\\:mm}–{type.EndTime:HH\\:mm}";
+        if (type.Kind == "split" && type.StartTime2 is TimeOnly s2 && type.EndTime2 is TimeOnly e2)
+            return $"{main}, {s2:HH\\:mm}–{e2:HH\\:mm}";
+        if (type.Kind == "oncall") return $"{main} (чергування)";
+        if (type.Kind == "flexible") return $"{main} (гнучко)";
+        return main;
+    }
 
     // ---- Записи графіка -------------------------------------------------------
 
@@ -174,7 +212,8 @@ public class WorkService
                 var t = e.ShiftType!;
                 return new ShiftEntryDto(e.Id, t.Id, t.Name, t.Color, t.StartTime, t.EndTime,
                     e.RecurrenceRuleId, r.Type, r.TimeOfDay, r.CycleWeeks, r.WeekDaysPattern,
-                    r.IntervalDays, r.MonthDayMode, r.MonthDays, r.StartDate, r.EndDate);
+                    r.IntervalDays, r.MonthDayMode, r.MonthDays, r.StartDate, r.EndDate,
+                    t.Kind, t.StartTime2, t.EndTime2);
             })
             .ToList();
     }
@@ -249,7 +288,7 @@ public class WorkService
         foreach (var (type, rule) in pairs)
             foreach (var dt in TaskService.GetEffectiveOccurrences(rule, from, to))
                 result.Add(new CalendarShiftDto(DateOnly.FromDateTime(dt), type.Id, type.Name, type.Color,
-                    type.StartTime, type.EndTime));
+                    type.StartTime, type.EndTime, type.Kind, type.StartTime2, type.EndTime2, type.OnCallMultiplier));
         return result.OrderBy(x => x.Date).ThenBy(x => x.StartTime).ToList();
     }
 
@@ -268,7 +307,8 @@ public class WorkService
                 if (dt >= now && dt < bestAt)
                 {
                     bestAt = dt;
-                    best = new NextShiftDto(DateOnly.FromDateTime(dt), type.Name, type.Color, type.StartTime, type.EndTime);
+                    best = new NextShiftDto(DateOnly.FromDateTime(dt), type.Name, type.Color, type.StartTime, type.EndTime,
+                        type.Kind, type.StartTime2, type.EndTime2);
                 }
             }
         }

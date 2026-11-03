@@ -16,6 +16,17 @@ public class WorkSettings
     public string? Employer { get; set; }            // роботодавець
     public string PayType { get; set; } = "hourly";  // hourly | monthly | project
     public decimal? Rate { get; set; }               // ставка: грн/год, грн/міс або за проєкт
+
+    // Режим (формат організації праці), ст. 50–60 КЗпП та трудова практика:
+    // standard — звичайний | flexible — гнучкий (ГРРЧ) | irregular — ненормований |
+    // split — розділений робочий день | rotational — вахтовий метод | parttime — неповний час |
+    // reduced — скорочена тривалість | project — проєктна/фріланс | oncall — чергування.
+    public string Regime { get; set; } = "standard";
+    // Місце роботи: onsite — в офісі/на об'єкті | remote — дистанційна | home — надомна.
+    public string Workplace { get; set; } = "onsite";
+    public decimal? NormHours { get; set; }          // норма годин на тиждень (неповний/скорочений/гнучкий)
+    public bool FullRateRetained { get; set; }        // скорочений час зі збереженням повної ставки
+    public int? ExtraVacationDays { get; set; }       // додаткова відпустка (ненормований робочий день)
 }
 
 // Тип зміни — свій колір і довільний проміжок часу (не лише день/ніч). Аналог "предмета" в навчанні.
@@ -29,6 +40,13 @@ public class WorkShiftType
     public string Color { get; set; } = "#b3e5fc"; // HEX, показується в календарі й легенді
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
+
+    // Вид зміни: normal — звичайна | flexible — гнучке вікно (ГРРЧ, час у межах проміжку) |
+    // split — розділений день (дві частини з перервою) | oncall — чергування (окрема тарифікація).
+    public string Kind { get; set; } = "normal";
+    public TimeOnly? StartTime2 { get; set; }        // друга частина (split): початок
+    public TimeOnly? EndTime2 { get; set; }          // друга частина (split): кінець
+    public decimal? OnCallMultiplier { get; set; }   // коефіцієнт тарифу для чергування (напр. 1.5)
 }
 
 // Запис графіка: тип зміни + правило повторення (ModuleCode="work"), що породжує події календаря.
