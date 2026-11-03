@@ -12,7 +12,7 @@ import {
 } from '../../api/work'
 import {
   PAY_TYPES, SHIFT_COLORS, WORK_REGIMES, WORKPLACES, SHIFT_KINDS, REGIMES_WITH_NORM,
-  hhmm, shiftRange, shiftRangeOf, shiftTotalHours,
+  hhmm, shiftRangeOf, shiftTotalHours,
 } from './workShared'
 
 const LOCALE = { uk: 'uk-UA', en: 'en-US' }
@@ -285,7 +285,7 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
               <div key={key} className={cls.join(' ')}>
                 <span className="work-cal-num">{date.getDate()}</span>
                 {shifts.slice(0, 1).map((s, i) => (
-                  <span key={i} className="work-cal-chip" style={{ background: s.color }} title={`${s.name} ${shiftRange(s.startTime, s.endTime)}`}>
+                  <span key={i} className="work-cal-chip" style={{ background: s.color }} title={`${s.name} ${shiftRangeOf(s)}`}>
                     {s.name}
                   </span>
                 ))}
@@ -297,7 +297,7 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
         {shiftTypes.length > 0 && (
           <div className="work-legend">
             {shiftTypes.map((tp) => (
-              <span key={tp.id} className="work-legend-item"><span className="work-legend-dot" style={{ background: tp.color }} />{tp.name} {shiftRange(tp.startTime, tp.endTime)}</span>
+              <span key={tp.id} className="work-legend-item"><span className="work-legend-dot" style={{ background: tp.color }} />{tp.name} {shiftRangeOf(tp)}</span>
             ))}
           </div>
         )}
@@ -383,7 +383,7 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
               <label className="work-form-grow">{t('work.pickShiftType')}
                 <select value={pickTypeId} onChange={(e) => setPickTypeId(e.target.value)}>
                   <option value="">{t('work.pickShiftTypePh')}</option>
-                  {shiftTypes.map((tp) => <option key={tp.id} value={tp.id}>{tp.name} ({shiftRange(tp.startTime, tp.endTime)})</option>)}
+                  {shiftTypes.map((tp) => <option key={tp.id} value={tp.id}>{tp.name} ({shiftRangeOf(tp)})</option>)}
                 </select>
               </label>
             </div>
@@ -425,7 +425,7 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
               <div key={e.id} className="work-entry-row">
                 <span className="work-color-dot" style={{ background: e.color }} />
                 <span className="work-entry-name">{e.shiftTypeName}</span>
-                <span className="work-entry-sum">{summarize(e)} · {shiftRange(e.startTime, e.endTime)}</span>
+                <span className="work-entry-sum">{summarize(e)} · {shiftRangeOf(e)}</span>
                 <button type="button" className="work-icon-btn work-icon-btn--danger" onClick={() => deleteEntry(e.id)} aria-label={t('common.delete')}><Icon name="trash" /></button>
               </div>
             ))}

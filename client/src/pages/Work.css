@@ -201,6 +201,20 @@
 .work-swatch--active { border-color: var(--color-heading); box-shadow: 0 0 0 2px var(--color-surface) inset; }
 .work-color-dot { width: 16px; height: 16px; border-radius: 5px; display: inline-block; vertical-align: middle; }
 
+/* --- Режим праці: підказка, чекбокс, бейдж виду зміни --- */
+.work-regime-hint { margin-top: 4px; }
+.work-check-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--color-text); margin-top: 4px; cursor: pointer;
+}
+.work-check-row input { width: auto; }
+.work-kind-badge {
+  display: inline-block; padding: 2px 9px; border-radius: var(--radius-pill);
+  background: var(--color-accent-soft); color: var(--color-accent-ink);
+  font-size: 0.74rem; font-weight: 600; white-space: nowrap;
+}
+.work-kind-mult { color: var(--color-text-muted); font-size: 0.78rem; font-weight: 600; }
+
 /* --- Таблиці (успадковують вигляд .data-table зі Study/загальних) --- */
 .work-row-actions { white-space: nowrap; text-align: right; }
 .work-icon-btn {

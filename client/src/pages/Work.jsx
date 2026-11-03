@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import { getWorkSettings, getNextShift } from '../api/work'
-import { hhmm } from '../components/work/workShared'
+import { shiftRangeOf } from '../components/work/workShared'
 import ScheduleTab from '../components/work/ScheduleTab'
 import ContactsTab from '../components/work/ContactsTab'
 import LeaveTab from '../components/work/LeaveTab'
@@ -70,11 +70,17 @@ export default function Work() {
           <span className="work-role">{roleLine || t('work.noRole')}</span>
         </div>
         <div className="work-top-meta">
+          {settings?.regime && settings.regime !== 'standard' && (
+            <span className="work-chip"><span className="work-chip-label">{t('work.regime')}</span> {t(`work.regime.${settings.regime}`)}</span>
+          )}
+          {settings?.workplace && settings.workplace !== 'onsite' && (
+            <span className="work-chip"><span className="work-chip-label">{t('work.workplace')}</span> {t(`work.workplace.${settings.workplace}`)}</span>
+          )}
           <span className="work-chip"><span className="work-chip-label">{t('work.payLabel')}</span> {payLabel}</span>
           {nextShift && (
             <span className="work-chip work-chip--accent">
               <Icon name="calendar" />
-              {t('work.nextShift')}: {formatDate(nextShift.date)} · {hhmm(nextShift.startTime)}–{hhmm(nextShift.endTime)}
+              {t('work.nextShift')}: {formatDate(nextShift.date)} · {shiftRangeOf(nextShift)}
             </span>
           )}
         </div>
