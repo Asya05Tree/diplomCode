@@ -19,7 +19,7 @@ const AUTH_TOKEN_KEY = 'authToken'
 // із трьома режимами (§4.3). Базове відображення сітки (§4.4) — дні із задачами або з недостатнім
 // запасом вільного часу підсвічені кольором, порожні дні без заливки; працює завжди, без перемикача.
 export default function Planner() {
-  const { t } = useI18n()
+  const { t, weekStart } = useI18n()
   const { gender } = useOutletContext() ?? {}
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
 
@@ -51,9 +51,9 @@ export default function Planner() {
   const notifyCycleChanged = () => setCycleVersion((v) => v + 1)
 
   const visibleGridRange = useMemo(() => {
-    const cells = getMonthGridCells(visibleMonth.getFullYear(), visibleMonth.getMonth())
+    const cells = getMonthGridCells(visibleMonth.getFullYear(), visibleMonth.getMonth(), weekStart)
     return { from: cells[0].date, to: cells[cells.length - 1].date }
-  }, [visibleMonth])
+  }, [visibleMonth, weekStart])
 
   useEffect(() => {
     if (activeTab !== 'dayPeriod') return

@@ -1,8 +1,14 @@
 const THEME_MODE_KEY = 'settings:themeMode'
 const PALETTE_STYLE_KEY = 'settings:paletteStyle'
 const PALETTE_KEY = 'settings:palette'
+const WEEK_START_KEY = 'settings:weekStart'
+const DATE_FORMAT_KEY = 'settings:dateFormat'
 
 export const PALETTES = ['ocean', 'sunset', 'lavender', 'orange', 'green', 'amber', 'berry']
+
+// Числові формати дати (planner-spec.md §4.10 "формат дати"): порядок число/місяць/рік тощо.
+// dmy — число/місяць/рік, mdy — місяць/число/рік, ymd — рік/місяць/число, ydm — рік/число/місяць.
+export const DATE_FORMATS = ['dmy', 'mdy', 'ymd', 'ydm']
 
 // Акцентні пари кольорів на палітру/стиль (planner-spec.md §3.1 AccentColor,
 // §4.11 "пастельна палитра, светлая и тёмная темы") — не залежать від light/dark,
@@ -40,4 +46,25 @@ export function getPalette() {
 
 export function setPalette(palette) {
   localStorage.setItem(PALETTE_KEY, PALETTES.includes(palette) ? palette : 'ocean')
+}
+
+// Перший день тижня для всіх календарів проєкту (planner-spec.md §4.10): ISO-номер 1=Пн..7=Нд.
+// Дефолт — понеділок (1). Впливає лише на порядок показу днів, не на кодування даних.
+export function getWeekStart() {
+  const n = Number(localStorage.getItem(WEEK_START_KEY))
+  return n >= 1 && n <= 7 ? n : 1
+}
+
+export function setWeekStart(n) {
+  const v = Number(n)
+  localStorage.setItem(WEEK_START_KEY, String(v >= 1 && v <= 7 ? v : 1))
+}
+
+export function getDateFormat() {
+  const stored = localStorage.getItem(DATE_FORMAT_KEY)
+  return DATE_FORMATS.includes(stored) ? stored : 'dmy'
+}
+
+export function setDateFormat(format) {
+  localStorage.setItem(DATE_FORMAT_KEY, DATE_FORMATS.includes(format) ? format : 'dmy')
 }

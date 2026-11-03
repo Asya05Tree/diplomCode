@@ -4,7 +4,6 @@ import { MAX_RECURRENCE_YEARS } from '../../utils/recurrence'
 import './RecurrenceFields.css'
 
 const TYPES = ['WeekCycle', 'EveryNDays', 'MonthDays', 'Manual']
-const ISO_DAYS = [1, 2, 3, 4, 5, 6, 7]
 const MONTH_DAY_MODES = ['Specific', 'Even', 'Odd', 'LastDay']
 
 // Перемикач "однаковий час" <-> "свій час на день" — спільний для WeekCycle і MonthDays/Specific
@@ -33,8 +32,7 @@ function TimeModeSwitch({ same, onChange, t }) {
 // planner-spec.md §3.3 — спільна форма для всіх чотирьох типів правил повторення.
 // Керований компонент: value/onChange, форма самого value описана в utils/recurrence.js.
 export default function RecurrenceFields({ value, onChange }) {
-  const { t } = useI18n()
-  const weekdayLabels = t('planner.weekdaysShort').split(',')
+  const { t, weekdays, orderedWeekDays } = useI18n()
   const maxEndDate = toApiDate(addMonths(fromApiDate(value.startDate), 12 * MAX_RECURRENCE_YEARS))
 
   const set = (patch) => onChange({ ...value, ...patch })
@@ -167,7 +165,7 @@ export default function RecurrenceFields({ value, onChange }) {
                   <span className="recurrence-week-row-label">{t('recurrence.week', { n: weekIndex + 1 })}</span>
                 )}
                 <div className="recurrence-week-row-days">
-                  {ISO_DAYS.map((day, idx) => {
+                  {orderedWeekDays.map((day, idx) => {
                     const active = daysSet.has(day)
                     return (
                       <div key={day} className="recurrence-weekday-cell">
@@ -176,7 +174,7 @@ export default function RecurrenceFields({ value, onChange }) {
                           className={active ? 'task-form-weekday task-form-weekday--active' : 'task-form-weekday'}
                           onClick={() => toggleWeekDay(weekIndex, day)}
                         >
-                          {weekdayLabels[idx]}
+                          {weekdays[idx]}
                         </button>
                         {active && !value.sameTimeForAll && (
                           <input

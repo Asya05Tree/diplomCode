@@ -9,12 +9,12 @@ const LOCALE_BY_LANGUAGE = { uk: 'uk-UA', en: 'en-US' }
 // прокидається ззовні через markings, сітка сама знає лише про today/selected (§4.4: заливка
 // поточного режиму ніколи не змішується з іншою).
 export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays }) {
-  const { t, language } = useI18n()
+  const { language, weekStart, weekdays } = useI18n()
   const today = new Date()
   const year = visibleMonth.getFullYear()
   const month = visibleMonth.getMonth()
-  const cells = getMonthGridCells(year, month)
-  const weekdayLabels = t('planner.weekdaysShort').split(',')
+  const cells = getMonthGridCells(year, month, weekStart)
+  const weekdayLabels = weekdays
   const marks = markings ?? new Map()
   // Дні місячних — факт дня (не подія), показуємо краплею біля цифри
   const periods = periodDays ?? new Set()

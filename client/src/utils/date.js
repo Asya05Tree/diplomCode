@@ -154,11 +154,14 @@ export function groupOverlapping(tasks) {
   return clusters
 }
 
-// 6 тижнів (42 клітинки), понеділок — перший день, із сусідніми місяцями для заповнення сітки
-export function getMonthGridCells(year, month) {
+// 6 тижнів (42 клітинки) із сусідніми місяцями для заповнення сітки. weekStart — ISO-номер
+// першого дня тижня (1=Пн..7=Нд, дефолт понеділок); від нього рахується зсув початку сітки.
+export function getMonthGridCells(year, month, weekStart = 1) {
   const firstOfMonth = new Date(year, month, 1)
   const firstWeekday = isoDayOfWeek(firstOfMonth)
-  const gridStart = addDays(firstOfMonth, -(firstWeekday - 1))
+  // Скільки днів відняти, щоб сітка починалася з обраного першого дня тижня
+  const offset = (firstWeekday - weekStart + 7) % 7
+  const gridStart = addDays(firstOfMonth, -offset)
 
   const cells = []
   for (let i = 0; i < 42; i++) {
@@ -166,4 +169,40 @@ export function getMonthGridCells(year, month) {
     cells.push({ date, inCurrentMonth: date.getMonth() === month })
   }
   return cells
+}
+
+// ISO-номери днів (1=Пн..7=Нд) у порядку показу, починаючи з weekStart.
+// Напр. weekStart=2 (Вт) → [2,3,4,5,6,7,1]. Кодування даних лишається ISO — міняється лише показ.
+export function orderedWeekDays(weekStart = 1) {
+  return Array.from({ length: 7 }, (_, i) => ((weekStart - 1 + i) % 7) + 1)
+}
+
+// Числовий формат дати за налаштуванням користувача (planner-spec.md §4.10).
+// Приймає Date або рядок "YYYY-MM-DD" / "YYYY-MM-DDTHH:MM". Повертає "—" для порожнього.
+export function formatDateFor(value, dateFormat = 'dmy') {
+  let y
+  let m
+  let d
+  if (value instanceof Date) {
+    y = value.getFullYear()
+    m = value.getMonth() + 1
+    d = value.getDate()
+  } else if (typeof value === 'string' && value) {
+    const parts = value.slice(0, 10).split('-').map(Number)
+    ;[y, m, d] = parts
+  }
+  if (!y || !m || !d) return '—'
+  const Y = String(y).padStart(4, '0')
+  const M = String(m).padStart(2, '0')
+  const D = String(d).padStart(2, '0')
+  switch (dateFormat) {
+    case 'mdy':
+      return `${M}/${D}/${Y}`
+    case 'ymd':
+      return `${Y}-${M}-${D}`
+    case 'ydm':
+      return `${Y}.${D}.${M}`
+    default:
+      return `${D}.${M}.${Y}`
+  }
 }

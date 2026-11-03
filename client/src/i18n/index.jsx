@@ -1,6 +1,13 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import uk from './uk.json'
 import en from './en.json'
+import { orderedWeekDays as computeOrderedWeekDays, formatDateFor } from '../utils/date'
+import {
+  getWeekStart,
+  setWeekStart as persistWeekStart,
+  getDateFormat,
+  setDateFormat as persistDateFormat,
+} from '../utils/settings'
 
 const dictionaries = { uk, en }
 const LANGUAGE_KEY = 'settings:language'
@@ -15,10 +22,25 @@ function getStoredLanguage() {
 
 export function I18nProvider({ children }) {
   const [language, setLanguageState] = useState(getStoredLanguage)
+  // Глобальні календарні налаштування (planner-spec.md §4.10): перший день тижня і формат дати.
+  // Живуть тут разом із мовою, бо це теж загальнопроєктні параметри показу — компоненти беруть
+  // уже готові похідні (weekdays/orderedWeekDays/formatDate) через useI18n без прокидання пропів.
+  const [weekStart, setWeekStartState] = useState(getWeekStart)
+  const [dateFormat, setDateFormatState] = useState(getDateFormat)
 
   const setLanguage = (lang) => {
     setLanguageState(lang)
     localStorage.setItem(LANGUAGE_KEY, lang)
+  }
+
+  const setWeekStart = (n) => {
+    setWeekStartState(n)
+    persistWeekStart(n)
+  }
+
+  const setDateFormat = (format) => {
+    setDateFormatState(format)
+    persistDateFormat(format)
   }
 
   const value = useMemo(() => {
@@ -32,8 +54,26 @@ export function I18nProvider({ children }) {
       }
       return text
     }
-    return { language, setLanguage, t }
-  }, [language])
+    // Базові короткі назви в ISO-порядку (Пн..Нд) — для пошуку за номером дня (label[d-1]).
+    const weekdaysIso = t('planner.weekdaysShort').split(',')
+    // ISO-номери днів у порядку показу + відповідні назви (для сіток і заголовків календарів).
+    const orderedWeekDays = computeOrderedWeekDays(weekStart)
+    const weekdays = orderedWeekDays.map((d) => weekdaysIso[d - 1])
+    const formatDate = (dateValue) => formatDateFor(dateValue, dateFormat)
+    return {
+      language,
+      setLanguage,
+      t,
+      weekStart,
+      setWeekStart,
+      dateFormat,
+      setDateFormat,
+      weekdaysIso,
+      weekdays,
+      orderedWeekDays,
+      formatDate,
+    }
+  }, [language, weekStart, dateFormat])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
