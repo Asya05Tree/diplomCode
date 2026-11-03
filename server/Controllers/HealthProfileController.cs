@@ -7,7 +7,8 @@ using Server.Models;
 
 namespace Server.Controllers;
 
-public record UpdateHealthProfileRequest(double? Height, double? Weight, int? BirthYear, string? Gender);
+public record UpdateHealthProfileRequest(double? Height, double? Weight, int? BirthYear, string? Gender,
+    string? StudentType, bool? IsWorking);
 public record PutRestrictionRequest(string TagKey, string Relation, int? Weight); // Forbidden | Avoid | Prefer
 
 // planner-spec.md §3.1/§3.2. Профіль здоровʼя: естетичні поля (зріст/вага/рік/стать) + обмеження
@@ -32,7 +33,7 @@ public class HealthProfileController : ControllerBase
     {
         var profile = await _db.UserProfiles.FindAsync(CurrentUserId);
         if (profile is null) return NotFound();
-        return Ok(new { profile.Height, profile.Weight, profile.BirthYear, profile.Gender });
+        return Ok(new { profile.Height, profile.Weight, profile.BirthYear, profile.Gender, profile.StudentType, profile.IsWorking });
     }
 
     [HttpPut]
@@ -53,6 +54,9 @@ public class HealthProfileController : ControllerBase
         profile.Weight = request.Weight is double w ? Math.Clamp(w, 1, 500) : null;
         profile.BirthYear = request.BirthYear is int by ? Math.Clamp(by, nowYear - 120, nowYear - 1) : null;
         if (!string.IsNullOrWhiteSpace(request.Gender)) profile.Gender = request.Gender;
+        // Статус навчання/роботи редагується в налаштуваннях; приймаємо лише відомі значення StudentType
+        if (request.StudentType is "pupil" or "student" or "none") profile.StudentType = request.StudentType;
+        if (request.IsWorking is bool working) profile.IsWorking = working;
         await _db.SaveChangesAsync();
         return Ok();
     }

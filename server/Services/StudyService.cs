@@ -230,7 +230,7 @@ public class StudyService
         {
             "tomorrow" => today.AddDays(1),
             // кінець поточного тижня — найближча неділя (ISO: Пн=1..Нд=7)
-            "week" => today.AddDays(7 - (int)((today.DayOfWeek + 6) % 7) - 1),
+            "week" => today.AddDays(6 - (((int)today.DayOfWeek + 6) % 7)),
             "semester" => settings?.SemesterEnd ?? settings?.StudyEnd,
             "year" => settings?.YearEnd,
             "date" => dueDate,

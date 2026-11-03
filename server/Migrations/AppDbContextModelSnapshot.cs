@@ -210,31 +210,6 @@ namespace Server.Migrations
                     b.ToTable("FinanceTransactions");
                 });
 
-            modelBuilder.Entity("Server.Models.GradeScaleEntry", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("MinPercent")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GradeScaleEntries");
-                });
-
             modelBuilder.Entity("Server.Models.ManualRecurrenceDate", b =>
                 {
                     b.Property<int>("Id")
@@ -802,18 +777,26 @@ namespace Server.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("DeadlineKind")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date");
+
+                    b.Property<decimal?>("Grade")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsDone")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int?>("SubjectId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -831,6 +814,156 @@ namespace Server.Migrations
                     b.ToTable("StudyAssignments");
                 });
 
+            modelBuilder.Entity("Server.Models.StudyProject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Curator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DeadlineKind")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StudyProjects");
+                });
+
+            modelBuilder.Entity("Server.Models.StudyProjectStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDone")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("StudyProjectSteps");
+                });
+
+            modelBuilder.Entity("Server.Models.StudyScheduleEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("EntryKind")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Form")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("PairNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecurrenceRuleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Room")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SessionKind")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StudyScheduleEntries");
+                });
+
+            modelBuilder.Entity("Server.Models.StudySettings", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LearningForm")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly?>("SemesterEnd")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("StudyEnd")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("StudyStart")
+                        .HasColumnType("date");
+
+                    b.Property<string>("TermType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly?>("VacationEnd")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("VacationStart")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("YearEnd")
+                        .HasColumnType("date");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("StudySettings");
+                });
+
             modelBuilder.Entity("Server.Models.StudySubject", b =>
                 {
                     b.Property<int>("Id")
@@ -842,14 +975,20 @@ namespace Server.Migrations
                     b.Property<string>("Color")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("NameEn")
+                    b.Property<string>("LectureLink")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("NameUk")
+                    b.Property<string>("LectureRoom")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Room")
+                    b.Property<string>("SeminarLink")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SeminarRoom")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Teacher")
@@ -1208,8 +1347,14 @@ namespace Server.Migrations
                     b.Property<int>("HistoryRetentionDays")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsWorking")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Language")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("StudentType")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Theme")
@@ -1331,17 +1476,6 @@ namespace Server.Migrations
                 });
 
             modelBuilder.Entity("Server.Models.FinanceTransaction", b =>
-                {
-                    b.HasOne("Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Server.Models.GradeScaleEntry", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
                         .WithMany()
@@ -1581,6 +1715,57 @@ namespace Server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Server.Models.StudyProject", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.StudyProjectStep", b =>
+                {
+                    b.HasOne("Server.Models.StudyProject", "Project")
+                        .WithMany("Steps")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Server.Models.StudyScheduleEntry", b =>
+                {
+                    b.HasOne("Server.Models.StudySubject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.StudySettings", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Server.Models.StudySubject", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
@@ -1783,6 +1968,11 @@ namespace Server.Migrations
                     b.Navigation("Exceptions");
 
                     b.Navigation("ManualDates");
+                });
+
+            modelBuilder.Entity("Server.Models.StudyProject", b =>
+                {
+                    b.Navigation("Steps");
                 });
 
             modelBuilder.Entity("Server.Models.User", b =>

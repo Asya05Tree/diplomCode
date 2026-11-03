@@ -10,7 +10,8 @@ using Server.Services;
 namespace Server.Controllers;
 
 public record SendCodeRequest(string Email, string Nickname);
-public record RegisterRequest(string Nickname, string Gender, string Email, string Code, string Password);
+public record RegisterRequest(string Nickname, string Gender, string Email, string Code, string Password,
+    string? StudentType, bool IsWorking);
 public record LoginRequest(string Email, string Password);
 
 // Реєстрація email+код підтвердження та вхід email+пароль (coding-guide.md §4).
@@ -100,7 +101,15 @@ public class AuthController : ControllerBase
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        _db.UserProfiles.Add(new UserProfile { UserId = user.Id, Gender = request.Gender });
+        // StudentType керує виглядом розділу "Навчання"; приймаємо лише відомі значення
+        var studentType = request.StudentType is "pupil" or "student" or "none" ? request.StudentType : null;
+        _db.UserProfiles.Add(new UserProfile
+        {
+            UserId = user.Id,
+            Gender = request.Gender,
+            StudentType = studentType,
+            IsWorking = request.IsWorking,
+        });
         await _db.SaveChangesAsync();
 
         var token = _jwtService.CreateToken(user.Id, user.Email);

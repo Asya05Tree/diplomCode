@@ -115,6 +115,44 @@
   text-decoration: underline;
 }
 
+/* Вибір "школяр / студент / нічого" + чекбокс "працюю" (реєстрація, налаштування) */
+.auth-choice {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px 12px;
+  margin: 0;
+}
+
+.auth-choice legend {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 0 4px;
+}
+
+.auth-choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.auth-radio,
+.auth-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px !important;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.auth-radio input,
+.auth-checkbox input {
+  min-height: 0 !important;
+  width: auto;
+  accent-color: var(--color-accent);
+}
+
 .auth-error {
   color: var(--color-danger, #c0524a);
   background: var(--color-danger-soft, rgba(192, 82, 74, 0.1));

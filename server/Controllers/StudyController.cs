@@ -5,18 +5,36 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record StudySubjectRequest(string NameUk, string? NameEn, string? Teacher, string? Room, string? Color);
-public record StudyAssignmentRequest(int? SubjectId, string Type, string Title, DateOnly? DueDate, bool IsDone);
-public record ReplaceBellsRequest(List<StudyService.BellDto> Bells);
-public record ReplaceGradeScaleRequest(List<StudyService.GradeScaleDto> Scale);
+public record StudySettingsRequest(string LearningForm, string TermType, DateOnly? StudyStart, DateOnly? StudyEnd,
+    DateOnly? SemesterEnd, DateOnly? YearEnd, DateOnly? VacationStart, DateOnly? VacationEnd);
 
-// Модуль "Навчання": предмети, завдання, сітка дзвінків, шкала оцінок. Розклад пар — окремо, через
-// api/recurrence-rules з ModuleCode="study" (тут не дублюється). Уся логіка — у StudyService.
+public record StudySubjectRequest(string Name, string? Teacher, string? Color,
+    string? LectureRoom, string? LectureLink, string? SeminarRoom, string? SeminarLink);
+
+public record StudyAssignmentRequest(int? SubjectId, string Type, string Description, string DeadlineKind,
+    DateOnly? DueDate, bool IsDone, decimal? Grade);
+
+public record ReplaceBellsRequest(List<StudyService.BellDto> Bells);
+
+public record StudyScheduleRequest(string EntryKind, int? SubjectId, string? Name, string? SessionKind,
+    int? PairNumber, string? Form, string? Room, string? Link, StudyService.Recurrence Recurrence);
+
+public record StudyProjectRequest(string Kind, string Name, string? Curator, string? DeadlineKind, DateOnly? DueDate);
+public record StudyStepRequest(string Name, DateOnly? StartDate, DateOnly? EndDate, bool IsDone);
+
+// Модуль "Навчання": налаштування, предмети, завдання, сітка дзвінків, розклад/консультації та
+// великі роботи (диплом/курсова/практика). Розклад і консультації також створюють правило повторення
+// (ModuleCode="study"), тому з'являються і в спільному календарі. Уся логіка — у StudyService.
 [ApiController]
 [Route("api/study")]
 [Authorize]
 public class StudyController : ControllerBase
 {
+    private static readonly string[] AssignmentTypes = { "homework", "lab", "exam", "practical" };
+    private static readonly string[] DeadlineKinds = { "semester", "year", "week", "tomorrow", "date" };
+    private static readonly string[] EntryKinds = { "lesson", "consultation", "elective" };
+    private static readonly string[] ProjectKinds = { "diploma", "coursework", "practice" };
+
     private readonly StudyService _studyService;
 
     public StudyController(StudyService studyService)
@@ -26,33 +44,46 @@ public class StudyController : ControllerBase
 
     private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
+    // ---- Налаштування навчання ------------------------------------------------
+
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettings() => Ok(await _studyService.GetSettingsAsync(CurrentUserId));
+
+    [HttpPut("settings")]
+    public async Task<IActionResult> UpdateSettings([FromBody] StudySettingsRequest r)
+    {
+        await _studyService.UpdateSettingsAsync(CurrentUserId, new StudyService.SettingsDto(
+            r.LearningForm, r.TermType, r.StudyStart, r.StudyEnd, r.SemesterEnd, r.YearEnd, r.VacationStart, r.VacationEnd));
+        return Ok();
+    }
+
     // ---- Предмети -------------------------------------------------------------
 
     [HttpGet("subjects")]
     public async Task<IActionResult> GetSubjects() => Ok(await _studyService.GetSubjectsAsync(CurrentUserId));
 
     [HttpPost("subjects")]
-    public async Task<IActionResult> AddSubject([FromBody] StudySubjectRequest request)
+    public async Task<IActionResult> AddSubject([FromBody] StudySubjectRequest r)
     {
-        if (string.IsNullOrWhiteSpace(request.NameUk)) return BadRequest(new { error = "missing_name" });
-        var id = await _studyService.AddSubjectAsync(CurrentUserId, request.NameUk, request.NameEn, request.Teacher, request.Room, request.Color);
+        if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
+        var id = await _studyService.AddSubjectAsync(CurrentUserId, ToSubjectDto(0, r));
         return Ok(new { id });
     }
 
     [HttpPut("subjects/{id}")]
-    public async Task<IActionResult> UpdateSubject(int id, [FromBody] StudySubjectRequest request)
+    public async Task<IActionResult> UpdateSubject(int id, [FromBody] StudySubjectRequest r)
     {
-        if (string.IsNullOrWhiteSpace(request.NameUk)) return BadRequest(new { error = "missing_name" });
-        var ok = await _studyService.UpdateSubjectAsync(CurrentUserId, id, request.NameUk, request.NameEn, request.Teacher, request.Room, request.Color);
+        if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
+        var ok = await _studyService.UpdateSubjectAsync(CurrentUserId, id, ToSubjectDto(id, r));
         return ok ? Ok() : NotFound();
     }
 
     [HttpDelete("subjects/{id}")]
-    public async Task<IActionResult> DeleteSubject(int id)
-    {
-        var ok = await _studyService.DeleteSubjectAsync(CurrentUserId, id);
-        return ok ? Ok() : NotFound();
-    }
+    public async Task<IActionResult> DeleteSubject(int id) =>
+        await _studyService.DeleteSubjectAsync(CurrentUserId, id) ? Ok() : NotFound();
+
+    private static StudyService.SubjectDto ToSubjectDto(int id, StudySubjectRequest r) =>
+        new(id, r.Name, r.Teacher, r.Color, r.LectureRoom, r.LectureLink, r.SeminarRoom, r.SeminarLink);
 
     // ---- Завдання -------------------------------------------------------------
 
@@ -60,47 +91,120 @@ public class StudyController : ControllerBase
     public async Task<IActionResult> GetAssignments() => Ok(await _studyService.GetAssignmentsAsync(CurrentUserId));
 
     [HttpPost("assignments")]
-    public async Task<IActionResult> AddAssignment([FromBody] StudyAssignmentRequest request)
+    public async Task<IActionResult> AddAssignment([FromBody] StudyAssignmentRequest r)
     {
-        if (string.IsNullOrWhiteSpace(request.Title)) return BadRequest(new { error = "missing_title" });
-        var id = await _studyService.AddAssignmentAsync(CurrentUserId, request.SubjectId, request.Type, request.Title, request.DueDate, request.IsDone);
+        if (!ValidAssignment(r, out var error)) return BadRequest(new { error });
+        var id = await _studyService.AddAssignmentAsync(CurrentUserId, r.SubjectId, r.Type, r.Description,
+            r.DeadlineKind, r.DueDate, r.IsDone, r.Grade);
         return Ok(new { id });
     }
 
     [HttpPut("assignments/{id}")]
-    public async Task<IActionResult> UpdateAssignment(int id, [FromBody] StudyAssignmentRequest request)
+    public async Task<IActionResult> UpdateAssignment(int id, [FromBody] StudyAssignmentRequest r)
     {
-        if (string.IsNullOrWhiteSpace(request.Title)) return BadRequest(new { error = "missing_title" });
-        var ok = await _studyService.UpdateAssignmentAsync(CurrentUserId, id, request.SubjectId, request.Type, request.Title, request.DueDate, request.IsDone);
+        if (!ValidAssignment(r, out var error)) return BadRequest(new { error });
+        var ok = await _studyService.UpdateAssignmentAsync(CurrentUserId, id, r.SubjectId, r.Type, r.Description,
+            r.DeadlineKind, r.DueDate, r.IsDone, r.Grade);
         return ok ? Ok() : NotFound();
     }
 
     [HttpDelete("assignments/{id}")]
-    public async Task<IActionResult> DeleteAssignment(int id)
+    public async Task<IActionResult> DeleteAssignment(int id) =>
+        await _studyService.DeleteAssignmentAsync(CurrentUserId, id) ? Ok() : NotFound();
+
+    private static bool ValidAssignment(StudyAssignmentRequest r, out string error)
     {
-        var ok = await _studyService.DeleteAssignmentAsync(CurrentUserId, id);
-        return ok ? Ok() : NotFound();
+        if (string.IsNullOrWhiteSpace(r.Description)) { error = "missing_description"; return false; }
+        if (!AssignmentTypes.Contains(r.Type)) { error = "invalid_type"; return false; }
+        if (!DeadlineKinds.Contains(r.DeadlineKind)) { error = "invalid_deadline"; return false; }
+        error = "";
+        return true;
     }
 
-    // ---- Дзвінки й шкала оцінок (заміна всієї сітки) --------------------------
+    // ---- Дзвінки (заміна всієї сітки) -----------------------------------------
 
     [HttpGet("bells")]
     public async Task<IActionResult> GetBells() => Ok(await _studyService.GetBellsAsync(CurrentUserId));
 
     [HttpPut("bells")]
-    public async Task<IActionResult> ReplaceBells([FromBody] ReplaceBellsRequest request)
+    public async Task<IActionResult> ReplaceBells([FromBody] ReplaceBellsRequest r)
     {
-        await _studyService.ReplaceBellsAsync(CurrentUserId, request.Bells ?? new List<StudyService.BellDto>());
+        await _studyService.ReplaceBellsAsync(CurrentUserId, r.Bells ?? new List<StudyService.BellDto>());
         return Ok();
     }
 
-    [HttpGet("grade-scale")]
-    public async Task<IActionResult> GetGradeScale() => Ok(await _studyService.GetGradeScaleAsync(CurrentUserId));
+    // ---- Розклад / консультації / факультативи --------------------------------
 
-    [HttpPut("grade-scale")]
-    public async Task<IActionResult> ReplaceGradeScale([FromBody] ReplaceGradeScaleRequest request)
+    [HttpGet("schedule")]
+    public async Task<IActionResult> GetSchedule([FromQuery] string? kind) =>
+        Ok(await _studyService.GetScheduleEntriesAsync(CurrentUserId, EntryKinds.Contains(kind) ? kind : null));
+
+    [HttpPost("schedule")]
+    public async Task<IActionResult> AddSchedule([FromBody] StudyScheduleRequest r)
     {
-        await _studyService.ReplaceGradeScaleAsync(CurrentUserId, request.Scale ?? new List<StudyService.GradeScaleDto>());
-        return Ok();
+        if (!EntryKinds.Contains(r.EntryKind) || r.Recurrence is null) return BadRequest(new { error = "invalid_entry" });
+        var id = await _studyService.AddScheduleEntryAsync(CurrentUserId, r.EntryKind, r.SubjectId, r.Name,
+            r.SessionKind, r.PairNumber, r.Form, r.Room, r.Link, r.Recurrence);
+        return Ok(new { id });
     }
+
+    [HttpPut("schedule/{id}")]
+    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] StudyScheduleRequest r)
+    {
+        if (!EntryKinds.Contains(r.EntryKind) || r.Recurrence is null) return BadRequest(new { error = "invalid_entry" });
+        var ok = await _studyService.UpdateScheduleEntryAsync(CurrentUserId, id, r.EntryKind, r.SubjectId, r.Name,
+            r.SessionKind, r.PairNumber, r.Form, r.Room, r.Link, r.Recurrence);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpDelete("schedule/{id}")]
+    public async Task<IActionResult> DeleteSchedule(int id) =>
+        await _studyService.DeleteScheduleEntryAsync(CurrentUserId, id) ? Ok() : NotFound();
+
+    // ---- Великі роботи (диплом / курсова / практика) --------------------------
+
+    [HttpGet("projects")]
+    public async Task<IActionResult> GetProjects([FromQuery] string? kind) =>
+        Ok(await _studyService.GetProjectsAsync(CurrentUserId, ProjectKinds.Contains(kind) ? kind : null));
+
+    [HttpPost("projects")]
+    public async Task<IActionResult> AddProject([FromBody] StudyProjectRequest r)
+    {
+        if (!ProjectKinds.Contains(r.Kind)) return BadRequest(new { error = "invalid_kind" });
+        if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
+        var id = await _studyService.AddProjectAsync(CurrentUserId, r.Kind, r.Name, r.Curator, r.DeadlineKind, r.DueDate);
+        return Ok(new { id });
+    }
+
+    [HttpPut("projects/{id}")]
+    public async Task<IActionResult> UpdateProject(int id, [FromBody] StudyProjectRequest r)
+    {
+        if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
+        var ok = await _studyService.UpdateProjectAsync(CurrentUserId, id, r.Name, r.Curator, r.DeadlineKind, r.DueDate);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpDelete("projects/{id}")]
+    public async Task<IActionResult> DeleteProject(int id) =>
+        await _studyService.DeleteProjectAsync(CurrentUserId, id) ? Ok() : NotFound();
+
+    [HttpPost("projects/{projectId}/steps")]
+    public async Task<IActionResult> AddStep(int projectId, [FromBody] StudyStepRequest r)
+    {
+        if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
+        var id = await _studyService.AddStepAsync(CurrentUserId, projectId, r.Name, r.StartDate, r.EndDate, r.IsDone);
+        return id is null ? NotFound() : Ok(new { id });
+    }
+
+    [HttpPut("steps/{stepId}")]
+    public async Task<IActionResult> UpdateStep(int stepId, [FromBody] StudyStepRequest r)
+    {
+        if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
+        var ok = await _studyService.UpdateStepAsync(CurrentUserId, stepId, r.Name, r.StartDate, r.EndDate, r.IsDone);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpDelete("steps/{stepId}")]
+    public async Task<IActionResult> DeleteStep(int stepId) =>
+        await _studyService.DeleteStepAsync(CurrentUserId, stepId) ? Ok() : NotFound();
 }

@@ -16,6 +16,7 @@ import {
 import './AuthForm.css'
 
 const GENDER_OPTIONS = ['female', 'male', 'other']
+const STUDENT_TYPES = ['pupil', 'student', 'none']
 
 function errorKeyToMessage(t, error, fallbackKey) {
   const map = {
@@ -32,6 +33,8 @@ export default function Register({ onRegistered }) {
   const { t } = useI18n()
   const [nickname, setNickname] = useState('')
   const [gender, setGender] = useState('female')
+  const [studentType, setStudentType] = useState('pupil')
+  const [isWorking, setIsWorking] = useState(false)
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
@@ -78,7 +81,7 @@ export default function Register({ onRegistered }) {
     }
     setBusy(true)
     try {
-      const result = await register({ nickname, gender, email, code, password })
+      const result = await register({ nickname, gender, email, code, password, studentType, isWorking })
       onRegistered(result)
     } catch (err) {
       setError(errorKeyToMessage(t, err, 'register.errorFailed'))
@@ -109,6 +112,29 @@ export default function Register({ onRegistered }) {
               <option key={g} value={g}>{t(`register.gender.${g}`)}</option>
             ))}
           </select>
+        </label>
+
+        <fieldset className="auth-choice">
+          <legend>{t('register.studentType')}</legend>
+          <div className="auth-choice-row">
+            {STUDENT_TYPES.map((type) => (
+              <label key={type} className="auth-radio">
+                <input
+                  type="radio"
+                  name="studentType"
+                  value={type}
+                  checked={studentType === type}
+                  onChange={() => setStudentType(type)}
+                />
+                {t(`register.studentType.${type}`)}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <label className="auth-checkbox">
+          <input type="checkbox" checked={isWorking} onChange={(e) => setIsWorking(e.target.checked)} />
+          {t('register.working')}
         </label>
 
         <label>

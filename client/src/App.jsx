@@ -17,6 +17,7 @@ import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import { getMe } from './api/client'
+import { getHealthProfile, setHealthProfile } from './api/healthProfile'
 import {
   getPalette,
   getPaletteStyle,
@@ -28,12 +29,12 @@ import {
 
 const AUTH_TOKEN_KEY = 'authToken'
 
-function Layout({ user, outletContext }) {
+function Layout({ user, studentType, outletContext }) {
   const initial = (user?.nickname || user?.email || '?').trim().charAt(0).toUpperCase()
   const location = useLocation()
   return (
     <div className="app-shell">
-      <Sidebar />
+      <Sidebar studentType={studentType} />
       <main className="app-main">
         <header className="app-header">
           <div className="app-header-user" title={user?.email}>
@@ -61,7 +62,19 @@ function AppContent() {
   // Поки не перевірили збережений токен — нічого не рендеримо, щоб не мигнути landing перед /app
   const [authChecked, setAuthChecked] = useState(false)
   const [user, setUser] = useState(null)
+  // Статус навчання/роботи з профілю: керує видимістю розділу "Навчання" й режимом його сторінки
+  const [studentType, setStudentType] = useState(null)
+  const [isWorking, setIsWorking] = useState(false)
   const navigate = useNavigate()
+
+  // Довантажуємо статус навчання з профілю (тихо — помилка не має ламати вхід)
+  const loadStudyStatus = () =>
+    getHealthProfile()
+      .then((p) => {
+        setStudentType(p?.studentType ?? null)
+        setIsWorking(Boolean(p?.isWorking))
+      })
+      .catch(() => {})
 
   useEffect(() => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY)
@@ -74,23 +87,35 @@ function AppContent() {
     getMe(token)
       .then((me) => {
         setUser(me)
-        setAuthChecked(true)
+        return loadStudyStatus()
       })
       .catch(() => {
         localStorage.removeItem(AUTH_TOKEN_KEY)
-        setAuthChecked(true)
       })
+      .finally(() => setAuthChecked(true))
   }, [])
 
   const handleAuthed = ({ token, nickname, email }) => {
     localStorage.setItem(AUTH_TOKEN_KEY, token)
     setUser({ nickname, email })
+    loadStudyStatus()
     navigate('/app')
+  }
+
+  // Зміна статусу в налаштуваннях: пишемо в профіль і одразу оновлюємо стан (sidebar/Study реагують)
+  const handleSetStudyStatus = async ({ studentType: nextType, isWorking: nextWorking }) => {
+    const type = nextType ?? studentType
+    const working = nextWorking ?? isWorking
+    setStudentType(type)
+    setIsWorking(working)
+    await setHealthProfile({ studentType: type, isWorking: working })
   }
 
   const handleLogout = () => {
     localStorage.removeItem(AUTH_TOKEN_KEY)
     setUser(null)
+    setStudentType(null)
+    setIsWorking(false)
     navigate('/')
   }
 
@@ -119,6 +144,9 @@ function AppContent() {
     onSetPaletteStyle: handleSetPaletteStyle,
     palette,
     onSetPalette: handleSetPalette,
+    studentType,
+    isWorking,
+    onSetStudyStatus: handleSetStudyStatus,
   }
 
   return (
@@ -156,7 +184,7 @@ function AppContent() {
           path="/app"
           element={
             user ? (
-              <Layout user={user} outletContext={settingsOutletContext} />
+              <Layout user={user} studentType={studentType} outletContext={settingsOutletContext} />
             ) : (
               <Navigate to="/" replace />
             )

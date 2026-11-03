@@ -5,8 +5,8 @@ export function getHealthProfile() {
   return apiGet('/api/health-profile')
 }
 
-export function setHealthProfile({ height, weight, birthYear, gender }) {
-  return apiSend('PUT', '/api/health-profile', { height, weight, birthYear, gender })
+export function setHealthProfile({ height, weight, birthYear, gender, studentType, isWorking }) {
+  return apiSend('PUT', '/api/health-profile', { height, weight, birthYear, gender, studentType, isWorking })
 }
 
 export function getRestrictions() {

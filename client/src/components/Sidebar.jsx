@@ -21,8 +21,14 @@ const NAV_ITEMS = [
   { key: 'nav.settings', icon: 'settings', color: 'var(--color-tasks)', to: '/app/settings' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ studentType }) {
   const { t } = useI18n()
+
+  // Розділ "Навчання" показуємо лише тим, хто навчається (школяр/студент).
+  // "none" чи ще не обрано — ховаємо, доки користувач не змінить статус у налаштуваннях.
+  const items = NAV_ITEMS.filter(
+    (item) => item.key !== 'nav.study' || studentType === 'pupil' || studentType === 'student',
+  )
 
   return (
     <nav className="sidebar">
@@ -32,7 +38,7 @@ export default function Sidebar() {
       </NavLink>
 
       <div className="sidebar-items">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const label = t(item.key)
 
           if (!item.to) {

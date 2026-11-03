@@ -9,8 +9,12 @@ import './Settings.css'
 // data-* атрибути на кореневому div), тому сюди приходять через Outlet context.
 export default function Settings() {
   const { t, language, setLanguage } = useI18n()
-  const { onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette } =
-    useOutletContext()
+  const {
+    onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette,
+    studentType, isWorking, onSetStudyStatus,
+  } = useOutletContext()
+
+  const STUDENT_TYPES = ['pupil', 'student', 'none']
 
   return (
     <div className="settings-page">
@@ -90,6 +94,30 @@ export default function Settings() {
             )
           })}
         </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>{t('settings.studyStatusLabel')}</h3>
+        <div className="settings-options">
+          {STUDENT_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={studentType === type ? 'settings-option settings-option--active' : 'settings-option'}
+              onClick={() => onSetStudyStatus({ studentType: type })}
+            >
+              {t(`register.studentType.${type}`)}
+            </button>
+          ))}
+        </div>
+        <label className="settings-check">
+          <input
+            type="checkbox"
+            checked={Boolean(isWorking)}
+            onChange={(e) => onSetStudyStatus({ isWorking: e.target.checked })}
+          />
+          {t('register.working')}
+        </label>
       </section>
 
       <section className="settings-section">

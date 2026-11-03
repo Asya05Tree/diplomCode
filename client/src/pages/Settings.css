@@ -154,3 +154,20 @@
   box-shadow: var(--shadow-accent);
   filter: brightness(1.03);
 }
+
+/* Чекбокс "працюю" в секції статусу навчання */
+.settings-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.settings-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
