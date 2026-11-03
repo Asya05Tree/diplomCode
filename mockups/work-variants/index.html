@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Макети розділу «Робота»</title>
+<title>Макети розділу «Робота» — графік змін, контакти, відпустки, зустрічі</title>
 <link rel="stylesheet" href="shared.css" />
 <style>
   .gallery-page { max-width: 980px; margin: 0 auto; padding: 40px 24px 60px; display: flex; flex-direction: column; gap: 22px; }
@@ -12,6 +12,8 @@
   .gallery-card h3 { margin: 0; font-size: 1.05rem; }
   .gallery-card p { margin: 0; font-size: 0.86rem; color: var(--color-text-muted); }
   .gallery-swatch { height: 64px; border-radius: 8px; }
+  .req-list { font-size: 0.86rem; color: var(--color-text); margin: 6px 0 0; padding-left: 18px; }
+  .req-list li { margin-bottom: 3px; }
 </style>
 </head>
 <body>
@@ -19,62 +21,69 @@
   <div>
     <h1 style="margin: 0 0 6px;">Макети розділу «Робота»</h1>
     <p class="placeholder-text">
-      На відміну від інших мокапів, тут кожен із 10 варіантів пропонує СВІЙ набір функцій для розділу "Робота"
-      (частина модуля "Навчання / робота", planner-spec.md — поки що не деталізований, лише "розклад"). Це варіанти
-      для вибору напрямку, а не 10 вёрсток одного й того ж контенту.
+      10 варіантів ОДНОГО модуля «Робота» — різняться лише компонуванням того самого набору функцій
+      (на спільних даних: кав'ярня «Світанок», бариста-адміністратор, графік 2/2, погодинна оплата
+      180 грн/год, листопад 2026, сьогодні 03.11 — вихідний, наступна зміна чт 05.11 Вечірня 15:00–23:00).
     </p>
+    <ul class="req-list">
+      <li><b>Заголовок роботи</b> зверху: назва + посада + роботодавець.</li>
+      <li><b>Графік змін</b>: типи змін зі своїм кольором і довільним проміжком часу (не лише день/ніч), календар наступних змін із підсвіткою найближчої, таблиця налаштування графіка.</li>
+      <li><b>Тип оплати</b>: погодинна / за місяць / за проєкт; шаблон графіка 5/2 · 2/2 · 3/2 · свій.</li>
+      <li><b>Контакти</b> за групами й статусом: ПІБ, телефон, пошта, день народження та соцмережі (три останні — за бажанням).</li>
+      <li><b>Відпустки й лікарняні</b> та <b>Зустрічі</b> (з ким і коли) — окремими блоками/вкладками.</li>
+    </ul>
   </div>
 
   <div class="gallery-grid">
     <a class="gallery-card card" href="variant-1.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffd9a0, #9fd3ff);"></div>
-      <h3>Варіант 1 — Графік змін</h3>
-      <p>Місяць-календар із типом зміни (ранкова/денна/нічна) на кожен робочий день, графік «2 через 2».</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #c5cae9);"></div>
+      <h3>Варіант 1 — Усе на одній сторінці</h3>
+      <p>Довгий скрол: графік → налаштування → контакти → відпустки → зустрічі. Нічого не сховано.</p>
     </a>
     <a class="gallery-card card" href="variant-2.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #d1c4e9);"></div>
-      <h3>Варіант 2 — Клієнти та проєкти</h3>
-      <p>Для фрілансу: картки клієнтів зі ставкою, статусом проєкту й контактом.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d1c4e9, #b3e5fc);"></div>
+      <h3>Варіант 2 — Чотири вкладки</h3>
+      <p>Графік і оплата / Контакти / Відпустки й лікарняні / Зустрічі. Заголовок роботи над вкладками.</p>
     </a>
     <a class="gallery-card card" href="variant-3.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d9f2e1, #b3e5fc);"></div>
-      <h3>Варіант 3 — Канбан-дошка завдань</h3>
-      <p>«Треба зробити / В роботі / Готово» — робочі задачі з дедлайнами й прив'язкою до клієнта.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffe0b2, #b3e5fc);"></div>
+      <h3>Варіант 3 — Робочий стіл (дві колонки)</h3>
+      <p>Календар ліворуч, наступна зміна й налаштування праворуч; контакти та відсутності — знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-4.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #b3e5fc);"></div>
-      <h3>Варіант 4 — Облік робочого часу</h3>
-      <p>Таймер «почати/завершити зміну», скільки відпрацьовано сьогодні й за тиждень, журнал змін.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #d9f2e1);"></div>
+      <h3>Варіант 4 — Дашборд</h3>
+      <p>Верхня панель KPI (наступна зміна, години, зарплата, відпустка, зустріч), далі календар і таблиці.</p>
     </a>
     <a class="gallery-card card" href="variant-5.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffead1, #d1c4e9);"></div>
-      <h3>Варіант 5 — Відпустки та лікарняні</h3>
-      <p>Скільки днів відпустки залишилось, заявки на розгляді, історія лікарняних.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #d1c4e9);"></div>
+      <h3>Варіант 5 — Фокус на графіку</h3>
+      <p>Великий календар на всю ширину з часом змін; команда, відсутності й зустрічі — вкладками знизу.</p>
     </a>
     <a class="gallery-card card" href="variant-6.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d1c4e9, #c5cae9);"></div>
-      <h3>Варіант 6 — Колеги та контакти</h3>
-      <p>Хто за що відповідає на роботі — керівництво, команда, суміжні відділи з контактами.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d1c4e9, #ffe0b2);"></div>
+      <h3>Варіант 6 — Директорія контактів</h3>
+      <p>Акцент на контактах за групами; графік — компактним тижнем, відсутності й зустрічі збоку.</p>
     </a>
     <a class="gallery-card card" href="variant-7.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #d9f2e1);"></div>
-      <h3>Варіант 7 — Цілі та KPI</h3>
-      <p>Цілі на квартал із прогрес-барами, самооцінка, дата наступного ревʼю.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #c5cae9, #ffe0b2);"></div>
+      <h3>Варіант 7 — Тижневий таймлайн</h3>
+      <p>Графік як два тижні поспіль із часом зміни в кожному дні; решта блоків — під ним.</p>
     </a>
     <a class="gallery-card card" href="variant-8.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #ffead1, #c5cae9);"></div>
-      <h3>Варіант 8 — Зустрічі та дзвінки</h3>
-      <p>Денна агенда зустрічей: час, платформа/кабінет, учасники.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d9f2e1, #d1c4e9);"></div>
+      <h3>Варіант 8 — Відсутності й події зверху</h3>
+      <p>Відпустки/лікарняні та зустрічі — головні зверху; графік і контакти нижче.</p>
     </a>
     <a class="gallery-card card" href="variant-9.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d9f2e1, #ffd9a0);"></div>
-      <h3>Варіант 9 — Зміни й оплата</h3>
-      <p>Кожна зміна рахує «години × ставка», підсумок заробітку за місяць.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #b3e5fc, #ffe0b2);"></div>
+      <h3>Варіант 9 — Робочий профіль</h3>
+      <p>Велика картка-профіль (назва, посада, роботодавець, оплата, графік, зарплата), далі решта секцій.</p>
     </a>
     <a class="gallery-card card" href="variant-10.html">
-      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d1c4e9, #9fd3ff);"></div>
-      <h3>Варіант 10 — Робочий профіль</h3>
-      <p>Посада, роботодавець, графік, випробувальний термін і найближчий вихідний одним екраном.</p>
+      <div class="gallery-swatch" style="background: linear-gradient(135deg, #d1c4e9, #c5cae9);"></div>
+      <h3>Варіант 10 — Герой + три вкладки</h3>
+      <p>Герой (робота + наступна зміна) і згруповані вкладки: Графік і оплата / Команда / Відсутності й зустрічі.</p>
     </a>
   </div>
 </div>
