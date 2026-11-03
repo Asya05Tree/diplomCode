@@ -83,6 +83,60 @@ export function timeStatusOf(startDateTime, durationMinutes, now = new Date()) {
   return 'past'
 }
 
+// Статус за ДАТОЮ (для Періоду): 'past' | 'today' | 'future' — порівнюємо лише день, не час.
+export function dayStatusOf(startDateTime, now = new Date()) {
+  if (!startDateTime) return 'future'
+  const start = startOfDay(fromApiDateTime(startDateTime))
+  const today = startOfDay(now)
+  if (start < today) return 'past'
+  if (start > today) return 'future'
+  return 'today'
+}
+
+// "12:30" або "12:30 – 12:45" (якщо задано тривалість у хвилинах). Кінець = початок + тривалість.
+export function formatTimeRange(startDateTime, durationMinutes) {
+  if (!startDateTime) return '—'
+  const start = fromApiDateTime(startDateTime)
+  const startStr = formatTime(start)
+  if (!durationMinutes) return startStr
+  const end = new Date(start.getTime() + durationMinutes * 60000)
+  return `${startStr} – ${formatTime(end)}`
+}
+
+// Групування задач за накладанням проміжків [початок, початок+тривалість). Повертає масив
+// кластерів (масивів задач): новий кластер починається, коли початок задачі не раніше за
+// найпізніший кінець поточного кластера. Задачі без тривалості трактуються як миттєві (кінець=початок),
+// тож вони накладаються лише якщо справді потрапляють усередину чужого проміжку.
+export function groupOverlapping(tasks) {
+  const withTime = tasks.filter((t) => t.startDateTime)
+  const noTime = tasks.filter((t) => !t.startDateTime)
+  const endOf = (t) => fromApiDateTime(t.startDateTime).getTime() + (t.durationMinutes ? t.durationMinutes * 60000 : 0)
+
+  const sorted = [...withTime].sort((a, b) => {
+    const sa = fromApiDateTime(a.startDateTime).getTime()
+    const sb = fromApiDateTime(b.startDateTime).getTime()
+    return sa - sb
+  })
+
+  const clusters = []
+  let current = null
+  let currentMaxEnd = -Infinity
+  for (const task of sorted) {
+    const start = fromApiDateTime(task.startDateTime).getTime()
+    if (current && start < currentMaxEnd) {
+      current.push(task)
+      currentMaxEnd = Math.max(currentMaxEnd, endOf(task))
+    } else {
+      current = [task]
+      clusters.push(current)
+      currentMaxEnd = endOf(task)
+    }
+  }
+  // Задачі без часу — кожна окремим кластером (їх не з чим перетинати)
+  for (const t of noTime) clusters.push([t])
+  return clusters
+}
+
 // 6 тижнів (42 клітинки), понеділок — перший день, із сусідніми місяцями для заповнення сітки
 export function getMonthGridCells(year, month) {
   const firstOfMonth = new Date(year, month, 1)
