@@ -248,6 +248,12 @@ namespace Server.Migrations
                     b.Property<string>("Genre")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsLibrary")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsReturned")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -256,6 +262,12 @@ namespace Server.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<int?>("RatingStars")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReturnDeadline")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ReturnTaskId")
                         .HasColumnType("int");
 
                     b.Property<string>("Review")
@@ -267,6 +279,9 @@ namespace Server.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
+
+                    b.Property<string>("StatusBeforeReturn")
+                        .HasColumnType("longtext");
 
                     b.Property<int?>("TaskId")
                         .HasColumnType("int");

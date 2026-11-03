@@ -7,13 +7,15 @@ export function getMedia() {
   return apiGet('/api/media')
 }
 
-export function addMedia({ kind, title, author, genre, mediaType }) {
+export function addMedia({ kind, title, author, genre, mediaType, isLibrary, returnDeadline }) {
   return apiSend('POST', '/api/media', {
     kind,
     title,
     author: author || null,
     genre: genre || null,
     mediaType: mediaType || null,
+    isLibrary: isLibrary || false,
+    returnDeadline: returnDeadline || null,
   })
 }
 
@@ -37,7 +39,8 @@ export function setMediaStatus(id, { status, ratingStars, review }) {
 }
 
 // Редагування. Клієнт завжди передає поточні genre/mediaType, щоб не затерти класифікацію.
-export function updateMedia(id, { title, author, ratingStars, review, genre, mediaType }) {
+// isLibrary/returnDeadline — для книг; startDateTime — перепланування вже запланованої події.
+export function updateMedia(id, { title, author, ratingStars, review, genre, mediaType, isLibrary, returnDeadline, startDateTime }) {
   return apiSend('PUT', `/api/media/${id}`, {
     title,
     author: author || null,
@@ -45,7 +48,15 @@ export function updateMedia(id, { title, author, ratingStars, review, genre, med
     review: review || null,
     genre: genre || null,
     mediaType: mediaType || null,
+    isLibrary: isLibrary || false,
+    returnDeadline: returnDeadline || null,
+    startDateTime: startDateTime || null,
   })
+}
+
+// Чекбокс «повернено» (true) або його зняття в налаштуваннях картки (false).
+export function returnMedia(id, returned) {
+  return apiSend('PUT', `/api/media/${id}/return`, { returned })
 }
 
 export function deleteMedia(id) {

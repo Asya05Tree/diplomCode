@@ -246,21 +246,58 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
       {groups.length === 0 ? (
         <p className="placeholder-text">{t('planner.noTasksPeriod')}</p>
       ) : (
-        <div className="period-view-list">
-          {groups.map(([dateKey, timeGroups]) => (
-            <div key={dateKey} className="period-view-group">
-              <div className="period-view-group-date">
-                {fromApiDateTime(dateKey).toLocaleDateString(locale, { day: 'numeric', month: 'long', weekday: 'short' })}
-              </div>
-              {timeGroups.map((group) =>
-                group.length === 1 ? (
-                  renderTaskRow(group[0])
-                ) : (
-                  <OverlapGroup key={group[0].startDateTime} tasks={group} renderItem={renderTaskRow} />
-                ))}
+        <>
+          <div className="ts-sort-switch">
+            <button
+              type="button"
+              className={sortMode === 'time' ? 'ts-sort-btn ts-sort-btn--active' : 'ts-sort-btn'}
+              onClick={() => setSortMode('time')}
+            >
+              {t('planner.sortByTime')}
+            </button>
+            <button
+              type="button"
+              className={sortMode === 'status' ? 'ts-sort-btn ts-sort-btn--active' : 'ts-sort-btn'}
+              onClick={() => setSortMode('status')}
+            >
+              {t('planner.sortByStatus')}
+            </button>
+          </div>
+
+          {sortMode === 'time' ? (
+            <div className="period-view-list">
+              {groups.map(([dateKey, timeGroups]) => (
+                <div key={dateKey} className="period-view-group">
+                  <div className="period-view-group-date">
+                    {fromApiDateTime(dateKey).toLocaleDateString(locale, { day: 'numeric', month: 'long', weekday: 'short' })}
+                  </div>
+                  {renderGroups(timeGroups)}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="ts-sections">
+              {nowGroups.length > 0 && (
+                <div className="ts-group ts-group--now">
+                  <div className="ts-group-title">{t('planner.statusNow')}</div>
+                  {renderGroups(nowGroups)}
+                </div>
+              )}
+              {futureGroups.length > 0 && (
+                <div className="ts-group">
+                  <div className="ts-group-title">{t('planner.statusFuture')}</div>
+                  {renderGroups(futureGroups)}
+                </div>
+              )}
+              {pastGroups.length > 0 && (
+                <div className="ts-group">
+                  <div className="ts-group-title">{t('planner.statusPast')}</div>
+                  {renderGroups(pastGroups)}
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

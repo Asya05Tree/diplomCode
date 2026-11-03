@@ -28,5 +28,13 @@ public class MediaItem
 
     public int? TaskId { get; set; }               // звʼязок зі створеною подією календаря
 
+    // Бібліотечна / позичена книга (лише для книг). Коли так — є дедлайн повернення,
+    // який потрапляє у спільний календар окремою подією (ReturnTaskId, SourceModule="media_return").
+    public bool IsLibrary { get; set; }            // бібліотечна/позичена книга
+    public DateTime? ReturnDeadline { get; set; }  // коли повернути
+    public bool IsReturned { get; set; }           // книгу повернено
+    public string? StatusBeforeReturn { get; set; } // статус до повернення (для коректної реактивації)
+    public int? ReturnTaskId { get; set; }         // подія-нагадування про повернення в календарі
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

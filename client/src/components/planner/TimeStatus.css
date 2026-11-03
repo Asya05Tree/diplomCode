@@ -1,0 +1,60 @@
+/* Перемикач сортування (за часом / за статусом) і секції статусу часу — спільні для Дня й Періоду */
+.ts-sort-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  align-self: flex-start;
+}
+
+.ts-sort-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.ts-sort-btn:hover {
+  color: var(--color-text);
+}
+.ts-sort-btn--active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.ts-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Майбутнє/минуле — в одній рамці із заголовком */
+.ts-group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 12px 10px;
+}
+
+.ts-group-title {
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 8px 0 4px;
+}
+
+/* "Зараз" — виділена секція з акцентним фоном за темою */
+.ts-group--now {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent-soft) 45%, transparent);
+}
+.ts-group--now .ts-group-title {
+  color: var(--color-accent);
+}
