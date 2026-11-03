@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
-import { addMedia, deleteMedia, getMedia, scheduleMedia, setMediaStatus, updateMedia } from '../api/media'
+import { addMedia, deleteMedia, getMedia, returnMedia, scheduleMedia, setMediaStatus, updateMedia } from '../api/media'
 import { genresFor, genreName, typeName, VIDEO_TYPES } from '../utils/watchlistTaxonomy'
 import { MAX_LEN, filterWords, limitText } from '../utils/validation'
-import { toApiDateTime, todayApiDate } from '../utils/date'
+import { fromApiDateTime, formatTime, toApiDate, toApiDateTime, todayApiDate } from '../utils/date'
 import './Watchlist.css'
 
 // Список "що подивитися / що прочитати": під-вкладки (Відео / Книги) × вкладки статусу
@@ -20,8 +20,10 @@ const STATUSES = [
   { key: 'in_progress', icon: 'wrench' },
   { key: 'done', icon: 'check-circle' },
 ]
+// Вкладка «Борги» — лише для книг (прострочені неповернені бібліотечні книги)
+const DEBT_STATUS = { key: 'debt', icon: 'warning' }
 
-const emptyDraft = { title: '', author: '', genre: '', type: '' }
+const emptyDraft = { title: '', author: '', genre: '', type: '', isLibrary: false, returnDeadline: '' }
 
 // Клікабельні зірки 1..5 (для відео й книг у "Завершено"). readOnly — лише показ.
 function Stars({ value = 0, onChange, readOnly = false }) {
@@ -60,6 +62,8 @@ export default function Watchlist() {
   const [sched, setSched] = useState(null) // { id, date, time, genre, type }
   const [edits, setEdits] = useState({}) // { [id]: { rating, review } }
   const [reviewEditId, setReviewEditId] = useState(null) // який відгук зараз редагується
+  const [editId, setEditId] = useState(null) // яку картку редагуємо (метадані / перепланування)
+  const [editForm, setEditForm] = useState(null) // чернетка редагування відкритої картки
 
   useEffect(() => {
     let cancelled = false
@@ -82,12 +86,13 @@ export default function Watchlist() {
 
   const reload = async () => setItems((await getMedia()) || [])
 
-  // Зміна типу скидає фільтри й чернетку (жанри в книг/відео різні)
+  // Зміна типу скидає фільтри, чернетку й статус (у відео немає вкладки «Борги»)
   const switchKind = (k) => {
     setKind(k)
     setGenreFilter('all')
     setTypeFilter('all')
     setDraft(emptyDraft)
+    if (status === 'debt') setStatus('planned')
   }
 
   const setDraftField = (patch) => setDraft((d) => ({ ...d, ...patch }))
@@ -96,14 +101,78 @@ export default function Watchlist() {
     e.preventDefault()
     const title = draft.title.trim()
     if (!title) return
+    const isLibrary = kind === 'book' && draft.isLibrary
     await addMedia({
       kind,
       title,
       author: kind === 'book' ? draft.author.trim() : null,
       genre: draft.genre || null,
       mediaType: kind === 'video' ? draft.type || null : null,
+      isLibrary,
+      returnDeadline: isLibrary && draft.returnDeadline ? draft.returnDeadline : null,
     })
     setDraft(emptyDraft)
+    await reload()
+  }
+
+  // Чекбокс «повернено» (true) або його зняття в режимі редагування (false) — із логікою
+  // переміщення на боці сервера (planned→видалення, in_progress/борг→завершено тощо).
+  const handleReturnToggle = async (item, returned) => {
+    await returnMedia(item.id, returned)
+    setEditId(null)
+    setEditForm(null)
+    await reload()
+  }
+
+  // Відкрити редагування картки: для «у планах» — метадані, для «у процесі» — дата/час.
+  const startEdit = (item) => {
+    setReviewEditId(null)
+    setEditId(item.id)
+    const dt = item.startDate ? fromApiDateTime(item.startDate) : null
+    setEditForm({
+      title: item.title || '',
+      author: item.author || '',
+      genre: item.genre || '',
+      type: item.mediaType || '',
+      isLibrary: Boolean(item.isLibrary),
+      returnDeadline: item.returnDeadline ? item.returnDeadline.slice(0, 10) : '',
+      date: dt ? toApiDate(dt) : todayApiDate(),
+      time: dt ? formatTime(dt) : '12:00',
+    })
+  }
+  const cancelEdit = () => {
+    setEditId(null)
+    setEditForm(null)
+  }
+
+  const handleSaveEdit = async (item) => {
+    if (!editForm) return
+    const title = editForm.title.trim()
+    if (!title) return
+    const isLibrary = item.kind === 'book' && editForm.isLibrary
+    // Перепланування лише для вже запланованих (є подія в календарі)
+    const startDateTime =
+      item.status === 'in_progress' && item.taskId
+        ? toApiDateTime(
+            (() => {
+              const [y, m, d] = editForm.date.split('-').map(Number)
+              const [h, min] = editForm.time.split(':').map(Number)
+              return new Date(y, m - 1, d, h, min)
+            })(),
+          )
+        : null
+    await updateMedia(item.id, {
+      title,
+      author: item.kind === 'book' ? editForm.author.trim() : null,
+      ratingStars: item.ratingStars ?? null,
+      review: item.review || null,
+      genre: editForm.genre || null,
+      mediaType: item.kind === 'video' ? editForm.type || null : null,
+      isLibrary,
+      returnDeadline: isLibrary && editForm.returnDeadline ? editForm.returnDeadline : null,
+      startDateTime,
+    })
+    cancelEdit()
     await reload()
   }
 
@@ -189,15 +258,22 @@ export default function Watchlist() {
   }
 
   const forKind = items.filter((it) => it.kind === kind)
+  const statuses = kind === 'book' ? [...STATUSES, DEBT_STATUS] : STATUSES
   const counts = {
-    planned: forKind.filter((it) => it.status === 'planned').length,
-    in_progress: forKind.filter((it) => it.status === 'in_progress').length,
+    planned: forKind.filter((it) => it.status === 'planned' && !it.isDebt).length,
+    in_progress: forKind.filter((it) => it.status === 'in_progress' && !it.isDebt).length,
     done: forKind.filter((it) => it.status === 'done').length,
+    debt: forKind.filter((it) => it.isDebt).length,
   }
 
   const q = search.trim().toLowerCase()
   const visible = forKind.filter((it) => {
-    if (it.status !== status) return false
+    // Борги мають власну вкладку; прострочені неповернені книги не дублюються в planned/in_progress
+    if (status === 'debt') {
+      if (!it.isDebt) return false
+    } else if (it.status !== status || it.isDebt) {
+      return false
+    }
     if (q && !(it.title || '').toLowerCase().includes(q) && !(it.author || '').toLowerCase().includes(q)) return false
     if (genreFilter !== 'all' && it.genre !== genreFilter) return false
     if (kind === 'video' && typeFilter !== 'all' && it.mediaType !== typeFilter) return false
@@ -229,7 +305,7 @@ export default function Watchlist() {
 
       {/* Вкладки статусу */}
       <div className="watch-status-tabs">
-        {STATUSES.map((s) => (
+        {statuses.map((s) => (
           <button
             key={s.key}
             type="button"
@@ -313,6 +389,26 @@ export default function Watchlist() {
               ))}
             </select>
           )}
+          {/* Бібліотечна / позичена книга → дедлайн повернення (потрапляє у спільний календар) */}
+          {kind === 'book' && (
+            <label className="watch-lib-check">
+              <input
+                type="checkbox"
+                checked={draft.isLibrary}
+                onChange={(e) => setDraftField({ isLibrary: e.target.checked })}
+              />
+              {t('watchlist.library')}
+            </label>
+          )}
+          {kind === 'book' && draft.isLibrary && (
+            <input
+              type="date"
+              value={draft.returnDeadline}
+              min={todayApiDate()}
+              title={t('watchlist.returnDeadline')}
+              onChange={(e) => setDraftField({ returnDeadline: e.target.value })}
+            />
+          )}
           <button type="submit" className="btn-accent">{t('watchlist.add')}</button>
         </form>
       )}
@@ -338,6 +434,20 @@ export default function Watchlist() {
                   </div>
                 )}
 
+                {/* Примітка про бібліотечну/позичену книгу + дедлайн/стан повернення */}
+                {item.kind === 'book' && item.isLibrary && (
+                  <div className={item.isDebt ? 'watch-library watch-library--debt' : 'watch-library'}>
+                    <Icon name="book-open" className="watch-when-icon" />
+                    <span className="watch-library-label">{t('watchlist.libraryNote')}</span>
+                    {item.returnDeadline && !item.isReturned && (
+                      <span className="watch-library-due">
+                        {t('watchlist.returnBy', { date: new Date(item.returnDeadline).toLocaleDateString() })}
+                      </span>
+                    )}
+                    {item.isReturned && <span className="watch-library-returned">{t('watchlist.returnedNote')}</span>}
+                  </div>
+                )}
+
                 {item.startDate && (
                   <Link to="/app" className="watch-card-when">
                     <Icon name="calendar" className="watch-when-icon" />
@@ -359,6 +469,17 @@ export default function Watchlist() {
                           maxLength={MAX_LEN.description}
                           onChange={(e) => setEdit(item, { review: limitText(e.target.value, MAX_LEN.description) })}
                         />
+                        {/* Реактивація бібліотечної книги: зняти «повернено» → знову у роботу/борги */}
+                        {item.kind === 'book' && item.isLibrary && (
+                          <label className="watch-return watch-return--edit">
+                            <input
+                              type="checkbox"
+                              checked={item.isReturned}
+                              onChange={() => handleReturnToggle(item, !item.isReturned)}
+                            />
+                            {t('watchlist.returned')}
+                          </label>
+                        )}
                         <div className="watch-save-row">
                           <button type="button" className="watch-btn-save" onClick={() => handleSaveDone(item)}>
                             {t('watchlist.saveReview')}
@@ -419,23 +540,136 @@ export default function Watchlist() {
                     )}
                     <div className="watch-sched-actions">
                       <button type="button" className="watch-btn-save" onClick={submitSchedule}>
-                        {t('watchlist.schedule')}
+                        {t(kind === 'book' ? 'watchlist.scheduleBook' : 'watchlist.scheduleVideo')}
                       </button>
                       <button type="button" className="watch-btn-ghost" onClick={() => setSched(null)}>
                         {t('watchlist.cancel')}
                       </button>
                     </div>
                   </div>
+                ) : editId === item.id && editForm ? (
+                  /* Редагування картки: «у планах» — метадані; «у процесі» — лише дата/час */
+                  <div className="watch-sched">
+                    {item.status === 'planned' ? (
+                      <>
+                        <input
+                          type="text"
+                          value={editForm.title}
+                          placeholder={t(`watchlist.addTitle.${item.kind}`)}
+                          maxLength={MAX_LEN.title}
+                          onChange={(e) => setEditForm((f) => ({ ...f, title: limitText(e.target.value, MAX_LEN.title) }))}
+                        />
+                        {item.kind === 'book' && (
+                          <input
+                            type="text"
+                            value={editForm.author}
+                            placeholder={t('watchlist.addAuthor')}
+                            maxLength={MAX_LEN.name}
+                            onChange={(e) => setEditForm((f) => ({ ...f, author: filterWords(e.target.value, MAX_LEN.name) }))}
+                          />
+                        )}
+                        <select value={editForm.genre} onChange={(e) => setEditForm((f) => ({ ...f, genre: e.target.value }))}>
+                          <option value="">{t('watchlist.genreOptional')}</option>
+                          {genres.map((g) => (
+                            <option key={g.key} value={g.key}>{language === 'en' ? g.en : g.uk}</option>
+                          ))}
+                        </select>
+                        {item.kind === 'video' && (
+                          <select value={editForm.type} onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))}>
+                            <option value="">{t('watchlist.typeOptional')}</option>
+                            {VIDEO_TYPES.map((v) => (
+                              <option key={v.key} value={v.key}>{language === 'en' ? v.en : v.uk}</option>
+                            ))}
+                          </select>
+                        )}
+                        {item.kind === 'book' && (
+                          <label className="watch-lib-check">
+                            <input
+                              type="checkbox"
+                              checked={editForm.isLibrary}
+                              onChange={(e) => setEditForm((f) => ({ ...f, isLibrary: e.target.checked }))}
+                            />
+                            {t('watchlist.library')}
+                          </label>
+                        )}
+                        {item.kind === 'book' && editForm.isLibrary && (
+                          <input
+                            type="date"
+                            value={editForm.returnDeadline}
+                            title={t('watchlist.returnDeadline')}
+                            onChange={(e) => setEditForm((f) => ({ ...f, returnDeadline: e.target.value }))}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="watch-sched-row">
+                          <input type="date" value={editForm.date} onChange={(e) => setEditForm((f) => ({ ...f, date: e.target.value }))} />
+                          <input type="time" value={editForm.time} onChange={(e) => setEditForm((f) => ({ ...f, time: e.target.value }))} />
+                        </div>
+                        {item.kind === 'book' && item.isLibrary && (
+                          <input
+                            type="date"
+                            value={editForm.returnDeadline}
+                            title={t('watchlist.returnDeadline')}
+                            onChange={(e) => setEditForm((f) => ({ ...f, returnDeadline: e.target.value }))}
+                          />
+                        )}
+                      </>
+                    )}
+                    {/* Реактивація: зняти «повернено» (книга повернеться у роботу/борги) */}
+                    {item.kind === 'book' && item.isLibrary && (
+                      <label className="watch-return watch-return--edit">
+                        <input
+                          type="checkbox"
+                          checked={item.isReturned}
+                          onChange={() => handleReturnToggle(item, !item.isReturned)}
+                        />
+                        {t('watchlist.returned')}
+                      </label>
+                    )}
+                    <div className="watch-sched-actions">
+                      <button type="button" className="watch-btn-save" onClick={() => handleSaveEdit(item)}>
+                        {t('watchlist.saveReview')}
+                      </button>
+                      <button type="button" className="watch-btn-ghost" onClick={cancelEdit}>
+                        {t('watchlist.cancel')}
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="watch-card-actions">
+                    {/* Чекбокс «повернено» для бібліотечної книги; після повернення — неактивний */}
+                    {item.kind === 'book' && item.isLibrary && (
+                      <label className="watch-return">
+                        <input
+                          type="checkbox"
+                          checked={item.isReturned}
+                          disabled={item.isReturned}
+                          onChange={() => handleReturnToggle(item, true)}
+                        />
+                        {t('watchlist.returned')}
+                      </label>
+                    )}
                     {item.status === 'planned' && (
                       <button type="button" className="watch-btn-ghost" onClick={() => openSchedule(item)}>
-                        {t('watchlist.schedule')}
+                        {t(kind === 'book' ? 'watchlist.scheduleBook' : 'watchlist.scheduleVideo')}
                       </button>
                     )}
                     {item.status !== 'done' && (
                       <button type="button" className="watch-btn-ghost" onClick={() => handleFinish(item)}>
                         {t('watchlist.finish')}
+                      </button>
+                    )}
+                    {item.status !== 'done' && (
+                      <button
+                        type="button"
+                        className="watch-card-btn"
+                        aria-label={t('watchlist.edit')}
+                        data-tooltip={t('watchlist.edit')}
+                        onClick={() => startEdit(item)}
+                      >
+                        <Icon name="pencil" />
                       </button>
                     )}
                     <button

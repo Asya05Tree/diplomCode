@@ -437,3 +437,77 @@
     width: 100%;
   }
 }
+
+/* --- Бібліотечна / позичена книга --- */
+.watch-library {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent);
+  font-size: 0.78rem;
+  color: var(--color-accent-ink);
+}
+.watch-library .watch-when-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.watch-library-label {
+  font-weight: 600;
+}
+.watch-library-due {
+  color: var(--color-accent-ink);
+  opacity: 0.85;
+}
+.watch-library-returned {
+  font-weight: 600;
+}
+/* Прострочена неповернена книга — борг (тривожне забарвлення) */
+.watch-library--debt {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.watch-library--debt .watch-library-due {
+  color: var(--color-danger);
+  opacity: 1;
+}
+
+/* Чекбокс «повернено» */
+.watch-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+.watch-return input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.watch-return input:disabled {
+  cursor: default;
+}
+.watch-return--edit {
+  margin-right: 0;
+}
+
+/* Чекбокс «бібліотечна книга» у формі додавання/редагування */
+.watch-lib-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  color: var(--color-text);
+}
+.watch-lib-check input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
