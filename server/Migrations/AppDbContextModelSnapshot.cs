@@ -213,6 +213,40 @@ namespace Server.Migrations
                     b.ToTable("FinanceTransactions");
                 });
 
+            modelBuilder.Entity("Server.Models.HealthVisit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DoctorKey")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Place")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("When")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "When");
+
+                    b.ToTable("HealthVisits");
+                });
+
             modelBuilder.Entity("Server.Models.ManualRecurrenceDate", b =>
                 {
                     b.Property<int>("Id")
@@ -366,6 +400,38 @@ namespace Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MedicineForms");
+                });
+
+            modelBuilder.Entity("Server.Models.Note", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Position");
+
+                    b.ToTable("Notes");
                 });
 
             modelBuilder.Entity("Server.Models.Product", b =>
@@ -1222,6 +1288,9 @@ namespace Server.Migrations
                     b.Property<bool>("IsEmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime>("LastActiveAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Nickname")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -1755,6 +1824,17 @@ namespace Server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Server.Models.HealthVisit", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Server.Models.ManualRecurrenceDate", b =>
                 {
                     b.HasOne("Server.Models.RecurrenceRule", "RecurrenceRule")
@@ -1793,6 +1873,17 @@ namespace Server.Migrations
                     b.Navigation("Form");
 
                     b.Navigation("Substance");
+                });
+
+            modelBuilder.Entity("Server.Models.Note", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Server.Models.ProductTag", b =>

@@ -25,6 +25,11 @@ builder.Services.AddScoped<FinanceService>();
 builder.Services.AddScoped<CycleService>();
 builder.Services.AddScoped<StudyService>();
 builder.Services.AddScoped<WorkService>();
+builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<CheckupService>();
+
+// Фонове видалення акаунтів, неактивних понад рік
+builder.Services.AddHostedService<InactiveAccountCleanupService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -84,6 +89,24 @@ if (app.Environment.IsDevelopment())
 app.UseCors(DevClientPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Відстеження активності: для автентифікованих запитів оновлюємо LastActiveAt не частіше ніж раз на
+// добу (один дешевий UPDATE, що здебільшого зачіпає 0 рядків). За цим полем фонова служба видаляє
+// акаунти, неактивні понад рік.
+app.Use(async (ctx, next) =>
+{
+    var sub = ctx.User.FindFirst("sub")?.Value;
+    if (sub != null && int.TryParse(sub, out var userId))
+    {
+        var db = ctx.RequestServices.GetRequiredService<Server.Data.AppDbContext>();
+        var since = DateTime.UtcNow.Date;
+        await db.Users
+            .Where(u => u.Id == userId && u.LastActiveAt < since)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.LastActiveAt, DateTime.UtcNow));
+    }
+    await next();
+});
+
 app.MapControllers();
 
 app.Run();

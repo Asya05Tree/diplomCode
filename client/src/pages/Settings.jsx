@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { PALETTES, PALETTE_COLORS, DATE_FORMATS } from '../utils/settings'
 import { formatDateFor } from '../utils/date'
+import { exportData, wipeData, deleteAccount } from '../api/account'
 import Icon from '../components/Icon'
 import './Settings.css'
 
@@ -22,6 +24,67 @@ export default function Settings() {
 
   const STUDENT_TYPES = ['pupil', 'student', 'none']
   const GENDER_OPTIONS = ['female', 'male', 'other']
+
+  // --- Акаунт і дані: експорт, видалення даних, видалення акаунта ---
+  const [exporting, setExporting] = useState(false)
+  const [confirm, setConfirm] = useState(null) // null | 'wipe' | 'delete'
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [accountError, setAccountError] = useState('')
+  const [accountNote, setAccountNote] = useState('')
+
+  const handleExport = async () => {
+    setExporting(true)
+    setAccountError('')
+    try {
+      await exportData()
+    } catch {
+      setAccountError(t('settings.account.exportError'))
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const openConfirm = (mode) => {
+    setConfirm(mode)
+    setPassword('')
+    setAccountError('')
+  }
+
+  const closeConfirm = () => {
+    if (busy) return
+    setConfirm(null)
+    setPassword('')
+    setAccountError('')
+  }
+
+  const submitConfirm = async () => {
+    if (!password) {
+      setAccountError(t('settings.account.passwordRequired'))
+      return
+    }
+    setBusy(true)
+    setAccountError('')
+    try {
+      if (confirm === 'wipe') {
+        await wipeData(password)
+        setConfirm(null)
+        setPassword('')
+        setAccountNote(t('settings.account.wipeDone'))
+      } else {
+        await deleteAccount(password)
+        onLogout() // акаунта більше немає — виходимо
+      }
+    } catch (err) {
+      setAccountError(
+        err?.message === 'invalid_credentials'
+          ? t('settings.account.wrongPassword')
+          : t('settings.account.actionError'),
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div className="settings-page">
@@ -188,6 +251,63 @@ export default function Settings() {
           {t('settings.logoutButton')}
         </button>
       </section>
+
+      <section className="settings-section">
+        <h3>{t('settings.account.title')}</h3>
+        <p className="settings-hint">{t('settings.account.exportHint')}</p>
+        <div className="settings-account-actions">
+          <button type="button" className="settings-account-btn" onClick={handleExport} disabled={exporting}>
+            <Icon name="download" />
+            {exporting ? t('settings.account.exporting') : t('settings.account.export')}
+          </button>
+          {accountNote && <span className="settings-account-note">{accountNote}</span>}
+        </div>
+
+        <div className="settings-danger">
+          <p className="settings-danger-title">{t('settings.account.dangerZone')}</p>
+          <div className="settings-account-actions">
+            <button type="button" className="settings-danger-btn" onClick={() => openConfirm('wipe')}>
+              <Icon name="trash" />
+              {t('settings.account.wipe')}
+            </button>
+            <button type="button" className="settings-danger-btn settings-danger-btn--strong" onClick={() => openConfirm('delete')}>
+              <Icon name="trash" />
+              {t('settings.account.delete')}
+            </button>
+          </div>
+          <p className="settings-hint">{t('settings.account.wipeHint')}</p>
+        </div>
+      </section>
+
+      {confirm && (
+        <div className="settings-modal-backdrop" onClick={closeConfirm}>
+          <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirm === 'wipe' ? t('settings.account.wipe') : t('settings.account.delete')}</h3>
+            <p className="settings-modal-text">
+              {confirm === 'wipe' ? t('settings.account.wipeConfirm') : t('settings.account.deleteConfirm')}
+            </p>
+            <label className="settings-modal-label">
+              {t('settings.account.passwordLabel')}
+              <input
+                type="password"
+                autoFocus
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitConfirm()}
+              />
+            </label>
+            {accountError && <p className="settings-modal-error">{accountError}</p>}
+            <div className="settings-modal-actions">
+              <button type="button" className="btn-ghost" onClick={closeConfirm} disabled={busy}>
+                {t('common.cancel')}
+              </button>
+              <button type="button" className="settings-danger-btn settings-danger-btn--strong" onClick={submitConfirm} disabled={busy}>
+                {busy ? t('settings.account.working') : t('settings.account.confirmButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
