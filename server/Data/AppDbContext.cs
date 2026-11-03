@@ -62,7 +62,10 @@ public class AppDbContext : DbContext
     public DbSet<StudySubject> StudySubjects => Set<StudySubject>();
     public DbSet<StudyAssignment> StudyAssignments => Set<StudyAssignment>();
     public DbSet<BellPeriod> BellPeriods => Set<BellPeriod>();
-    public DbSet<GradeScaleEntry> GradeScaleEntries => Set<GradeScaleEntry>();
+    public DbSet<StudySettings> StudySettings => Set<StudySettings>();
+    public DbSet<StudyScheduleEntry> StudyScheduleEntries => Set<StudyScheduleEntry>();
+    public DbSet<StudyProject> StudyProjects => Set<StudyProject>();
+    public DbSet<StudyProjectStep> StudyProjectSteps => Set<StudyProjectStep>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -266,5 +269,22 @@ public class AppDbContext : DbContext
         b.Entity<StudyAssignment>()
             .HasOne(x => x.Subject).WithMany()
             .HasForeignKey(x => x.SubjectId).OnDelete(DeleteBehavior.SetNull);
+
+        // Налаштування навчання: спільний PK/FK UserId (один рядок на користувача), як у CycleSettings
+        b.Entity<StudySettings>().HasKey(x => x.UserId);
+        b.Entity<StudySettings>()
+            .HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+
+        // Запис розкладу/консультації так само відв'язується при видаленні предмета (SetNull).
+        // RecurrenceRuleId лишаємо простим int без навігації — логічне посилання; саме правило
+        // видаляє StudyService явно (через TaskService), тому каскад тут не потрібен.
+        b.Entity<StudyScheduleEntry>()
+            .HasOne(x => x.Subject).WithMany()
+            .HasForeignKey(x => x.SubjectId).OnDelete(DeleteBehavior.SetNull);
+
+        // Кроки великої роботи належать проєкту — каскад
+        b.Entity<StudyProjectStep>()
+            .HasOne(x => x.Project).WithMany(p => p.Steps)
+            .HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
     }
 }
