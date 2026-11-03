@@ -3,82 +3,166 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Робота · Варіант 4 — облік робочого часу</title>
+<title>Робота · Варіант 4 — дашборд</title>
 <link rel="stylesheet" href="shared.css" />
-<style>
-  .timer-hero { display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px; }
-  .timer-circle { width:160px; height:160px; border-radius:50%; border:8px solid var(--color-accent-2); display:flex; align-items:center; justify-content:center; flex-direction:column; }
-  .timer-time { font-size:1.6rem; font-weight:700; }
-  .timer-label { font-size:0.78rem; color:var(--color-text-muted); }
-  .timer-actions { display:flex; gap:10px; margin-top:6px; }
-  .week-bars { display:flex; align-items:flex-end; gap:14px; height:100px; margin-top:10px; }
-  .week-bars-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; justify-content:flex-end; height:100%; }
-  .week-bars-fill { width:100%; max-width:34px; border-radius:6px 6px 0 0; background:var(--color-accent-gradient); }
-  .week-bars-label { font-size:0.72rem; color:var(--color-text-muted); }
-</style>
 </head>
 <body>
 <div class="app-shell">
   <nav class="sidebar">
-    <span class="sidebar-title">Макети розділу «Робота»</span>
-    <a href="variant-1.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 1</span></a>
-    <a href="variant-2.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 2</span></a>
-    <a href="variant-3.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 3</span></a>
+    <span class="sidebar-title">Робота — обраний макет</span>
+    <a href="index.html" class="sidebar-item"><span class="sidebar-icon">🖼️</span><span class="sidebar-label">Усі варіанти</span></a>
     <a href="variant-4.html" class="sidebar-item sidebar-item--active"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 4</span></a>
-    <a href="variant-5.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 5</span></a>
-    <a href="variant-6.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 6</span></a>
-    <a href="variant-7.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 7</span></a>
-    <a href="variant-8.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 8</span></a>
-    <a href="variant-9.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 9</span></a>
-    <a href="variant-10.html" class="sidebar-item"><span class="sidebar-icon">💼</span><span class="sidebar-label">Варіант 10</span></a>
   </nav>
   <main class="app-main">
     <header class="app-header">
-      <span class="app-header-user">Олена К. · olena@example.com</span>
+      <span class="app-header-user">Софія Р. · sofiia@example.com</span>
     </header>
 
     <div class="page-content">
       <div class="page-head">
         <h2>Робота</h2>
-        <span class="variant-note">Варіант 4 · облік робочого часу — кнопка «Почати/Завершити зміну», скільки відпрацьовано сьогодні й за тиждень</span>
+        <span class="variant-note">Варіант 4 · дашборд: верхня панель KPI, під нею календар і налаштування, далі команда та відсутності</span>
       </div>
 
-      <div class="card timer-hero">
-        <div class="timer-circle">
-          <span class="timer-time">05:42</span>
-          <span class="timer-label">відпрацьовано сьогодні</span>
-        </div>
-        <span class="placeholder-text">Зміна почалась о 09:03</span>
-        <div class="timer-actions">
-          <button type="button" class="btn-outline">⏸ Перерва</button>
-          <button type="button" class="btn-accent">⏹ Завершити зміну</button>
+      <div class="card work-top">
+        <div class="work-top-avatar">☕</div>
+        <div class="work-top-main">
+          <span class="work-name">Кав'ярня «Світанок»</span>
+          <span class="work-role">Бариста-адміністратор · ФОП Коваленко І.</span>
         </div>
       </div>
 
+      <!-- ПАНЕЛЬ KPI -->
+      <div class="kpi-row">
+        <div class="kpi-tile kpi-tile--accent"><span class="kpi-label">Наступна зміна</span><span class="kpi-value">чт 05.11 · 15–23</span></div>
+        <div class="kpi-tile"><span class="kpi-label">Відпрацьовано за листопад</span><span class="kpi-value">96 год</span></div>
+        <div class="kpi-tile"><span class="kpi-label">Нараховано ≈</span><span class="kpi-value">17 280 грн</span></div>
+        <div class="kpi-tile"><span class="kpi-label">Відпустка — залишок</span><span class="kpi-value">12 / 24 дн</span></div>
+        <div class="kpi-tile"><span class="kpi-label">Найближча зустріч</span><span class="kpi-value">сьогодні 10:00</span></div>
+      </div>
+
+      <div class="cols-2">
+        <!-- КАЛЕНДАР -->
+        <div class="card">
+          <div class="section-title"><h3>Графік змін</h3></div>
+          <div class="month-nav">
+            <button class="month-nav-btn">◀</button>
+            <span class="month-nav-label">Листопад 2026</span>
+            <button class="month-nav-btn">▶</button>
+          </div>
+          <div class="shift-grid">
+            <div class="shift-weekday">Пн</div><div class="shift-weekday">Вт</div><div class="shift-weekday">Ср</div><div class="shift-weekday">Чт</div><div class="shift-weekday">Пт</div><div class="shift-weekday">Сб</div><div class="shift-weekday">Нд</div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">26</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">27</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">28</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">29</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">30</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">31</span></div>
+            <div class="shift-day"><span class="shift-num">1</span><span class="shift-chip shift-chip--day">Денна</span></div>
+            <div class="shift-day"><span class="shift-num">2</span><span class="shift-chip shift-chip--day">Денна</span></div>
+            <div class="shift-day shift-day--today"><span class="shift-num">3</span><span class="shift-rest">вихідний</span></div>
+            <div class="shift-day"><span class="shift-num">4</span></div>
+            <div class="shift-day shift-day--next"><span class="shift-num">5</span><span class="shift-chip shift-chip--evening">Вечірня</span></div>
+            <div class="shift-day"><span class="shift-num">6</span><span class="shift-chip shift-chip--evening">Вечірня</span></div>
+            <div class="shift-day"><span class="shift-num">7</span></div>
+            <div class="shift-day"><span class="shift-num">8</span></div>
+            <div class="shift-day"><span class="shift-num">9</span><span class="shift-chip shift-chip--night">Нічна</span></div>
+            <div class="shift-day"><span class="shift-num">10</span><span class="shift-chip shift-chip--night">Нічна</span></div>
+            <div class="shift-day"><span class="shift-num">11</span></div>
+            <div class="shift-day"><span class="shift-num">12</span></div>
+            <div class="shift-day"><span class="shift-num">13</span><span class="shift-chip shift-chip--morning">Ранкова</span></div>
+            <div class="shift-day"><span class="shift-num">14</span><span class="shift-chip shift-chip--morning">Ранкова</span></div>
+            <div class="shift-day"><span class="shift-num">15</span></div>
+            <div class="shift-day"><span class="shift-num">16</span></div>
+            <div class="shift-day"><span class="shift-num">17</span><span class="shift-chip shift-chip--day">Денна</span></div>
+            <div class="shift-day"><span class="shift-num">18</span><span class="shift-chip shift-chip--day">Денна</span></div>
+            <div class="shift-day"><span class="shift-num">19</span></div>
+            <div class="shift-day"><span class="shift-num">20</span></div>
+            <div class="shift-day"><span class="shift-num">21</span><span class="shift-chip shift-chip--evening">Вечірня</span></div>
+            <div class="shift-day"><span class="shift-num">22</span><span class="shift-chip shift-chip--evening">Вечірня</span></div>
+            <div class="shift-day"><span class="shift-num">23</span></div>
+            <div class="shift-day"><span class="shift-num">24</span></div>
+            <div class="shift-day"><span class="shift-num">25</span><span class="shift-chip shift-chip--night">Нічна</span></div>
+            <div class="shift-day"><span class="shift-num">26</span><span class="shift-chip shift-chip--night">Нічна</span></div>
+            <div class="shift-day"><span class="shift-num">27</span></div>
+            <div class="shift-day"><span class="shift-num">28</span></div>
+            <div class="shift-day"><span class="shift-num">29</span><span class="shift-chip shift-chip--morning">Ранкова</span></div>
+            <div class="shift-day"><span class="shift-num">30</span><span class="shift-chip shift-chip--morning">Ранкова</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">1</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">2</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">3</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">4</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">5</span></div>
+            <div class="shift-day shift-day--muted"><span class="shift-num">6</span></div>
+          </div>
+          <div class="legend" style="margin-top:14px;">
+            <span class="legend-item"><span class="sh-dot sh-dot--morning"></span>Ранкова</span>
+            <span class="legend-item"><span class="sh-dot sh-dot--day"></span>Денна</span>
+            <span class="legend-item"><span class="sh-dot sh-dot--evening"></span>Вечірня</span>
+            <span class="legend-item"><span class="sh-dot sh-dot--night"></span>Нічна</span>
+          </div>
+        </div>
+
+        <!-- НАЛАШТУВАННЯ + ЗУСТРІЧІ -->
+        <div class="stack">
+          <div class="card stack">
+            <div>
+              <span class="chip-label">Тип оплати</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;"><span class="pill pill--active">Погодинна</span><span class="pill">За місяць</span><span class="pill">За проєкт</span></div>
+            </div>
+            <div>
+              <span class="chip-label">Шаблон графіка</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;"><span class="pill">5/2</span><span class="pill pill--active">2/2</span><span class="pill">3/2</span><span class="pill">свій…</span></div>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Тип зміни</th><th>Колір</th><th>Час</th></tr></thead>
+              <tbody>
+                <tr><td>Ранкова</td><td><span class="color-dot-lg sh-swatch--morning"></span></td><td>07:00–15:00</td></tr>
+                <tr><td>Денна</td><td><span class="color-dot-lg sh-swatch--day"></span></td><td>11:00–19:00</td></tr>
+                <tr><td>Вечірня</td><td><span class="color-dot-lg sh-swatch--evening"></span></td><td>15:00–23:00</td></tr>
+                <tr><td>Нічна</td><td><span class="color-dot-lg sh-swatch--night"></span></td><td>23:00–07:00</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>Зустрічі</h3></div>
+            <div class="meet-list">
+              <div class="meet-row"><span class="meet-time">Пн 03.11 · 10:00</span><div class="meet-main"><div class="meet-title">Планерка зміни</div><div class="meet-people">з Іриною Коваленко</div></div><span class="pill">у залі</span></div>
+              <div class="meet-row"><span class="meet-time">Ср 05.11 · 14:00</span><div class="meet-main"><div class="meet-title">Дегустація сорту</div><div class="meet-people">з Андрієм Бондарем</div></div><span class="pill">Zoom</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- КОНТАКТИ (компактна таблиця) + ВІДПУСТКИ -->
       <div class="card">
-        <div class="section-title"><h3>Цей тиждень</h3><span class="kpi-value" style="font-size:1.1rem;">31 год 15 хв</span></div>
-        <div class="week-bars">
-          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">7.8г</span><div class="week-bars-fill" style="height:70px;"></div><span class="week-bars-label">Пн</span></div>
-          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">8.1г</span><div class="week-bars-fill" style="height:73px;"></div><span class="week-bars-label">Вт</span></div>
-          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">7.5г</span><div class="week-bars-fill" style="height:67px;"></div><span class="week-bars-label">Ср</span></div>
-          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">5.7г</span><div class="week-bars-fill" style="height:51px;"></div><span class="week-bars-label">Чт (сьогодні)</span></div>
-          <div class="week-bars-col"><span class="week-bars-label" style="order:-1;">—</span><div class="week-bars-fill" style="height:0px; background:var(--pill-bg);"></div><span class="week-bars-label">Пт</span></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title"><h3>Журнал змін</h3></div>
+        <div class="section-title"><h3>Команда й контакти</h3><button class="btn-outline">+ Контакт</button></div>
         <table class="data-table">
-          <thead><tr><th>Дата</th><th>Початок</th><th>Кінець</th><th>Відпрацьовано</th><th>Понаднормово</th></tr></thead>
+          <thead><tr><th>Контакт</th><th>Група</th><th>Статус</th><th>Телефон</th><th>Пошта</th><th>Дн</th><th>Соцмережі</th></tr></thead>
           <tbody>
-            <tr><td>19.10.2026 (сьогодні)</td><td>09:03</td><td>—</td><td>05:42 (триває)</td><td class="none-text">—</td></tr>
-            <tr><td>18.10.2026</td><td>08:57</td><td>17:48</td><td>08:09</td><td><span class="badge badge--warn">+0:09</span></td></tr>
-            <tr><td>17.10.2026</td><td>09:01</td><td>16:32</td><td>07:31</td><td class="none-text">—</td></tr>
-            <tr><td>16.10.2026</td><td>08:55</td><td>17:02</td><td>08:07</td><td><span class="badge badge--warn">+0:07</span></td></tr>
-            <tr><td>15.10.2026</td><td>09:00</td><td>16:48</td><td>07:48</td><td class="none-text">—</td></tr>
+            <tr><td>Ірина Коваленко<br><span class="none-text">Керуюча · власниця</span></td><td>Керівництво</td><td><span class="cstatus cstatus--on">онлайн</span></td><td>+380 67 123 45 67</td><td>iryna@svitanok.ua</td><td>12.03</td><td>📷 💬</td></tr>
+            <tr><td>Олег Петренко<br><span class="none-text">Бариста</span></td><td>Зміна</td><td><span class="cstatus cstatus--on">на зміні</span></td><td>+380 93 222 11 00</td><td class="none-text">—</td><td>28.07</td><td>💬</td></tr>
+            <tr><td>Марія Сидоренко<br><span class="none-text">Бариста</span></td><td>Зміна</td><td><span class="cstatus cstatus--vac">відпустка</span></td><td>+380 50 333 22 11</td><td>maria.s@gmail.com</td><td class="none-text">—</td><td>📷</td></tr>
+            <tr><td>Денис Ткаченко<br><span class="none-text">Стажер</span></td><td>Зміна</td><td><span class="cstatus cstatus--off">вихідний</span></td><td>+380 97 444 55 66</td><td class="none-text">—</td><td class="none-text">—</td><td class="none-text">—</td></tr>
+            <tr><td>Андрій Бондар<br><span class="none-text">Постачальник</span></td><td>Суміжні</td><td><span class="cstatus cstatus--off">офлайн</span></td><td>+380 44 555 66 77</td><td>andriy@beans.ua</td><td class="none-text">—</td><td>💬</td></tr>
+            <tr><td>Олена Гриценко<br><span class="none-text">Бухгалтер</span></td><td>Суміжні</td><td><span class="cstatus cstatus--off">офлайн</span></td><td>+380 63 777 88 99</td><td>o.hrytsenko@buh.ua</td><td class="none-text">—</td><td class="none-text">—</td></tr>
+          </tbody>
+        </table>
+        <p class="placeholder-text" style="margin:10px 0 0;">Пошта, день народження й соцмережі — за бажанням (прочерк = не вказано).</p>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h3>Відпустки й лікарняні</h3><button class="btn-accent">+ Заявка</button></div>
+        <table class="data-table">
+          <thead><tr><th>Тип</th><th>Період</th><th>Днів</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>Відпустка</td><td>22–26.12.2026</td><td>5</td><td><span class="badge badge--warn">на розгляді</span></td></tr>
+            <tr><td>Лікарняний</td><td>14–16.09.2026</td><td>3</td><td><span class="badge badge--ok">підтверджено</span></td></tr>
+            <tr><td>Відпустка</td><td>04–08.08.2026</td><td>5</td><td><span class="badge badge--ok">використано</span></td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </main>
 </div>
