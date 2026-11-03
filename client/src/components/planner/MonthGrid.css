@@ -65,6 +65,7 @@
 }
 
 .month-grid-cell {
+  position: relative;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -91,9 +92,11 @@
   opacity: 0.4;
 }
 
-/* "Сьогодні" — рамка кольором палітри (ink = читабельний на будь-якому фоні) */
+/* "Сьогодні" — рамка кольором палітри + легкий фоновий відтінок, щоб день було видно
+   і без місячних, і коли на ньому крапля (period) */
 .month-grid-cell--today {
   border: 2px solid var(--color-accent-ink);
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
   font-weight: 700;
 }
 
@@ -142,4 +145,27 @@
   outline: 1px dashed var(--color-study);
   outline-offset: -2px;
   font-weight: 600;
+}
+
+/* Менструація — факт дня: крапля біля цифри (не подія за часом). Колір — danger (кров) за темою. */
+.month-grid-cell-num {
+  line-height: 1;
+}
+.month-grid-cell-blood {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 11px;
+  height: 11px;
+  color: var(--color-danger);
+}
+.month-grid-cell--period {
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+}
+.month-grid-cell--period:hover {
+  background: color-mix(in srgb, var(--color-danger) 24%, transparent);
+}
+/* На обраному (акцентна заливка) та сьогоднішньому дні крапля лишається помітною */
+.month-grid-cell--selected .month-grid-cell-blood {
+  color: var(--color-on-accent);
 }

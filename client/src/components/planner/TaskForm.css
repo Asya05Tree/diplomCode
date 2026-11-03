@@ -9,6 +9,20 @@
   animation: fade-in-up var(--transition-slow) both;
 }
 
+/* Тривалість: години + хвилини в одному рядку */
+.task-form-duration {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-form-duration input {
+  width: 64px;
+}
+.task-form-duration-unit {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
 .task-form label {
   display: flex;
   flex-direction: column;

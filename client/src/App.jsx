@@ -28,12 +28,12 @@ import {
 
 const AUTH_TOKEN_KEY = 'authToken'
 
-function Layout({ user, studentType, outletContext }) {
+function Layout({ user, studentType, gender, outletContext }) {
   const initial = (user?.nickname || user?.email || '?').trim().charAt(0).toUpperCase()
   const location = useLocation()
   return (
     <div className="app-shell">
-      <Sidebar studentType={studentType} />
+      <Sidebar studentType={studentType} gender={gender} />
       <main className="app-main">
         <header className="app-header">
           <div className="app-header-user" title={user?.email}>
@@ -64,14 +64,17 @@ function AppContent() {
   // Статус навчання/роботи з профілю: керує видимістю розділу "Навчання" й режимом його сторінки
   const [studentType, setStudentType] = useState(null)
   const [isWorking, setIsWorking] = useState(false)
+  // Стать з профілю: керує видимістю розділу "Менструальний цикл" (лише жіноча)
+  const [gender, setGender] = useState(null)
   const navigate = useNavigate()
 
-  // Довантажуємо статус навчання з профілю (тихо — помилка не має ламати вхід)
+  // Довантажуємо статус навчання й стать з профілю (тихо — помилка не має ламати вхід)
   const loadStudyStatus = () =>
     getHealthProfile()
       .then((p) => {
         setStudentType(p?.studentType ?? null)
         setIsWorking(Boolean(p?.isWorking))
+        setGender(p?.gender ?? null)
       })
       .catch(() => {})
 
@@ -110,11 +113,18 @@ function AppContent() {
     await setHealthProfile({ studentType: type, isWorking: working })
   }
 
+  // Зміна статі в налаштуваннях: оновлюємо стан (sidebar/цикл реагують) і пишемо в профіль
+  const handleSetGender = async (nextGender) => {
+    setGender(nextGender)
+    await setHealthProfile({ gender: nextGender })
+  }
+
   const handleLogout = () => {
     localStorage.removeItem(AUTH_TOKEN_KEY)
     setUser(null)
     setStudentType(null)
     setIsWorking(false)
+    setGender(null)
     navigate('/')
   }
 
@@ -146,6 +156,8 @@ function AppContent() {
     studentType,
     isWorking,
     onSetStudyStatus: handleSetStudyStatus,
+    gender,
+    onSetGender: handleSetGender,
   }
 
   return (
@@ -183,7 +195,7 @@ function AppContent() {
           path="/app"
           element={
             user ? (
-              <Layout user={user} studentType={studentType} outletContext={settingsOutletContext} />
+              <Layout user={user} studentType={studentType} gender={gender} outletContext={settingsOutletContext} />
             ) : (
               <Navigate to="/" replace />
             )
@@ -196,7 +208,7 @@ function AppContent() {
           <Route path="finance" element={<Finance />} />
           <Route path="study" element={<Study />} />
           <Route path="watchlist" element={<Watchlist />} />
-          <Route path="cycle" element={<Cycle />} />
+          <Route path="cycle" element={gender === 'female' ? <Cycle /> : <Navigate to="/app" replace />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

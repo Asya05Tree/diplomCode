@@ -4,12 +4,23 @@ import { formatTime, fromApiDateTime } from '../../utils/date'
 import Icon from '../Icon'
 import './OverlapGroup.css'
 
-// Кілька задач на точно один час (§4.4) — замість плоского списку з позначкою "накладається"
-// згортаємо їх в один рядок, що розгортається кліком.
+// Кілька задач, чиї проміжки накладаються (§4.4) — замість плоского списку з позначкою
+// "накладається" згортаємо їх в один рядок, що розгортається кліком. Задачі можуть мати
+// різний час початку, тож заголовок показує діапазон кластера: найраніший початок – найпізніший кінець.
 export default function OverlapGroup({ tasks, renderItem }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
-  const time = tasks[0].startDateTime ? formatTime(fromApiDateTime(tasks[0].startDateTime)) : '—'
+
+  const starts = tasks.filter((x) => x.startDateTime).map((x) => fromApiDateTime(x.startDateTime).getTime())
+  const ends = tasks
+    .filter((x) => x.startDateTime)
+    .map((x) => fromApiDateTime(x.startDateTime).getTime() + (x.durationMinutes ? x.durationMinutes * 60000 : 0))
+  let time = '—'
+  if (starts.length) {
+    const minStart = formatTime(new Date(Math.min(...starts)))
+    const maxEnd = Math.max(...ends)
+    time = maxEnd > Math.min(...starts) ? `${minStart} – ${formatTime(new Date(maxEnd))}` : minStart
+  }
 
   return (
     <div className="overlap-group">

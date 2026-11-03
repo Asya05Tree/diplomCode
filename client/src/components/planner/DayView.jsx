@@ -7,13 +7,14 @@ import MoveTaskForm from './MoveTaskForm'
 import OverlapGroup from './OverlapGroup'
 import ReminderBanner from './ReminderBanner'
 import { getDayTasks, getReminder, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
-import { isSameDate, fromApiDateTime, toApiDate, timeStatusOf } from '../../utils/date'
+import { markCycleStart, markCycleEnd, clearCycleDay } from '../../api/cycle'
+import { isSameDate, fromApiDateTime, toApiDate, timeStatusOf, groupOverlapping } from '../../utils/date'
 import './DayView.css'
 import './TimeStatus.css'
 
 // planner-spec.md §4.3 "День" — розклад обраної дати. Ранковий банер (§4.5) показується тільки
 // коли обрано "сьогодні" — саме тоді нагадувати про вчора має сенс.
-export default function DayView({ token, date, onTasksChanged }) {
+export default function DayView({ token, date, onTasksChanged, gender, onCycleChanged }) {
   const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
   const [reminderTasks, setReminderTasks] = useState([])
@@ -101,16 +102,22 @@ export default function DayView({ token, date, onTasksChanged }) {
     onTasksChanged?.()
   }
 
-  // Декілька задач на точно один час (§4.4) групуються в один розгортний рядок (OverlapGroup)
-  const groupedTasks = useMemo(() => {
-    const map = new Map()
-    for (const task of tasks) {
-      const key = task.startDateTime ?? `none-${task.id}`
-      if (!map.has(key)) map.set(key, [])
-      map.get(key).push(task)
+  // Позначення менструації для цього дня (факт дня, не подія) — пише у спільні дані циклу,
+  // тож одразу синхронізується з календарем вкладки «Менструальний цикл».
+  const markPeriod = async (action) => {
+    const apiDate = toApiDate(date)
+    try {
+      if (action === 'start') await markCycleStart(apiDate)
+      else if (action === 'end') await markCycleEnd(apiDate)
+      else await clearCycleDay(apiDate)
+    } catch {
+      // кінець/прибрати можуть не знайти запис — ігноруємо
     }
-    return Array.from(map.values())
-  }, [tasks])
+    onCycleChanged?.()
+  }
+
+  // Задачі, чиї проміжки часу накладаються (§4.4), групуються в один розгортний рядок (OverlapGroup)
+  const groupedTasks = useMemo(() => groupOverlapping(tasks), [tasks])
 
   const renderTaskRow = (task) => {
     const itemKey = `${task.id}-${task.startDateTime}`
@@ -198,6 +205,16 @@ export default function DayView({ token, date, onTasksChanged }) {
         </button>
       </div>
 
+      {/* Позначення місячних для цього дня — лише для жіночого профілю */}
+      {gender === 'female' && (
+        <div className="day-cycle-row">
+          <span className="day-cycle-label">{t('cycle.markLabel')}</span>
+          <button type="button" className="day-cycle-btn" onClick={() => markPeriod('start')}>{t('cycle.markStartDay')}</button>
+          <button type="button" className="day-cycle-btn" onClick={() => markPeriod('end')}>{t('cycle.markEndDay')}</button>
+          <button type="button" className="day-cycle-btn day-cycle-btn--clear" onClick={() => markPeriod('clear')}>{t('cycle.markClear')}</button>
+        </div>
+      )}
+
       {showForm && (
         <TaskForm
           token={token}
@@ -215,24 +232,27 @@ export default function DayView({ token, date, onTasksChanged }) {
         <p className="placeholder-text">{t('planner.noTasksDay')}</p>
       ) : (
         <>
-          <div className="ts-sort-switch">
-            <button
-              type="button"
-              className={sortMode === 'time' ? 'ts-sort-btn ts-sort-btn--active' : 'ts-sort-btn'}
-              onClick={() => setSortMode('time')}
-            >
-              {t('planner.sortByTime')}
-            </button>
-            <button
-              type="button"
-              className={sortMode === 'status' ? 'ts-sort-btn ts-sort-btn--active' : 'ts-sort-btn'}
-              onClick={() => setSortMode('status')}
-            >
-              {t('planner.sortByStatus')}
-            </button>
-          </div>
+          {/* Перемикач статусу має сенс лише для сьогодні (інший день цілком у минулому/майбутньому) */}
+          {isToday && (
+            <div className="ts-sort-switch">
+              <button
+                type="button"
+                className={sortMode === 'time' ? 'ts-sort-btn ts-sort-btn--active' : 'ts-sort-btn'}
+                onClick={() => setSortMode('time')}
+              >
+                {t('planner.sortByTime')}
+              </button>
+              <button
+                type="button"
+                className={sortMode === 'status' ? 'ts-sort-btn ts-sort-btn--active' : 'ts-sort-btn'}
+                onClick={() => setSortMode('status')}
+              >
+                {t('planner.sortByStatus')}
+              </button>
+            </div>
+          )}
 
-          {sortMode === 'time' ? (
+          {!(isToday && sortMode === 'status') ? (
             <div className="day-view-list">{renderGroups(groupedTasks)}</div>
           ) : (
             <div className="ts-sections">

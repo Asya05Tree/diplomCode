@@ -7,7 +7,8 @@ namespace Server.Controllers;
 
 public record AddCycleRecordRequest(DateOnly StartDate);
 public record EndCycleRecordRequest(DateOnly EndDate);
-public record CycleSettingsRequest(bool ReduceLoadOnHeavyDays);
+public record CycleDateRequest(DateOnly Date);
+public record CycleSettingsRequest(bool ReduceLoadOnHeavyDays, string? HygieneProduct);
 
 // planner-spec.md §3.7. Цикл: записи, прогноз, налаштування. Уся логіка — у CycleService.
 [ApiController]
@@ -52,10 +53,32 @@ public class CycleController : ControllerBase
         return ok ? Ok() : NotFound();
     }
 
+    // Дата-орієнтовані позначення (кліком на будь-якому календарі — дані єдині)
+    [HttpPost("start")]
+    public async Task<IActionResult> MarkStart([FromBody] CycleDateRequest request)
+    {
+        var id = await _cycleService.StartByDateAsync(CurrentUserId, request.Date);
+        return Ok(new { id });
+    }
+
+    [HttpPost("end")]
+    public async Task<IActionResult> MarkEnd([FromBody] CycleDateRequest request)
+    {
+        var ok = await _cycleService.EndByDateAsync(CurrentUserId, request.Date);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpPost("clear")]
+    public async Task<IActionResult> ClearDay([FromBody] CycleDateRequest request)
+    {
+        var ok = await _cycleService.ClearByDateAsync(CurrentUserId, request.Date);
+        return ok ? Ok() : NotFound();
+    }
+
     [HttpPut("settings")]
     public async Task<IActionResult> SetSettings([FromBody] CycleSettingsRequest request)
     {
-        await _cycleService.SetSettingsAsync(CurrentUserId, request.ReduceLoadOnHeavyDays);
+        await _cycleService.SetSettingsAsync(CurrentUserId, request.ReduceLoadOnHeavyDays, request.HygieneProduct);
         return Ok();
     }
 }

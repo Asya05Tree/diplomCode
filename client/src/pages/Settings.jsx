@@ -11,10 +11,11 @@ export default function Settings() {
   const { t, language, setLanguage } = useI18n()
   const {
     onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette,
-    studentType, isWorking, onSetStudyStatus,
+    studentType, isWorking, onSetStudyStatus, gender, onSetGender,
   } = useOutletContext()
 
   const STUDENT_TYPES = ['pupil', 'student', 'none']
+  const GENDER_OPTIONS = ['female', 'male', 'other']
 
   return (
     <div className="settings-page">
@@ -118,6 +119,22 @@ export default function Settings() {
           />
           {t('register.working')}
         </label>
+      </section>
+
+      <section className="settings-section">
+        <h3>{t('settings.genderLabel')}</h3>
+        <div className="settings-options">
+          {GENDER_OPTIONS.map((g) => (
+            <button
+              key={g}
+              type="button"
+              className={gender === g ? 'settings-option settings-option--active' : 'settings-option'}
+              onClick={() => onSetGender(g)}
+            >
+              {t(`register.gender.${g}`)}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="settings-section">

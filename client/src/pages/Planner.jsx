@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import MonthGrid from '../components/planner/MonthGrid'
 import ModeSwitch from '../components/planner/ModeSwitch'
@@ -8,7 +9,8 @@ import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
 import UnassignedView from '../components/planner/UnassignedView'
 import { getFreeDays, getPeriodTasks, getUnassignedCount } from '../api/tasks'
-import { addDays, getMonthGridCells } from '../utils/date'
+import { getCycle } from '../api/cycle'
+import { addDays, getMonthGridCells, fromApiDate, startOfDay, toApiDate } from '../utils/date'
 import './Planner.css'
 
 const AUTH_TOKEN_KEY = 'authToken'
@@ -18,6 +20,7 @@ const AUTH_TOKEN_KEY = 'authToken'
 // запасом вільного часу підсвічені кольором, порожні дні без заливки; працює завжди, без перемикача.
 export default function Planner() {
   const { t } = useI18n()
+  const { gender } = useOutletContext() ?? {}
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
 
   const [visibleMonth, setVisibleMonth] = useState(() => {
@@ -42,6 +45,10 @@ export default function Planner() {
   // й лічильник на вкладці "Нерозподілені" не застарівали
   const [tasksVersion, setTasksVersion] = useState(0)
   const notifyTasksChanged = () => setTasksVersion((v) => v + 1)
+  // Дні місячних (факт дня) для жіночих профілів; бампаємо після позначення з Дня
+  const [periodDays, setPeriodDays] = useState(() => new Set())
+  const [cycleVersion, setCycleVersion] = useState(0)
+  const notifyCycleChanged = () => setCycleVersion((v) => v + 1)
 
   const visibleGridRange = useMemo(() => {
     const cells = getMonthGridCells(visibleMonth.getFullYear(), visibleMonth.getMonth())
@@ -84,14 +91,48 @@ export default function Planner() {
       .catch(() => {})
   }, [token, tasksVersion])
 
+  // Дні місячних для сітки: лише для жіночих профілів; будуємо Set 'YYYY-MM-DD' із записів циклу
+  useEffect(() => {
+    if (gender !== 'female') {
+      setPeriodDays(new Set())
+      return
+    }
+    let cancelled = false
+    getCycle()
+      .then((data) => {
+        if (cancelled) return
+        const set = new Set()
+        const today = startOfDay(new Date())
+        for (const r of data?.records ?? []) {
+          if (!r.startDate) continue
+          let d = fromApiDate(r.startDate)
+          const end = r.endDate ? fromApiDate(r.endDate) : today // відкритий період — до сьогодні
+          for (let guard = 0; d <= end && guard < 400; guard++) {
+            set.add(toApiDate(d))
+            d = addDays(d, 1)
+          }
+        }
+        setPeriodDays(set)
+      })
+      .catch(() => {
+        if (!cancelled) setPeriodDays(new Set())
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [gender, cycleVersion])
+
   const markings = activeTab === 'recurring' ? recurringMarkings : busyMarkings
 
   const handleSelectDate = (date) => {
-    if (activeTab === 'recurring') {
-      if (manualDateHandler) manualDateHandler(date)
+    // Якщо саме триває вибір ручних дат повторення — лишаємо цю поведінку (вставка/зняття дати)
+    if (activeTab === 'recurring' && manualDateHandler) {
+      manualDateHandler(date)
       return
     }
-    if (activeTab !== 'dayPeriod' || mode !== 'day') return
+    // Інакше клік по дню завжди відкриває День цього дня (з Періоду/Нерозподілених/Повторюваних теж)
+    setActiveTab('dayPeriod')
+    setMode('day')
     setSelectedDate(date)
   }
 
@@ -104,6 +145,7 @@ export default function Planner() {
           selectedDate={activeTab === 'dayPeriod' && mode === 'day' ? selectedDate : null}
           onSelectDate={handleSelectDate}
           markings={markings}
+          periodDays={periodDays}
         />
 
         {activeTab === 'dayPeriod' && (
@@ -143,7 +185,13 @@ export default function Planner() {
           ) : activeTab === 'unassigned' ? (
             <UnassignedView token={token} onTasksChanged={notifyTasksChanged} />
           ) : mode === 'day' ? (
-            <DayView token={token} date={selectedDate} onTasksChanged={notifyTasksChanged} />
+            <DayView
+              token={token}
+              date={selectedDate}
+              onTasksChanged={notifyTasksChanged}
+              gender={gender}
+              onCycleChanged={notifyCycleChanged}
+            />
           ) : (
             <PeriodView
               token={token}

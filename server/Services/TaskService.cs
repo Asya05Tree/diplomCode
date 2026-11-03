@@ -433,6 +433,10 @@ public class TaskService
 
     // ---- CRUD одноразової задачі -----------------------------------------------------------
 
+    // Тривалість задачі обмежена 8 годинами (480 хв). null/≤0 → без тривалості.
+    private static int? ClampDuration(int? durationMinutes)
+        => durationMinutes is > 0 ? Math.Min(durationMinutes.Value, 480) : null;
+
     // moduleCode/sourceModule/sourceEntityId — опційні: за замовчуванням звичайна задача ("tasks"),
     // але інші модулі (напр. "Запланувати похід у магазин") створюють задачу з посиланням на своє джерело.
     public async Task<TaskItem> CreateTaskAsync(
@@ -445,7 +449,7 @@ public class TaskService
             Title = title,
             Description = description,
             StartDateTime = startDateTime,
-            DurationMinutes = durationMinutes,
+            DurationMinutes = ClampDuration(durationMinutes),
             Deadline = deadline,
             Status = startDateTime is null ? "Unassigned" : "Planned",
             ModuleCode = moduleCode,
@@ -466,7 +470,7 @@ public class TaskService
         task.Title = title;
         task.Description = description;
         task.StartDateTime = startDateTime;
-        task.DurationMinutes = durationMinutes;
+        task.DurationMinutes = ClampDuration(durationMinutes);
         task.Deadline = deadline;
         // Перенесення (Move з Нерозподілених) повертає задачу в план, навіть якщо вона стала Unknown
         if (startDateTime is not null) task.Status = "Planned";
@@ -552,7 +556,7 @@ public class TaskService
             UserId = userId,
             Title = title,
             Description = description,
-            DurationMinutes = durationMinutes,
+            DurationMinutes = ClampDuration(durationMinutes),
             StartDateTime = startDate.ToDateTime(timeOfDay),
             RecurrenceRuleId = rule.Id,
             ModuleCode = moduleCode,
@@ -589,7 +593,7 @@ public class TaskService
 
         template.Title = title;
         template.Description = description;
-        template.DurationMinutes = durationMinutes;
+        template.DurationMinutes = ClampDuration(durationMinutes);
         template.StartDateTime = startDate.ToDateTime(timeOfDay);
 
         await _db.SaveChangesAsync();

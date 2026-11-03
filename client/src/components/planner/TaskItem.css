@@ -29,8 +29,9 @@
 }
 
 .task-item-time {
-  width: 46px;
+  min-width: 46px;
   flex-shrink: 0;
+  white-space: nowrap;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   font-weight: 500;

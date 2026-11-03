@@ -8,7 +8,7 @@ const LOCALE_BY_LANGUAGE = { uk: 'uk-UA', en: 'en-US' }
 // Ліва частина планувальника (planner-spec.md §4.2). Заливка клітинок залежить від режиму —
 // прокидається ззовні через markings, сітка сама знає лише про today/selected (§4.4: заливка
 // поточного режиму ніколи не змішується з іншою).
-export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings }) {
+export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays }) {
   const { t, language } = useI18n()
   const today = new Date()
   const year = visibleMonth.getFullYear()
@@ -16,6 +16,8 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
   const cells = getMonthGridCells(year, month)
   const weekdayLabels = t('planner.weekdaysShort').split(',')
   const marks = markings ?? new Map()
+  // Дні місячних — факт дня (не подія), показуємо краплею біля цифри
+  const periods = periodDays ?? new Set()
 
   const monthLabel = visibleMonth.toLocaleDateString(LOCALE_BY_LANGUAGE[language] ?? 'uk-UA', {
     month: 'long',
@@ -56,15 +58,18 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
         {cells.map(({ date, inCurrentMonth }) => {
           const key = toApiDate(date)
           const mark = marks.get(key)
+          const isPeriod = periods.has(key)
           const classNames = ['month-grid-cell']
           if (!inCurrentMonth) classNames.push('month-grid-cell--outside')
           if (isSameDate(date, today)) classNames.push('month-grid-cell--today')
           if (selectedDate && isSameDate(date, selectedDate)) classNames.push('month-grid-cell--selected')
           if (mark) classNames.push(`month-grid-cell--${mark}`)
+          if (isPeriod) classNames.push('month-grid-cell--period')
 
           return (
             <button key={key} type="button" className={classNames.join(' ')} onClick={() => onSelectDate(date)}>
-              {date.getDate()}
+              <span className="month-grid-cell-num">{date.getDate()}</span>
+              {isPeriod && <Icon name="drop" className="month-grid-cell-blood" />}
             </button>
           )
         })}

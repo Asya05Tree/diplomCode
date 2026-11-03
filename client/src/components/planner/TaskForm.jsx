@@ -3,9 +3,10 @@ import { useI18n } from '../../i18n'
 import { createTask, createRecurrenceRule } from '../../api/tasks'
 import { addMedia, scheduleMedia } from '../../api/media'
 import { genresFor, VIDEO_TYPES } from '../../utils/watchlistTaxonomy'
-import { toApiDate, toApiDateTime, formatTime, todayApiDate } from '../../utils/date'
+import { toApiDate, toApiDateTime, formatTime, todayApiDate, combineDuration } from '../../utils/date'
 import { MAX_LEN, filterWords, limitText } from '../../utils/validation'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
+import DurationFields from './DurationFields'
 import RecurrenceFields from './RecurrenceFields'
 import ShoppingTaskTabs from './ShoppingTaskTabs'
 import './TaskForm.css'
@@ -35,7 +36,8 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
   const [repeats, setRepeats] = useState(defaultRecurring)
   const [date, setDate] = useState(toApiDate(initialDate))
   const [time, setTime] = useState(formatTime(initialDate))
-  const [duration, setDuration] = useState('')
+  const [durationH, setDurationH] = useState('0')
+  const [durationM, setDurationM] = useState('0')
   const [deadline, setDeadline] = useState('')
 
   const [recurrence, setRecurrence] = useState(() => createDefaultRecurrenceValue(initialDate))
@@ -136,7 +138,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         const rule = await createRecurrenceRule(token, {
           title: title.trim(),
           description: description.trim() || null,
-          durationMinutes: duration ? Number(duration) : null,
+          durationMinutes: combineDuration(durationH, durationM),
           ...recurrenceValueToPayload(recurrence),
         })
         onSaved(rule)
@@ -150,7 +152,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           title: title.trim(),
           description: description.trim() || null,
           startDateTime,
-          durationMinutes: duration ? Number(duration) : null,
+          durationMinutes: combineDuration(durationH, durationM),
           deadline: deadlineDateTime,
         })
         onSaved(created)
@@ -278,17 +280,7 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
 
       {!isShoppingTask && !isMediaTask && (
         <div className="task-form-row">
-          <label>
-            {t('taskForm.duration')}
-            <input
-              type="number"
-              min="1"
-              max="1440"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              onBlur={(e) => setDuration(String(Math.min(1440, Math.max(1, Math.round(Number(e.target.value) || 1)))))}
-            />
-          </label>
+          <DurationFields hours={durationH} minutes={durationM} onHours={setDurationH} onMinutes={setDurationM} />
           {!repeats && (
             <label>
               {t('taskForm.deadline')}

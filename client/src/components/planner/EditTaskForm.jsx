@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
-import { toApiDate, toApiDateTime, formatTime, fromApiDateTime, todayApiDate } from '../../utils/date'
+import { toApiDate, toApiDateTime, formatTime, fromApiDateTime, todayApiDate, combineDuration, splitDuration } from '../../utils/date'
+import DurationFields from './DurationFields'
 import './TaskForm.css'
 
 // Повне редагування одноразової задачі (назва/опис/дата/час/тривалість/дедлайн) — для
@@ -14,7 +15,9 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
   const [description, setDescription] = useState(task.description ?? '')
   const [date, setDate] = useState(toApiDate(startDate))
   const [time, setTime] = useState(formatTime(startDate))
-  const [duration, setDuration] = useState(task.durationMinutes ?? '')
+  const initialDur = splitDuration(task.durationMinutes ?? 0)
+  const [durationH, setDurationH] = useState(String(initialDur.hours))
+  const [durationM, setDurationM] = useState(String(initialDur.minutes))
   const [deadline, setDeadline] = useState(task.deadline ? toApiDate(fromApiDateTime(task.deadline)) : '')
   const [error, setError] = useState('')
 
@@ -32,7 +35,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
       title: title.trim(),
       description: description.trim() || null,
       startDateTime: toApiDateTime(new Date(y, m - 1, d, h, min)),
-      durationMinutes: duration ? Number(duration) : null,
+      durationMinutes: combineDuration(durationH, durationM),
       deadline: deadline ? `${deadline}T23:59:00` : null,
     })
   }
@@ -61,17 +64,7 @@ export default function EditTaskForm({ task, onSave, onCancel }) {
       </div>
 
       <div className="task-form-row">
-        <label>
-          {t('taskForm.duration')}
-          <input
-            type="number"
-            min="1"
-            max="1440"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            onBlur={(e) => setDuration(String(Math.min(1440, Math.max(1, Math.round(Number(e.target.value) || 1)))))}
-          />
-        </label>
+        <DurationFields hours={durationH} minutes={durationM} onHours={setDurationH} onMinutes={setDurationM} />
         <label>
           {t('taskForm.deadline')}
           <input type="date" value={deadline} min={todayApiDate()} onChange={(e) => setDeadline(e.target.value)} />

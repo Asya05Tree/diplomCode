@@ -93,6 +93,23 @@ export function dayStatusOf(startDateTime, now = new Date()) {
   return 'today'
 }
 
+// Тривалість задачі обмежена 8 годинами.
+export const MAX_DURATION_MINUTES = 480
+
+// Години+хвилини → загальна тривалість у хвилинах (клампимо до [0, 480]); 0 → null (без тривалості).
+export function combineDuration(hours, minutes) {
+  const h = Math.max(0, Math.min(8, Math.floor(Number(hours) || 0)))
+  const m = Math.max(0, Math.min(59, Math.floor(Number(minutes) || 0)))
+  const total = Math.min(MAX_DURATION_MINUTES, h * 60 + m)
+  return total > 0 ? total : null
+}
+
+// Хвилини → {hours, minutes} для початкового заповнення полів.
+export function splitDuration(mins) {
+  const total = Math.max(0, Math.min(MAX_DURATION_MINUTES, Math.floor(Number(mins) || 0)))
+  return { hours: Math.floor(total / 60), minutes: total % 60 }
+}
+
 // "12:30" або "12:30 – 12:45" (якщо задано тривалість у хвилинах). Кінець = початок + тривалість.
 export function formatTimeRange(startDateTime, durationMinutes) {
   if (!startDateTime) return '—'

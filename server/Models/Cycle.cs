@@ -18,4 +18,7 @@ public class CycleSettings
     public int UserId { get; set; }
     public User? User { get; set; }
     public bool ReduceLoadOnHeavyDays { get; set; }
+    // Обраний засіб гігієни (pads|tampons|cup|liners|other). Коли місячні скоро/тривають —
+    // автоматично додається до списку покупок (розділ "Аптека").
+    public string? HygieneProduct { get; set; }
 }

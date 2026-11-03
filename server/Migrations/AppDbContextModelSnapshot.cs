@@ -78,6 +78,9 @@ namespace Server.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("HygieneProduct")
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("ReduceLoadOnHeavyDays")
                         .HasColumnType("tinyint(1)");
 

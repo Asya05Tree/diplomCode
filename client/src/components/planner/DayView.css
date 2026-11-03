@@ -48,3 +48,43 @@
   display: flex;
   flex-direction: column;
 }
+
+/* Рядок позначення місячних (жіночий профіль) */
+.day-cycle-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}
+.day-cycle-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.day-cycle-btn {
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+  background: var(--color-surface);
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: 5px 11px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.day-cycle-btn:hover {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
+}
+.day-cycle-btn--clear {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+.day-cycle-btn--clear:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}

@@ -5,7 +5,7 @@ import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
 import OverlapGroup from './OverlapGroup'
 import { getPeriodTasks, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
-import { addMonths, fromApiDateTime, startOfDay, toApiDate, timeStatusOf } from '../../utils/date'
+import { addMonths, fromApiDateTime, startOfDay, toApiDate, timeStatusOf, dayStatusOf, groupOverlapping } from '../../utils/date'
 import './PeriodView.css'
 import './TimeStatus.css'
 
@@ -109,29 +109,15 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
       if (!map.has(key)) map.set(key, [])
       map.get(key).push(task)
     }
-    // Декілька задач на точно один час (§4.4) — об'єднати в один розгортний рядок усередині дня
+    // Усередині дня задачі з накладанням проміжків (§4.4) об'єднуються в один розгортний рядок
     return Array.from(map.entries())
       .sort(([a], [b]) => (a < b ? -1 : 1))
-      .map(([dateKey, dayTasks]) => {
-        const byTime = new Map()
-        for (const task of dayTasks) {
-          if (!byTime.has(task.startDateTime)) byTime.set(task.startDateTime, [])
-          byTime.get(task.startDateTime).push(task)
-        }
-        return [dateKey, Array.from(byTime.values())]
-      })
+      .map(([dateKey, dayTasks]) => [dateKey, groupOverlapping(dayTasks)])
   }, [tasks])
 
-  // Пласкі групи "на один час" по всьому періоду (для режиму статусу часу)
-  const timeGroupsFlat = useMemo(() => {
-    const byTime = new Map()
-    for (const task of tasks) {
-      if (!task.startDateTime) continue
-      if (!byTime.has(task.startDateTime)) byTime.set(task.startDateTime, [])
-      byTime.get(task.startDateTime).push(task)
-    }
-    return Array.from(byTime.values())
-  }, [tasks])
+  // Пласкі кластери накладання по всьому періоду (для режиму статусу). Задачі різних днів
+  // у часі не перетинаються, тож кластер завжди в межах одного дня.
+  const timeGroupsFlat = useMemo(() => groupOverlapping(tasks), [tasks])
 
   const renderTaskRow = (task) => {
     const itemKey = `${task.id}-${task.startDateTime}`
@@ -195,9 +181,10 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
         <OverlapGroup key={group[0].startDateTime} tasks={group} renderItem={renderTaskRow} />
       ))
 
-  const statusOf = (group) => timeStatusOf(group[0].startDateTime, group[0].durationMinutes, now)
+  // У періоді групуємо за ДАТОЮ відносно сьогодні: минуле / сьогодні / майбутнє (а не «зараз»)
+  const statusOf = (group) => dayStatusOf(group[0].startDateTime, now)
   const byStart = (a, b) => ((a[0].startDateTime ?? '') < (b[0].startDateTime ?? '') ? -1 : 1)
-  const nowGroups = timeGroupsFlat.filter((g) => statusOf(g) === 'now').sort(byStart)
+  const todayGroups = timeGroupsFlat.filter((g) => statusOf(g) === 'today').sort(byStart)
   const futureGroups = timeGroupsFlat.filter((g) => statusOf(g) === 'future').sort(byStart)
   const pastGroups = timeGroupsFlat.filter((g) => statusOf(g) === 'past').sort(byStart)
 
@@ -277,10 +264,10 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
             </div>
           ) : (
             <div className="ts-sections">
-              {nowGroups.length > 0 && (
+              {todayGroups.length > 0 && (
                 <div className="ts-group ts-group--now">
-                  <div className="ts-group-title">{t('planner.statusNow')}</div>
-                  {renderGroups(nowGroups)}
+                  <div className="ts-group-title">{t('planner.statusToday')}</div>
+                  {renderGroups(todayGroups)}
                 </div>
               )}
               {futureGroups.length > 0 && (

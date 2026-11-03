@@ -117,7 +117,10 @@ public class ShoppingService
             .ToList();
     }
 
-    public async Task<int?> AddItemAsync(int userId, string section, string? category, string? text, int? productId, int? medicineId)
+    // source/sourceEntityId — за замовчуванням ручне додавання; інші модулі (напр. "Cycle")
+    // можуть позначити походження позиції, щоб уникати дублів і впізнавати її.
+    public async Task<int?> AddItemAsync(int userId, string section, string? category, string? text, int? productId, int? medicineId,
+        string source = "Manual", int? sourceEntityId = null)
     {
         if (section is not ("Groceries" or "Pharmacy" or "Other")) return null;
         // Має бути рівно одне джерело назви: продукт, ліки або довільний текст
@@ -131,7 +134,8 @@ public class ShoppingService
             ProductId = productId,
             MedicineId = medicineId,
             CustomText = string.IsNullOrWhiteSpace(text) ? null : text.Trim(),
-            Source = "Manual",
+            Source = source,
+            SourceEntityId = sourceEntityId,
         };
         _db.ShoppingItems.Add(item);
         await _db.SaveChangesAsync();

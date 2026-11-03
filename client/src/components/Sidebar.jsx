@@ -20,14 +20,16 @@ const NAV_ITEMS = [
   { key: 'nav.settings', icon: 'settings', color: 'var(--color-tasks)', to: '/app/settings' },
 ]
 
-export default function Sidebar({ studentType }) {
+export default function Sidebar({ studentType, gender }) {
   const { t } = useI18n()
 
-  // Розділ "Навчання" показуємо лише тим, хто навчається (школяр/студент).
-  // "none" чи ще не обрано — ховаємо, доки користувач не змінить статус у налаштуваннях.
-  const items = NAV_ITEMS.filter(
-    (item) => item.key !== 'nav.study' || studentType === 'pupil' || studentType === 'student',
-  )
+  // Розділ "Навчання" — лише школяр/студент; "Менструальний цикл" — лише жіноча стать.
+  // Доки статус/стать не обрано — відповідний пункт прихований, зʼявиться після зміни в налаштуваннях.
+  const items = NAV_ITEMS.filter((item) => {
+    if (item.key === 'nav.study') return studentType === 'pupil' || studentType === 'student'
+    if (item.key === 'nav.cycle') return gender === 'female'
+    return true
+  })
 
   return (
     <nav className="sidebar">
