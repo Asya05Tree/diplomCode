@@ -14,19 +14,21 @@ const NAV_ITEMS = [
   { key: 'nav.health', icon: 'health', color: 'var(--color-health)', to: '/app/health' },
   { key: 'nav.finance', icon: 'finance', color: 'var(--color-finance)', to: '/app/finance' },
   { key: 'nav.study', icon: 'study', color: 'var(--color-study)', to: '/app/study' },
-  { key: 'nav.work', icon: 'work', color: 'var(--color-work)' },
+  { key: 'nav.work', icon: 'work', color: 'var(--color-work)', to: '/app/work' },
   { key: 'nav.cycle', icon: 'cycle', color: 'var(--color-cycle)', to: '/app/cycle' },
   { key: 'nav.notes', icon: 'notes', color: 'var(--color-notes)' },
   { key: 'nav.settings', icon: 'settings', color: 'var(--color-tasks)', to: '/app/settings' },
 ]
 
-export default function Sidebar({ studentType, gender }) {
+export default function Sidebar({ studentType, isWorking, gender }) {
   const { t } = useI18n()
 
-  // Розділ "Навчання" — лише школяр/студент; "Менструальний цикл" — лише жіноча стать.
-  // Доки статус/стать не обрано — відповідний пункт прихований, зʼявиться після зміни в налаштуваннях.
+  // Розділ "Навчання" — лише школяр/студент; "Робота" — лише якщо користувач працює;
+  // "Менструальний цикл" — лише жіноча стать. Доки відповідний статус не обрано в налаштуваннях —
+  // пункт прихований (planner-spec.md §2.4: вимкнений модуль не з'являється в навігації).
   const items = NAV_ITEMS.filter((item) => {
     if (item.key === 'nav.study') return studentType === 'pupil' || studentType === 'student'
+    if (item.key === 'nav.work') return Boolean(isWorking)
     if (item.key === 'nav.cycle') return gender === 'female'
     return true
   })

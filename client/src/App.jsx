@@ -9,6 +9,7 @@ import Food from './pages/Food'
 import Health from './pages/Health'
 import Finance from './pages/Finance'
 import Study from './pages/Study'
+import Work from './pages/Work'
 import Watchlist from './pages/Watchlist'
 import Cycle from './pages/Cycle'
 import Settings from './pages/Settings'
@@ -28,12 +29,12 @@ import {
 
 const AUTH_TOKEN_KEY = 'authToken'
 
-function Layout({ user, studentType, gender, outletContext }) {
+function Layout({ user, studentType, isWorking, gender, outletContext }) {
   const initial = (user?.nickname || user?.email || '?').trim().charAt(0).toUpperCase()
   const location = useLocation()
   return (
     <div className="app-shell">
-      <Sidebar studentType={studentType} gender={gender} />
+      <Sidebar studentType={studentType} isWorking={isWorking} gender={gender} />
       <main className="app-main">
         <header className="app-header">
           <div className="app-header-user" title={user?.email}>
@@ -195,7 +196,7 @@ function AppContent() {
           path="/app"
           element={
             user ? (
-              <Layout user={user} studentType={studentType} gender={gender} outletContext={settingsOutletContext} />
+              <Layout user={user} studentType={studentType} isWorking={isWorking} gender={gender} outletContext={settingsOutletContext} />
             ) : (
               <Navigate to="/" replace />
             )
@@ -207,6 +208,7 @@ function AppContent() {
           <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="finance" element={<Finance />} />
           <Route path="study" element={<Study />} />
+          <Route path="work" element={isWorking ? <Work /> : <Navigate to="/app" replace />} />
           <Route path="watchlist" element={<Watchlist />} />
           <Route path="cycle" element={gender === 'female' ? <Cycle /> : <Navigate to="/app" replace />} />
           <Route path="settings" element={<Settings />} />

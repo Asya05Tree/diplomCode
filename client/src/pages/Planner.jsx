@@ -45,6 +45,8 @@ export default function Planner() {
   // й лічильник на вкладці "Нерозподілені" не застарівали
   const [tasksVersion, setTasksVersion] = useState(0)
   const notifyTasksChanged = () => setTasksVersion((v) => v + 1)
+  // Робочі дні (moduleCode="work": зміни з графіка + зустрічі) — позначаються іконкою роботи в сітці
+  const [workDays, setWorkDays] = useState(() => new Set())
   // Дні місячних (факт дня) для жіночих профілів; бампаємо після позначення з Дня
   const [periodDays, setPeriodDays] = useState(() => new Set())
   const [cycleVersion, setCycleVersion] = useState(0)
@@ -82,6 +84,23 @@ export default function Planner() {
       cancelled = true
     }
   }, [token, visibleGridRange, minFreeHours, activeTab, tasksVersion])
+
+  // Робочі дні для сітки: збираємо дати задач/змін moduleCode="work" у видимому діапазоні.
+  // Окремий ефект (не лише на вкладці "День/Період"), щоб іконка роботи була в сітці завжди.
+  useEffect(() => {
+    let cancelled = false
+    getPeriodTasks(token, visibleGridRange.from, visibleGridRange.to)
+      .then((tasks) => {
+        if (cancelled) return
+        const set = new Set()
+        for (const task of tasks) {
+          if (task.moduleCode === 'work' && task.startDateTime) set.add(task.startDateTime.slice(0, 10))
+        }
+        setWorkDays(set)
+      })
+      .catch(() => { if (!cancelled) setWorkDays(new Set()) })
+    return () => { cancelled = true }
+  }, [token, visibleGridRange, tasksVersion])
 
   // Лічильник на вкладці "Нерозподілені" (раніше показувався в сайдбарі) — оновлюється
   // після будь-якої зміни задач, незалежно від того, яка вкладка зараз активна
@@ -146,6 +165,7 @@ export default function Planner() {
           onSelectDate={handleSelectDate}
           markings={markings}
           periodDays={periodDays}
+          workDays={workDays}
         />
 
         {activeTab === 'dayPeriod' && (

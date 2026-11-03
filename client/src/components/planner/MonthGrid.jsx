@@ -8,7 +8,7 @@ const LOCALE_BY_LANGUAGE = { uk: 'uk-UA', en: 'en-US' }
 // Ліва частина планувальника (planner-spec.md §4.2). Заливка клітинок залежить від режиму —
 // прокидається ззовні через markings, сітка сама знає лише про today/selected (§4.4: заливка
 // поточного режиму ніколи не змішується з іншою).
-export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays }) {
+export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays, workDays }) {
   const { language, weekStart, weekdays } = useI18n()
   const today = new Date()
   const year = visibleMonth.getFullYear()
@@ -18,6 +18,8 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
   const marks = markings ?? new Map()
   // Дні місячних — факт дня (не подія), показуємо краплею біля цифри
   const periods = periodDays ?? new Set()
+  // Робочі дні (задачі/зміни з moduleCode="work") — позначаємо іконкою роботи
+  const works = workDays ?? new Set()
 
   const monthLabel = visibleMonth.toLocaleDateString(LOCALE_BY_LANGUAGE[language] ?? 'uk-UA', {
     month: 'long',
@@ -59,6 +61,7 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
           const key = toApiDate(date)
           const mark = marks.get(key)
           const isPeriod = periods.has(key)
+          const isWork = works.has(key)
           const classNames = ['month-grid-cell']
           if (!inCurrentMonth) classNames.push('month-grid-cell--outside')
           if (isSameDate(date, today)) classNames.push('month-grid-cell--today')
@@ -69,6 +72,7 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
           return (
             <button key={key} type="button" className={classNames.join(' ')} onClick={() => onSelectDate(date)}>
               <span className="month-grid-cell-num">{date.getDate()}</span>
+              {isWork && <Icon name="work" className="month-grid-cell-work" />}
               {isPeriod && <Icon name="drop" className="month-grid-cell-blood" />}
             </button>
           )
