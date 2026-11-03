@@ -1427,6 +1427,225 @@ namespace Server.Migrations
                     b.ToTable("UserTagPreferences");
                 });
 
+            modelBuilder.Entity("Server.Models.WorkContact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("Birthday")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Socials")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "GroupName");
+
+                    b.ToTable("WorkContacts");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkLeave", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "StartDate");
+
+                    b.ToTable("WorkLeaves");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkMeeting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Place")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("When")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("WithWhom")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "When");
+
+                    b.ToTable("WorkMeetings");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkObligation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDone")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkObligations");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkSettings", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Employer")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PayType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Position")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal?>("Rate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("WorkSettings");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkShiftEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("RecurrenceRuleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShiftTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShiftTypeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkShiftEntries");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkShiftType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkShiftTypes");
+                });
+
             modelBuilder.Entity("Server.Models.BellPeriod", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
@@ -1965,6 +2184,91 @@ namespace Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Tag");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkContact", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkLeave", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkMeeting", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkObligation", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkSettings", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkShiftEntry", b =>
+                {
+                    b.HasOne("Server.Models.WorkShiftType", "ShiftType")
+                        .WithMany()
+                        .HasForeignKey("ShiftTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ShiftType");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkShiftType", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

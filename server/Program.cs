@@ -24,6 +24,7 @@ builder.Services.AddScoped<ShoppingService>();
 builder.Services.AddScoped<FinanceService>();
 builder.Services.AddScoped<CycleService>();
 builder.Services.AddScoped<StudyService>();
+builder.Services.AddScoped<WorkService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
