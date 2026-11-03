@@ -1,0 +1,282 @@
+/* Розділ "Робота". Токени й патерни узгоджені з index.css / Study.css (ті самі змінні теми,
+   радіуси, тіні, акцентний градієнт). Статусні кольори scoped на .work-page. */
+
+.work-page {
+  padding: clamp(16px, 3vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  --status-ok-bg: #d9f2e1;
+  --status-ok-text: #1f8a4c;
+  --status-warn-bg: #ffead1;
+  --status-warn-text: #c77c10;
+  --status-bad-bg: #fbdede;
+  --status-bad-text: #d1453c;
+}
+.theme-dark .work-page {
+  --status-ok-bg: #1f3a2b;
+  --status-warn-bg: #3f3320;
+  --status-bad-bg: #4a2320;
+}
+
+.work-page h2, .work-page h3, .work-page h4 { margin: 0; }
+
+/* --- Заголовок роботи (назва + посада) --- */
+.work-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.work-top-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+  background: var(--color-accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-on-accent);
+}
+.work-top-avatar .icon { width: 28px; height: 28px; }
+.work-top-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.work-name { font-family: var(--font-heading); font-size: clamp(1.3rem, 2.6vw, 1.7rem); font-weight: 700; color: var(--color-heading); line-height: 1.1; }
+.work-role { font-size: 0.92rem; color: var(--color-text-muted); }
+.work-top-meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.work-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 0.82rem;
+}
+.work-chip .icon { width: 15px; height: 15px; }
+.work-chip-label { color: var(--color-text-muted); font-size: 0.72rem; }
+.work-chip--accent { background: var(--color-accent-gradient); color: var(--color-on-accent); font-weight: 600; }
+.work-chip--accent .work-chip-label { color: color-mix(in srgb, var(--color-on-accent) 72%, transparent); }
+
+/* --- Вкладки (плитки, як у Study) --- */
+.work-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.work-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 150px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.work-tab:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
+.work-tab--active { border-color: transparent; background: var(--color-accent-gradient); box-shadow: var(--shadow-accent); }
+.work-tab--active .work-tab-title { color: var(--color-on-accent); text-shadow: var(--on-accent-shadow); }
+.work-tab--active .work-tab-icon { color: var(--color-on-accent); }
+.work-tab-icon { display: inline-flex; color: var(--color-accent-ink); }
+.work-tab-icon .icon { width: 22px; height: 22px; }
+.work-tab-title { font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; color: var(--color-heading); }
+
+/* --- Заголовок секції в картці --- */
+.work-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.work-section-head h3 { font-size: 1rem; }
+.work-save-row { display: flex; align-items: center; gap: 10px; }
+.work-saved-note { font-size: 0.8rem; color: var(--status-ok-text); }
+
+/* --- Форми --- */
+.work-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.work-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.work-form-wide { grid-column: 1 / -1; }
+.work-inline-form { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.work-form label, .work-field-row label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--color-text-muted); }
+.work-form-grow { flex: 1 1 180px; }
+.work-form input, .work-form select, .work-field-row input, .work-field-row select {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 0.88rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+.work-optional { color: var(--color-text-muted); font-weight: 400; font-size: 0.72rem; }
+.work-form-actions { display: flex; gap: 8px; }
+.work-field-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-bottom: 12px; }
+.work-field-label { font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 6px; }
+
+/* --- Пілюлі (тип оплати, режим додавання графіка) --- */
+.work-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.work-mode-pills { margin-bottom: 12px; }
+.work-pill {
+  border: none;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition), color var(--transition);
+}
+.work-pill--active { background: var(--color-accent-gradient); color: var(--color-on-accent); font-weight: 600; box-shadow: var(--shadow-sm); }
+
+/* --- KPI-плитки --- */
+.work-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.work-kpi-tile {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 13px 16px;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--shadow-sm);
+}
+.work-kpi-tile--accent { background: var(--color-accent-gradient); border-color: transparent; }
+.work-kpi-tile--accent .work-kpi-label, .work-kpi-tile--accent .work-kpi-sub { color: color-mix(in srgb, var(--color-on-accent) 75%, transparent); }
+.work-kpi-tile--accent .work-kpi-value { color: var(--color-on-accent); }
+.work-kpi-label { font-size: 0.74rem; color: var(--color-text-muted); }
+.work-kpi-value { font-size: 1.2rem; font-weight: 700; color: var(--color-heading); }
+.work-kpi-sub { font-size: 0.76rem; color: var(--color-text-muted); }
+
+/* --- Місячний календар змін --- */
+.work-month-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px; }
+.work-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.work-nav-btn .icon { width: 16px; height: 16px; }
+.work-nav-btn:hover { background: var(--color-accent-soft); border-color: var(--color-accent); }
+.work-month-label { font-weight: 700; font-size: 0.95rem; min-width: 150px; text-align: center; text-transform: capitalize; }
+
+.work-cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; }
+.work-cal-weekdays span { text-align: center; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.02em; color: var(--color-text-muted); }
+.work-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.work-cal-day {
+  position: relative;
+  min-height: 56px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 4px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.work-cal-day--muted { opacity: 0.4; }
+.work-cal-day--today { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.work-cal-day--next { box-shadow: 0 0 0 2px var(--color-accent) inset; }
+.work-cal-num { font-size: 0.76rem; font-weight: 600; color: var(--color-heading); }
+.work-cal-chip { font-size: 0.66rem; font-weight: 700; padding: 1px 5px; border-radius: 6px; color: #243; text-align: center; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.work-cal-more { font-size: 0.64rem; color: var(--color-text-muted); }
+
+.work-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; margin-top: 14px; }
+.work-legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text); }
+.work-legend-dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+
+/* --- Кольори типів змін --- */
+.work-color-field { display: flex; flex-direction: column; gap: 4px; }
+.work-color-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.work-swatch { width: 26px; height: 26px; border-radius: 7px; border: 2px solid transparent; cursor: pointer; }
+.work-swatch--active { border-color: var(--color-heading); box-shadow: 0 0 0 2px var(--color-surface) inset; }
+.work-color-dot { width: 16px; height: 16px; border-radius: 5px; display: inline-block; vertical-align: middle; }
+
+/* --- Таблиці (успадковують вигляд .data-table зі Study/загальних) --- */
+.work-row-actions { white-space: nowrap; text-align: right; }
+.work-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  margin-left: 6px;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.work-icon-btn .icon { width: 16px; height: 16px; }
+.work-icon-btn:hover { background: var(--color-accent-soft); border-color: var(--color-accent); }
+.work-icon-btn--danger:hover { background: var(--status-bad-bg); color: var(--status-bad-text); border-color: var(--status-bad-text); }
+
+/* --- Записи графіка --- */
+.work-entries { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-border); }
+.work-entries h4 { font-size: 0.9rem; margin-bottom: 10px; }
+.work-entry-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--color-border); }
+.work-entry-row:last-child { border-bottom: none; }
+.work-entry-name { font-weight: 600; font-size: 0.88rem; }
+.work-entry-sum { font-size: 0.8rem; color: var(--color-text-muted); flex: 1; }
+.work-quick-note { font-size: 0.8rem; color: var(--color-text-muted); align-self: center; }
+.work-quick, .work-custom { display: flex; flex-direction: column; gap: 10px; }
+
+/* --- Контакти --- */
+.work-group-head { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 8px; }
+.work-group-head:first-of-type { margin-top: 4px; }
+.work-group-head h4 { font-size: 0.92rem; }
+.work-group-count { font-size: 0.74rem; color: var(--color-text-muted); }
+.work-contact-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.work-contact-card { display: flex; gap: 11px; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.work-contact-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--color-accent-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--color-on-accent); flex-shrink: 0; }
+.work-contact-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.work-contact-name { font-weight: 600; font-size: 0.9rem; }
+.work-contact-line { font-size: 0.78rem; color: var(--color-text); display: inline-flex; align-items: center; gap: 6px; }
+.work-contact-line .icon { width: 14px; height: 14px; color: var(--color-text-muted); }
+.work-contact-socials { color: var(--color-text-muted); }
+.work-contact-actions { display: flex; flex-direction: column; gap: 4px; }
+.work-cstatus { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--color-text-muted); }
+.work-cstatus::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; }
+.work-cstatus--online::before { background: #2e9e5b; }
+.work-cstatus--busy::before { background: #c77c10; }
+.work-cstatus--offline::before { background: #9ca3af; }
+.work-cstatus--vacation::before { background: #6c8ec9; }
+
+/* --- Зустрічі --- */
+.work-meet-list { display: flex; flex-direction: column; gap: 8px; }
+.work-meet-row { display: flex; gap: 12px; align-items: center; padding: 10px 13px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.work-meet-time { flex-shrink: 0; width: 120px; font-size: 0.8rem; color: var(--color-text-muted); display: flex; flex-direction: column; }
+.work-meet-time b { color: var(--color-heading); font-size: 0.95rem; }
+.work-meet-main { flex: 1; min-width: 0; }
+.work-meet-title { font-weight: 600; font-size: 0.88rem; }
+.work-meet-place { font-size: 0.78rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 5px; }
+.work-meet-place .icon { width: 13px; height: 13px; }
+.work-sync-note { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; }
+.work-sync-note .icon { width: 15px; height: 15px; }
+
+/* --- Зобов'язання --- */
+.work-obl-list { display: flex; flex-direction: column; gap: 6px; }
+.work-obl-row { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.work-obl-row--done { opacity: 0.6; }
+.work-obl-row--done .work-obl-title { text-decoration: line-through; }
+.work-obl-check { background: none; border: none; cursor: pointer; color: var(--color-accent-ink); display: inline-flex; padding: 0; }
+.work-obl-check .icon { width: 22px; height: 22px; }
+.work-obl-box { width: 20px; height: 20px; border: 2px solid var(--color-border-strong); border-radius: 6px; display: inline-block; }
+.work-obl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.work-obl-title { font-size: 0.88rem; font-weight: 500; }
+.work-obl-note { font-size: 0.78rem; color: var(--color-text-muted); }
+.work-obl-due { font-size: 0.78rem; color: var(--color-text-muted); white-space: nowrap; }
+
+.work-schedule { display: flex; flex-direction: column; gap: 16px; }
+
+@media (max-width: 760px) {
+  .work-tab { flex-basis: calc(50% - 10px); }
+  .work-meet-time { width: 96px; }
+}
