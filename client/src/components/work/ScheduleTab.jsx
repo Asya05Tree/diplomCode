@@ -79,10 +79,12 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
 
   const openAddType = () => { setEditingTypeId(null); setTypeForm(emptyType); setShowTypeForm(true) }
   const openEditType = (tp) => { setEditingTypeId(tp.id); setTypeForm({ name: tp.name, color: tp.color, startTime: hhmm(tp.startTime), endTime: hhmm(tp.endTime) }); setShowTypeForm(true) }
+  // Бекенд (System.Text.Json → TimeOnly) очікує "HH:MM:SS"; поля <input type="time"> дають "HH:MM"
+  const withSeconds = (tm) => (tm && tm.length === 5 ? `${tm}:00` : tm)
   const submitType = async (e) => {
     e.preventDefault()
     if (!typeForm.name.trim()) return
-    const payload = { name: typeForm.name.trim(), color: typeForm.color, startTime: typeForm.startTime, endTime: typeForm.endTime }
+    const payload = { name: typeForm.name.trim(), color: typeForm.color, startTime: withSeconds(typeForm.startTime), endTime: withSeconds(typeForm.endTime) }
     if (editingTypeId) await updateShiftType(editingTypeId, payload)
     else await addShiftType(payload)
     setShowTypeForm(false); setTypeForm(emptyType); setEditingTypeId(null)
