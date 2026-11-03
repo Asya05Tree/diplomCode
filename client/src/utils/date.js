@@ -72,6 +72,17 @@ export function formatTime(date) {
   return `${h}:${m}`
 }
 
+// Статус події за часом відносно `now`: 'past' | 'now' | 'future'.
+// "now" = подія вже почалась і ще триває (start <= now < start+тривалість). Без тривалості
+// подія вважається миттєвою — вона не буває "now" (тільки future до старту, past після).
+export function timeStatusOf(startDateTime, durationMinutes, now = new Date()) {
+  if (!startDateTime) return 'future'
+  const start = fromApiDateTime(startDateTime)
+  if (now < start) return 'future'
+  if (durationMinutes && now < new Date(start.getTime() + durationMinutes * 60000)) return 'now'
+  return 'past'
+}
+
 // 6 тижнів (42 клітинки), понеділок — перший день, із сусідніми місяцями для заповнення сітки
 export function getMonthGridCells(year, month) {
   const firstOfMonth = new Date(year, month, 1)

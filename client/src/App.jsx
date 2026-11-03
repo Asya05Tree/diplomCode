@@ -9,7 +9,6 @@ import Food from './pages/Food'
 import Health from './pages/Health'
 import Finance from './pages/Finance'
 import Study from './pages/Study'
-import ToDo from './pages/ToDo'
 import Watchlist from './pages/Watchlist'
 import Cycle from './pages/Cycle'
 import Settings from './pages/Settings'
@@ -196,7 +195,6 @@ function AppContent() {
           <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="finance" element={<Finance />} />
           <Route path="study" element={<Study />} />
-          <Route path="todo" element={<ToDo />} />
           <Route path="watchlist" element={<Watchlist />} />
           <Route path="cycle" element={<Cycle />} />
           <Route path="settings" element={<Settings />} />

@@ -6,12 +6,13 @@ import './TaskItem.css'
 // Рядок задачі — спільний для Дня/Періоду/Нерозподілених. Набір кнопок задає той, хто рендерить
 // (§4.4/§4.5: у віртуальних інстансів правил — лише "перенести/скасувати цей день", в одноразових —
 // готово/пропущено/перенести/видалити).
-export default function TaskItem({ task, actions = [] }) {
+// isNow — подія триває прямо зараз: підсвічуємо фоном за темою (працює в обох режимах сортування).
+export default function TaskItem({ task, actions = [], isNow = false }) {
   const { t } = useI18n()
   const time = task.startDateTime ? formatTime(fromApiDateTime(task.startDateTime)) : '—'
 
   return (
-    <div className="task-item">
+    <div className={isNow ? 'task-item task-item--now' : 'task-item'}>
       <span className="task-item-time">{time}</span>
       <div className="task-item-body">
         <span className="task-item-title">

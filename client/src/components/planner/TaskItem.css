@@ -16,6 +16,18 @@
   background: var(--color-surface-2);
 }
 
+/* Подія, що триває прямо зараз — підсвічування фоном за акцентом теми */
+.task-item--now {
+  background: var(--color-accent-soft);
+  box-shadow: inset 3px 0 0 0 var(--color-accent);
+}
+.task-item--now:hover {
+  background: color-mix(in srgb, var(--color-accent-soft) 70%, var(--color-accent));
+}
+.task-item--now .task-item-time {
+  color: var(--color-accent);
+}
+
 .task-item-time {
   width: 46px;
   flex-shrink: 0;
