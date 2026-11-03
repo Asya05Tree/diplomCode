@@ -12,6 +12,7 @@ import Study from './pages/Study'
 import Work from './pages/Work'
 import Watchlist from './pages/Watchlist'
 import Cycle from './pages/Cycle'
+import Notes from './pages/Notes'
 import Settings from './pages/Settings'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
@@ -211,6 +212,7 @@ function AppContent() {
           <Route path="work" element={isWorking ? <Work /> : <Navigate to="/app" replace />} />
           <Route path="watchlist" element={<Watchlist />} />
           <Route path="cycle" element={gender === 'female' ? <Cycle /> : <Navigate to="/app" replace />} />
+          <Route path="notes" element={<Notes />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,0 +1,185 @@
+.notes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* --- Вкладки (нотатки / дошка) — як в інших розділах --- */
+.notes-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.notes-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.notes-tab .icon { width: 18px; height: 18px; }
+.notes-tab:hover { border-color: var(--color-accent); transform: translateY(-1px); }
+.notes-tab--active {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Нотатки-квадратики --- */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+.note-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+  color: #33312b; /* темний текст — пастельні картки лишаються світлими в обох темах */
+}
+.note-text {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  font: inherit;
+  color: inherit;
+  outline: none;
+  line-height: 1.4;
+}
+.note-text::placeholder { color: rgba(0, 0, 0, 0.4); }
+.note-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.note-colors { display: flex; gap: 4px; }
+.note-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  padding: 0;
+  cursor: pointer;
+}
+.note-color--active { border-color: rgba(0, 0, 0, 0.55); }
+.note-count { margin-left: auto; font-size: 0.7rem; color: rgba(0, 0, 0, 0.45); }
+.note-remove {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.5);
+  padding: 2px;
+  cursor: pointer;
+}
+.note-remove .icon { width: 16px; height: 16px; }
+.note-remove:hover { color: var(--color-danger); }
+
+.note-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 190px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+.note-add .icon { width: 26px; height: 26px; }
+.note-add:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-ink);
+  background: var(--color-accent-soft);
+}
+
+/* --- Дошка для малювання --- */
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.board-colors, .board-sizes, .board-tools { display: flex; align-items: center; gap: 8px; }
+.board-tools { margin-left: auto; }
+.board-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+.board-color:hover { transform: scale(1.1); }
+.board-color--active { border-color: var(--color-text); box-shadow: 0 0 0 2px var(--color-accent-soft); }
+.board-size {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+.board-size--active { border-color: var(--color-accent); background: var(--color-accent-soft); }
+.board-size-dot { background: var(--color-text); border-radius: 50%; display: inline-block; }
+.board-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.board-tool .icon { width: 16px; height: 16px; }
+.board-tool:hover { border-color: var(--color-accent); }
+.board-tool--active { background: var(--color-accent-soft); border-color: var(--color-accent); color: var(--color-accent-ink); }
+.board-tool--accent { background: var(--color-accent-gradient); color: var(--color-on-accent); border-color: transparent; }
+
+.board-canvas-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+.board-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none; /* щоб малювання пальцем не скролило сторінку */
+  cursor: crosshair;
+}

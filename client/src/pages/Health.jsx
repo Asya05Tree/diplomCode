@@ -17,7 +17,9 @@ import {
   conditionName,
 } from '../api/medicineCabinet'
 import { getHealthProfile, setHealthProfile } from '../api/healthProfile'
+import { getVisits, addVisit, removeVisit } from '../api/checkup'
 import { RANGES, MAX_LEN, clampNumber, filterWords, limitText } from '../utils/validation'
+import { todayApiDate } from '../utils/date'
 import './Health.css'
 
 const STOCK_TOGGLE = [
@@ -26,12 +28,19 @@ const STOCK_TOGGLE = [
   { state: 'OutOfStock', cls: 'bad' },
 ]
 
+// Сталий перелік лікарів для чекапу — сімейний лікар завжди зверху (вимога).
+const CHECKUP_DOCTORS = [
+  'family', 'therapist', 'pediatrician', 'dentist', 'ophthalmologist', 'otolaryngologist',
+  'cardiologist', 'dermatologist', 'neurologist', 'gastroenterologist', 'endocrinologist',
+  'surgeon', 'gynecologist', 'urologist', 'psychotherapist', 'orthopedist',
+]
+
 // Модуль "Здоровʼя" (planner-spec.md §3.5 аптечка, §3.1/§11 хронічні захворювання).
 // Дві вкладки: Аптечка (ліки користувача зі стану + взаємодії речовин із довідника DDInter) та
 // Хронічні захворювання, де хвороба, що впливає на їжу, стає правилом на тег і фільтрує страви.
 // Дані — з бекенда (/api/medicine-cabinet, /api/health-profile).
 export default function Health() {
-  const { t, language } = useI18n()
+  const { t, language, formatDate } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -56,6 +65,39 @@ export default function Health() {
   const [condForm, setCondForm] = useState({ open: false, name: '', affectsFood: false, tag: '', tagKey: '', relation: 'Avoid' })
   const [tagSuggestions, setTagSuggestions] = useState([])
   const [tagNotice, setTagNotice] = useState('') // текст тега, якого немає серед тегів продуктів
+
+  // Чекап: заплановані візити до лікарів (створюють події в календарі). Форма відкривається під лікарем.
+  const [visits, setVisits] = useState([])
+  const [schedKey, setSchedKey] = useState('') // ключ лікаря, для якого зараз відкрита форма
+  const [schedForm, setSchedForm] = useState({ date: todayApiDate(), time: '09:00', place: '', note: '' })
+
+  useEffect(() => {
+    getVisits().then((data) => setVisits(data ?? [])).catch(() => setVisits([]))
+  }, [])
+
+  const openSchedule = (key) => {
+    setSchedKey(key)
+    setSchedForm({ date: todayApiDate(), time: '09:00', place: '', note: '' })
+  }
+
+  const submitVisit = async () => {
+    if (!schedKey || !schedForm.date) return
+    const when = `${schedForm.date}T${schedForm.time || '09:00'}:00`
+    await addVisit({
+      doctorKey: schedKey,
+      doctorName: t(`checkup.doctor.${schedKey}`),
+      when,
+      place: schedForm.place.trim() || null,
+      note: schedForm.note.trim() || null,
+    })
+    setVisits(await getVisits())
+    setSchedKey('')
+  }
+
+  const cancelVisit = async (id) => {
+    await removeVisit(id)
+    setVisits((prev) => prev.filter((v) => v.id !== id))
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -309,6 +351,15 @@ export default function Health() {
             {t('health.tab.condMeta', { count: conditions.length, food: foodConditions.length })}
           </span>
         </button>
+        <button
+          type="button"
+          className={tab === 'checkup' ? 'health-tab health-tab--active' : 'health-tab'}
+          onClick={() => setTab('checkup')}
+        >
+          <span className="health-tab-icon"><Icon name="clipboard" /></span>
+          <span className="health-tab-title">{t('health.tab.checkup')}</span>
+          <span className="health-tab-meta">{t('health.tab.checkupMeta', { count: visits.length })}</span>
+        </button>
       </div>
 
       {tab === 'meds' ? (
@@ -444,7 +495,7 @@ export default function Health() {
             </>
           )}
         </div>
-      ) : (
+      ) : tab === 'cond' ? (
         <div className="card">
           <div className="section-title">
             <h3 className="health-cond-title">{t('health.tab.cond')}</h3>
@@ -577,6 +628,95 @@ export default function Health() {
               </li>
             ))}
           </ul>
+        </div>
+      ) : (
+        <div className="card">
+          <div className="section-title">
+            <h3>{t('health.tab.checkup')}</h3>
+          </div>
+          <p className="placeholder-text">{t('checkup.hint')}</p>
+
+          <ul className="checkup-list">
+            {CHECKUP_DOCTORS.map((key) => {
+              const docVisits = visits
+                .filter((v) => v.doctorKey === key)
+                .sort((a, b) => (a.when < b.when ? -1 : 1))
+              return (
+                <li key={key} className={key === 'family' ? 'checkup-row checkup-row--primary' : 'checkup-row'}>
+                  <div className="checkup-main">
+                    <span className="checkup-doctor">
+                      <Icon name={key === 'family' ? 'health' : 'user'} className="checkup-doctor-icon" />
+                      {t(`checkup.doctor.${key}`)}
+                      {key === 'family' && <span className="checkup-primary-badge">{t('checkup.primary')}</span>}
+                    </span>
+                    {docVisits.length > 0 && (
+                      <div className="checkup-visits">
+                        {docVisits.map((v) => (
+                          <span key={v.id} className="checkup-visit">
+                            <Icon name="calendar" />
+                            {formatDate(v.when.slice(0, 10))} · {v.when.slice(11, 16)}
+                            {v.place ? ` · ${v.place}` : ''}
+                            <button
+                              type="button"
+                              className="checkup-visit-cancel"
+                              onClick={() => cancelVisit(v.id)}
+                              aria-label={t('common.delete')}
+                            >
+                              <Icon name="close" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button type="button" className="checkup-plan-btn" onClick={() => openSchedule(key)}>
+                    <Icon name="plus" /> {t('checkup.plan')}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
+
+      {schedKey && (
+        <div className="checkup-modal-backdrop" onClick={() => setSchedKey('')}>
+          <div className="checkup-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{t('checkup.planFor', { doctor: t(`checkup.doctor.${schedKey}`) })}</h3>
+            <div className="checkup-form">
+              <label>
+                {t('checkup.date')}
+                <input type="date" value={schedForm.date} onChange={(e) => setSchedForm({ ...schedForm, date: e.target.value })} />
+              </label>
+              <label>
+                {t('checkup.time')}
+                <input type="time" value={schedForm.time} onChange={(e) => setSchedForm({ ...schedForm, time: e.target.value })} />
+              </label>
+              <label className="checkup-form-wide">
+                {t('checkup.place')}
+                <input
+                  type="text"
+                  value={schedForm.place}
+                  placeholder={t('checkup.placePlaceholder')}
+                  maxLength={MAX_LEN.description}
+                  onChange={(e) => setSchedForm({ ...schedForm, place: e.target.value })}
+                />
+              </label>
+              <label className="checkup-form-wide">
+                {t('checkup.note')}
+                <input
+                  type="text"
+                  value={schedForm.note}
+                  maxLength={MAX_LEN.description}
+                  onChange={(e) => setSchedForm({ ...schedForm, note: e.target.value })}
+                />
+              </label>
+            </div>
+            <div className="checkup-modal-actions">
+              <button type="button" className="btn-ghost" onClick={() => setSchedKey('')}>{t('common.cancel')}</button>
+              <button type="button" className="btn-accent" onClick={submitVisit}>{t('checkup.save')}</button>
+            </div>
+          </div>
         </div>
       )}
 

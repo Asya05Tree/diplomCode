@@ -825,3 +825,131 @@
   color: var(--color-text-muted);
   font-size: 0.82rem;
 }
+
+/* --- Чекап: список лікарів із плануванням візитів --- */
+.checkup-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.checkup-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface);
+}
+/* Сімейний лікар — зверху, виділений акцентом */
+.checkup-row--primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.checkup-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.checkup-doctor {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+.checkup-doctor-icon { width: 18px; height: 18px; color: var(--color-health); }
+.checkup-primary-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+}
+.checkup-visits { display: flex; flex-direction: column; gap: 4px; }
+.checkup-visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+.checkup-visit .icon { width: 15px; height: 15px; color: var(--color-accent-ink); }
+.checkup-visit-cancel {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 2px;
+  cursor: pointer;
+}
+.checkup-visit-cancel .icon { width: 14px; height: 14px; }
+.checkup-visit-cancel:hover { color: var(--color-danger); }
+.checkup-plan-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent-ink);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.checkup-plan-btn .icon { width: 16px; height: 16px; }
+.checkup-plan-btn:hover { background: var(--color-accent-soft); }
+
+/* Модалка планування візиту */
+.checkup-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+.checkup-modal {
+  width: 100%;
+  max-width: 460px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+.checkup-modal h3 { margin: 0 0 14px; color: var(--color-heading); }
+.checkup-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.checkup-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+.checkup-form input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 8px 10px;
+  font: inherit;
+}
+.checkup-form-wide { grid-column: 1 / -1; }
+.checkup-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}

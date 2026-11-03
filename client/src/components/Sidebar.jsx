@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { key: 'nav.study', icon: 'study', color: 'var(--color-study)', to: '/app/study' },
   { key: 'nav.work', icon: 'work', color: 'var(--color-work)', to: '/app/work' },
   { key: 'nav.cycle', icon: 'cycle', color: 'var(--color-cycle)', to: '/app/cycle' },
-  { key: 'nav.notes', icon: 'notes', color: 'var(--color-notes)' },
+  { key: 'nav.notes', icon: 'notes', color: 'var(--color-notes)', to: '/app/notes' },
   { key: 'nav.settings', icon: 'settings', color: 'var(--color-tasks)', to: '/app/settings' },
 ]
 
