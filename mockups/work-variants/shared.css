@@ -351,3 +351,169 @@ a {
     white-space: nowrap;
   }
 }
+
+/* =========================================================================
+   КОМПОНЕНТИ МОДУЛЯ «РОБОТА» — спільні для всіх 10 макетів.
+   Набір функцій однаковий (заголовок роботи+посада, графік змін із кольорами,
+   календар наступних змін, таблиця налаштування графіка й типу оплати,
+   контакти за групами й статусом, відпустки/лікарняні, зустрічі) — варіанти
+   різняться лише компонуванням цих блоків. Кольори типів змін — пастель,
+   узгоджена з темою (coding-guide.md: фіолетово-блакитна гама модуля).
+   ========================================================================= */
+
+:root {
+  /* Типи змін — кожен свій колір (вимога: не лише день/ніч, а довільні типи) */
+  --sh-morning-bg: #ffe0b2; --sh-morning-tx: #b26a00; --sh-morning-dot: #ffb74d;
+  --sh-day-bg: #b3e5fc;     --sh-day-tx: #0277bd;     --sh-day-dot: #4fc3f7;
+  --sh-evening-bg: #d1c4e9; --sh-evening-tx: #512da8; --sh-evening-dot: #9575cd;
+  --sh-night-bg: #c5cae9;   --sh-night-tx: #283593;   --sh-night-dot: #5c6bc0;
+}
+
+/* --- Заголовок роботи: назва + посада зверху (вимога: «добре бачити назву
+   роботи зверху і свою посаду») --- */
+.work-top {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.work-top-avatar {
+  width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0;
+  background: var(--color-accent-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+}
+.work-top-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.work-name { font-size: 1.45rem; font-weight: 700; color: var(--color-heading); line-height: 1.1; }
+.work-role { font-size: 0.95rem; color: var(--color-text-muted); }
+.work-top-meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px;
+  background: var(--pill-bg); color: var(--pill-text); font-size: 0.82rem;
+}
+.chip--accent { background: var(--color-accent-gradient); color: var(--color-on-accent); font-weight: 600; }
+.chip-label { color: var(--color-text-muted); font-size: 0.72rem; }
+
+/* --- Картка «наступна зміна» — головна для нестабільного графіка --- */
+.next-shift {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-radius: 12px;
+  background: var(--color-accent-gradient); color: var(--color-on-accent);
+}
+.next-shift-icon { font-size: 1.7rem; }
+.next-shift-text { display: flex; flex-direction: column; gap: 2px; }
+.next-shift-when { font-weight: 700; font-size: 1.05rem; }
+.next-shift-sub { font-size: 0.84rem; opacity: 0.85; }
+.next-shift-time { margin-left: auto; font-weight: 700; font-size: 1.15rem; white-space: nowrap; }
+
+/* --- Місячний календар змін --- */
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
+.month-nav-btn { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; }
+.month-nav-label { font-weight: 600; }
+
+.shift-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.shift-weekday { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-muted); text-align: center; padding: 2px 0; }
+.shift-day {
+  min-height: 56px; border: 1px solid var(--color-border); border-radius: 8px;
+  padding: 4px 5px; display: flex; flex-direction: column; gap: 4px;
+  background: var(--color-surface);
+}
+.shift-day--muted { opacity: 0.38; }
+.shift-day--today { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.shift-day--next { box-shadow: 0 0 0 2px var(--color-evening, #9575cd) inset; }
+.shift-num { font-size: 0.76rem; font-weight: 600; color: var(--color-heading); }
+.shift-chip {
+  font-size: 0.66rem; font-weight: 700; padding: 2px 5px; border-radius: 6px;
+  text-align: center; line-height: 1.2;
+}
+.shift-chip-time { display: block; font-weight: 500; opacity: 0.85; font-size: 0.6rem; }
+.shift-rest { font-size: 0.62rem; color: var(--color-text-muted); }
+
+.shift-chip--morning, .sh-swatch--morning { background: var(--sh-morning-bg); color: var(--sh-morning-tx); }
+.shift-chip--day, .sh-swatch--day         { background: var(--sh-day-bg);     color: var(--sh-day-tx); }
+.shift-chip--evening, .sh-swatch--evening { background: var(--sh-evening-bg); color: var(--sh-evening-tx); }
+.shift-chip--night, .sh-swatch--night     { background: var(--sh-night-bg);   color: var(--sh-night-tx); }
+
+/* --- Легенда типів змін --- */
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.sh-dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; flex-shrink: 0; }
+.sh-dot--morning { background: var(--sh-morning-dot); }
+.sh-dot--day     { background: var(--sh-day-dot); }
+.sh-dot--evening { background: var(--sh-evening-dot); }
+.sh-dot--night   { background: var(--sh-night-dot); }
+.sh-dot--rest    { background: var(--pill-bg); border: 1px solid var(--color-border); }
+
+/* --- Тижневий таймлайн (альтернатива місяцю в деяких варіантах) --- */
+.week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.week-col { border: 1px solid var(--color-border); border-radius: 10px; padding: 8px; min-height: 130px; background: var(--color-surface); }
+.week-col--today { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.week-col-head { font-size: 0.74rem; color: var(--color-text-muted); text-align: center; margin-bottom: 8px; }
+.week-col-head b { display: block; color: var(--color-heading); font-size: 0.95rem; }
+.week-shift { border-radius: 8px; padding: 8px; font-size: 0.72rem; font-weight: 700; }
+.week-shift small { display: block; font-weight: 500; opacity: 0.85; }
+.week-rest { font-size: 0.72rem; color: var(--color-text-muted); text-align: center; padding-top: 24px; }
+
+/* --- Поля часу/кольору в таблиці налаштування графіка --- */
+.time-box { border: 1px solid var(--color-border); border-radius: 6px; padding: 2px 8px; font-size: 0.8rem; display: inline-block; background: var(--color-bg); }
+.color-dot-lg { width: 16px; height: 16px; border-radius: 5px; display: inline-block; vertical-align: middle; }
+
+/* --- Контакти за групами й статусом --- */
+.contact-group-head { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 8px; }
+.contact-group-head:first-child { margin-top: 0; }
+.contact-group-head h4 { margin: 0; font-size: 0.92rem; }
+.contact-count { font-size: 0.74rem; color: var(--color-text-muted); }
+.contact-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.contact-card { display: flex; gap: 11px; padding: 12px; border: 1px solid var(--color-border); border-radius: 11px; background: var(--color-surface); }
+.contact-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--color-accent-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--color-on-accent); flex-shrink: 0; }
+.contact-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.contact-name { font-weight: 600; font-size: 0.9rem; }
+.contact-role { font-size: 0.77rem; color: var(--color-text-muted); }
+.contact-line { font-size: 0.78rem; color: var(--color-text); display: flex; gap: 8px; flex-wrap: wrap; }
+.contact-line .none-text { font-size: 0.78rem; }
+.contact-socials { display: flex; gap: 7px; margin-top: 2px; font-size: 0.95rem; }
+.cstatus { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--color-text-muted); }
+.cstatus::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.cstatus--on::before { background: #2e9e5b; }
+.cstatus--off::before { background: #9ca3af; }
+.cstatus--vac::before { background: #c77c10; }
+
+/* --- Відпустки й лікарняні --- */
+.leave-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.leave-tile { border: 1px solid var(--color-border); border-radius: 11px; padding: 13px 15px; background: var(--color-surface); }
+.leave-bar { height: 8px; border-radius: 999px; background: var(--pill-bg); overflow: hidden; margin-top: 9px; }
+.leave-bar-fill { height: 100%; background: var(--color-accent-gradient); }
+
+/* --- Зустрічі --- */
+.meet-list { display: flex; flex-direction: column; gap: 8px; }
+.meet-row { display: flex; gap: 12px; align-items: center; padding: 10px 13px; border: 1px solid var(--color-border); border-radius: 11px; background: var(--color-surface); }
+.meet-time { flex-shrink: 0; width: 96px; font-weight: 600; font-size: 0.82rem; color: var(--color-heading); }
+.meet-main { min-width: 0; flex: 1; }
+.meet-title { font-weight: 600; font-size: 0.88rem; }
+.meet-people { font-size: 0.78rem; color: var(--color-text-muted); }
+
+/* --- KPI-дашборд --- */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi-tile { border: 1px solid var(--color-border); border-radius: 12px; padding: 14px 16px; background: var(--color-surface); display: flex; flex-direction: column; gap: 5px; }
+.kpi-tile--accent { background: var(--color-accent-gradient); border-color: transparent; }
+.kpi-tile--accent .kpi-label { color: var(--color-on-accent); opacity: 0.8; }
+.kpi-tile--accent .kpi-value { color: var(--color-on-accent); }
+
+/* --- Вкладки (візуальні; усі панелі показані, неактивні — приглушені) --- */
+.wtabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--color-border); }
+.wtab { padding: 9px 16px; border-radius: 10px 10px 0 0; font-size: 0.88rem; color: var(--color-text-muted); text-decoration: none; cursor: pointer; border: 1px solid transparent; border-bottom: none; }
+.wtab--active { background: var(--color-surface); color: var(--color-heading); font-weight: 600; border-color: var(--color-border); }
+.wpanel { display: flex; flex-direction: column; gap: 16px; padding-top: 6px; }
+.wpanel--inactive { opacity: 0.5; }
+.wpanel-note { font-size: 0.78rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 6px; }
+.wpanel-note::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent-2); }
+
+/* --- Сітки компонування --- */
+.cols-2 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; align-items: start; }
+.cols-2--even { grid-template-columns: 1fr 1fr; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 900px) { .cols-2, .cols-2--even { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .shift-day { min-height: 46px; }
+  .shift-chip { font-size: 0.6rem; }
+  .shift-chip-time { display: none; }
+}
