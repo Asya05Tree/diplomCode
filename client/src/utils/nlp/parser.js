@@ -332,12 +332,19 @@ function assemble(piece, m, now) {
   return { raw: piece.trim(), title, date, time, durationMinutes, module, ambiguous }
 }
 
+// Різні символи апострофа (ʼ ' ' ` ´) → один прямий, щоб "пʼятницю" збігалося зі словником.
+// Заміна 1:1 за довжиною — індекси відрізків не зсуваються.
+function normalizeApostrophes(text) {
+  return text.replace(/[ʼ‘’‛`´]/g, "'")
+}
+
 // --- Крок 1. Розбиття рядка на фрагменти-задачі за роздільниками та комою. ---
 function splitTasks(text, m) {
   const delim = alt(m.delimiters)
-  // Роздільник-фраза в оточенні пробілів АБО кома, що не стоїть між цифрами (щоб не ламати "4,5").
-  const re = new RegExp(`\\s+(?:${delim})\\s+|\\s*,(?!\\d)\\s*`, 'giu')
-  return text.split(re).map((p) => p.trim()).filter(Boolean)
+  // Спершу замінюємо роздільники-фрази на кому (незалежно від того, чи поруч уже є кома),
+  // потім ділимо по комі, яка не стоїть між цифрами (щоб не ламати десяткове "4,5").
+  const withSep = text.replace(new RegExp(`${BB}(?:${delim})${BE}`, 'giu'), ',')
+  return withSep.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
 }
 
 // Визначення мови за наявністю кирилиці/латиниці (окремого перемикача немає).
@@ -351,7 +358,7 @@ export function detectLanguage(text) {
 // Головна функція. dicts — масив словників (усі мови; у змішаному тексті шукаються одночасно).
 // Повертає { language, tasks[], notRecognized[] }. Задачі НЕ створюються — лише для підтвердження.
 export function parseInput(text, dicts, now = new Date()) {
-  const raw = (text || '').trim()
+  const raw = normalizeApostrophes((text || '').trim())
   if (!raw) return { language: 'uk', tasks: [], notRecognized: [] }
   const m = mergeDicts(dicts)
   const pieces = splitTasks(raw, m)
