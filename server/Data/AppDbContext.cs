@@ -76,6 +76,10 @@ public class AppDbContext : DbContext
     public DbSet<WorkMeeting> WorkMeetings => Set<WorkMeeting>();
     public DbSet<WorkObligation> WorkObligations => Set<WorkObligation>();
 
+    // Нотатки й чекап здоров'я
+    public DbSet<Note> Notes => Set<Note>();
+    public DbSet<HealthVisit> HealthVisits => Set<HealthVisit>();
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // Гроші — фіксована точність, щоб MySQL не тягнув дефолтний decimal(65,30)
@@ -143,6 +147,11 @@ public class AppDbContext : DbContext
         ConfigureShopping(modelBuilder);
         ConfigureStudy(modelBuilder);
         ConfigureWork(modelBuilder);
+
+        // Нотатки й чекап: прості таблиці на користувача (User FK — каскад за конвенцією).
+        // HealthVisit.TaskId — логічне посилання без FK (подію видаляє CheckupService через TaskService).
+        modelBuilder.Entity<Note>().HasIndex(x => new { x.UserId, x.Position });
+        modelBuilder.Entity<HealthVisit>().HasIndex(x => new { x.UserId, x.When });
 
         // ToDo — проста таблиця, впорядкована за статусом+позицією
         modelBuilder.Entity<TodoItem>()
