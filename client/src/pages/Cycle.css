@@ -122,10 +122,13 @@
 }
 .cyc-day {
   position: relative; min-height: 42px; padding: 5px 6px; border-radius: var(--radius-sm);
-  background: var(--pill-bg); font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px;
+  background: var(--pill-bg); font-size: 0.82rem; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  border: none; width: 100%; color: inherit; cursor: pointer; font-family: inherit;
   transition: transform var(--transition);
 }
 .cyc-day:not(.is-muted):hover { transform: translateY(-1px) scale(1.03); z-index: 1; }
+.cyc-day.is-picking { z-index: 5; }
 .cyc-day.is-muted { opacity: 0.3; }
 .cyc-day.is-today { outline: 2px solid var(--color-accent-ink); outline-offset: -2px; font-weight: 700; }
 .cyc-day.is-period { background: var(--cycle-period-soft); color: #8a2b5a; }
@@ -133,6 +136,21 @@
 .cyc-day.is-end { background: var(--cycle-end); color: #fff; }
 .cyc-day.is-predicted { background: transparent; border: 1.5px dashed var(--cycle-predicted); color: #6d5a9c; }
 .cyc-tag { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
+
+/* Поповер вибору для дня: початок / кінець / прибрати */
+.cyc-pick {
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px;
+  display: flex; flex-direction: column; min-width: 110px; z-index: 10;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-md); overflow: hidden;
+}
+.cyc-pick-btn {
+  padding: 7px 10px; font-size: 0.78rem; font-weight: 500; text-align: left; cursor: pointer;
+  color: var(--color-text); transition: background var(--transition);
+}
+.cyc-pick-btn:hover { background: var(--color-accent-soft); }
+.cyc-pick-btn--clear { color: var(--color-text-muted); border-top: 1px solid var(--color-border); }
+.cyc-pick-btn--clear:hover { background: var(--color-danger-soft); color: var(--color-danger); }
 
 /* ===== Легенда ===== */
 .cyc-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
@@ -226,6 +244,8 @@
   display: flex; align-items: center; gap: 10px; font-size: 0.95rem; cursor: pointer;
 }
 .cycle-settings-row input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--color-accent-ink); cursor: pointer; }
+.cycle-settings-row--select { margin-top: 14px; }
+.cycle-settings-row--select select { min-height: 38px; padding: 6px 10px; }
 
 @media (max-width: 760px) {
   .cyc-spread { grid-template-columns: 1fr; }

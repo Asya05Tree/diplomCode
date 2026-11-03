@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import { addDays, addMonths, fromApiDate, getMonthGridCells, toApiDate, todayApiDate } from '../utils/date'
-import { addCycleRecord, endCycleRecord, getCycle, removeCycleRecord, setCycleSettings } from '../api/cycle'
+import {
+  getCycle, removeCycleRecord, setCycleSettings,
+  markCycleStart, markCycleEnd, clearCycleDay,
+} from '../api/cycle'
 import Icon from '../components/Icon'
 import './Cycle.css'
+
+const HYGIENE_OPTIONS = ['pads', 'tampons', 'cup', 'liners', 'other']
 
 function fmt(api) {
   const [y, m, d] = api.split('-')
@@ -133,14 +138,15 @@ export default function Cycle() {
   const [error, setError] = useState(false)
 
   const [records, setRecords] = useState([])
-  const [settings, setSettings] = useState({ reduceLoadOnHeavyDays: false })
+  const [settings, setSettings] = useState({ reduceLoadOnHeavyDays: false, hygieneProduct: null })
   const [forecast, setForecast] = useState({ hasData: false, predictedDate: null, rangeDays: 5, isRegular: null })
+  const [picker, setPicker] = useState(null) // apiDate дня, для якого відкрито вибір початок/кінець/прибрати
 
   const applyData = (data) => {
     // Порядок введення не гарантований (запис заднім числом тощо) — сортуємо за початком.
     const sorted = [...data.records].sort((a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0))
     setRecords(sorted)
-    setSettings(data.settings ?? { reduceLoadOnHeavyDays: false })
+    setSettings(data.settings ?? { reduceLoadOnHeavyDays: false, hygieneProduct: null })
     setForecast(data.forecast ?? { hasData: false, predictedDate: null, rangeDays: 5, isRegular: null })
   }
 
@@ -176,13 +182,12 @@ export default function Cycle() {
   const weekdays = t('planner.weekdaysShort').split(',')
 
   const handleMarkStart = async () => {
-    await addCycleRecord(todayApiDate())
+    await markCycleStart(todayApiDate())
     await reload()
   }
 
   const handleMarkEnd = async () => {
-    if (!openRecord) return
-    await endCycleRecord(openRecord.id, todayApiDate())
+    await markCycleEnd(todayApiDate())
     await reload()
   }
 
@@ -193,8 +198,30 @@ export default function Cycle() {
 
   const handleToggleReduceLoad = async (e) => {
     const value = e.target.checked
-    setSettings({ reduceLoadOnHeavyDays: value })
-    await setCycleSettings(value)
+    const next = { ...settings, reduceLoadOnHeavyDays: value }
+    setSettings(next)
+    await setCycleSettings(next)
+  }
+
+  const handleSetHygiene = async (e) => {
+    const value = e.target.value || null
+    const next = { ...settings, hygieneProduct: value }
+    setSettings(next)
+    await setCycleSettings(next)
+    await reload() // засіб міг одразу потрапити до списку покупок
+  }
+
+  // Клік по дню календаря вкладки → позначити початок/кінець/прибрати (дані єдині з головним календарем)
+  const handlePick = async (action, api) => {
+    try {
+      if (action === 'start') await markCycleStart(api)
+      else if (action === 'end') await markCycleEnd(api)
+      else await clearCycleDay(api)
+    } catch {
+      // кінець/прибрати можуть не знайти запис — ігноруємо
+    }
+    setPicker(null)
+    await reload()
   }
 
   // Текст прогнозу в героєві: діапазон ± rangeDays і скільки днів лишилось.
@@ -261,14 +288,27 @@ export default function Cycle() {
               cell.inCurrentMonth ? '' : 'is-muted',
               state,
               api === today ? 'is-today' : '',
+              picker === api ? 'is-picking' : '',
             ]
               .filter(Boolean)
               .join(' ')
             return (
-              <div key={idx} className={cls}>
+              <button
+                key={idx}
+                type="button"
+                className={cls}
+                onClick={() => setPicker((p) => (p === api ? null : api))}
+              >
                 {tag && <span className="cyc-tag">{tag}</span>}
                 {cell.date.getDate()}
-              </div>
+                {picker === api && (
+                  <span className="cyc-pick" onClick={(e) => e.stopPropagation()}>
+                    <span className="cyc-pick-btn" role="button" tabIndex={0} onClick={() => handlePick('start', api)}>{t('cycle.markStartDay')}</span>
+                    <span className="cyc-pick-btn" role="button" tabIndex={0} onClick={() => handlePick('end', api)}>{t('cycle.markEndDay')}</span>
+                    <span className="cyc-pick-btn cyc-pick-btn--clear" role="button" tabIndex={0} onClick={() => handlePick('clear', api)}>{t('cycle.markClear')}</span>
+                  </span>
+                )}
+              </button>
             )
           })}
         </div>
@@ -466,6 +506,17 @@ export default function Cycle() {
           <span>{t('cycle.reduceLoad')}</span>
         </label>
         <p className="placeholder-text">{t('cycle.reduceLoadHint')}</p>
+
+        <label className="cycle-settings-row cycle-settings-row--select">
+          <span>{t('cycle.hygieneLabel')}</span>
+          <select value={settings.hygieneProduct ?? ''} onChange={handleSetHygiene}>
+            <option value="">{t('cycle.hygieneNone')}</option>
+            {HYGIENE_OPTIONS.map((k) => (
+              <option key={k} value={k}>{t(`cycle.hygiene.${k}`)}</option>
+            ))}
+          </select>
+        </label>
+        <p className="placeholder-text">{t('cycle.hygieneHint')}</p>
       </div>
     </div>
   )
