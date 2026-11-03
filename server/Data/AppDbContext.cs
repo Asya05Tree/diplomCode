@@ -67,6 +67,15 @@ public class AppDbContext : DbContext
     public DbSet<StudyProject> StudyProjects => Set<StudyProject>();
     public DbSet<StudyProjectStep> StudyProjectSteps => Set<StudyProjectStep>();
 
+    // Робота
+    public DbSet<WorkSettings> WorkSettings => Set<WorkSettings>();
+    public DbSet<WorkShiftType> WorkShiftTypes => Set<WorkShiftType>();
+    public DbSet<WorkShiftEntry> WorkShiftEntries => Set<WorkShiftEntry>();
+    public DbSet<WorkContact> WorkContacts => Set<WorkContact>();
+    public DbSet<WorkLeave> WorkLeaves => Set<WorkLeave>();
+    public DbSet<WorkMeeting> WorkMeetings => Set<WorkMeeting>();
+    public DbSet<WorkObligation> WorkObligations => Set<WorkObligation>();
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // Гроші — фіксована точність, щоб MySQL не тягнув дефолтний decimal(65,30)
@@ -133,6 +142,7 @@ public class AppDbContext : DbContext
         ConfigureCycle(modelBuilder);
         ConfigureShopping(modelBuilder);
         ConfigureStudy(modelBuilder);
+        ConfigureWork(modelBuilder);
 
         // ToDo — проста таблиця, впорядкована за статусом+позицією
         modelBuilder.Entity<TodoItem>()
@@ -286,5 +296,24 @@ public class AppDbContext : DbContext
         b.Entity<StudyProjectStep>()
             .HasOne(x => x.Project).WithMany(p => p.Steps)
             .HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static void ConfigureWork(ModelBuilder b)
+    {
+        // Профіль роботи: спільний PK/FK UserId (один рядок на користувача), як у StudySettings
+        b.Entity<WorkSettings>().HasKey(x => x.UserId);
+        b.Entity<WorkSettings>()
+            .HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+
+        // Запис графіка посилається на тип зміни — Restrict: видалення типу обробляємо в сервісі
+        // (спершу прибираємо залежні записи разом із їхніми правилами). RecurrenceRuleId — логічне
+        // посилання без навігації, саме правило видаляє WorkService через TaskService.
+        b.Entity<WorkShiftEntry>()
+            .HasOne(x => x.ShiftType).WithMany()
+            .HasForeignKey(x => x.ShiftTypeId).OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<WorkContact>().HasIndex(x => new { x.UserId, x.GroupName });
+        b.Entity<WorkLeave>().HasIndex(x => new { x.UserId, x.StartDate });
+        b.Entity<WorkMeeting>().HasIndex(x => new { x.UserId, x.When });
     }
 }
