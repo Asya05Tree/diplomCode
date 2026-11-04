@@ -137,6 +137,8 @@
   "work.viewOperator": "By carrier",
   "work.viewSocial": "By messenger",
   "work.viewEmail": "By email",
+  "work.viewBirthday": "By birthday",
+  "work.phoneCountryUnknown": "Unknown country code",
   "work.hasSocial": "Has messenger",
   "work.noSocial": "No messenger",
   "work.hasEmail": "Has email",

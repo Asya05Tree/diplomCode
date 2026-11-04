@@ -434,7 +434,10 @@
   color: var(--color-text);
   font-family: inherit;
 }
-.contact-phones { display: flex; flex-direction: column; gap: 7px; }
+.contact-phones { display: flex; flex-direction: column; gap: 9px; }
+.contact-phone-item { display: flex; flex-direction: column; gap: 3px; }
+.contact-phone-info { font-size: 0.72rem; color: var(--color-text-muted); }
+.contact-phone-info--bad { color: var(--status-bad-text); }
 .contact-phone-row { display: flex; gap: 8px; align-items: center; }
 .contact-phone-row input { flex: 1; min-width: 0; }
 .contact-phone-row .work-icon-btn { flex-shrink: 0; margin-left: 0; }

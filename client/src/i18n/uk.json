@@ -137,6 +137,8 @@
   "work.viewOperator": "За оператором",
   "work.viewSocial": "За соцмережею",
   "work.viewEmail": "За поштою",
+  "work.viewBirthday": "За днем народження",
+  "work.phoneCountryUnknown": "Невідомий код країни",
   "work.hasSocial": "Є соцмережа",
   "work.noSocial": "Без соцмережі",
   "work.hasEmail": "Є пошта",

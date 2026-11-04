@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { getContacts, addContact, updateContact, removeContact } from '../../api/work'
-import { phoneDigits, phoneOperator, operatorName, OPERATOR_ORDER, splitPhones, dedupPhones } from '../../utils/phone'
+import { phoneDigits, phoneOperator, operatorName, countryName, parsePhone, OPERATOR_ORDER, splitPhones, dedupPhones } from '../../utils/phone'
 
 // Робочі контакти. ПІБ рядками (прізвище / ім'я / по батькові). День народження — лише число й місяць.
 // До 3 телефонів (зберігаються одним рядком через кому). Пошта й Telegram — за бажанням. Групи й
@@ -123,10 +123,12 @@ export default function ContactsTab() {
     if (!lastName) { setError(t('work.errLastName')); return }
     if (!firstName) { setError(t('work.errFirstName')); return }
 
-    const phones = dedupPhones(form.phones.map((p) => p.trim()).filter(Boolean)).slice(0, MAX_PHONES)
-    for (const p of phones) {
-      const len = phoneDigits(p).length
-      if (len < 7 || len > 15) { setError(t('work.errPhone')); return }
+    const rawPhones = dedupPhones(form.phones.map((p) => p.trim()).filter(Boolean)).slice(0, MAX_PHONES)
+    const phones = []
+    for (const p of rawPhones) {
+      const info = parsePhone(p)
+      if (!info.valid) { setError(t('work.errPhone')); return }
+      phones.push(info.e164) // зберігаємо у форматі E.164 ("+" додається автоматично)
     }
     const email = form.email.trim()
     if (email && !EMAIL_RE.test(email)) { setError(t('work.errEmail')); return }
@@ -192,6 +194,12 @@ export default function ContactsTab() {
       const no = sorted.filter((c) => !c.email)
       return [[t('work.hasEmail'), has], [t('work.noEmail'), no]].filter(([, l]) => l.length)
     }
+    if (view === 'birthday') {
+      // За найближчим днем народження (місяць+число, рік ігноруємо); без дати — в кінці.
+      const withB = sorted.filter((c) => c.birthday).sort((a, b) => a.birthday.slice(5).localeCompare(b.birthday.slice(5)))
+      const no = sorted.filter((c) => !c.birthday)
+      return [['', [...withB, ...no]]]
+    }
     return [['', sorted]] // alpha — без заголовків груп
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contacts, view, language])
@@ -203,6 +211,7 @@ export default function ContactsTab() {
     { key: 'operator', label: t('work.viewOperator') },
     { key: 'social', label: t('work.viewSocial') },
     { key: 'email', label: t('work.viewEmail') },
+    { key: 'birthday', label: t('work.viewBirthday') },
   ]
 
   return (
@@ -290,14 +299,26 @@ export default function ContactsTab() {
 
               <div className="contact-phones">
                 <span className="work-field-label">{t('work.phones')} <span className="work-optional">({t('work.phonesHint')})</span></span>
-                {form.phones.map((p, i) => (
-                  <div className="contact-phone-row" key={i}>
-                    <input value={p} inputMode="tel" maxLength={20} placeholder={t('work.phonePlaceholder')} onChange={(e) => setPhone(i, e.target.value)} />
-                    {form.phones.length > 1 && (
-                      <button type="button" className="work-icon-btn work-icon-btn--danger" onClick={() => removePhoneField(i)} aria-label={t('common.delete')}><Icon name="close" /></button>
-                    )}
-                  </div>
-                ))}
+                {form.phones.map((p, i) => {
+                  const info = p.trim() ? parsePhone(p) : null
+                  return (
+                    <div className="contact-phone-item" key={i}>
+                      <div className="contact-phone-row">
+                        <input value={p} inputMode="tel" maxLength={18} placeholder={t('work.phonePlaceholder')} onChange={(e) => setPhone(i, e.target.value)} />
+                        {form.phones.length > 1 && (
+                          <button type="button" className="work-icon-btn work-icon-btn--danger" onClick={() => removePhoneField(i)} aria-label={t('common.delete')}><Icon name="close" /></button>
+                        )}
+                      </div>
+                      {info && (
+                        <span className={`contact-phone-info${info.valid ? '' : ' contact-phone-info--bad'}`}>
+                          {info.country ? countryName(info.country, language) : t('work.phoneCountryUnknown')}
+                          {info.operator ? ` · ${operatorName(info.operator) || t('work.operatorOther')}` : ''}
+                          {info.e164 ? ` · ${info.e164}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
                 {form.phones.length < MAX_PHONES && (
                   <button type="button" className="work-pill contact-add-phone" onClick={addPhoneField}>{t('work.addPhone')}</button>
                 )}
