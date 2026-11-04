@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { setStudySettings, getScheduleEntries, addScheduleEntry, removeScheduleEntry } from '../../api/study'
 import { encodeWeekDaysPattern } from '../../utils/recurrence'
 import { summarizeEntry } from './studyShared'
+import { TwoWeekTable, WeekCalendar } from './StudyScheduleViews'
 
 const PARITIES = ['weekly', 'num', 'denom'] // щотижня / чисельник / знаменник
 
@@ -18,6 +19,7 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
   const [cfg, setCfg] = useState(settings)
   const [savedNote, setSavedNote] = useState('')
   const [entries, setEntries] = useState([])
+  const [view, setView] = useState('calendar') // 'calendar' | 'table' | 'list'
 
   const emptyLesson = { subjectId: '', sessionKind: 'lecture', pairNumber: bells.length ? 1 : '', parity: 'weekly', days: new Set() }
   const [lesson, setLesson] = useState(emptyLesson)
@@ -124,8 +126,6 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
           <DateField label={t('study.studyEnd')} value={cfg?.studyEnd} onChange={(v) => setC({ studyEnd: v })} />
           <DateField label={t('study.semesterEnd')} value={cfg?.semesterEnd} onChange={(v) => setC({ semesterEnd: v })} />
           <DateField label={t('study.yearEnd')} value={cfg?.yearEnd} onChange={(v) => setC({ yearEnd: v })} />
-          <DateField label={t('study.vacationStart')} value={cfg?.vacationStart} onChange={(v) => setC({ vacationStart: v })} />
-          <DateField label={t('study.vacationEnd')} value={cfg?.vacationEnd} onChange={(v) => setC({ vacationEnd: v })} />
         </div>
       </div>
 
@@ -185,43 +185,65 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
         )}
       </form>
 
-      {entries.length === 0 ? (
-        <p className="placeholder-text">{t('study.scheduleEmpty')}</p>
-      ) : (
-        <div className="table-scroll">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t('study.col.subject')}</th>
-                {!isPupil && <th>{t('study.col.session')}</th>}
-                <th>{t('study.col.pair')}</th>
-                <th>{t('study.scheduleWhen')}</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((en) => (
-                <tr key={en.id}>
-                  <td>{en.subjectName || subjectName(en.subjectId)}</td>
-                  {!isPupil && <td>{en.sessionKind ? t(`study.${en.sessionKind}`) : <span className="none-text">—</span>}</td>}
-                  <td>{en.pairNumber ?? <span className="none-text">—</span>}</td>
-                  <td>{summarizeEntry(en, t, weekdayLabels, formatClock)}</td>
-                  <td className="study-row-actions">
-                    <button
-                      type="button"
-                      className="study-icon-btn study-icon-btn--danger"
-                      onClick={() => remove(en.id)}
-                      aria-label={t('planner.actionDelete')}
-                      data-tooltip={t('planner.actionDelete')}
-                    >
-                      <Icon name="trash" />
-                    </button>
-                  </td>
+      {/* Перемикач подань розкладу: календар (реальні дати) / таблиця на два тижні / список */}
+      <div className="study-seg study-seg--inline study-sched-switch">
+        {[['calendar', 'calendar-days'], ['table', 'board'], ['list', 'clipboard']].map(([key, icon]) => (
+          <button
+            key={key}
+            type="button"
+            className={view === key ? 'study-seg-btn study-seg-btn--active' : 'study-seg-btn'}
+            onClick={() => setView(key)}
+          >
+            <Icon name={icon} /> {t(`study.scheduleView.${key}`)}
+          </button>
+        ))}
+      </div>
+
+      {view === 'calendar' && (
+        <WeekCalendar entries={entries} bells={bells} subjects={subjects} isPupil={isPupil} anchorDate={cfg?.studyStart} />
+      )}
+      {view === 'table' && (
+        <TwoWeekTable entries={entries} bells={bells} subjects={subjects} isPupil={isPupil} />
+      )}
+      {view === 'list' && (
+        entries.length === 0 ? (
+          <p className="placeholder-text">{t('study.scheduleEmpty')}</p>
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>{t('study.col.subject')}</th>
+                  {!isPupil && <th>{t('study.col.session')}</th>}
+                  <th>{t('study.col.pair')}</th>
+                  <th>{t('study.scheduleWhen')}</th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {entries.map((en) => (
+                  <tr key={en.id}>
+                    <td>{en.subjectName || subjectName(en.subjectId)}</td>
+                    {!isPupil && <td>{en.sessionKind ? t(`study.${en.sessionKind}`) : <span className="none-text">—</span>}</td>}
+                    <td>{en.pairNumber ?? <span className="none-text">—</span>}</td>
+                    <td>{summarizeEntry(en, t, weekdayLabels, formatClock)}</td>
+                    <td className="study-row-actions">
+                      <button
+                        type="button"
+                        className="study-icon-btn study-icon-btn--danger"
+                        onClick={() => remove(en.id)}
+                        aria-label={t('planner.actionDelete')}
+                        data-tooltip={t('planner.actionDelete')}
+                      >
+                        <Icon name="trash" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       )}
     </div>
   )

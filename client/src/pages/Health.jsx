@@ -18,6 +18,7 @@ import {
 } from '../api/medicineCabinet'
 import { getHealthProfile, setHealthProfile } from '../api/healthProfile'
 import { getVisits, addVisit, removeVisit } from '../api/checkup'
+import { addShoppingItem, getShoppingList } from '../api/shopping'
 import { RANGES, MAX_LEN, clampNumber, filterWords, limitText } from '../utils/validation'
 import { todayApiDate } from '../utils/date'
 import './Health.css'
@@ -52,6 +53,8 @@ export default function Health() {
   const [profile, setProfile] = useState(null)
 
   const [form, setForm] = useState('all') // фільтр за формою випуску
+  const [medSort, setMedSort] = useState('default') // 'default' | 'alpha' | 'availability'
+  const [inShopping, setInShopping] = useState(() => new Set()) // medicineId, що вже у списку покупок
   const [addMedOpen, setAddMedOpen] = useState(false)
   const [medSearch, setMedSearch] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -101,12 +104,13 @@ export default function Health() {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([getCabinet(), getConditions(), getHealthProfile().catch(() => null)])
-      .then(async ([meds, conds, prof]) => {
+    Promise.all([getCabinet(), getConditions(), getHealthProfile().catch(() => null), getShoppingList().catch(() => ({ items: [] }))])
+      .then(async ([meds, conds, prof, shop]) => {
         if (cancelled) return
         setMedicines(meds)
         setConditions(conds)
         setProfile(prof)
+        setInShopping(new Set((shop.items || []).filter((x) => !x.isChecked && x.medicineId != null).map((x) => x.medicineId)))
         // Взаємодії тягнемо для кожних ліків аптечки (пари, де друга речовина теж у користувача).
         const entries = await Promise.all(
           meds.map((m) =>
@@ -162,10 +166,18 @@ export default function Health() {
     return [...seen.values()]
   }, [medicines])
 
-  const visibleMeds = useMemo(
-    () => (form === 'all' ? medicines : medicines.filter((m) => m.formKey === form)),
-    [medicines, form],
-  )
+  const visibleMeds = useMemo(() => {
+    const filtered = form === 'all' ? medicines : medicines.filter((m) => m.formKey === form)
+    // Сортування: за абеткою або за наявністю (спочатку жовті "закінчується", потім решта).
+    return [...filtered].sort((a, b) => {
+      if (medSort === 'alpha') return medName(a, language).localeCompare(medName(b, language))
+      if (medSort === 'availability') {
+        const rank = (s) => (s === 'RunningLow' ? 0 : s === 'Available' ? 1 : 2)
+        return rank(a.state) - rank(b.state)
+      }
+      return 0
+    })
+  }, [medicines, form, medSort, language])
 
   const reloadCabinet = async () => {
     const meds = await getCabinet()
@@ -183,6 +195,13 @@ export default function Health() {
   const handleMedState = async (m, state) => {
     setMedicines((prev) => prev.map((x) => (x.medicineId === m.medicineId ? { ...x, state } : x)))
     await apiSetMedicineState(m.medicineId, state, m.expiresAt)
+    // "Закінчується" (жовтий): якщо ліків ще немає у списку покупок — питаємо, чи додати до "Аптеки".
+    if (state === 'RunningLow' && !inShopping.has(m.medicineId)) {
+      if (window.confirm(t('health.lowAddConfirm', { name: medName(m, language) }))) {
+        await addShoppingItem({ section: 'Pharmacy', medicineId: m.medicineId })
+        setInShopping((prev) => new Set(prev).add(m.medicineId))
+      }
+    }
   }
 
   const handleMedSearch = (q) => {
@@ -426,6 +445,20 @@ export default function Health() {
                     onClick={() => setForm(m.formKey)}
                   >
                     {formName(m, language)}
+                  </button>
+                ))}
+              </div>
+
+              <div className="health-sort">
+                <span className="health-sort-label">{t('food.sortBy')}</span>
+                {['default', 'alpha', 'availability'].map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={medSort === key ? 'pill pill--active' : 'pill'}
+                    onClick={() => setMedSort(key)}
+                  >
+                    {t(`food.sort.${key}`)}
                   </button>
                 ))}
               </div>

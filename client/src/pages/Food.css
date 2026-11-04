@@ -425,6 +425,18 @@
   margin-bottom: 14px;
 }
 
+.food-stock-sort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 14px;
+}
+.food-stock-sort-label {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
 .stock-list {
   list-style: none;
   margin: 0 0 4px;

@@ -240,6 +240,18 @@
   margin-bottom: 16px;
 }
 
+.health-sort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.health-sort-label {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
 /* --- Таблиця --- */
 .table-scroll {
   overflow-x: auto;

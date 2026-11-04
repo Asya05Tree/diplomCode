@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import { getFinance } from '../api/finance'
-import { addShoppingItem } from '../api/shopping'
+import { addShoppingItem, getShoppingList } from '../api/shopping'
 import {
   getFoodOverview,
   setStockState as apiSetStockState,
@@ -49,14 +49,21 @@ export default function Food() {
   // Дві вкладки розділу: "Страви" і "Запаси".
   const [tab, setTab] = useState('dishes') // 'dishes' | 'stock'
   const [stockCat, setStockCat] = useState('all')
+  const [stockSort, setStockSort] = useState('default') // 'default' | 'alpha' | 'availability'
+  // Id продуктів, що вже є у списку покупок (невідмічені) — щоб не пропонувати додати двічі.
+  const [inShopping, setInShopping] = useState(() => new Set())
 
   // Спливне вікно готовки: { recipe, step, have, states }
   const [cooking, setCooking] = useState(null)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([getFoodOverview(), getFinance().catch(() => ({ balance: 0 }))])
-      .then(([ov, fin]) => {
+    Promise.all([
+      getFoodOverview(),
+      getFinance().catch(() => ({ balance: 0 })),
+      getShoppingList().catch(() => ({ items: [] })),
+    ])
+      .then(([ov, fin, shop]) => {
         if (cancelled) return
         setProducts(ov.products)
         setRecipes(ov.recipes)
@@ -68,6 +75,7 @@ export default function Food() {
         const bal = Math.round(Number(fin?.balance) || 0)
         setBalance(bal)
         setRange({ from: 0, to: bal })
+        setInShopping(new Set((shop.items || []).filter((x) => !x.isChecked && x.productId != null).map((x) => x.productId)))
         setLoading(false)
       })
       .catch(() => {
@@ -134,7 +142,19 @@ export default function Food() {
     setStock((prev) => ({ ...prev, [productId]: state }))
     await apiSetStockState(productId, state)
     // "Немає" — продукт списано: одразу в список покупок (§4.8, один жест — кілька ефектів).
-    if (state === 'OutOfStock') await addShoppingItem({ section: 'Groceries', productId })
+    if (state === 'OutOfStock') {
+      await addShoppingItem({ section: 'Groceries', productId })
+      setInShopping((prev) => new Set(prev).add(productId))
+      return
+    }
+    // "Закінчується" (жовтий): якщо товару ще немає в списку покупок — питаємо, чи додати.
+    if (state === 'RunningLow' && !inShopping.has(productId)) {
+      const name = productName(products.find((p) => p.id === productId) || {}, language)
+      if (window.confirm(t('food.lowAddConfirm', { name }))) {
+        await addShoppingItem({ section: 'Groceries', productId })
+        setInShopping((prev) => new Set(prev).add(productId))
+      }
+    }
   }
 
   const handleAddStock = async (productId) => {
@@ -211,8 +231,17 @@ export default function Food() {
     .filter((p) => stock[p.id] && stock[p.id] !== 'OutOfStock')
     .map((p) => ({ product: p, state: stock[p.id] }))
   const stockGroups = [...new Set(stockRows.map((r) => r.product.storageGroup))]
-  const visibleStock =
+  const filteredStock =
     stockCat === 'all' ? stockRows : stockRows.filter((r) => r.product.storageGroup === stockCat)
+  // Сортування запасів: за абеткою або за наявністю (спочатку жовті "закінчується", потім зелені).
+  const visibleStock = [...filteredStock].sort((a, b) => {
+    if (stockSort === 'alpha') return productName(a.product, language).localeCompare(productName(b.product, language))
+    if (stockSort === 'availability') {
+      const rank = (s) => (s === 'RunningLow' ? 0 : 1)
+      return rank(a.state) - rank(b.state)
+    }
+    return 0
+  })
   const addable = products
     .filter((p) => !stock[p.id] || stock[p.id] === 'OutOfStock')
     .filter((p) => productName(p, language).toLowerCase().includes(stockSearch.trim().toLowerCase()))
@@ -361,6 +390,19 @@ export default function Food() {
                 onClick={() => setStockCat(g)}
               >
                 {t(`food.group.${g}`)}
+              </button>
+            ))}
+          </div>
+          <div className="food-stock-sort">
+            <span className="food-stock-sort-label">{t('food.sortBy')}</span>
+            {['default', 'alpha', 'availability'].map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={stockSort === key ? 'pill pill--active' : 'pill'}
+                onClick={() => setStockSort(key)}
+              >
+                {t(`food.sort.${key}`)}
               </button>
             ))}
           </div>
