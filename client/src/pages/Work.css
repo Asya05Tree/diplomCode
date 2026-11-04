@@ -227,8 +227,12 @@
 .work-nav-btn:hover { background: var(--color-accent-soft); border-color: var(--color-accent); }
 .work-month-label { font-weight: 700; font-size: 0.95rem; min-width: 150px; text-align: center; text-transform: capitalize; }
 
-/* Дві кнопки над календарем (праворуч): відкривають центральні вікна "Типи змін" / "Графік змін" */
-.work-cal-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+/* Шапка календаря в один ряд: навігація місяця · кнопки вікон · кольори змін (праворуч) */
+.work-cal-head { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.work-cal-head .work-month-nav { margin-bottom: 0; gap: 10px; }
+.work-cal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.work-cal-legend { display: flex; align-items: center; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.work-cal-legend .work-legend-dot { width: 18px; height: 18px; border-radius: 5px; cursor: default; }
 
 /* Центральне модальне вікно (Типи змін / Графік змін) */
 .work-modal-overlay {
@@ -244,7 +248,7 @@
 }
 .work-modal {
   position: relative;
-  width: min(760px, 100%);
+  width: min(940px, 96vw);
   max-height: 88vh;
   overflow-y: auto;
   background: var(--color-surface);

@@ -219,6 +219,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
 
   const today = new Date()
   const monthLabel = visibleMonth.toLocaleDateString(LOCALE[language] ?? 'uk-UA', { month: 'long', year: 'numeric' })
+  const activeTypes = shiftTypes.filter((tp) => tp.isActive)
 
   // Короткий опис запису графіка
   const summarize = (e) => {
@@ -247,14 +248,23 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
       </div>
 
       <div className="card">
-        <div className="work-cal-toolbar">
-          <button type="button" className="work-pill" onClick={() => setPanel('types')}>{t('work.shiftTypesTitle')}</button>
-          <button type="button" className="work-pill" onClick={() => setPanel('schedule')}>{t('work.scheduleTitle')}</button>
-        </div>
-        <div className="work-month-nav">
-          <button type="button" className="work-nav-btn" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}><Icon name="chevron-left" /></button>
-          <span className="work-month-label">{monthLabel}</span>
-          <button type="button" className="work-nav-btn" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}><Icon name="chevron-right" /></button>
+        <div className="work-cal-head">
+          <div className="work-month-nav">
+            <button type="button" className="work-nav-btn" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}><Icon name="chevron-left" /></button>
+            <span className="work-month-label">{monthLabel}</span>
+            <button type="button" className="work-nav-btn" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}><Icon name="chevron-right" /></button>
+          </div>
+          <div className="work-cal-actions">
+            <button type="button" className="work-pill" onClick={() => setPanel('types')}>{t('work.shiftTypesTitle')}</button>
+            <button type="button" className="work-pill" onClick={() => setPanel('schedule')}>{t('work.scheduleTitle')}</button>
+          </div>
+          {activeTypes.length > 0 && (
+            <div className="work-cal-legend">
+              {activeTypes.map((tp) => (
+                <span key={tp.id} className="work-legend-dot" title={`${tp.name} ${shiftRangeOf(tp, formatClock)}`} style={{ background: tp.color }} />
+              ))}
+            </div>
+          )}
         </div>
         <div className="work-cal-weekdays">
           {weekdays.map((d) => <span key={d}>{d}</span>)}
@@ -284,13 +294,6 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
             )
           })}
         </div>
-        {shiftTypes.some((tp) => tp.isActive) && (
-          <div className="work-legend">
-            {shiftTypes.filter((tp) => tp.isActive).map((tp) => (
-              <span key={tp.id} className="work-legend-item"><span className="work-legend-dot" style={{ background: tp.color }} />{tp.name} {shiftRangeOf(tp, formatClock)}</span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* --- Типи змін (центральне вікно) --- */}
