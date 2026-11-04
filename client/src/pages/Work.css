@@ -203,7 +203,9 @@
 }
 /* Наступна зміна — лише тонка акцентна смужка зліва, а не суцільний градієнт */
 .work-kpi-tile--accent { border-left: 3px solid var(--color-accent); }
-.work-kpi-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.work-kpi-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Назва зміни в підписі "Наступна зміна (назва)" — звичайний регістр, обрізається трьома крапками */
+.work-kpi-name { text-transform: none; letter-spacing: normal; color: var(--color-text); }
 .work-kpi-value { font-size: 1.15rem; font-weight: 700; color: var(--color-heading); }
 .work-kpi-sub { font-size: 0.76rem; color: var(--color-text-muted); }
 

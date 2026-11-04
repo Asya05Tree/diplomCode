@@ -196,9 +196,8 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
       {/* --- Підсумки + календар --- */}
       <div className="work-kpis">
         <div className="work-kpi-tile work-kpi-tile--accent">
-          <span className="work-kpi-label">{t('work.nextShift')}</span>
-          <span className="work-kpi-value">{nextShift ? `${hhmm(nextShift.startTime, formatClock)}–${hhmm(nextShift.endTime, formatClock)}` : '—'}</span>
-          <span className="work-kpi-sub">{nextShift ? `${nextShift.name}` : t('work.noShifts')}</span>
+          <span className="work-kpi-label">{t('work.nextShift')}{nextShift && <span className="work-kpi-name"> ({nextShift.name})</span>}</span>
+          <span className="work-kpi-value">{nextShift ? `${hhmm(nextShift.startTime, formatClock)}–${hhmm(nextShift.endTime, formatClock)}` : t('work.noShifts')}</span>
         </div>
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.hoursThisMonth')}</span><span className="work-kpi-value">{monthStats.hours} {t('work.hoursShort')}</span></div>
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.shiftsThisMonth')}</span><span className="work-kpi-value">{monthStats.shifts}</span></div>
