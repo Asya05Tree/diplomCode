@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
+import Icon from '../Icon'
 import TaskItem from './TaskItem'
 import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
@@ -43,6 +44,7 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
   const [editingTaskId, setEditingTaskId] = useState(null)
   // 'time' — групування за днями (як було); 'status' — три секції зараз/майбутнє/минуле по всьому періоду
   const [sortMode, setSortMode] = useState('time')
+  const [showMaxHint, setShowMaxHint] = useState(false) // пояснення про ліміт періоду (за іконкою)
   const now = new Date()
 
   const reload = useCallback(() => {
@@ -227,8 +229,17 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
             onChange={handleToChange}
           />
         </label>
-        <span className="period-view-hint">{t('planner.periodMaxHint')}</span>
+        <button
+          type="button"
+          className="period-view-info"
+          aria-label={t('planner.periodMaxHint')}
+          title={t('planner.periodMaxHint')}
+          onClick={() => setShowMaxHint((v) => !v)}
+        >
+          <Icon name="info" />
+        </button>
       </div>
+      {showMaxHint && <p className="period-view-hint">{t('planner.periodMaxHint')}</p>}
 
       {groups.length === 0 ? (
         <p className="placeholder-text">{t('planner.noTasksPeriod')}</p>

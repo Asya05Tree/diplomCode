@@ -4,12 +4,14 @@
   gap: 24px;
   padding: clamp(16px, 3vw, 28px);
   flex: 1;
-  align-items: start;
+  /* Календар (ліворуч) і робоча область (праворуч) — вертикально по центру одне одного */
+  align-items: center;
 }
 
 .planner-grid-panel {
   position: sticky;
-  top: 84px;
+  /* Невеликий відступ зверху (раніше 84px — компенсація під старий хедер, якого вже немає) */
+  top: 24px;
   padding: 20px 22px;
 }
 

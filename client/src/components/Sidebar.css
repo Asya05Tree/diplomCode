@@ -81,7 +81,8 @@
   font-family: var(--font-display);
   font-size: 1.1rem;
   letter-spacing: 0.02em;
-  color: var(--color-text);
+  /* Текст у тон іконок (акцент-ink), щоб сайдбар був єдиним цілим */
+  color: var(--color-accent-ink);
 }
 
 /* Активний пункт — акцент з Налаштувань (колір модуля лишається смужкою зліва). */

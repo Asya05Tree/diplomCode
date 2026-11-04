@@ -302,7 +302,7 @@
   "planner.weekdaysShort": "Mon,Tue,Wed,Thu,Fri,Sat,Sun",
   "planner.modeDay": "Day",
   "planner.modePeriod": "Period",
-  "planner.modeRecurring": "Recurring task list",
+  "planner.modeRecurring": "Recurring",
   "planner.modeDebts": "Important debts",
   "planner.debtsEmpty": "No overdue deadlines — all under control.",
   "planner.debtsHint": "Overdue study and work deadlines. Mark them done in the matching section.",

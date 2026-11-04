@@ -31,10 +31,32 @@
   font-size: 0.86rem;
 }
 
-.period-view-hint {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
+/* Кнопка-підказка (ⓘ) про ліміт періоду — у правому краю рядка контролів */
+.period-view-info {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition);
+}
+.period-view-info .icon { width: 16px; height: 16px; }
+.period-view-info:hover { background: color-mix(in srgb, var(--color-accent) 24%, transparent); }
+
+/* Текст підказки — окремим рядком під контролями (з'являється за кліком на ⓘ) */
+.period-view-hint {
+  margin: 8px 2px 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
 }
 
 .period-view-group {
