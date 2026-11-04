@@ -437,6 +437,34 @@
   color: var(--color-text-muted);
 }
 
+/* Запаси — маленькі картки (назва, можна чи ні, наявність) */
+.stock-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+.stock-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.stock-card-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-heading);
+  word-break: break-word;
+}
+.stock-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .stock-list {
   list-style: none;
   margin: 0 0 4px;

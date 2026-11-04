@@ -406,39 +406,40 @@ export default function Food() {
               </button>
             ))}
           </div>
-          <ul className="stock-list">
+          <div className="stock-cards">
             {visibleStock.map(({ product, state }) => {
               const hs = product.health || {}
               return (
-                <li key={product.id} className="stock-row">
-                  <span className={`stock-dot stock-dot--${state === 'Available' ? 'ok' : 'warn'}`} />
-                  <span className="stock-name">{productName(product, language)}</span>
-                  {hs.forbidden ? (
-                    <span className="health-flag health-flag--bad" title={tagLabel(hs.forbidden)}>
-                      {t('food.health.forbidden')}
-                    </span>
-                  ) : hs.avoid ? (
-                    <span className="health-flag health-flag--warn" title={tagLabel(hs.avoid)}>
-                      {t('food.health.avoid')}
-                    </span>
-                  ) : (
-                    <span className="health-flag health-flag--ok">{t('food.health.ok')}</span>
-                  )}
-                  <div className="stock-toggle">
-                    {STOCK_TOGGLE.map(({ state: s, cls }) => (
-                      <button
-                        key={s}
-                        type="button"
-                        title={t(`food.state.${s}`)}
-                        className={`stock-circle stock-circle--${cls}${state === s ? ' stock-circle--on' : ''}`}
-                        onClick={() => handleStockState(product.id, s)}
-                      />
-                    ))}
+                <div key={product.id} className="stock-card">
+                  <span className="stock-card-name">{productName(product, language)}</span>
+                  <div className="stock-card-row">
+                    {hs.forbidden ? (
+                      <span className="health-flag health-flag--bad" title={tagLabel(hs.forbidden)}>
+                        {t('food.health.forbidden')}
+                      </span>
+                    ) : hs.avoid ? (
+                      <span className="health-flag health-flag--warn" title={tagLabel(hs.avoid)}>
+                        {t('food.health.avoid')}
+                      </span>
+                    ) : (
+                      <span className="health-flag health-flag--ok">{t('food.health.ok')}</span>
+                    )}
+                    <div className="stock-toggle">
+                      {STOCK_TOGGLE.map(({ state: s, cls }) => (
+                        <button
+                          key={s}
+                          type="button"
+                          title={t(`food.state.${s}`)}
+                          className={`stock-circle stock-circle--${cls}${state === s ? ' stock-circle--on' : ''}`}
+                          onClick={() => handleStockState(product.id, s)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </li>
+                </div>
               )
             })}
-          </ul>
+          </div>
           <button type="button" className="btn-accent stock-add-btn" onClick={() => setAddStockOpen(true)}>
             {t('food.addStock')}
           </button>

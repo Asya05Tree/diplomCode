@@ -2,19 +2,37 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { getContacts, addContact, updateContact, removeContact } from '../../api/work'
-import { CONTACT_STATUSES } from './workShared'
 
-// Контакти за групами й статусом (ПІБ і телефон обов'язкові; пошта, день народження та соцмережі —
-// за бажанням). Групи — довільний текст; у списку контакти згруповані за назвою групи.
-const EMPTY = { groupName: '', status: 'online', fullName: '', phone: '', email: '', birthday: '', socials: '' }
+// Контакти за групами. ПІБ окремими полями (прізвище / ім'я / по батькові). День народження — лише
+// число й місяць (рік не зберігаємо, показуємо без року). Соцмережі — Telegram / Viber (за бажанням).
+const EMPTY = {
+  groupName: '', lastName: '', firstName: '', middleName: '',
+  phone: '', email: '', bMonth: '', bDay: '', telegram: '', viber: '',
+}
+
+const pad2 = (n) => String(n).padStart(2, '0')
 
 export default function ContactsTab() {
-  const { t, formatDate } = useI18n()
+  const { t, language } = useI18n()
   const [contacts, setContacts] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
+
+  const locale = language === 'en' ? 'en-US' : 'uk-UA'
+  const monthNames = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleDateString(locale, { month: 'long' })),
+    [locale],
+  )
+
+  // День народження як "число місяць" без року (зберігається з умовним роком 2000).
+  const formatBirthday = (iso) => {
+    if (!iso) return ''
+    const [, m, d] = iso.split('-').map(Number)
+    if (!m || !d) return ''
+    return new Date(2000, m - 1, d).toLocaleDateString(locale, { day: 'numeric', month: 'long' })
+  }
 
   const reload = () => getContacts().then(setContacts).catch(() => setContacts([]))
   useEffect(() => { reload() }, [])
@@ -23,10 +41,20 @@ export default function ContactsTab() {
 
   const openAdd = () => { setEditingId(null); setForm(EMPTY); setError(''); setShowForm(true) }
   const openEdit = (c) => {
+    const parts = (c.fullName || '').trim().split(/\s+/)
+    const [, m, d] = (c.birthday || '').split('-').map((x) => Number(x) || '')
     setEditingId(c.id)
     setForm({
-      groupName: c.groupName ?? '', status: c.status ?? 'online', fullName: c.fullName ?? '',
-      phone: c.phone ?? '', email: c.email ?? '', birthday: c.birthday ?? '', socials: c.socials ?? '',
+      groupName: c.groupName ?? '',
+      lastName: parts[0] ?? '',
+      firstName: parts[1] ?? '',
+      middleName: parts.slice(2).join(' '),
+      phone: c.phone ?? '',
+      email: c.email ?? '',
+      bMonth: m ? String(m) : '',
+      bDay: d ? String(d) : '',
+      telegram: c.telegram ?? '',
+      viber: c.viber ?? '',
     })
     setError('')
     setShowForm(true)
@@ -34,15 +62,17 @@ export default function ContactsTab() {
 
   const submit = async (e) => {
     e.preventDefault()
-    if (!form.fullName.trim()) { setError(t('work.errContactName')); return }
+    const fullName = [form.lastName, form.firstName, form.middleName].map((s) => s.trim()).filter(Boolean).join(' ')
+    if (!fullName) { setError(t('work.errContactName')); return }
+    const birthday = form.bMonth && form.bDay ? `2000-${pad2(form.bMonth)}-${pad2(form.bDay)}` : null
     const payload = {
       groupName: form.groupName.trim() || t('work.ungrouped'),
-      status: form.status,
-      fullName: form.fullName.trim(),
+      fullName,
       phone: form.phone.trim(),
       email: form.email.trim() || null,
-      birthday: form.birthday || null,
-      socials: form.socials.trim() || null,
+      birthday,
+      telegram: form.telegram.trim() || null,
+      viber: form.viber.trim() || null,
     }
     if (editingId) await updateContact(editingId, payload)
     else await addContact(payload)
@@ -79,17 +109,26 @@ export default function ContactsTab() {
       {showForm && (
         <form className="work-form" onSubmit={submit}>
           <div className="work-form-grid">
-            <label>{t('work.fullName')}<input value={form.fullName} onChange={(e) => set({ fullName: e.target.value })} /></label>
+            <label>{t('work.lastName')}<input value={form.lastName} onChange={(e) => set({ lastName: e.target.value })} /></label>
+            <label>{t('work.firstName')}<input value={form.firstName} onChange={(e) => set({ firstName: e.target.value })} /></label>
+            <label>{t('work.middleName')} <span className="work-optional">({t('work.optional')})</span><input value={form.middleName} onChange={(e) => set({ middleName: e.target.value })} /></label>
             <label>{t('work.group')}<input value={form.groupName} onChange={(e) => set({ groupName: e.target.value })} placeholder={t('work.groupPlaceholder')} /></label>
-            <label>{t('work.status')}
-              <select value={form.status} onChange={(e) => set({ status: e.target.value })}>
-                {CONTACT_STATUSES.map((s) => <option key={s} value={s}>{t(`work.contactStatus.${s}`)}</option>)}
-              </select>
-            </label>
             <label>{t('work.phone')}<input value={form.phone} onChange={(e) => set({ phone: e.target.value })} /></label>
             <label>{t('work.email')} <span className="work-optional">({t('work.optional')})</span><input value={form.email} onChange={(e) => set({ email: e.target.value })} /></label>
-            <label>{t('work.birthday')} <span className="work-optional">({t('work.optional')})</span><input type="date" value={form.birthday} onChange={(e) => set({ birthday: e.target.value })} /></label>
-            <label className="work-form-wide">{t('work.socials')} <span className="work-optional">({t('work.optional')})</span><input value={form.socials} onChange={(e) => set({ socials: e.target.value })} placeholder="IG @name · TG @name" /></label>
+            <label>{t('work.birthday')} <span className="work-optional">({t('work.optional')})</span>
+              <div className="work-bday">
+                <select value={form.bDay} onChange={(e) => set({ bDay: e.target.value })}>
+                  <option value="">{t('work.bdayDay')}</option>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+                <select value={form.bMonth} onChange={(e) => set({ bMonth: e.target.value })}>
+                  <option value="">{t('work.bdayMonth')}</option>
+                  {monthNames.map((name, i) => <option key={i} value={i + 1}>{name}</option>)}
+                </select>
+              </div>
+            </label>
+            <label>{t('work.telegram')} <span className="work-optional">({t('work.optional')})</span><input value={form.telegram} onChange={(e) => set({ telegram: e.target.value })} placeholder="@username" /></label>
+            <label>{t('work.viber')} <span className="work-optional">({t('work.optional')})</span><input value={form.viber} onChange={(e) => set({ viber: e.target.value })} placeholder="+380…" /></label>
           </div>
           {error && <p className="task-form-error">{error}</p>}
           <div className="work-form-actions">
@@ -109,11 +148,11 @@ export default function ContactsTab() {
                 <div className="work-contact-avatar">{initials(c.fullName)}</div>
                 <div className="work-contact-body">
                   <span className="work-contact-name">{c.fullName}</span>
-                  <span className={`work-cstatus work-cstatus--${c.status}`}>{t(`work.contactStatus.${c.status}`)}</span>
-                  <span className="work-contact-line"><Icon name="bell" />{c.phone || '—'}</span>
-                  {c.email && <span className="work-contact-line"><Icon name="arrow-right" />{c.email}</span>}
-                  {c.birthday && <span className="work-contact-line"><Icon name="cake" />{formatDate(c.birthday)}</span>}
-                  {c.socials && <span className="work-contact-line work-contact-socials">{c.socials}</span>}
+                  {c.phone && <span className="work-contact-line">{c.phone}</span>}
+                  {c.email && <span className="work-contact-line">{c.email}</span>}
+                  {c.birthday && <span className="work-contact-line"><Icon name="cake" />{formatBirthday(c.birthday)}</span>}
+                  {c.telegram && <span className="work-contact-line work-contact-socials">Telegram: {c.telegram}</span>}
+                  {c.viber && <span className="work-contact-line work-contact-socials">Viber: {c.viber}</span>}
                 </div>
                 <div className="work-contact-actions">
                   <button type="button" className="work-icon-btn" onClick={() => openEdit(c)} aria-label={t('common.edit')}><Icon name="pencil" /></button>

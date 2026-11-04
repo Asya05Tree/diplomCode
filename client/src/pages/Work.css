@@ -111,11 +111,13 @@
 .work-saved-note { font-size: 0.8rem; color: var(--status-ok-text); }
 
 /* --- Форми --- */
-.work-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
-.work-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.work-form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.work-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px 18px; margin-bottom: 4px; }
 .work-form-wide { grid-column: 1 / -1; }
-.work-inline-form { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
-.work-form label, .work-field-row label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--color-text-muted); }
+.work-inline-form { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 14px 16px; }
+.work-form label, .work-field-row label { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; color: var(--color-text-muted); }
+.work-bday { display: flex; gap: 8px; }
+.work-bday select { flex: 1; min-width: 0; }
 .work-form-grow { flex: 1 1 180px; }
 .work-form input, .work-form select, .work-field-row input, .work-field-row select {
   border: 1px solid var(--color-border);
@@ -128,7 +130,7 @@
 }
 .work-optional { color: var(--color-text-muted); font-weight: 400; font-size: 0.72rem; }
 .work-form-actions { display: flex; gap: 8px; }
-.work-field-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-bottom: 12px; }
+.work-field-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin: 6px 0 16px; }
 .work-field-label { font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 6px; }
 
 /* --- Пілюлі (тип оплати, режим додавання графіка) --- */
