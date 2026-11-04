@@ -2,7 +2,7 @@
 // і впишіть його сюди; код рушія (parser.js) і UI чіпати не треба.
 import uk from './dict.uk.js'
 import en from './dict.en.js'
-import { parseInput as parseWith, detectLanguage } from './parser.js'
+import { parseInput as parseWith, detectLanguage, findUnsupportedChars } from './parser.js'
 
 const DICTS = [uk, en]
 
@@ -12,4 +12,4 @@ export function parseInput(text, now = new Date(), extraWords = []) {
   return parseWith(text, DICTS, now, extraWords)
 }
 
-export { detectLanguage }
+export { detectLanguage, findUnsupportedChars }

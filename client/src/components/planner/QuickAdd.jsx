@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
-import { parseInput } from '../../utils/nlp'
+import { parseInput, findUnsupportedChars } from '../../utils/nlp'
 import { createTask } from '../../api/tasks'
 import { addSubject } from '../../api/study'
 import { addStockByName, productName } from '../../api/food'
@@ -148,6 +148,13 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
   const handleParse = () => {
     setNote('')
+    // Підтримуються лише українська та англійська: якщо є літери з інших мов (напр. рос. ы/э) —
+    // не розбираємо, а просимо виправити (інакше парсер "не зрозуміє" текст і зліпить задачі).
+    const badChars = findUnsupportedChars(text)
+    if (badChars.length) {
+      setNote(t('quickAdd.unsupportedLang', { chars: badChars.join(' ') }))
+      return
+    }
     // Назви наявних предметів передаємо у фаззі-шар — щоб виправляти й помилки в них.
     const parsed = parseInput(text, new Date(), subjects.map((s) => s.name).filter(Boolean))
     const stockItems = (parsed.stock || []).flatMap((s) => s.items)

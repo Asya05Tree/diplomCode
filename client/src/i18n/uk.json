@@ -934,6 +934,7 @@
   "quickAdd.modalTitle": "Підтвердьте задачі",
   "quickAdd.modalHint": "Перевірте й виправте розпізнане. Створяться лише позначені задачі.",
   "quickAdd.nothing": "Нічого не вдалося розпізнати. Спробуйте переформулювати.",
+  "quickAdd.unsupportedLang": "Підтримуються лише українська та англійська. Приберіть символи інших мов: {chars}",
   "quickAdd.field.title": "Назва",
   "quickAdd.field.date": "Дата",
   "quickAdd.field.time": "Час",

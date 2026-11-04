@@ -461,29 +461,93 @@ function extractStudy(piece, m) {
   return out
 }
 
-// Намір "додати до запасів": якщо в реченні є маркер запасів — витягти перелік продуктів
-// (після маркера, поділ по комі / і / та). Повертає масив назв або null.
+// Намір "додати до запасів": знаходимо маркер запасів і беремо ЛИШЕ сусідні з ним продукти
+// (а не весь рядок), обмежуючи клаузу сполучниками/дієсловами-діями. Так "…купити ковбаску,
+// додати молоко до запасів, а завтра пара" дає запас лише "молоко", а решта лишається задачами.
+// Повертає { items, start, end } (діапазон клаузи для вирізання) або null.
 function extractStock(sentence, m) {
   if (!m.stockMarkers.length) return null
-  const markerRe = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'giu')
-  if (!markerRe.test(sentence)) return null
-  const rest = sentence.replace(new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'giu'), ' ')
-  // Службові/пустушкові слова, що не є продуктами (слід/треба/що + прийменники).
+  const mk = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'iu').exec(sentence)
+  if (!mk) return null
+  const markerStart = mk.index
+  const markerEnd = mk.index + mk[0].length
+
+  // Токени-слова з позиціями (для вирізання точного діапазону клаузи).
+  const toks = []
+  const tokRe = new RegExp(`[${L}'0-9]+`, 'giu')
+  let tm
+  while ((tm = tokRe.exec(sentence)) !== null) {
+    toks.push({ text: tm[0], lower: tm[0].toLowerCase(), start: tm.index, end: tm.index + tm[0].length })
+  }
+
+  // Межі клаузи: сполучники "а/але/потім/then/but" + дати + дієслова-дії + числа зупиняють
+  // збір; "і/та/й/and" — лише розділювачі переліку (не зупиняють). Дієслово-додавання (дода/add)
+  // — природна межа, яку ВКЛЮЧАЄМО у виріз.
+  const SEP = new Set(['і', 'та', 'й', 'and'])
+  const STOP = new Set(['а', 'але', 'потім', 'опісля', 'також', 'then', 'also', 'plus', 'but', 'after'])
+  const dateWords = new Set([...Object.keys(m.relativeDates), ...Object.keys(m.weekdays), ...Object.keys(m.months)])
+  const verbRe = m.verbs.length ? new RegExp(`^(?:${alt(m.verbs)})${L}*$`, 'iu') : null
+  const stockVerbRe = m.stockVerbs.length ? new RegExp(`^(?:${alt(m.stockVerbs)})${L}*$`, 'iu') : null
+  const isStockVerb = (w) => Boolean(stockVerbRe && stockVerbRe.test(w))
+  const isBoundary = (w) => STOP.has(w) || dateWords.has(w) || /^\d+$/.test(w) || Boolean(verbRe && verbRe.test(w))
+
+  const beforeIdx = []
+  const afterIdx = []
+  for (let i = 0; i < toks.length; i++) {
+    if (toks[i].end <= markerStart) beforeIdx.push(i)
+    else if (toks[i].start >= markerEnd) afterIdx.push(i)
+  }
+
+  // Збір продуктів у заданому напрямку. Повертає { picked, stockVerbTok }.
+  const collect = (idxs, backward) => {
+    const picked = []
+    let stockVerbTok = null
+    const order = backward ? [...idxs].reverse() : idxs
+    for (const i of order) {
+      const w = toks[i].lower
+      if (SEP.has(w)) continue
+      if (isStockVerb(w)) { stockVerbTok = toks[i]; break }
+      if (isBoundary(w)) break
+      if (backward) picked.unshift(toks[i])
+      else picked.push(toks[i])
+    }
+    return { picked, stockVerbTok }
+  }
+
+  // Спершу продукти ПЕРЕД маркером ("молоко до запасів"); якщо їх немає — ПІСЛЯ ("додай до запасів молоко").
+  let { picked, stockVerbTok } = collect(beforeIdx, true)
+  if (!picked.length) {
+    // Дієслово-додавання одразу перед маркером ("додай до запасів …") теж включаємо у виріз.
+    const prev = beforeIdx.length ? toks[beforeIdx[beforeIdx.length - 1]] : null
+    const lead = prev && isStockVerb(prev.lower) ? prev : null
+    ;({ picked } = collect(afterIdx, false))
+    stockVerbTok = lead
+  }
+  if (!picked.length) return null
+
+  // Назви продуктів: поділ сусіднього тексту по комі / і / та / and; зрізаємо службові слова.
   const singleFillers = m.fillerWords.filter((w) => !/\s/.test(w))
   const stop = new Set([...m.stockStopWords, ...singleFillers, ...m.edgeWords].map((w) => w.toLowerCase()))
-  const edge = stop
-  // Роздільники переліку: кома та сполучники і/та/й/and.
-  const parts = rest.split(new RegExp(`\\s*,\\s*|${BB}(?:і|та|й|and)${BE}`, 'giu'))
+  const prodStart = picked[0].start
+  const prodEnd = picked[picked.length - 1].end
+  const region = sentence.slice(prodStart, prodEnd)
+  const parts = region.split(new RegExp(`\\s*,\\s*|${BB}(?:і|та|й|and)${BE}`, 'giu'))
   const items = []
   for (const part of parts) {
     const words = (part || '').split(/\s+/)
       .map((w) => w.replace(/[.,;:!?]+$/u, ''))
       .filter(Boolean)
-      .filter((w) => !stop.has(w.toLowerCase()) && !edge.has(w.toLowerCase()))
+      .filter((w) => !stop.has(w.toLowerCase()))
     const name = words.join(' ').trim()
     if (name && new RegExp(`[${L}]`, 'u').test(name)) items.push(name)
   }
-  return items.length ? items : null
+  if (!items.length) return null
+
+  // Діапазон вирізання: продукти + маркер (+ дієслово-додавання, якщо межею стало саме воно).
+  let start = Math.min(prodStart, markerStart)
+  let end = Math.max(prodEnd, markerEnd)
+  if (stockVerbTok) { start = Math.min(start, stockVerbTok.start); end = Math.max(end, stockVerbTok.end) }
+  return { items, start, end }
 }
 
 // --- Складання однієї задачі з фрагмента (кроки 2–5) ---
@@ -638,6 +702,26 @@ function splitTasks(text, m) {
   return out
 }
 
+// Літери, що підтримуються: латиниця (англ.) + українська кирилиця. Інші системи письма
+// та суто російські літери (ё ъ ы э, яких немає в українській абетці) вважаємо непідтримуваними.
+const SUPPORTED_LETTERS = new Set(
+  (
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+    'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя' +
+    'АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'
+  ).split(''),
+)
+
+// Знаходить літери поза українською/англійською абеткою (напр. російські ы/э або інші мови).
+// Потрібно, щоб Швидке додавання не намагалось розбирати текст, який воно не розуміє.
+export function findUnsupportedChars(text) {
+  const bad = new Set()
+  for (const ch of String(text || '')) {
+    if (/\p{L}/u.test(ch) && !SUPPORTED_LETTERS.has(ch)) bad.add(ch)
+  }
+  return [...bad]
+}
+
 // Визначення мови за наявністю кирилиці/латиниці (окремого перемикача немає).
 export function detectLanguage(text) {
   const cyr = /[Ѐ-ӿ]/.test(text)
@@ -684,14 +768,20 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
     const markerRe = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'iu')
     const sentences = raw.split(/(?<=[.!?;])\s+/u)
     const kept = []
-    for (const s of sentences) {
-      if (markerRe.test(s)) {
-        const items = extractStock(s, m)
-        if (items) { stock.push({ raw: s.trim(), items }); continue }
+    for (let s of sentences) {
+      // У реченні може бути кілька намірів-запасів: виймаємо КЛАУЗУ запасів по черзі,
+      // лишаючи решту тексту під звичайні задачі (а не ковтаючи все речення цілком).
+      let guard = 0
+      while (markerRe.test(s) && guard++ < 10) {
+        const found = extractStock(s, m)
+        if (!found) break
+        stock.push({ raw: s.slice(found.start, found.end).trim(), items: found.items })
+        s = `${s.slice(0, found.start)} ${s.slice(found.end)}`.replace(/\s+/g, ' ').trim()
       }
-      kept.push(s)
+      if (s.trim()) kept.push(s)
     }
-    forTasks = kept.join(' ')
+    // Крапка між колишніми реченнями — тверда межа (дата не успадковується через неї).
+    forTasks = kept.join('. ')
   }
 
   const pieces = splitTasks(forTasks, m)
