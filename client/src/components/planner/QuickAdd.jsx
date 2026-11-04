@@ -33,6 +33,7 @@ function toRow(task) {
     durH: hours,
     durM: minutes,
     module: task.module || 'tasks',
+    confidence: task.confidence || 'high',
     ambiguous: task.ambiguous,
     raw: task.raw,
     inheritedDate: Boolean(task.inheritedDate),
@@ -216,6 +217,11 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                   </label>
 
                   <div className="qa-fields">
+                    {r.confidence !== 'high' && (
+                      <div className={`qa-conf qa-conf--${r.confidence}`}>
+                        {r.confidence === 'low' ? t('quickAdd.conf.low') : t('quickAdd.conf.medium')}
+                      </div>
+                    )}
                     <label className="qa-field qa-field--title">
                       <span>{t('quickAdd.field.title')}</span>
                       <input type="text" value={r.title} onChange={(e) => patch(i, { title: e.target.value, include: r.include || Boolean(e.target.value.trim()) })} />

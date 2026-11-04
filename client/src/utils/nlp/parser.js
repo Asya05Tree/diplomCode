@@ -123,6 +123,16 @@ function resolveWeekday(iso, nextWeek, now) {
   return toApiDate(d)
 }
 
+// День тижня В МЕЖАХ тижня (Пн–Нд), на який припадає опорна дата (сьогодні + anchorDays).
+// Для "через два тижні в четвер": беремо тиждень через 2 тижні й знаходимо в ньому четвер.
+function resolveWeekdayInWeek(anchorDays, iso, now) {
+  const d = startOfToday(now)
+  d.setDate(d.getDate() + anchorDays)
+  const cur = d.getDay() === 0 ? 7 : d.getDay()
+  d.setDate(d.getDate() + (iso - cur))
+  return toApiDate(d)
+}
+
 // --- Крок 2. Матчери: від найконкретніших до найкоротших. Вищий priority перемагає. ---
 
 function buildMatchers(m, now) {
@@ -226,7 +236,9 @@ function buildMatchers(m, now) {
         const n = /^\d+$/.test(nRaw) ? Number(nRaw) : m.numberWords[nRaw]
         const unit = m.durationUnits[mm[2].toLowerCase()]
         if (!n || !unit) return null
-        return { dateStr: resolveRelative(n * unit, now) }
+        const days = n * unit
+        // anchorDays/isWeekAnchor — щоб далі скомбінувати "через N тижнів" із днем тижня.
+        return { dateStr: resolveRelative(days, now), anchorDays: days, isWeekAnchor: unit === 7 }
       },
     },
     // 5) Відносні дати ("завтра", "tomorrow").
@@ -242,7 +254,7 @@ function buildMatchers(m, now) {
       read: (mm) => {
         const marker = (mm[1] || '').toLowerCase()
         const iso = m.weekdays[mm[2].toLowerCase()]
-        return { dateStr: resolveWeekday(iso, nextSet.has(marker), now) }
+        return { dateStr: resolveWeekday(iso, nextSet.has(marker), now), iso }
       },
     },
     // 7) Час із маркером ("о 16:00", "о 4 годині", "at 4pm", "на 9").
@@ -319,6 +331,17 @@ function buildTitle(piece, accepted, m) {
   const chars = piece.split('')
   for (const seg of accepted) for (let i = seg.start; i < seg.end; i++) chars[i] = ' '
   let s = chars.join('').replace(/\s+/g, ' ').trim()
+
+  // Нормалізація порядку: дієслово в кінці ("до лікаря піти") → наперед ("піти до лікаря").
+  // Робимо ДО зрізання країв, щоб прийменник "до" опинився всередині й не зрізався. Один раз,
+  // лише одне кінцеве дієслово, і лише якщо перше слово ще не дієслово.
+  if (m.verbs.length) {
+    const verbRe = new RegExp(`^(?:${alt(m.verbs)})${L}*$`, 'iu')
+    const toks = s.split(' ').filter(Boolean)
+    if (toks.length >= 2 && verbRe.test(toks[toks.length - 1]) && !verbRe.test(toks[0])) {
+      s = [toks[toks.length - 1], ...toks.slice(0, -1)].join(' ')
+    }
+  }
 
   const edge = new Set(m.edgeWords.map((w) => w.toLowerCase()))
   const trimPunct = (x) => x.replace(/^[\s,.;:–—-]+/, '').replace(/[\s,.;:–—-]+$/, '')
@@ -477,9 +500,19 @@ function assemble(piece, m, now) {
     const mm = before.match(new RegExp(`([${L}']+)$`, 'u'))
     return mm ? dlSet.has(mm[1].toLowerCase()) : false
   }
+  // "через N тижнів" + день тижня → той самий день тижня цільового тижня (а не просто +Nднів).
+  const consumed = new Set()
+  const weekAnchor = dates.find((s) => s.data.isWeekAnchor)
+  const weekdaySeg = dates.find((s) => s.data.iso != null)
+  if (weekAnchor && weekdaySeg && weekAnchor !== weekdaySeg) {
+    weekAnchor.data = { ...weekAnchor.data, dateStr: resolveWeekdayInWeek(weekAnchor.data.anchorDays, weekdaySeg.data.iso, now) }
+    consumed.add(weekdaySeg)
+  }
+
   let date = ''
   let deadline = ''
   for (const seg of dates) {
+    if (consumed.has(seg)) continue
     if (!deadline && precededByDeadline(seg)) deadline = seg.data.dateStr
     else if (!date) date = seg.data.dateStr
   }
@@ -527,7 +560,13 @@ function assemble(piece, m, now) {
     if (study.subject) title = cap(study.subject)
   }
 
-  return { raw: piece.trim(), title, date, deadline, time, durationMinutes, module, ambiguous, study }
+  // Рівень впевненості (порада ШІ — «три результати»): high — є дата (задача на час);
+  // medium — дату не знайшли, але зрозуміли ТИП задачі (модуль); low — лише сирий текст у назві.
+  let confidence = 'low'
+  if (date || deadline) confidence = 'high'
+  else if (module) confidence = 'medium'
+
+  return { raw: piece.trim(), title, date, deadline, time, durationMinutes, module, ambiguous, study, confidence }
 }
 
 // Різні символи апострофа (ʼ ' ' ` ´) → один прямий, щоб "пʼятницю" збігалося зі словником.
@@ -554,7 +593,16 @@ function verbSplit(text, m) {
   for (let i = 1; i < verbs.length; i++) {
     const between = text.slice(verbs[i - 1].end, verbs[i].start)
     const hasObject = between.split(/\s+/).filter(Boolean).some((w) => !edge.has(w.toLowerCase()))
-    if (hasObject) cuts.push(verbs[i].start)
+    if (!hasObject) continue
+    let cut = verbs[i].start
+    // Якщо перед дієсловом стоїть фраза-дедлайн ("до того часу придбати…"), вона стосується
+    // НАСТУПНОЇ дії — переносимо межу перед неї, щоб не лишилась у попередній задачі.
+    const head = text.slice(0, cut)
+    for (const phrase of (m.byThenMarkers || [])) {
+      const mm = new RegExp(`(^|\\s)(${esc(phrase)})\\s*$`, 'iu').exec(head)
+      if (mm) { cut = mm.index + mm[1].length; break }
+    }
+    cuts.push(cut)
   }
   if (!cuts.length) return [text]
   const bounds = [0, ...cuts, text.length]
@@ -658,9 +706,13 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
     // Фразу "до того часу" прибираємо з тексту перед розбором, щоб вона не лишалась у назві.
     const pieceText = byThen ? piece.text.replace(byThenRe, ' ') : piece.text
     const task = assemble(pieceText, m, now)
+    // Третій результат (порада ШІ): нерозпізнаний, але змістовний текст — це НЕ провал, а
+    // звичайна задача з сирою назвою (confidence='low', редагується на екрані). Глухого списку
+    // "не розпізнано" більше немає. Відкидаємо лише фрагменти, що після зрізання службових слів
+    // не лишили жодної назви (самі прийменники/пустушки: "хочу", "в на до", "ееее").
     const empty = !task.title && !task.date && !task.deadline && !task.time
       && !task.durationMinutes && !task.module && !task.ambiguous.length
-    if (empty) { notRecognized.push(task.raw); continue }
+    if (empty) continue
     // "до того часу" → термін = попередня дата; при цьому дату-початок НЕ успадковуємо.
     if (byThen && !task.deadline && lastDate) { task.deadline = lastDate; task.inheritedDeadline = true }
     if (task.date) lastDate = task.date

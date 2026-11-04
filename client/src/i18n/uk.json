@@ -835,6 +835,8 @@
   "quickAdd.hours": "год",
   "quickAdd.minutes": "хв",
   "quickAdd.titleRequired": "Додайте назву, щоб створити цю задачу",
+  "quickAdd.conf.medium": "Дату не впізнали — додайте за потреби",
+  "quickAdd.conf.low": "Розпізнали лише назву — перевірте й додайте дату, якщо треба",
   "quickAdd.ambiguous": "Уточніть «{raw}»:",
   "quickAdd.opt.day": "{n} число",
   "quickAdd.opt.skip": "пропустити",

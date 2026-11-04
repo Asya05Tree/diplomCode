@@ -216,6 +216,22 @@
   color: var(--color-accent-ink);
 }
 
+/* Підказка рівня впевненості (три результати): дату не впізнали / лише назва.
+   Нейтральний тон — це НЕ помилка, лише натяк, що саме можна дозаповнити. */
+.qa-conf {
+  flex-basis: 100%;
+  font-size: 0.82em;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+}
+.qa-conf--low {
+  background: var(--color-warning-soft, var(--color-accent-soft));
+  color: var(--color-warning-ink, var(--color-accent-ink));
+}
+
 /* Навчання: предмет + викладач + пропозиція додати предмет */
 .qa-study {
   flex-basis: 100%;

@@ -835,6 +835,8 @@
   "quickAdd.hours": "h",
   "quickAdd.minutes": "min",
   "quickAdd.titleRequired": "Add a title to create this task",
+  "quickAdd.conf.medium": "No date detected — add one if needed",
+  "quickAdd.conf.low": "Recognized the title only — review and add a date if needed",
   "quickAdd.ambiguous": "Clarify “{raw}”:",
   "quickAdd.opt.day": "day {n}",
   "quickAdd.opt.skip": "skip",
