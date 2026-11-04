@@ -45,6 +45,111 @@
   line-height: 1.4;
   color: var(--color-text-muted);
 }
+
+/* Індикатор плану платної фічі: скільки безкоштовних використань лишилось / повний доступ. */
+.quick-add-plan {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.qa-plan {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+.qa-plan--pro {
+  color: var(--color-accent-ink);
+  font-weight: 600;
+}
+.qa-plan--pro .icon {
+  width: 14px;
+  height: 14px;
+}
+.qa-plan-unlock {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* --- Екран оплати (paywall + мок-картка) --- */
+.qa-pay {
+  max-width: 440px;
+  text-align: center;
+}
+.qa-pay h3 {
+  text-align: center;
+}
+.qa-pay .quick-add-modal-hint {
+  text-align: center;
+}
+.qa-pay-badge {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+}
+.qa-pay-badge .icon {
+  width: 28px;
+  height: 28px;
+}
+.qa-pay-perks {
+  list-style: none;
+  margin: 14px 0 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.qa-pay-perks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+.qa-pay-perks .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+.qa-card {
+  margin: 14px 0 4px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.qa-card-row {
+  display: flex;
+  gap: 12px;
+}
+.qa-card-row .qa-field {
+  flex: 1;
+}
+.qa-card-amount {
+  font-weight: 600;
+  color: var(--color-heading);
+  text-align: right;
+}
 .quick-add-note {
   margin: 4px 0 0;
   font-size: 0.86rem;

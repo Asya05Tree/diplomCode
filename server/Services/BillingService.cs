@@ -10,7 +10,7 @@ using Server.Models;
 namespace Server.Services;
 
 // Стан платної фічі для клієнта. Unlocked=true → ліміт не діє (куплено назавжди).
-public record QuickAddStatus(int Used, int Limit, int Remaining, bool Unlocked);
+public record QuickAddStatus(int Used, int Limit, int Remaining, bool Unlocked, decimal Price, string Currency);
 
 // Результат старту оплати. Mock=true → клієнт показує власну сторінку-картку (демо без грошей).
 // Для WayForPay повертаємо Action (URL форми) і Fields (підписані поля для автосабміту).
@@ -54,14 +54,14 @@ public class BillingService
     }
 
     private QuickAddStatus BuildStatus(User u) =>
-        new(u.QuickAddUsedCount, FreeLimit, Math.Max(0, FreeLimit - u.QuickAddUsedCount), u.QuickAddUnlocked);
+        new(u.QuickAddUsedCount, FreeLimit, Math.Max(0, FreeLimit - u.QuickAddUsedCount), u.QuickAddUnlocked, Price, Currency);
 
     // Витратити одне безкоштовне використання (виклик на старті підтвердження швидкого додавання).
     // ok=false → ліміт вичерпано й доступ не куплено (контролер віддасть 402 → клієнт покаже paywall).
     public async Task<(bool ok, QuickAddStatus status)> ConsumeAsync(int userId)
     {
         var u = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
-        if (u is null) return (false, new QuickAddStatus(0, FreeLimit, 0, false));
+        if (u is null) return (false, new QuickAddStatus(0, FreeLimit, 0, false, Price, Currency));
         if (u.QuickAddUnlocked) return (true, BuildStatus(u));          // куплено — лічильник не чіпаємо
         if (u.QuickAddUsedCount >= FreeLimit) return (false, BuildStatus(u));
         u.QuickAddUsedCount++;

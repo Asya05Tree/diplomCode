@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { parseInput } from '../../utils/nlp'
 import { createTask } from '../../api/tasks'
 import { addSubject } from '../../api/study'
 import { addStockByName, productName } from '../../api/food'
+import { getQuickAddStatus, consumeQuickAdd, checkoutQuickAdd, confirmPayment } from '../../api/billing'
 import { combineDuration, splitDuration, todayApiDate } from '../../utils/date'
 import './QuickAdd.css'
 
@@ -59,6 +61,78 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
   const [stockRows, setStockRows] = useState([])
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
+
+  // Платна фіча: стан ліміту (used/remaining/unlocked/price) і екрани оплати.
+  const [status, setStatus] = useState(null)
+  const [paywall, setPaywall] = useState(false)       // екран "розблокувати за N ₴"
+  const [checkout, setCheckout] = useState(null)      // дані мок-оплати { orderReference, amount, currency }
+  const [payBusy, setPayBusy] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const refreshStatus = () => getQuickAddStatus().then(setStatus).catch(() => {})
+
+  // Початковий стан ліміту.
+  useEffect(() => { refreshStatus() }, [])
+
+  // Повернення з платіжки (?paid=orderReference): підтверджуємо оплату й чистимо URL.
+  useEffect(() => {
+    const paid = searchParams.get('paid')
+    if (!paid) return
+    const sp = new URLSearchParams(searchParams)
+    sp.delete('paid')
+    setSearchParams(sp, { replace: true })
+    confirmPayment(paid)
+      .then((res) => {
+        if (res?.paid) { setStatus(res.status); setPaywall(false); setCheckout(null); setNote(t('quickAdd.pay.success')) }
+        else setNote(t('quickAdd.pay.failed'))
+      })
+      .catch(() => setNote(t('quickAdd.pay.failed')))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const price = status?.price ?? 100
+
+  // Старт оплати: мок → власна сторінка-картка; WayForPay → автосабміт форми на їхню сторінку.
+  const buyNow = async () => {
+    setPayBusy(true)
+    try {
+      const res = await checkoutQuickAdd()
+      if (res?.alreadyUnlocked) { await refreshStatus(); setPaywall(false); return }
+      if (res?.mock) {
+        setCheckout(res)
+      } else if (res?.action && res?.fields) {
+        const form = document.createElement('form')
+        form.method = 'POST'
+        form.action = res.action
+        for (const [k, v] of Object.entries(res.fields)) {
+          const input = document.createElement('input')
+          input.type = 'hidden'; input.name = k; input.value = v
+          form.appendChild(input)
+        }
+        document.body.appendChild(form)
+        form.submit()
+      }
+    } catch {
+      setNote(t('quickAdd.pay.failed'))
+    } finally {
+      setPayBusy(false)
+    }
+  }
+
+  // Підтвердження мок-оплати (демо: картка не перевіряється, гроші не списуються).
+  const confirmMockPay = async () => {
+    if (!checkout) return
+    setPayBusy(true)
+    try {
+      const res = await confirmPayment(checkout.orderReference)
+      if (res?.paid) { setStatus(res.status); setCheckout(null); setPaywall(false); setNote(t('quickAdd.pay.success')) }
+      else setNote(t('quickAdd.pay.failed'))
+    } catch {
+      setNote(t('quickAdd.pay.failed'))
+    } finally {
+      setPayBusy(false)
+    }
+  }
 
   const findSubject = (name) => subjects.find((s) => sameSubject(s.name, name))
 
@@ -120,6 +194,16 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
     if (!toCreate.length && !toStock.length) { close(); return }
     setBusy(true)
     try {
+      // Платний гейт: списуємо одне безкоштовне використання (або пропуск, якщо куплено).
+      // 402 → ліміт вичерпано: показуємо paywall і НЕ створюємо (екран розбору лишається позаду).
+      try {
+        const st = await consumeQuickAdd()
+        setStatus(st)
+      } catch (e) {
+        if (e.message === 'limit_reached') { setPaywall(true); return }
+        throw e
+      }
+
       for (const r of toCreate) {
         // Навчання: за потреби спершу створюємо предмет (помилка не зриває створення задачі).
         if (r.module === 'study' && r.createSubject && r.subject.trim() && canAddSubjects && !findSubject(r.subject)) {
@@ -192,6 +276,20 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
         </button>
       </div>
       <p className="quick-add-hint">{t('quickAdd.hint')}</p>
+
+      {status && (
+        <div className="quick-add-plan">
+          {status.unlocked ? (
+            <span className="qa-plan qa-plan--pro"><Icon name="check" /> {t('quickAdd.plan.unlocked')}</span>
+          ) : (
+            <>
+              <span className="qa-plan">{t('quickAdd.plan.free', { n: status.remaining })}</span>
+              <button type="button" className="qa-plan-unlock" onClick={() => setPaywall(true)}>{t('quickAdd.plan.unlock')}</button>
+            </>
+          )}
+        </div>
+      )}
+
       {note && !result && <p className="quick-add-note">{note}</p>}
 
       {result && (
@@ -342,6 +440,53 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                 {busy ? t('quickAdd.creating') : t('quickAdd.create')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Paywall: ліміт вичерпано → пропозиція розблокувати назавжди. */}
+      {paywall && (
+        <div className="quick-add-modal-backdrop" onClick={() => !payBusy && setPaywall(false)}>
+          <div className="quick-add-modal qa-pay" onClick={(e) => e.stopPropagation()}>
+            {!checkout ? (
+              <>
+                <div className="qa-pay-badge"><Icon name="sparkles" /></div>
+                <h3>{t('quickAdd.pay.title')}</h3>
+                <p className="quick-add-modal-hint">{t('quickAdd.pay.body', { price })}</p>
+                <ul className="qa-pay-perks">
+                  <li><Icon name="check" /> {t('quickAdd.pay.perk1')}</li>
+                  <li><Icon name="check" /> {t('quickAdd.pay.perk2')}</li>
+                </ul>
+                <div className="quick-add-modal-actions">
+                  <button type="button" className="btn-ghost" onClick={() => setPaywall(false)} disabled={payBusy}>{t('common.cancel')}</button>
+                  <button type="button" className="btn-accent" onClick={buyNow} disabled={payBusy}>
+                    {payBusy ? t('quickAdd.pay.processing') : t('quickAdd.pay.buy', { price })}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3>{t('quickAdd.pay.mockTitle')}</h3>
+                <p className="quick-add-modal-hint">{t('quickAdd.pay.mockHint')}</p>
+                <div className="qa-card">
+                  <label className="qa-field">
+                    <span>{t('quickAdd.pay.cardNumber')}</span>
+                    <input type="text" inputMode="numeric" defaultValue="4242 4242 4242 4242" />
+                  </label>
+                  <div className="qa-card-row">
+                    <label className="qa-field"><span>{t('quickAdd.pay.expiry')}</span><input type="text" defaultValue="12/29" /></label>
+                    <label className="qa-field"><span>{t('quickAdd.pay.cvv')}</span><input type="text" defaultValue="123" /></label>
+                  </div>
+                  <div className="qa-card-amount">{t('quickAdd.pay.amount', { price })}</div>
+                </div>
+                <div className="quick-add-modal-actions">
+                  <button type="button" className="btn-ghost" onClick={() => setCheckout(null)} disabled={payBusy}>{t('common.cancel')}</button>
+                  <button type="button" className="btn-accent" onClick={confirmMockPay} disabled={payBusy}>
+                    {payBusy ? t('quickAdd.pay.processing') : t('quickAdd.pay.payNow', { price })}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
