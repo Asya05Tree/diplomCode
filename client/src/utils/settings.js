@@ -3,8 +3,13 @@ const PALETTE_STYLE_KEY = 'settings:paletteStyle'
 const PALETTE_KEY = 'settings:palette'
 const WEEK_START_KEY = 'settings:weekStart'
 const DATE_FORMAT_KEY = 'settings:dateFormat'
+const TIME_FORMAT_KEY = 'settings:timeFormat'
 
 export const PALETTES = ['ocean', 'sunset', 'lavender', 'orange', 'green', 'amber', 'berry']
+
+// Формат часу (planner-spec.md §4.10 "формат времени"): '24' — 24-годинний (13:00),
+// '12' — 12-годинний із am/pm (1:00 pm). Впливає лише на показ, не на зберігання.
+export const TIME_FORMATS = ['24', '12']
 
 // Числові формати дати (planner-spec.md §4.10 "формат дати"): порядок число/місяць/рік тощо.
 // dmy — число/місяць/рік, mdy — місяць/число/рік, ymd — рік/місяць/число, ydm — рік/число/місяць.
@@ -67,4 +72,13 @@ export function getDateFormat() {
 
 export function setDateFormat(format) {
   localStorage.setItem(DATE_FORMAT_KEY, DATE_FORMATS.includes(format) ? format : 'dmy')
+}
+
+export function getTimeFormat() {
+  const stored = localStorage.getItem(TIME_FORMAT_KEY)
+  return TIME_FORMATS.includes(stored) ? stored : '24'
+}
+
+export function setTimeFormat(format) {
+  localStorage.setItem(TIME_FORMAT_KEY, TIME_FORMATS.includes(format) ? format : '24')
 }

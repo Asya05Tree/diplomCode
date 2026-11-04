@@ -138,6 +138,46 @@ public class RecipeService
 
     public Task<bool> AddStockAsync(int userId, int productId) => SetStockStateAsync(userId, productId, "Available");
 
+    // Результат додавання запасу за назвою: який продукт, чи створено новий, чи вже був у наявності.
+    public record AddStockByNameResult(int ProductId, string NameUk, string NameEn, bool Created, bool AlreadyInStock);
+
+    // Додати продукт у запаси за вільним текстом (швидке додавання). Знаходимо наявний продукт
+    // (системний або створений цим користувачем) за точною назвою без урахування регістру; якщо
+    // немає — створюємо користувацький продукт. Тоді ставимо StockItem="Available", повертаючи,
+    // чи він уже був у наявності (перевірка на наявність зі слів користувача).
+    public async Task<AddStockByNameResult?> AddStockByNameAsync(int userId, string name)
+    {
+        var clean = (name ?? string.Empty).Trim();
+        if (clean.Length == 0) return null;
+        var lower = clean.ToLower();
+
+        var product = await _db.Products
+            .Where(p => p.IsSystem || p.CreatedByUserId == userId)
+            .FirstOrDefaultAsync(p => p.NameUk.ToLower() == lower || p.NameEn.ToLower() == lower);
+
+        var created = false;
+        if (product is null)
+        {
+            product = new Product { NameUk = clean, NameEn = clean, StorageGroup = string.Empty, IsSystem = false, CreatedByUserId = userId };
+            _db.Products.Add(product);
+            await _db.SaveChangesAsync(); // отримати Id
+            created = true;
+        }
+
+        var item = await _db.StockItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == product.Id);
+        var alreadyInStock = item is not null && item.State != "OutOfStock";
+        if (item is null)
+        {
+            item = new StockItem { UserId = userId, ProductId = product.Id };
+            _db.StockItems.Add(item);
+        }
+        item.State = "Available";
+        item.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return new AddStockByNameResult(product.Id, product.NameUk, product.NameEn, created, alreadyInStock);
+    }
+
     // ---- Обрані страви (SelectedDish) ------------------------------------------
 
     public async Task<bool> ToggleSelectedAsync(int userId, int recipeId, bool selected)

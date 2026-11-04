@@ -57,7 +57,7 @@ function levenshtein(a, b) {
 // Найкращий словниковий збіг для токена, або null. Консервативно: точний збіг → null
 // (нема що виправляти); кандидат проходить лише за достатньої триграмної схожості (Дайс)
 // І малої відстані Левенштейна (похибка тим більша, чим довше слово, але не більш як ~len/4).
-export function bestMatch(token, index, { minDice = 0.5 } = {}) {
+export function bestMatch(token, index, { minDice = 0.6 } = {}) {
   const t = token.toLowerCase()
   if (t.length < 3) return null
   const tg = trigrams(t)
@@ -70,7 +70,8 @@ export function bestMatch(token, index, { minDice = 0.5 } = {}) {
     const d = dice(tg, index.tris[i])
     if (d < minDice) continue
     const lev = levenshtein(t, w)
-    const maxLev = Math.max(1, Math.round(Math.max(t.length, w.length) / 4))
+    // Строго: короткі слова — щонайбільше 1 правка, довші — 2. Інакше «того»→«лютого».
+    const maxLev = Math.max(t.length, w.length) <= 5 ? 1 : 2
     if (lev > maxLev) continue
     const score = d - lev * 0.05 // за рівного Дайса віддаємо перевагу меншій правці
     if (!best || score > best.score) best = { word: w, score, dice: d, lev }

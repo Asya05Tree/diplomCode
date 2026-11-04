@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { parseInput } from '../../utils/nlp'
 import { createTask } from '../../api/tasks'
 import { addSubject } from '../../api/study'
+import { addStockByName, productName } from '../../api/food'
 import { combineDuration, splitDuration, todayApiDate } from '../../utils/date'
 import './QuickAdd.css'
 
@@ -27,6 +28,7 @@ function toRow(task) {
   return {
     title: task.title,
     date: task.date,
+    deadline: task.deadline || '',
     time: task.time,
     durH: hours,
     durM: minutes,
@@ -34,8 +36,10 @@ function toRow(task) {
     ambiguous: task.ambiguous,
     raw: task.raw,
     inheritedDate: Boolean(task.inheritedDate),
+    inheritedDeadline: Boolean(task.inheritedDeadline),
     subject: s.subject || '',
     teacher: s.teacher || '',
+    lessonNumber: s.lessonNumber || '',
     link: s.link || '',
     createSubject: false, // проставляємо під час розбору, якщо предмет новий
     include: Boolean(task.title), // задачі без назви лишаємо непозначеними, доки назву не додано
@@ -46,20 +50,33 @@ function toRow(task) {
 // (utils/nlp), задачі ніколи не створюються автоматично: спершу екран підтвердження.
 // subjects — наявні предмети Навчання (для зіставлення/створення); canAddSubjects —
 // чи користувач школяр/студент (інакше предмет у Навчанні створити не можна).
-export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjects = false }) {
-  const { t } = useI18n()
+export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjects = false, products = [], stock = {} }) {
+  const { t, language } = useI18n()
   const [text, setText] = useState('')
-  const [result, setResult] = useState(null) // { tasks, notRecognized, language } або null
+  const [result, setResult] = useState(null) // { tasks, notRecognized, language, stock } або null
   const [rows, setRows] = useState([])
+  const [stockRows, setStockRows] = useState([])
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
 
   const findSubject = (name) => subjects.find((s) => sameSubject(s.name, name))
 
+  // Статус продукту для запасів: present — уже в наявності, known — є в довіднику, new — новий.
+  const stockStatus = (name) => {
+    const norm = (x) => (x || '').trim().toLowerCase()
+    const p = products.find((pr) => norm(productName(pr, language)) === norm(name)
+      || norm(pr.nameUk) === norm(name) || norm(pr.nameEn) === norm(name))
+    if (p && stock[p.id] && stock[p.id] !== 'OutOfStock') return 'present'
+    if (p) return 'known'
+    return 'new'
+  }
+
   const handleParse = () => {
     setNote('')
-    const parsed = parseInput(text)
-    if (!parsed.tasks.length && !parsed.notRecognized.length) {
+    // Назви наявних предметів передаємо у фаззі-шар — щоб виправляти й помилки в них.
+    const parsed = parseInput(text, new Date(), subjects.map((s) => s.name).filter(Boolean))
+    const stockItems = (parsed.stock || []).flatMap((s) => s.items)
+    if (!parsed.tasks.length && !parsed.notRecognized.length && !stockItems.length) {
       setNote(t('quickAdd.nothing'))
       return
     }
@@ -72,12 +89,16 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
       }
       return r
     }))
+    setStockRows(stockItems.map((name) => ({ name, include: true, status: stockStatus(name) })))
   }
 
   const close = () => {
     setResult(null)
     setRows([])
+    setStockRows([])
   }
+
+  const patchStock = (i, changes) => setStockRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
 
   const patch = (i, changes) => setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
 
@@ -94,7 +115,8 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
   const createAll = async () => {
     const toCreate = rows.filter((r) => r.include && r.title.trim())
-    if (!toCreate.length) { close(); return }
+    const toStock = stockRows.filter((r) => r.include && r.name.trim())
+    if (!toCreate.length && !toStock.length) { close(); return }
     setBusy(true)
     try {
       for (const r of toCreate) {
@@ -116,16 +138,34 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
         let startDateTime = null
         if (r.date) startDateTime = `${r.date}T${r.time || '09:00'}:00`
         else if (r.time) startDateTime = `${todayApiDate()}T${r.time}:00`
+        // Номер пари (Навчання) кладемо в опис — окремого поля в задачі немає.
+        const description = r.module === 'study' && r.lessonNumber
+          ? t('quickAdd.lessonNumberDesc', { n: r.lessonNumber })
+          : null
         await createTask(token, {
           title: r.title.trim(),
-          description: null,
+          description,
           startDateTime,
           durationMinutes: combineDuration(r.durH, r.durM),
-          deadline: null,
+          deadline: r.deadline ? `${r.deadline}T23:59:00` : null,
           moduleCode: r.module,
         })
       }
-      setNote(t('quickAdd.created', { count: toCreate.length }))
+      // Запаси: додаємо за назвою (сервер знаходить/створює продукт і повертає, чи вже був).
+      let stockAdded = 0; let stockAlready = 0
+      for (const r of toStock) {
+        try {
+          const res = await addStockByName(r.name.trim())
+          if (res?.alreadyInStock) stockAlready += 1
+          else stockAdded += 1
+        } catch { /* один продукт не критичний */ }
+      }
+
+      const parts = []
+      if (toCreate.length) parts.push(t('quickAdd.created', { count: toCreate.length }))
+      if (stockAdded) parts.push(t('quickAdd.stockAdded', { count: stockAdded }))
+      if (stockAlready) parts.push(t('quickAdd.stockAlready', { count: stockAlready }))
+      setNote(parts.join(' · '))
       setText('')
       close()
       onCreated?.()
@@ -159,6 +199,15 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
             <h3>{t('quickAdd.modalTitle')}</h3>
             <p className="quick-add-modal-hint">{t('quickAdd.modalHint')}</p>
 
+            {result.corrections?.length > 0 && (
+              <p className="quick-add-corrections">
+                <Icon name="sparkles" /> {t('quickAdd.corrections')}{' '}
+                {result.corrections.map((c, k) => (
+                  <span key={k}>{k > 0 && ', '}<b>{c.from}</b> → {c.to}</span>
+                ))}
+              </p>
+            )}
+
             <div className="quick-add-rows">
               {rows.map((r, i) => (
                 <div className={`qa-row${r.include ? '' : ' qa-row--off'}`} key={i}>
@@ -177,6 +226,12 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                       <span><Icon name="calendar" /> {t('quickAdd.field.date')}</span>
                       <input type="date" value={r.date} onChange={(e) => patch(i, { date: e.target.value, inheritedDate: false })} />
                       {r.inheritedDate && <small className="qa-hint-inline">{t('quickAdd.inheritedDate')}</small>}
+                    </label>
+
+                    <label className="qa-field">
+                      <span><Icon name="calendar" /> {t('quickAdd.field.deadline')}</span>
+                      <input type="date" value={r.deadline} onChange={(e) => patch(i, { deadline: e.target.value, inheritedDeadline: false })} />
+                      {r.inheritedDeadline && <small className="qa-hint-inline">{t('quickAdd.inheritedDeadline')}</small>}
                     </label>
 
                     <label className="qa-field">
@@ -215,6 +270,10 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                         <span>{t('quickAdd.field.teacher')}</span>
                         <input type="text" value={r.teacher} onChange={(e) => patch(i, { teacher: e.target.value })} />
                       </label>
+                      <label className="qa-field qa-field--num">
+                        <span>{t('quickAdd.field.lessonNumber')}</span>
+                        <input type="number" min="1" max="12" value={r.lessonNumber} onChange={(e) => patch(i, { lessonNumber: e.target.value ? Number(e.target.value) : '' })} />
+                      </label>
                       {canAddSubjects && r.subject.trim() && (
                         findSubject(r.subject) ? (
                           <span className="qa-study-found"><Icon name="check" /> {t('quickAdd.subjectFound')}</span>
@@ -247,6 +306,22 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
               ))}
             </div>
 
+            {stockRows.length > 0 && (
+              <div className="qa-stock">
+                <div className="qa-stock-title"><Icon name="tag" /> {t('quickAdd.stockTitle')}</div>
+                <p className="qa-stock-hint">{t('quickAdd.stockHint')}</p>
+                {stockRows.map((r, i) => (
+                  <div className={`qa-stock-row${r.include ? '' : ' qa-row--off'}`} key={i}>
+                    <label className="qa-check">
+                      <input type="checkbox" checked={r.include} onChange={(e) => patchStock(i, { include: e.target.checked })} />
+                    </label>
+                    <input className="qa-stock-name" type="text" value={r.name} onChange={(e) => patchStock(i, { name: e.target.value, status: stockStatus(e.target.value) })} />
+                    <span className={`qa-stock-badge qa-stock-badge--${r.status}`}>{t(`quickAdd.stock.${r.status}`)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {result.notRecognized.length > 0 && (
               <div className="qa-unrec">
                 <div className="qa-unrec-title"><Icon name="warning" /> {t('quickAdd.notRecognized')}</div>
@@ -257,7 +332,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
             <div className="quick-add-modal-actions">
               <button type="button" className="btn-ghost" onClick={close} disabled={busy}>{t('common.cancel')}</button>
-              <button type="button" className="btn-accent" onClick={createAll} disabled={busy || !rows.some((r) => r.include && r.title.trim())}>
+              <button type="button" className="btn-accent" onClick={createAll} disabled={busy || (!rows.some((r) => r.include && r.title.trim()) && !stockRows.some((r) => r.include && r.name.trim()))}>
                 {busy ? t('quickAdd.creating') : t('quickAdd.create')}
               </button>
             </div>

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useI18n } from '../i18n'
-import { PALETTES, PALETTE_COLORS, DATE_FORMATS } from '../utils/settings'
-import { formatDateFor } from '../utils/date'
+import { PALETTES, PALETTE_COLORS, DATE_FORMATS, TIME_FORMATS } from '../utils/settings'
+import { formatDateFor, clockFor } from '../utils/date'
 import { exportData, wipeData, deleteAccount } from '../api/account'
 import Icon from '../components/Icon'
 import './Settings.css'
@@ -16,7 +16,7 @@ const ISO_WEEK_DAYS = [1, 2, 3, 4, 5, 6, 7]
 // Тема/стиль/палітра підняті в App.jsx (застосовуються до всього додатку через
 // data-* атрибути на кореневому div), тому сюди приходять через Outlet context.
 export default function Settings() {
-  const { t, language, setLanguage, weekStart, setWeekStart, dateFormat, setDateFormat, weekdaysIso } = useI18n()
+  const { t, language, setLanguage, weekStart, setWeekStart, dateFormat, setDateFormat, timeFormat, setTimeFormat, weekdaysIso } = useI18n()
   const {
     onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette,
     studentType, isWorking, onSetStudyStatus, gender, onSetGender,
@@ -199,6 +199,27 @@ export default function Settings() {
             >
               <span className="settings-option-title">{t(`settings.dateFormat.${format}`)}</span>
               <span className="settings-option-example">{formatDateFor(SAMPLE_DATE, format)}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>{t('settings.timeFormatLabel')}</h3>
+        <div className="settings-options">
+          {TIME_FORMATS.map((format) => (
+            <button
+              key={format}
+              type="button"
+              className={
+                timeFormat === format
+                  ? 'settings-option settings-option--stacked settings-option--active'
+                  : 'settings-option settings-option--stacked'
+              }
+              onClick={() => setTimeFormat(format)}
+            >
+              <span className="settings-option-title">{t(`settings.timeFormat.${format}`)}</span>
+              <span className="settings-option-example">{clockFor(13, 0, format)}</span>
             </button>
           ))}
         </div>

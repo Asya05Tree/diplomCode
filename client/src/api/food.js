@@ -17,6 +17,12 @@ export function addStockProduct(productId) {
   return apiSend('POST', `/api/food/stock/${productId}`)
 }
 
+// Швидке додавання запасу за вільним текстом ("курка", "рис"): сервер знаходить або створює
+// продукт і ставить його в наявні, повертаючи { productId, nameUk, nameEn, created, alreadyInStock }.
+export function addStockByName(name) {
+  return apiSend('POST', '/api/food/stock-by-name', { name })
+}
+
 export function toggleSelected(recipeId, selected) {
   // selected=true → додати, false → прибрати (сервер розрізняє методом)
   return selected

@@ -40,7 +40,7 @@ const CHECKUP_DOCTORS = [
 // Хронічні захворювання, де хвороба, що впливає на їжу, стає правилом на тег і фільтрує страви.
 // Дані — з бекенда (/api/medicine-cabinet, /api/health-profile).
 export default function Health() {
-  const { t, language, formatDate } = useI18n()
+  const { t, language, formatDate, formatClock } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -654,7 +654,7 @@ export default function Health() {
                         {docVisits.map((v) => (
                           <span key={v.id} className="checkup-visit">
                             <Icon name="calendar" />
-                            {formatDate(v.when.slice(0, 10))} · {v.when.slice(11, 16)}
+                            {formatDate(v.when.slice(0, 10))} · {formatClock(v.when.slice(11, 16))}
                             {v.place ? ` · ${v.place}` : ''}
                             <button
                               type="button"

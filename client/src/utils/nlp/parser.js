@@ -50,7 +50,7 @@ export function mergeDicts(dicts) {
     fillerWords: [], modules: {}, edgeWords: [],
     lessonMarkers: [], teacherMarkers: [], linkWords: [], noneWords: [],
     afterMarkers: [], numberWords: {}, durationUnits: {}, deadlineMarkers: [], byThenMarkers: [],
-    verbs: [], subjectWords: [],
+    verbs: [], subjectWords: [], stockMarkers: [], stockStopWords: [],
   }
   for (const d of dicts) {
     merged.delimiters.push(...(d.delimiters || []))
@@ -80,6 +80,8 @@ export function mergeDicts(dicts) {
     merged.byThenMarkers.push(...(d.byThenMarkers || []))
     merged.verbs.push(...(d.verbs || []))
     merged.subjectWords.push(...(d.subjectWords || []))
+    merged.stockMarkers.push(...(d.stockMarkers || []))
+    merged.stockStopWords.push(...(d.stockStopWords || []))
     // Коди модулів беремо з самих словників — додати модуль = дописати ключ у dict.*.js.
     for (const key of Object.keys(d.modules || {})) {
       merged.modules[key] = merged.modules[key] || []
@@ -435,6 +437,31 @@ function extractStudy(piece, m) {
   return out
 }
 
+// Намір "додати до запасів": якщо в реченні є маркер запасів — витягти перелік продуктів
+// (після маркера, поділ по комі / і / та). Повертає масив назв або null.
+function extractStock(sentence, m) {
+  if (!m.stockMarkers.length) return null
+  const markerRe = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'giu')
+  if (!markerRe.test(sentence)) return null
+  const rest = sentence.replace(new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'giu'), ' ')
+  // Службові/пустушкові слова, що не є продуктами (слід/треба/що + прийменники).
+  const singleFillers = m.fillerWords.filter((w) => !/\s/.test(w))
+  const stop = new Set([...m.stockStopWords, ...singleFillers, ...m.edgeWords].map((w) => w.toLowerCase()))
+  const edge = stop
+  // Роздільники переліку: кома та сполучники і/та/й/and.
+  const parts = rest.split(new RegExp(`\\s*,\\s*|${BB}(?:і|та|й|and)${BE}`, 'giu'))
+  const items = []
+  for (const part of parts) {
+    const words = (part || '').split(/\s+/)
+      .map((w) => w.replace(/[.,;:!?]+$/u, ''))
+      .filter(Boolean)
+      .filter((w) => !stop.has(w.toLowerCase()) && !edge.has(w.toLowerCase()))
+    const name = words.join(' ').trim()
+    if (name && new RegExp(`[${L}]`, 'u').test(name)) items.push(name)
+  }
+  return items.length ? items : null
+}
+
 // --- Складання однієї задачі з фрагмента (кроки 2–5) ---
 function assemble(piece, m, now) {
   const accepted = resolveOverlaps(collect(piece, m, now))
@@ -459,10 +486,20 @@ function assemble(piece, m, now) {
   let time = times[0]?.data.timeStr || ''
   const durationMinutes = durs[0]?.data.minutes ?? null
 
+  // Число, за яким одразу йде маркер заняття ("3 парою"), — це номер пари, а не час/дата.
+  const lessonAfter = new RegExp(`^\\s*(?:${alt(m.lessonMarkers)})${L}*${BE}`, 'iu')
+  const isLessonNumber = (seg) => m.lessonMarkers.length && lessonAfter.test(piece.slice(seg.end))
+
   // Крок 4. Знімаємо неоднозначності голих чисел контекстом.
   const ambiguous = []
   for (const seg of nums) {
+    if (isLessonNumber(seg)) continue
     const n = seg.data.n
+    // "до 15" — голе число після маркера дедлайну → число місяця як термін.
+    if (!deadline && precededByDeadline(seg) && n >= 1 && n <= 31) {
+      deadline = resolveDayOfMonth(n, now)
+      continue
+    }
     const canDay = n >= 1 && n <= 31
     const canHour = n >= 0 && n <= 23
     if (date && !time && canHour) {
@@ -570,17 +607,12 @@ function fuzzyLexicon(m, extraWords) {
     ...Object.keys(m.dayParts), ...m.oclockWords, ...m.durationHours, ...m.durationMinutes,
     ...m.dayOfMonthWords, ...m.weekdayMarkers, ...m.nextWeekMarkers, ...m.afterMarkers,
     ...m.timeMarkers, ...m.noneWords, ...m.linkWords, ...m.delimiters, ...m.fillerWords,
-    ...m.verbs, ...m.subjectWords, ...(extraWords || []),
+    ...(extraWords || []),
+    // УВАГА: m.verbs і m.subjectWords — це ОСНОВИ (префікси), а не повні слова; у лексикон
+    // фаззі їх НЕ додаємо, інакше повні слова "виправлялись" би до основи (почитаю→почит).
   ]
   // Багатослівні записи (фрази) у фаззі не беремо — звіряємо потокенно.
   return words.filter((w) => w && !/\s/.test(w))
-}
-
-// Чи містить фрагмент маркер «до того часу» (посилання на вже згадану дату як на дедлайн).
-function hasByThen(piece, m) {
-  if (!m.byThenMarkers.length) return false
-  const re = new RegExp(`${BB}(?:${alt(m.byThenMarkers)})${BE}`, 'iu')
-  return re.test(piece)
 }
 
 // Головна функція. dicts — масив словників (усі мови; у змішаному тексті шукаються одночасно).
@@ -588,32 +620,53 @@ function hasByThen(piece, m) {
 // Повертає { language, tasks[], notRecognized[], corrections[] }. Задачі НЕ створюються.
 export function parseInput(text, dicts, now = new Date(), extraWords = []) {
   const raw0 = normalizeApostrophes((text || '').trim())
-  if (!raw0) return { language: 'uk', tasks: [], notRecognized: [], corrections: [] }
+  if (!raw0) return { language: 'uk', tasks: [], notRecognized: [], corrections: [], stock: [] }
   const m = mergeDicts(dicts)
 
   // Крок 0. Фаззі-виправлення друкарських помилок у словникових словах (субботу→суботу).
   const index = buildFuzzyIndex(fuzzyLexicon(m, extraWords))
   const { text: raw, corrections } = fuzzyCorrect(raw0, index)
 
-  const pieces = splitTasks(raw, m)
+  // Крок 0.5. Речення-запаси ("додати до запасів…") виймаємо ДО поділу на задачі, щоб
+  // перелік через кому не ділився на окремі задачі. Решта тексту йде у звичайний розбір.
+  const stock = []
+  let forTasks = raw
+  if (m.stockMarkers.length) {
+    const markerRe = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'iu')
+    const sentences = raw.split(/(?<=[.!?;])\s+/u)
+    const kept = []
+    for (const s of sentences) {
+      if (markerRe.test(s)) {
+        const items = extractStock(s, m)
+        if (items) { stock.push({ raw: s.trim(), items }); continue }
+      }
+      kept.push(s)
+    }
+    forTasks = kept.join(' ')
+  }
+
+  const pieces = splitTasks(forTasks, m)
   const tasks = []
   const notRecognized = []
   // Успадкування дати: якщо задача не має своєї дати, бере дату попередньої розпізнаної.
   // inheritedDate позначаємо такі, щоб на екрані підтвердження це було видно.
+  const byThenRe = m.byThenMarkers.length ? new RegExp(`${BB}(?:${alt(m.byThenMarkers)})${BE}`, 'iu') : null
   let lastDate = ''
   for (const piece of pieces) {
     if (piece.hardBreak) lastDate = '' // нове речення — не успадковуємо дату з попереднього
-    const task = assemble(piece.text, m, now)
+    const byThen = byThenRe ? byThenRe.test(piece.text) : false
+    // Фразу "до того часу" прибираємо з тексту перед розбором, щоб вона не лишалась у назві.
+    const pieceText = byThen ? piece.text.replace(byThenRe, ' ') : piece.text
+    const task = assemble(pieceText, m, now)
     const empty = !task.title && !task.date && !task.deadline && !task.time
       && !task.durationMinutes && !task.module && !task.ambiguous.length
     if (empty) { notRecognized.push(task.raw); continue }
     // "до того часу" → термін = попередня дата; при цьому дату-початок НЕ успадковуємо.
-    const byThen = hasByThen(piece.text, m)
     if (byThen && !task.deadline && lastDate) { task.deadline = lastDate; task.inheritedDeadline = true }
     if (task.date) lastDate = task.date
     else if (task.deadline) lastDate = task.deadline
     else if (lastDate && !byThen) { task.date = lastDate; task.inheritedDate = true }
     tasks.push(task)
   }
-  return { language: detectLanguage(raw), tasks, notRecognized, corrections }
+  return { language: detectLanguage(raw), tasks, notRecognized, corrections, stock }
 }

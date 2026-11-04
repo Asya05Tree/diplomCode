@@ -1,11 +1,11 @@
 import { useI18n } from '../../i18n'
-import { formatTime, fromApiDateTime } from '../../utils/date'
+import { fromApiDateTime } from '../../utils/date'
 import './ReminderBanner.css'
 
 // planner-spec.md §4.5 — банер над днем, коли обрано "сьогодні" й лишились учорашні незакриті
 // задачі. Три кнопки на задачу; не відповів — задача сама піде в Unknown при наступному sweep.
 export default function ReminderBanner({ tasks, onResolve }) {
-  const { t } = useI18n()
+  const { t, formatTime } = useI18n()
   if (tasks.length === 0) return null
 
   return (

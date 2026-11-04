@@ -103,10 +103,11 @@ export default {
 
   // Action-verb stems that start a new task ("watch a movie read a book" = two tasks). The split
   // only fires when there's an object between two verbs, so "go for a walk" stays one task.
+  // Короткі/неоднозначні основи навмисно не беремо: "go" ловив би "good", "do" — "dog".
   verbs: [
-    'watch', 'view', 'read', 'cook', 'bake', 'boil', 'fry', 'roast', 'prepare', 'buy', 'purchase',
-    'order', 'grab', 'call', 'write', 'send', 'clean', 'wash', 'visit', 'go', 'walk', 'do', 'make',
-    'finish', 'pay', 'book', 'submit', 'pick', 'bring', 'return',
+    'watch', 'read', 'cook', 'bake', 'boil', 'fry', 'roast', 'prepare', 'buy', 'purchase',
+    'order', 'grab', 'call', 'write', 'send', 'clean', 'wash', 'visit', 'walk', 'finish',
+    'submit', 'bring', 'return',
   ],
 
   // Known subject names (matched by stem) so the Study subject is found even when not right
@@ -135,6 +136,14 @@ export default {
   linkWords: ['link', 'url'],
   noneWords: ['none', 'no'],
 
+  // "Add to stock" intent markers (a StockItem, not a task). The product list follows the marker
+  // and is split on comma / and. stockStopWords are service words that are not products.
+  stockMarkers: [
+    'add to stock', 'add to pantry', 'add to inventory', 'add to the fridge', 'add to fridge',
+    "i have", "i've got", 'i got', 'to stock', 'to pantry', 'in stock',
+  ],
+  stockStopWords: ['that', 'this', 'some', 'got', 'home', 'already'],
+
   // Prepositions/conjunctions — trimmed only at the EDGES of a title.
-  edgeWords: ['a', 'an', 'the', 'at', 'on', 'to', 'in', 'of', 'for', 'by', 'and'],
+  edgeWords: ['a', 'an', 'the', 'at', 'on', 'to', 'in', 'of', 'for', 'by', 'and', 'with', 'my', 'me'],
 }

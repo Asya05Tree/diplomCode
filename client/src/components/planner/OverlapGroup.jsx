@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
-import { formatTime, fromApiDateTime } from '../../utils/date'
+import { fromApiDateTime } from '../../utils/date'
 import Icon from '../Icon'
 import './OverlapGroup.css'
 
@@ -8,7 +8,7 @@ import './OverlapGroup.css'
 // "накладається" згортаємо їх в один рядок, що розгортається кліком. Задачі можуть мати
 // різний час початку, тож заголовок показує діапазон кластера: найраніший початок – найпізніший кінець.
 export default function OverlapGroup({ tasks, renderItem }) {
-  const { t } = useI18n()
+  const { t, formatTime } = useI18n()
   const [open, setOpen] = useState(false)
 
   const starts = tasks.filter((x) => x.startDateTime).map((x) => fromApiDateTime(x.startDateTime).getTime())

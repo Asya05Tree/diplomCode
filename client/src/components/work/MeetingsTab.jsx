@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { getMeetings, addMeeting, removeMeeting } from '../../api/work'
-import { todayApiDate, fromApiDateTime, formatTime } from '../../utils/date'
+import { todayApiDate, fromApiDateTime } from '../../utils/date'
 
 // Зустрічі: з ким, коли (дата+час), посилання або кабінет. Кожна створює подію в спільному
 // календарі (moduleCode="work"), тож видалення зустрічі прибирає й подію.
 export default function MeetingsTab() {
-  const { t, formatDate } = useI18n()
+  const { t, formatDate, formatTime } = useI18n()
   const [meetings, setMeetings] = useState([])
   const [withWhom, setWithWhom] = useState('')
   const [date, setDate] = useState(todayApiDate())

@@ -83,6 +83,70 @@
   color: var(--color-text-muted);
 }
 
+/* Секція "Додати до запасів" у модалці підтвердження. */
+.qa-stock {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--color-surface-muted, rgba(127, 127, 127, 0.08));
+}
+.qa-stock-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.qa-stock-hint {
+  margin: 4px 0 10px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+.qa-stock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+.qa-stock-row.qa-row--off {
+  opacity: 0.5;
+}
+.qa-stock-name {
+  flex: 1;
+  min-width: 0;
+}
+.qa-stock-badge {
+  font-size: 0.76rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.qa-stock-badge--present {
+  background: rgba(120, 170, 120, 0.22);
+  color: var(--color-text);
+}
+.qa-stock-badge--known {
+  background: rgba(140, 160, 200, 0.22);
+  color: var(--color-text);
+}
+.qa-stock-badge--new {
+  background: rgba(200, 170, 120, 0.22);
+  color: var(--color-text);
+}
+
+/* Рядок про автоматично виправлені друкарські помилки (фаззі-шар). */
+.quick-add-corrections {
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  border-radius: 8px;
+  background: var(--color-surface-muted, rgba(127, 127, 127, 0.1));
+  color: var(--color-text-muted);
+}
+.quick-add-corrections b {
+  color: var(--color-text);
+}
+
 .quick-add-rows {
   display: flex;
   flex-direction: column;

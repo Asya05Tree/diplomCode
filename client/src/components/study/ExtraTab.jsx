@@ -9,7 +9,7 @@ import { ENTRY_FORM_KINDS, LEARNING_FORMS, roomLinkVisibility, summarizeEntry } 
 // Консультації / факультативи. Кожен має власну форму навчання (кабінет/посилання) і періодичність,
 // як у календарі (повний RecurrenceFields). Створює правило повторення → з'являється у спільному календарі.
 export default function ExtraTab({ subjects, learningForm }) {
-  const { t } = useI18n()
+  const { t, formatClock } = useI18n()
   const weekdayLabels = t('planner.weekdaysShort').split(',')
 
   const [entries, setEntries] = useState([])
@@ -134,7 +134,7 @@ export default function ExtraTab({ subjects, learningForm }) {
                 <tr key={en.id}>
                   <td>{t(`study.entryKind.${en.entryKind}`)}</td>
                   <td>{en.name || en.subjectName || '—'}</td>
-                  <td>{summarizeEntry(en, t, weekdayLabels)}</td>
+                  <td>{summarizeEntry(en, t, weekdayLabels, formatClock)}</td>
                   <td className="study-row-actions">
                     <button
                       type="button"

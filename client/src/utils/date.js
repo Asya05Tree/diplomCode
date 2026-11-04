@@ -72,6 +72,31 @@ export function formatTime(date) {
   return `${h}:${m}`
 }
 
+// Показ години:хвилини в обраному форматі. '12' → "1:00 pm", інакше 24-годинний "13:00".
+// Ядро форматування — не чіпає toApiDateTime/формні поля, які завжди 24-годинні.
+export function clockFor(h, m, timeFormat = '24') {
+  const mm = String(m).padStart(2, '0')
+  if (timeFormat === '12') {
+    const suffix = h < 12 ? 'am' : 'pm'
+    const h12 = h % 12 === 0 ? 12 : h % 12
+    return `${h12}:${mm} ${suffix}`
+  }
+  return `${String(h).padStart(2, '0')}:${mm}`
+}
+
+// Формат часу з об'єкта Date з урахуванням налаштування 12/24.
+export function formatTimeFor(date, timeFormat = '24') {
+  return clockFor(date.getHours(), date.getMinutes(), timeFormat)
+}
+
+// Формат з рядка "HH:mm" або "HH:mm:ss" (розклади зберігають час рядком) з урахуванням 12/24.
+export function formatClock(hhmm, timeFormat = '24') {
+  if (!hhmm) return ''
+  const [h, m] = String(hhmm).split(':').map(Number)
+  if (Number.isNaN(h)) return hhmm
+  return clockFor(h, m || 0, timeFormat)
+}
+
 // Статус події за часом відносно `now`: 'past' | 'now' | 'future'.
 // "now" = подія вже почалась і ще триває (start <= now < start+тривалість). Без тривалості
 // подія вважається миттєвою — вона не буває "now" (тільки future до старту, past після).
@@ -111,13 +136,14 @@ export function splitDuration(mins) {
 }
 
 // "12:30" або "12:30 – 12:45" (якщо задано тривалість у хвилинах). Кінець = початок + тривалість.
-export function formatTimeRange(startDateTime, durationMinutes) {
+// timeFormat ('24'|'12') керує показом; дефолт 24-годинний для зворотної сумісності.
+export function formatTimeRange(startDateTime, durationMinutes, timeFormat = '24') {
   if (!startDateTime) return '—'
   const start = fromApiDateTime(startDateTime)
-  const startStr = formatTime(start)
+  const startStr = formatTimeFor(start, timeFormat)
   if (!durationMinutes) return startStr
   const end = new Date(start.getTime() + durationMinutes * 60000)
-  return `${startStr} – ${formatTime(end)}`
+  return `${startStr} – ${formatTimeFor(end, timeFormat)}`
 }
 
 // Групування задач за накладанням проміжків [початок, початок+тривалість). Повертає масив

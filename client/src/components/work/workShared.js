@@ -22,14 +22,15 @@ export const SHIFT_COLORS = [
   '#c8e6c9', '#f8bbd0', '#b2dfdb', '#ffab91',
 ]
 
-// "HH:MM:SS" або "HH:MM" -> "HH:MM"
-export function hhmm(time) {
-  return (time ?? '').slice(0, 5)
+// "HH:MM:SS" або "HH:MM" -> "HH:MM". fmt — опційний форматувач 12/24 з useI18n.
+export function hhmm(time, fmt) {
+  const base = (time ?? '').slice(0, 5)
+  return fmt ? fmt(base) : base
 }
 
-// Проміжок часу зміни "07:00–15:00"
-export function shiftRange(startTime, endTime) {
-  return `${hhmm(startTime)}–${hhmm(endTime)}`
+// Проміжок часу зміни "07:00–15:00" (fmt — опційний форматувач 12/24).
+export function shiftRange(startTime, endTime, fmt) {
+  return `${hhmm(startTime, fmt)}–${hhmm(endTime, fmt)}`
 }
 
 // Години одного проміжку (нічні: кінець <= початок -> перехід через північ)
@@ -48,10 +49,11 @@ export function shiftTotalHours(s) {
   return h
 }
 
-// Текстовий проміжок зміни з урахуванням виду (розділена показує обидві частини)
-export function shiftRangeOf(s) {
-  const main = shiftRange(s.startTime, s.endTime)
-  if (s.kind === 'split' && s.startTime2 && s.endTime2) return `${main}, ${shiftRange(s.startTime2, s.endTime2)}`
+// Текстовий проміжок зміни з урахуванням виду (розділена показує обидві частини).
+// fmt — опційний форматувач 12/24 з useI18n (дефолт — 24-годинний).
+export function shiftRangeOf(s, fmt) {
+  const main = shiftRange(s.startTime, s.endTime, fmt)
+  if (s.kind === 'split' && s.startTime2 && s.endTime2) return `${main}, ${shiftRange(s.startTime2, s.endTime2, fmt)}`
   return main
 }
 

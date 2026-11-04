@@ -15,7 +15,7 @@ import './Work.css'
 // Графік створює правила повторення, зустрічі — задачі (обидва moduleCode="work"), тож робочі дні
 // й зустрічі видно і в спільному календарі.
 export default function Work() {
-  const { t, formatDate } = useI18n()
+  const { t, formatDate, formatClock } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -80,7 +80,7 @@ export default function Work() {
           {nextShift && (
             <span className="work-chip work-chip--accent">
               <Icon name="calendar" />
-              {t('work.nextShift')}: {formatDate(nextShift.date)} · {shiftRangeOf(nextShift)}
+              {t('work.nextShift')}: {formatDate(nextShift.date)} · {shiftRangeOf(nextShift, formatClock)}
             </span>
           )}
         </div>

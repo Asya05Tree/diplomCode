@@ -6,6 +6,7 @@ using Server.Services;
 namespace Server.Controllers;
 
 public record SetStockStateRequest(string State); // Available | RunningLow | OutOfStock
+public record AddStockByNameRequest(string Name);  // швидке додавання запасу за вільним текстом
 
 // planner-spec.md §3.4. Екран "Їжа": збірний /overview для початкового завантаження сторінки
 // + точкові дії над запасами/обраними стравами. Уся логіка — у RecipeService.
@@ -42,6 +43,13 @@ public class FoodController : ControllerBase
     {
         var ok = await _recipeService.AddStockAsync(CurrentUserId, productId);
         return ok ? Ok() : NotFound();
+    }
+
+    [HttpPost("stock-by-name")]
+    public async Task<IActionResult> AddStockByName([FromBody] AddStockByNameRequest request)
+    {
+        var result = await _recipeService.AddStockByNameAsync(CurrentUserId, request.Name);
+        return result is not null ? Ok(result) : BadRequest(new { error = "empty_name" });
     }
 
     [HttpPost("selected/{recipeId}")]

@@ -16,8 +16,9 @@ export function roomLinkVisibility(form) {
 }
 
 // Короткий опис "коли" для запису розкладу/консультації — з полів пов'язаного правила повторення.
-export function summarizeEntry(entry, t, weekdayLabels) {
-  const time = (entry.timeOfDay || '').slice(0, 5)
+// fmtClock — форматувач часу з useI18n (12/24); дефолт зрізає до "HH:MM" (24-годинний).
+export function summarizeEntry(entry, t, weekdayLabels, fmtClock = (s) => (s || '').slice(0, 5)) {
+  const time = fmtClock(entry.timeOfDay || '')
   if (entry.ruleType === 'WeekCycle') {
     // Дні згруповані по тижнях циклу у форматі "0:1,3|1:4,5"
     const byWeek = new Map()

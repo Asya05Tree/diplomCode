@@ -1,5 +1,4 @@
 import { useI18n } from '../../i18n'
-import { formatTimeRange } from '../../utils/date'
 import Icon from '../Icon'
 import './TaskItem.css'
 
@@ -8,7 +7,7 @@ import './TaskItem.css'
 // готово/пропущено/перенести/видалити).
 // isNow — подія триває прямо зараз: підсвічуємо фоном за темою (працює в обох режимах сортування).
 export default function TaskItem({ task, actions = [], isNow = false }) {
-  const { t } = useI18n()
+  const { t, formatTimeRange } = useI18n()
   const time = formatTimeRange(task.startDateTime, task.durationMinutes)
 
   return (

@@ -11,7 +11,7 @@ const PARITIES = ['weekly', 'num', 'denom'] // щотижня / чисельни
 // Нижче — генератор: предмет + (студент) лекція/семінар + номер пари + дні + парність → створюється
 // правило повторення на весь семестр (час береться з обраної пари), яке видно і в спільному календарі.
 export default function ScheduleTab({ subjects, bells, settings, reloadSettings, isPupil }) {
-  const { t, weekdays, orderedWeekDays, weekdaysIso } = useI18n()
+  const { t, weekdays, orderedWeekDays, weekdaysIso, formatClock } = useI18n()
   // ISO-мітки (Пн..Нд) — для summarizeEntry, яке шукає назву за номером дня (label[d-1]).
   const weekdayLabels = weekdaysIso
 
@@ -154,7 +154,7 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
               <select value={lesson.pairNumber} onChange={(e) => setLesson((l) => ({ ...l, pairNumber: e.target.value }))}>
                 {bells.length === 0 && <option value="">{t('study.noBells')}</option>}
                 {bells.map((b, i) => (
-                  <option key={i} value={i + 1}>{t('study.pairN', { n: i + 1 })} ({b.startTime}–{b.endTime})</option>
+                  <option key={i} value={i + 1}>{t('study.pairN', { n: i + 1 })} ({formatClock(b.startTime)}–{formatClock(b.endTime)})</option>
                 ))}
               </select>
 
@@ -205,7 +205,7 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
                   <td>{en.subjectName || subjectName(en.subjectId)}</td>
                   {!isPupil && <td>{en.sessionKind ? t(`study.${en.sessionKind}`) : <span className="none-text">—</span>}</td>}
                   <td>{en.pairNumber ?? <span className="none-text">—</span>}</td>
-                  <td>{summarizeEntry(en, t, weekdayLabels)}</td>
+                  <td>{summarizeEntry(en, t, weekdayLabels, formatClock)}</td>
                   <td className="study-row-actions">
                     <button
                       type="button"

@@ -1,12 +1,17 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import uk from './uk.json'
 import en from './en.json'
-import { orderedWeekDays as computeOrderedWeekDays, formatDateFor } from '../utils/date'
+import {
+  orderedWeekDays as computeOrderedWeekDays, formatDateFor,
+  formatTimeFor, formatClock as formatClockFor, formatTimeRange as formatTimeRangeFor,
+} from '../utils/date'
 import {
   getWeekStart,
   setWeekStart as persistWeekStart,
   getDateFormat,
   setDateFormat as persistDateFormat,
+  getTimeFormat,
+  setTimeFormat as persistTimeFormat,
 } from '../utils/settings'
 
 const dictionaries = { uk, en }
@@ -27,6 +32,7 @@ export function I18nProvider({ children }) {
   // уже готові похідні (weekdays/orderedWeekDays/formatDate) через useI18n без прокидання пропів.
   const [weekStart, setWeekStartState] = useState(getWeekStart)
   const [dateFormat, setDateFormatState] = useState(getDateFormat)
+  const [timeFormat, setTimeFormatState] = useState(getTimeFormat)
 
   const setLanguage = (lang) => {
     setLanguageState(lang)
@@ -41,6 +47,11 @@ export function I18nProvider({ children }) {
   const setDateFormat = (format) => {
     setDateFormatState(format)
     persistDateFormat(format)
+  }
+
+  const setTimeFormat = (format) => {
+    setTimeFormatState(format)
+    persistTimeFormat(format)
   }
 
   const value = useMemo(() => {
@@ -60,6 +71,10 @@ export function I18nProvider({ children }) {
     const orderedWeekDays = computeOrderedWeekDays(weekStart)
     const weekdays = orderedWeekDays.map((d) => weekdaysIso[d - 1])
     const formatDate = (dateValue) => formatDateFor(dateValue, dateFormat)
+    // Похідні форматувачі часу з урахуванням 12/24 — компоненти беруть готові через useI18n.
+    const formatTime = (date) => formatTimeFor(date, timeFormat)
+    const formatClock = (hhmm) => formatClockFor(hhmm, timeFormat)
+    const formatTimeRange = (startDateTime, durationMinutes) => formatTimeRangeFor(startDateTime, durationMinutes, timeFormat)
     return {
       language,
       setLanguage,
@@ -68,12 +83,17 @@ export function I18nProvider({ children }) {
       setWeekStart,
       dateFormat,
       setDateFormat,
+      timeFormat,
+      setTimeFormat,
       weekdaysIso,
       weekdays,
       orderedWeekDays,
       formatDate,
+      formatTime,
+      formatClock,
+      formatTimeRange,
     }
-  }, [language, weekStart, dateFormat])
+  }, [language, weekStart, dateFormat, timeFormat])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

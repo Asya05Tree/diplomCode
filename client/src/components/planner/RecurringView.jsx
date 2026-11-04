@@ -16,9 +16,9 @@ import { fromApiDate, toApiDate, todayApiDate } from '../../utils/date'
 import { recurrenceValueToPayload, ruleToRecurrenceValue, validateRecurrenceValue } from '../../utils/recurrence'
 import './RecurringView.css'
 
-function summarizeRule(rule, t) {
+function summarizeRule(rule, t, fmtClock = (s) => (s || '').slice(0, 5)) {
   const weekdayLabels = t('planner.weekdaysShort').split(',')
-  const time = rule.timeOfDay.slice(0, 5)
+  const time = fmtClock(rule.timeOfDay)
 
   if (rule.type === 'WeekCycle') {
     const pattern = (rule.weekDaysPattern ?? '').split('|').filter(Boolean)
@@ -51,7 +51,7 @@ function summarizeRule(rule, t) {
 // Прев'ю обраного правила прокидається наверх у ліву сітку (§4.4); для типу Manual та сама
 // сітка стає засобом введення — клік по дню передається наверх через onManualHandlerChange.
 export default function RecurringView({ token, visibleRange, onPreviewChange, onManualHandlerChange }) {
-  const { t, formatDate } = useI18n()
+  const { t, formatDate, formatClock } = useI18n()
 
   const [rules, setRules] = useState([])
   const [version, setVersion] = useState(0)
@@ -218,7 +218,7 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
               onClick={() => selectRule(rule)}
             >
               <span className="recurring-rule-title">{rule.title}</span>
-              <span className="recurring-rule-summary">{summarizeRule(rule, t)}</span>
+              <span className="recurring-rule-summary">{summarizeRule(rule, t, formatClock)}</span>
             </button>
           ))}
         </div>
@@ -288,7 +288,7 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
               <div key={ex.id} className="recurring-exception-row">
                 <span>
                   {formatDate(ex.date)} — {ex.exceptionType === 'Cancelled' ? t('recurrence.exceptionCancelled') : t('recurrence.exceptionMoved')}
-                  {ex.exceptionType === 'Moved' && ex.newDateTime && ` → ${formatDate(ex.newDateTime)} ${ex.newDateTime.slice(11, 16)}`}
+                  {ex.exceptionType === 'Moved' && ex.newDateTime && ` → ${formatDate(ex.newDateTime)} ${formatClock(ex.newDateTime.slice(11, 16))}`}
                 </span>
                 <button
                   type="button"
