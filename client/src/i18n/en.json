@@ -193,6 +193,8 @@
   "work.processDue": "Deadline",
   "work.addProcessTask": "+ Add task",
   "work.processEmptyCol": "Empty",
+  "work.processDebts": "Overdue",
+  "work.processNoDebts": "No overdue tasks",
   "work.processMoveBack": "Back",
   "work.processMoveFwd": "Forward",
   "work.process.planned": "Planned",

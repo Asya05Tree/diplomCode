@@ -193,6 +193,8 @@
   "work.processDue": "Дедлайн",
   "work.addProcessTask": "+ Додати задачу",
   "work.processEmptyCol": "Порожньо",
+  "work.processDebts": "Борги",
+  "work.processNoDebts": "Прострочених задач немає",
   "work.processMoveBack": "Назад",
   "work.processMoveFwd": "Далі",
   "work.process.planned": "Планую",
