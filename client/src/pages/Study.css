@@ -298,6 +298,10 @@
 .badge--warn { background: var(--status-warn-bg); color: var(--status-warn-text); }
 .badge--bad { background: var(--status-bad-bg); color: var(--status-bad-text); }
 
+/* Борги: прострочені рядки трохи підсвічуємо */
+.study-debt-row--overdue td { background: var(--status-bad-bg); }
+.study-debt-badge { margin-left: 8px; }
+
 /* --- Розклад занять --- */
 .schedule-cell {
   display: flex;
@@ -700,4 +704,103 @@
 }
 .study-step-form input[type='text'] {
   flex: 1 1 160px;
+}
+
+/* --- Подання розкладу: календар / таблиця на два тижні --- */
+.study-sched-switch {
+  margin: 16px 0 12px;
+}
+.study-sched-switch .icon {
+  width: 15px;
+  height: 15px;
+}
+.study-sched-views {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.study-week-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--color-heading);
+}
+
+.study-cal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.study-cal-nav .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.study-cal-nav .pill .icon {
+  width: 14px;
+  height: 14px;
+}
+.study-cal-range {
+  font-weight: 600;
+  color: var(--color-heading);
+}
+.study-cal-range em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--color-accent-ink);
+}
+
+/* Сітка розкладу (пари × дні) */
+.study-grid {
+  table-layout: fixed;
+  min-width: 640px;
+}
+.study-grid th,
+.study-grid td {
+  text-align: center;
+  vertical-align: top;
+  border: 1px solid var(--color-border);
+  padding: 6px 8px;
+}
+.study-grid-pairhead {
+  width: 92px;
+}
+.study-grid-today {
+  color: var(--color-accent-ink);
+  background: var(--color-accent-soft);
+}
+.study-grid-time {
+  white-space: nowrap;
+  text-align: left;
+}
+.study-grid-time b {
+  display: inline-block;
+  margin-right: 6px;
+}
+.study-grid-time span {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+.study-grid-cell {
+  min-height: 34px;
+}
+.study-grid-cell--has {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+.study-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 0.82rem;
+  padding: 2px 0;
+}
+.study-grid-subj {
+  font-weight: 600;
+  color: var(--color-heading);
+}
+.study-grid-item em {
+  font-style: normal;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
 }

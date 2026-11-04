@@ -6,6 +6,7 @@ import { getStudySettings, setStudySettings, getSubjects, getBells } from '../ap
 import { LEARNING_FORMS } from '../components/study/studyShared'
 import SubjectsTab from '../components/study/SubjectsTab'
 import AssignmentsTab from '../components/study/AssignmentsTab'
+import DebtsTab from '../components/study/DebtsTab'
 import BellsTab from '../components/study/BellsTab'
 import ScheduleTab from '../components/study/ScheduleTab'
 import ExtraTab from '../components/study/ExtraTab'
@@ -92,6 +93,7 @@ export default function Study() {
     { key: 'schedule', icon: 'calendar-days' },
     { key: 'bells', icon: 'bell' },
     { key: 'assignments', icon: 'clipboard' },
+    { key: 'debts', icon: 'warning' },
     { key: 'extra', icon: 'board' },
     ...(isStudent ? [{ key: 'projects', icon: 'notes' }] : []),
   ]
@@ -150,6 +152,7 @@ export default function Study() {
       )}
       {tab === 'bells' && <BellsTab bells={bells} setBells={setBells} isPupil={isPupil} />}
       {tab === 'assignments' && <AssignmentsTab subjects={subjects} isPupil={isPupil} />}
+      {tab === 'debts' && <DebtsTab />}
       {tab === 'extra' && <ExtraTab subjects={subjects} learningForm={learningForm} isPupil={isPupil} />}
       {tab === 'projects' && isStudent && <ProjectsTab />}
     </div>
