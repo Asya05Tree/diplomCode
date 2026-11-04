@@ -249,6 +249,11 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
 
       <div className="card">
         <div className="work-cal-head">
+          <div className="work-cal-legend">
+            {activeTypes.map((tp) => (
+              <span key={tp.id} className="work-legend-dot" title={`${tp.name} ${shiftRangeOf(tp, formatClock)}`} style={{ background: tp.color }} />
+            ))}
+          </div>
           <div className="work-month-nav">
             <button type="button" className="work-nav-btn" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}><Icon name="chevron-left" /></button>
             <span className="work-month-label">{monthLabel}</span>
@@ -258,13 +263,6 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
             <button type="button" className="work-pill" onClick={() => setPanel('types')}>{t('work.shiftTypesTitle')}</button>
             <button type="button" className="work-pill" onClick={() => setPanel('schedule')}>{t('work.scheduleTitle')}</button>
           </div>
-          {activeTypes.length > 0 && (
-            <div className="work-cal-legend">
-              {activeTypes.map((tp) => (
-                <span key={tp.id} className="work-legend-dot" title={`${tp.name} ${shiftRangeOf(tp, formatClock)}`} style={{ background: tp.color }} />
-              ))}
-            </div>
-          )}
         </div>
         <div className="work-cal-weekdays">
           {weekdays.map((d) => <span key={d}>{d}</span>)}
