@@ -260,6 +260,17 @@
 .work-quick-note { font-size: 0.8rem; color: var(--color-text-muted); align-self: center; }
 .work-quick, .work-custom { display: flex; flex-direction: column; gap: 10px; }
 
+/* Профіль: форма з рівномірними відступами + згорнутий підсумок (коли дані збережено) */
+.work-profile-form { display: flex; flex-direction: column; gap: 18px; }
+.work-profile-form .work-form-grid, .work-profile-form .work-field-row { margin: 0; }
+.work-profile-summary { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.work-profile-summary .work-top-main { flex: 0 1 auto; }
+
+/* Банер редагування наявного запису графіка */
+.work-entry-editing { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 0.86rem; color: var(--color-accent-ink); }
+.work-entry-editing .icon { width: 16px; height: 16px; }
+.work-entry-range { display: block; font-size: 0.72rem; color: var(--color-text-muted); margin-top: 2px; }
+
 /* --- Контакти --- */
 .work-group-head { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 8px; }
 .work-group-head:first-of-type { margin-top: 4px; }

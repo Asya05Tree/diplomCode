@@ -225,11 +225,38 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
       <div className="card">
         <div className="work-section-head">
           <h3>{t('work.profileTitle')}</h3>
-          <div className="work-save-row">
-            {savedNote && <span className="work-saved-note">{savedNote}</span>}
-            <button type="button" className="btn-accent" onClick={saveProfile}>{t('common.save')}</button>
-          </div>
+          {editingProfile ? (
+            <div className="work-save-row">
+              {savedNote && <span className="work-saved-note">{savedNote}</span>}
+              {hasProfile(settings) && <button type="button" className="btn-outline" onClick={cancelProfileEdit}>{t('common.cancel')}</button>}
+              <button type="button" className="btn-accent" onClick={saveProfile}>{t('common.save')}</button>
+            </div>
+          ) : (
+            <button type="button" className="btn-outline" onClick={() => setEditingProfile(true)}>{t('common.edit')}</button>
+          )}
         </div>
+
+        {!editingProfile && (
+          <div className="work-profile-summary">
+            <div className="work-top-main">
+              <span className="work-name">{profile?.jobName}</span>
+              {(profile?.position || profile?.employer) && (
+                <span className="work-role">{[profile?.position, profile?.employer].filter(Boolean).join(' · ')}</span>
+              )}
+            </div>
+            <div className="work-top-meta">
+              <span className="work-chip work-chip--accent">
+                <span className="work-chip-label">{t('work.payLabel')}</span>
+                {profile?.rate ? `${profile.rate} ${t(`work.rateUnit.${profile?.payType ?? 'hourly'}`)}` : t(`work.pay.${profile?.payType ?? 'hourly'}`)}
+              </span>
+              <span className="work-chip">{t(`work.regime.${profile?.regime ?? 'standard'}`)}</span>
+              <span className="work-chip">{t(`work.workplace.${profile?.workplace ?? 'onsite'}`)}</span>
+            </div>
+          </div>
+        )}
+
+        {editingProfile && (
+        <div className="work-profile-form">
         <div className="work-form-grid">
           <label>{t('work.jobName')}<input value={profile?.jobName ?? ''} onChange={(e) => setProfile({ ...profile, jobName: e.target.value })} /></label>
           <label>{t('work.position')}<input value={profile?.position ?? ''} onChange={(e) => setProfile({ ...profile, position: e.target.value })} /></label>
@@ -280,6 +307,8 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
         )}
         {profile?.regime && profile.regime !== 'standard' && (
           <p className="placeholder-text work-regime-hint">{t(`work.regimeHint.${profile.regime}`)}</p>
+        )}
+        </div>
         )}
       </div>
 
@@ -419,12 +448,19 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
               </label>
             </div>
 
-            <div className="work-pills work-mode-pills">
-              <button type="button" className={addMode === 'quick' ? 'work-pill work-pill--active' : 'work-pill'} onClick={() => setAddMode('quick')}>{t('work.modeQuick')}</button>
-              <button type="button" className={addMode === 'custom' ? 'work-pill work-pill--active' : 'work-pill'} onClick={() => setAddMode('custom')}>{t('work.modeCustom')}</button>
-            </div>
+            {editingEntryId ? (
+              <div className="work-entry-editing">
+                <Icon name="pencil" /><span>{t('work.editingEntry')}</span>
+                <button type="button" className="work-pill" onClick={cancelEntryEdit}>{t('common.cancel')}</button>
+              </div>
+            ) : (
+              <div className="work-pills work-mode-pills">
+                <button type="button" className={addMode === 'quick' ? 'work-pill work-pill--active' : 'work-pill'} onClick={() => setAddMode('quick')}>{t('work.modeQuick')}</button>
+                <button type="button" className={addMode === 'custom' ? 'work-pill work-pill--active' : 'work-pill'} onClick={() => setAddMode('custom')}>{t('work.modeCustom')}</button>
+              </div>
+            )}
 
-            {addMode === 'quick' ? (
+            {!editingEntryId && addMode === 'quick' ? (
               <div className="work-quick">
                 <p className="placeholder-text">{t('work.quickHint')}</p>
                 <div className="work-field-row">
@@ -440,12 +476,13 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
               </div>
             ) : (
               <div className="work-custom">
-                <p className="placeholder-text">{t('work.customHint')}</p>
+                <p className="placeholder-text">{editingEntryId ? t('work.scheduleHistoryHint') : t('work.customHint')}</p>
                 <RecurrenceFields value={customRec} onChange={setCustomRec} />
-                <button type="button" className="btn-accent" onClick={addCustom}>{t('work.addToSchedule')}</button>
+                <button type="button" className="btn-accent" onClick={addCustom}>{editingEntryId ? t('common.save') : t('work.addToSchedule')}</button>
               </div>
             )}
             {scheduleError && <p className="task-form-error">{scheduleError}</p>}
+            {!editingEntryId && <p className="placeholder-text work-regime-hint">{t('work.scheduleHistoryHint')}</p>}
           </>
         )}
 
@@ -456,7 +493,11 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
               <div key={e.id} className="work-entry-row">
                 <span className="work-color-dot" style={{ background: e.color }} />
                 <span className="work-entry-name">{e.shiftTypeName}</span>
-                <span className="work-entry-sum">{summarize(e)} · {shiftRangeOf(e, formatClock)}</span>
+                <span className="work-entry-sum">
+                  {summarize(e)} · {shiftRangeOf(e, formatClock)}
+                  <span className="work-entry-range">{formatDate(e.startDate)}{e.endDate ? ` – ${formatDate(e.endDate)}` : ''}</span>
+                </span>
+                <button type="button" className="work-icon-btn" onClick={() => openEditEntry(e)} aria-label={t('common.edit')}><Icon name="pencil" /></button>
                 <button type="button" className="work-icon-btn work-icon-btn--danger" onClick={() => deleteEntry(e.id)} aria-label={t('common.delete')}><Icon name="trash" /></button>
               </div>
             ))}

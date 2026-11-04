@@ -99,6 +99,8 @@
   "work.addToSchedule": "Add to schedule",
   "work.customHint": "A more complex rhythm (2/2, every other day, days of month) works like a recurring calendar event. Time is taken from the shift type.",
   "work.scheduleEntries": "In the schedule",
+  "work.editingEntry": "Editing a schedule entry",
+  "work.scheduleHistoryHint": "If the schedule changed from a certain date, set the end date on the existing entry (the last day of the old schedule) and add a new entry starting the next day. Past days keep the old shifts, future days get the new ones.",
   "work.cycleWeeksShort": "{n}-wk cycle",
   "work.everyNDays": "every {n} days",
   "work.errPickType": "Pick a shift type",
