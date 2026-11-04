@@ -8,8 +8,8 @@ const DICTS = [uk, en]
 
 // Розібрати рядок користувача. Словники всіх мов передаються завжди — у змішаному тексті
 // маркери обох мов шукаються одночасно (визначення мови лише для підпису результату).
-export function parseInput(text, now = new Date()) {
-  return parseWith(text, DICTS, now)
+export function parseInput(text, now = new Date(), extraWords = []) {
+  return parseWith(text, DICTS, now, extraWords)
 }
 
 export { detectLanguage }

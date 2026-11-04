@@ -7,6 +7,8 @@
 //   4) зняти неоднозначності контекстом (є дата → голе число = час, і навпаки);
 //   5) вирізати відрізки → отримати назву, зрізати прийменники по краях, визначити модуль.
 
+import { buildFuzzyIndex, fuzzyCorrect } from './fuzzy.js'
+
 // Межа "слова" з урахуванням Юнікоду (кирилиця не входить у \w, тому \b тут не годиться).
 const L = '\\p{L}'
 const BB = `(?<![${L}\\d])` // початок: ліворуч не літера й не цифра
@@ -497,7 +499,37 @@ function normalizeApostrophes(text) {
   return text.replace(/[ʼ‘’‛`´]/g, "'")
 }
 
-// --- Крок 1. Розбиття рядка на фрагменти-задачі за роздільниками та комою. ---
+// Поділ фрагмента за дієсловами: кожне наступне дієслово-дія починає нову задачу, але
+// ЛИШЕ якщо між ним і попереднім дієсловом є змістовне слово-об'єкт (не прийменник). Так
+// "подивитись кіно почитаю книгу" → дві задачі, а "сходити купити хліб" лишається однією.
+function verbSplit(text, m) {
+  if (!m.verbs.length) return [text]
+  const re = new RegExp(`${BB}(?:${alt(m.verbs)})${L}*${BE}`, 'giu')
+  const verbs = []
+  let mm
+  while ((mm = re.exec(text)) !== null) {
+    if (mm.index === re.lastIndex) re.lastIndex++
+    verbs.push({ start: mm.index, end: mm.index + mm[0].length })
+  }
+  if (verbs.length < 2) return [text]
+  const edge = new Set(m.edgeWords.map((w) => w.toLowerCase()))
+  const cuts = []
+  for (let i = 1; i < verbs.length; i++) {
+    const between = text.slice(verbs[i - 1].end, verbs[i].start)
+    const hasObject = between.split(/\s+/).filter(Boolean).some((w) => !edge.has(w.toLowerCase()))
+    if (hasObject) cuts.push(verbs[i].start)
+  }
+  if (!cuts.length) return [text]
+  const bounds = [0, ...cuts, text.length]
+  const out = []
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const s = text.slice(bounds[i], bounds[i + 1]).trim()
+    if (s) out.push(s)
+  }
+  return out
+}
+
+// --- Крок 1. Розбиття рядка на фрагменти-задачі за роздільниками, комою та дієсловами. ---
 function splitTasks(text, m) {
   const delim = alt(m.delimiters)
   const HARD = '' // службовий маркер "твердої" межі речення
@@ -510,7 +542,12 @@ function splitTasks(text, m) {
   const out = []
   withSep.split(HARD).forEach((segment, hi) => {
     segment.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
-      .forEach((text2, si) => out.push({ text: text2, hardBreak: hi > 0 && si === 0 }))
+      .forEach((text2, si) => {
+        // Кожен фрагмент додатково ділимо за дієсловами (підзадачі — м'яка межа, дата успадковується).
+        verbSplit(text2, m).forEach((sub, vi) => {
+          out.push({ text: sub, hardBreak: hi > 0 && si === 0 && vi === 0 })
+        })
+      })
   })
   return out
 }
@@ -523,28 +560,60 @@ export function detectLanguage(text) {
   return cyr ? 'uk' : 'en'
 }
 
-// Головна функція. dicts — масив словників (усі мови; у змішаному тексті шукаються одночасно).
-// Повертає { language, tasks[], notRecognized[] }. Задачі НЕ створюються — лише для підтвердження.
-export function parseInput(text, dicts, now = new Date()) {
-  const raw = normalizeApostrophes((text || '').trim())
-  if (!raw) return { language: 'uk', tasks: [], notRecognized: [] }
-  const m = mergeDicts(dicts)
-  const pieces = splitTasks(raw, m)
+// Лексикон для фаззі-виправлення: усі ПОВНІ словникові слова (без основ модулів — ті
+// лише префікси). extraWords — слова користувача (напр. назви предметів), щоб виправляти
+// й друкарські помилки в них. Основи дієслів/предметів теж додаємо як підказку.
+function fuzzyLexicon(m, extraWords) {
+  const words = [
+    ...Object.keys(m.relativeDates), ...Object.keys(m.weekdays), ...Object.keys(m.months),
+    ...Object.keys(m.ordinalWords), ...Object.keys(m.numberWords), ...Object.keys(m.durationUnits),
+    ...Object.keys(m.dayParts), ...m.oclockWords, ...m.durationHours, ...m.durationMinutes,
+    ...m.dayOfMonthWords, ...m.weekdayMarkers, ...m.nextWeekMarkers, ...m.afterMarkers,
+    ...m.timeMarkers, ...m.noneWords, ...m.linkWords, ...m.delimiters, ...m.fillerWords,
+    ...m.verbs, ...m.subjectWords, ...(extraWords || []),
+  ]
+  // Багатослівні записи (фрази) у фаззі не беремо — звіряємо потокенно.
+  return words.filter((w) => w && !/\s/.test(w))
+}
 
+// Чи містить фрагмент маркер «до того часу» (посилання на вже згадану дату як на дедлайн).
+function hasByThen(piece, m) {
+  if (!m.byThenMarkers.length) return false
+  const re = new RegExp(`${BB}(?:${alt(m.byThenMarkers)})${BE}`, 'iu')
+  return re.test(piece)
+}
+
+// Головна функція. dicts — масив словників (усі мови; у змішаному тексті шукаються одночасно).
+// extraWords — додаткові слова для фаззі (назви предметів/продуктів користувача).
+// Повертає { language, tasks[], notRecognized[], corrections[] }. Задачі НЕ створюються.
+export function parseInput(text, dicts, now = new Date(), extraWords = []) {
+  const raw0 = normalizeApostrophes((text || '').trim())
+  if (!raw0) return { language: 'uk', tasks: [], notRecognized: [], corrections: [] }
+  const m = mergeDicts(dicts)
+
+  // Крок 0. Фаззі-виправлення друкарських помилок у словникових словах (субботу→суботу).
+  const index = buildFuzzyIndex(fuzzyLexicon(m, extraWords))
+  const { text: raw, corrections } = fuzzyCorrect(raw0, index)
+
+  const pieces = splitTasks(raw, m)
   const tasks = []
   const notRecognized = []
-  // Успадкування дати: якщо задача не має своєї дати, бере дату попередньої розпізнаної
-  // (напр. "...завтра потім піти на прогулянку" → прогулянка теж на завтра). Прапорцем
+  // Успадкування дати: якщо задача не має своєї дати, бере дату попередньої розпізнаної.
   // inheritedDate позначаємо такі, щоб на екрані підтвердження це було видно.
   let lastDate = ''
   for (const piece of pieces) {
     if (piece.hardBreak) lastDate = '' // нове речення — не успадковуємо дату з попереднього
     const task = assemble(piece.text, m, now)
-    const empty = !task.title && !task.date && !task.time && !task.durationMinutes && !task.module && !task.ambiguous.length
+    const empty = !task.title && !task.date && !task.deadline && !task.time
+      && !task.durationMinutes && !task.module && !task.ambiguous.length
     if (empty) { notRecognized.push(task.raw); continue }
+    // "до того часу" → термін = попередня дата; при цьому дату-початок НЕ успадковуємо.
+    const byThen = hasByThen(piece.text, m)
+    if (byThen && !task.deadline && lastDate) { task.deadline = lastDate; task.inheritedDeadline = true }
     if (task.date) lastDate = task.date
-    else if (lastDate) { task.date = lastDate; task.inheritedDate = true }
+    else if (task.deadline) lastDate = task.deadline
+    else if (lastDate && !byThen) { task.date = lastDate; task.inheritedDate = true }
     tasks.push(task)
   }
-  return { language: detectLanguage(raw), tasks, notRecognized }
+  return { language: detectLanguage(raw), tasks, notRecognized, corrections }
 }
