@@ -1,7 +1,20 @@
 .quick-add-page {
   padding: clamp(16px, 3vw, 28px);
+  /* Заповнюємо всю висоту контентної області й центруємо панель по центру (верт. + гориз.) */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Сама панель — обмежена завширшки й по центру сторінки */
+.quick-add-page .quick-add {
+  width: 100%;
   max-width: 880px;
+}
+
+/* Підказка під рядком введення — вирівняна по центру */
+.quick-add-page .quick-add-hint {
+  text-align: center;
 }

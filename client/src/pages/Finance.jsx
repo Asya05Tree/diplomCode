@@ -306,10 +306,6 @@ export default function Finance() {
 
   return (
     <div className="finance-page">
-      <div className="page-head">
-        <h2>{t('nav.finance')}</h2>
-      </div>
-
       <label className="finance-balance-field card">
         <span className="kpi-label">{t('finance.balanceLabel')}</span>
         <div className="finance-money-field">

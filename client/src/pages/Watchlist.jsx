@@ -284,10 +284,6 @@ export default function Watchlist() {
 
   return (
     <div className="watch-page">
-      <div className="page-head">
-        <h2>{t('nav.watchlist')}</h2>
-      </div>
-
       {/* Під-вкладки Відео / Книги */}
       <div className="watch-kinds">
         {KINDS.map((k) => (

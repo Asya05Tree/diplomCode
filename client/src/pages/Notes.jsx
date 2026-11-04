@@ -9,6 +9,7 @@ import './Notes.css'
 // (малювання кольорами з експортом у JPEG). Нотатки зберігаються в БД, дошка — локально.
 const NOTE_COLORS = ['#fff3b0', '#cdeffd', '#d7f5d3', '#ffd6e0', '#e5d4ff', '#ffe0b3']
 const MAX_LEN = 280
+const MAX_NOTES = 30 // обмеження кількості нотаток
 
 export default function Notes() {
   const { t } = useI18n()
@@ -27,6 +28,7 @@ export default function Notes() {
     setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...changes } : n)))
 
   const handleAdd = async () => {
+    if (notes.length >= MAX_NOTES) return // досягнуто ліміту
     const color = NOTE_COLORS[notes.length % NOTE_COLORS.length]
     const { id } = await addNote({ text: '', color })
     setNotes((prev) => [...prev, { id, text: '', color, position: prev.length }])
@@ -49,10 +51,6 @@ export default function Notes() {
 
   return (
     <div className="notes-page">
-      <div className="page-head">
-        <h2>{t('nav.notes')}</h2>
-      </div>
-
       <div className="notes-tabs">
         <button
           type="button"
@@ -111,10 +109,17 @@ export default function Notes() {
               </div>
             ))}
 
-            <button type="button" className="note-add" onClick={handleAdd}>
-              <Icon name="plus" />
-              <span>{t('notes.add')}</span>
-            </button>
+            {notes.length < MAX_NOTES ? (
+              <button type="button" className="note-add" onClick={handleAdd}>
+                <Icon name="plus" />
+                <span>{t('notes.add')}</span>
+              </button>
+            ) : (
+              <div className="note-add note-add--full">
+                <Icon name="notes" />
+                <span>{t('notes.limitReached', { max: MAX_NOTES })}</span>
+              </div>
+            )}
           </div>
         )
       ) : (

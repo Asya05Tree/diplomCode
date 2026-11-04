@@ -179,8 +179,6 @@ export default function ShoppingList() {
 
   return (
     <div className="shopping-list-page">
-      <h2 className="shopping-list-title"><Icon name="cart" /> {t('shoppingList.title')}</h2>
-
       <form className="shopping-list-add card" onSubmit={handleAdd}>
         <input
           value={name}

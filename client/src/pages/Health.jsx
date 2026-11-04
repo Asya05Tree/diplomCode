@@ -285,10 +285,6 @@ export default function Health() {
 
   return (
     <div className="health-page">
-      <div className="page-head">
-        <h2>{t('nav.health')}</h2>
-      </div>
-
       {/* Параметри людини редагуються прямо тут: поле не видно, лише стилізоване число + одиниця */}
       <div className="profile-kv">
         <label className="profile-field">

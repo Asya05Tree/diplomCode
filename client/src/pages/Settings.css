@@ -6,19 +6,12 @@
   max-width: 1000px;
 }
 
-/* Заголовок-рядок: назва зліва (текстом, не великим h2), хто увійшов — справа */
+/* Рядок "хто увійшов" — вирівняний праворуч (сам заголовок прибрано) */
 .settings-head {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px 16px;
-}
-.settings-head-title {
-  font-family: var(--font-heading);
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--color-heading);
 }
 .settings-head-user {
   font-size: 0.9rem;
@@ -91,12 +84,40 @@
 
 .settings-section h3 {
   margin: 0 0 14px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-text-muted);
+  color: var(--color-heading);
 }
+
+/* Рядок заголовка секції з іконкою-підказкою (напр. перший день тижня) */
+.settings-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.settings-section-head h3 {
+  margin: 0;
+}
+.settings-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition);
+}
+.settings-info-btn .icon { width: 15px; height: 15px; }
+.settings-info-btn:hover { background: color-mix(in srgb, var(--color-accent) 24%, transparent); }
 
 /* Пояснювальний рядок під заголовком секції (напр. як працює перший день тижня) */
 .settings-hint {
@@ -290,15 +311,21 @@
 .settings-account-note { font-size: 0.85rem; color: var(--color-success, #2e7d32); }
 
 .settings-danger {
-  margin-top: 18px;
-  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 18px;
   border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--color-danger) 7%, transparent);
 }
+/* Усередині небезпечної зони відступи дає flex-gap контейнера — тож скидаємо власні
+   margin елементів (у т.ч. від'ємний top у .settings-hint), щоб нічого не "злипалось". */
+.settings-danger > * { margin: 0; }
+.settings-danger .settings-account-actions { gap: 10px; }
 .settings-danger-title {
-  margin: 0 0 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-danger);
   text-transform: uppercase;
   font-size: 0.74rem;

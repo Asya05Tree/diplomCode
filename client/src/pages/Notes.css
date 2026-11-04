@@ -14,17 +14,18 @@
 .notes-tab {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  padding: 9px 16px;
+  padding: 12px 24px;
   border-radius: var(--radius-pill);
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: background var(--transition), border-color var(--transition), transform var(--transition);
 }
-.notes-tab .icon { width: 18px; height: 18px; }
+.notes-tab .icon { width: 20px; height: 20px; }
 .notes-tab:hover { border-color: var(--color-accent); transform: translateY(-1px); }
 .notes-tab--active {
   background: var(--color-accent-gradient);
@@ -108,6 +109,18 @@
   border-color: var(--color-accent);
   color: var(--color-accent-ink);
   background: var(--color-accent-soft);
+}
+/* Досягнуто ліміту — не клікабельна заглушка замість кнопки додавання */
+.note-add--full {
+  cursor: default;
+  text-align: center;
+  padding: 12px;
+  font-size: 0.82rem;
+}
+.note-add--full:hover {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  background: transparent;
 }
 
 /* --- Дошка для малювання --- */

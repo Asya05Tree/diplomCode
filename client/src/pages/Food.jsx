@@ -248,10 +248,6 @@ export default function Food() {
 
   return (
     <div className="food-page">
-      <div className="food-page-head">
-        <h2>{t('nav.food')}</h2>
-      </div>
-
       <div className="food-tabs">
         <button
           type="button"

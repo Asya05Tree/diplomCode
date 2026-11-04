@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { useI18n } from '../i18n'
 import QuickAdd from '../components/planner/QuickAdd'
 import { getSubjects } from '../api/study'
 import { getFoodOverview } from '../api/food'
@@ -12,7 +11,6 @@ const AUTH_TOKEN_KEY = 'authToken'
 // Самі задачі не створюються автоматично — лише після підтвердження на екрані розбору.
 // Для задач модуля "Навчання" підвантажуємо наявні предмети (зіставлення/створення).
 export default function QuickAddPage() {
-  const { t } = useI18n()
   const { studentType } = useOutletContext() ?? {}
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
   const canAddSubjects = studentType === 'pupil' || studentType === 'student'
@@ -45,9 +43,6 @@ export default function QuickAddPage() {
 
   return (
     <div className="quick-add-page">
-      <div className="page-head">
-        <h2>{t('nav.quickAdd')}</h2>
-      </div>
       <QuickAdd token={token} subjects={subjects} canAddSubjects={canAddSubjects} products={food.products} stock={food.stock} />
     </div>
   )

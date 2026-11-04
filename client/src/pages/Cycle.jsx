@@ -327,10 +327,6 @@ export default function Cycle() {
 
   return (
     <div className="cycle-page">
-      <div className="page-head">
-        <h2>{t('nav.cycle')}</h2>
-      </div>
-
       {/* Панель приладів: герой (день циклу + відмітки + PDF) та показники */}
       <div className="card cyc-dash">
         <div className="cyc-hero">

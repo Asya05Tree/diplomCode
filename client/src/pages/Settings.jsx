@@ -24,9 +24,10 @@ export default function Settings() {
   } = useOutletContext()
 
   const STUDENT_TYPES = ['pupil', 'student', 'none']
-  const GENDER_OPTIONS = ['female', 'male', 'other']
+  const GENDER_OPTIONS = ['female', 'male']
 
   const [tab, setTab] = useState('appearance')
+  const [showWeekHint, setShowWeekHint] = useState(false) // пояснення про перший день тижня (за іконкою)
   const TABS = [
     { key: 'appearance', icon: 'sun' },
     { key: 'calendar', icon: 'calendar-days' },
@@ -97,15 +98,14 @@ export default function Settings() {
 
   return (
     <div className="settings-page">
-      {/* Заголовок: зліва назва (текстом, не великим h), справа хто увійшов — нік + пошта в дужках */}
-      <div className="settings-head">
-        <span className="settings-head-title">{t('settings.title')}</span>
-        {user && (
+      {/* Заголовок прибрано — лишаємо тільки рядок "хто увійшов": нік + пошта в дужках, справа */}
+      {user && (
+        <div className="settings-head">
           <span className="settings-head-user">
             {user.nickname ? `${user.nickname} (${user.email})` : user.email}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="settings-tabs">
         {TABS.map((item) => (
@@ -204,8 +204,19 @@ export default function Settings() {
       {tab === 'calendar' && (
         <>
           <section className="settings-section">
-            <h3>{t('settings.weekStartLabel')}</h3>
-            <p className="settings-hint">{t('settings.weekStartHint')}</p>
+            <div className="settings-section-head">
+              <h3>{t('settings.weekStartLabel')}</h3>
+              <button
+                type="button"
+                className="settings-info-btn"
+                aria-label={t('settings.weekStartHint')}
+                title={t('settings.weekStartHint')}
+                onClick={() => setShowWeekHint((v) => !v)}
+              >
+                <Icon name="info" />
+              </button>
+            </div>
+            {showWeekHint && <p className="settings-hint">{t('settings.weekStartHint')}</p>}
             <div className="settings-options">
               {ISO_WEEK_DAYS.map((day) => (
                 <button
@@ -281,6 +292,10 @@ export default function Settings() {
                 </button>
               ))}
             </div>
+          </section>
+
+          <section className="settings-section">
+            <h3>{t('settings.workLabel')}</h3>
             <label className="settings-check">
               <input
                 type="checkbox"

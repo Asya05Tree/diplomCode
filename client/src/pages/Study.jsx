@@ -67,7 +67,6 @@ export default function Study() {
   if (studentType !== 'pupil' && studentType !== 'student') {
     return (
       <div className="study-page">
-        <div className="page-head"><h2>{t('nav.study')}</h2></div>
         <p className="placeholder-text">{t('study.noStatus')}</p>
       </div>
     )
@@ -102,10 +101,6 @@ export default function Study() {
 
   return (
     <div className="study-page">
-      <div className="page-head">
-        <h2>{t('nav.study')}</h2>
-      </div>
-
       {/* Верхній перемикач форми навчання — керує полями предметів/розкладу */}
       <div className="study-form-switch">
         <span className="study-form-switch-label">{t('study.learningForm')}</span>

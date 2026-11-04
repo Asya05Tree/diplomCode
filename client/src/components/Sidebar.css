@@ -78,7 +78,9 @@
 }
 
 .sidebar-label {
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
   color: var(--color-text);
 }
 
@@ -160,7 +162,7 @@
   }
 
   .sidebar-label {
-    font-size: 0.66rem;
+    font-size: 0.82rem;
     white-space: nowrap;
   }
 }
