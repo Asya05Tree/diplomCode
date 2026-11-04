@@ -21,6 +21,22 @@ export default {
     'day after tomorrow': 2,
   },
 
+  // "in N units" ("in two weeks", "in 3 days"). afterMarkers precede the number; the matcher
+  // requires a unit, so "in 6 o'clock" (no unit) is NOT treated as a relative date.
+  afterMarkers: ['in'],
+  numberWords: {
+    one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8,
+    nine: 9, ten: 10, eleven: 11, twelve: 12,
+  },
+  durationUnits: {
+    day: 1, days: 1, week: 7, weeks: 7, month: 30, months: 30, year: 365, years: 365,
+  },
+
+  // Deadline markers: when placed BEFORE a date, that date is a deadline, not a start time.
+  deadlineMarkers: ['by', 'until', 'till', 'before'],
+  // Reference to an already-mentioned date as a deadline ("by then buy …" → deadline = prev date).
+  byThenMarkers: ['by then', 'by that time', 'by that date'],
+
   // Weekdays: full names + common abbreviations → ISO number (1=Mon..7=Sun).
   weekdays: {
     monday: 1, mon: 1,
@@ -63,10 +79,11 @@ export default {
     'thirty-first': 31,
   },
 
-  // Markers before a time ("at 4", "at 16:00").
-  timeMarkers: ['at'],
+  // Markers before a time ("at 4", "at 16:00", "in 6").
+  timeMarkers: ['at', 'in'],
   dayParts: {}, // English uses am/pm, handled directly by the engine.
-  oclockWords: ["o'clock", 'oclock'],
+  // o'clock and its common misspellings/spacings (so "6 o clok" is read as a time and stripped).
+  oclockWords: ["o'clock", 'oclock', 'o clock', 'oclok', 'o clok', "o' clock"],
 
   // Duration units ("for 2 hours", "30 min").
   durationHours: ['hours', 'hour', 'hrs', 'hr'],
@@ -77,9 +94,27 @@ export default {
   ordinalSuffixes: ['st', 'nd', 'rd', 'th'],
 
   // Filler words — trimmed only from the START of a title (phrases too). Action verbs are kept.
+  // Trailing entries are interjections/"mumbling" that carry no meaning (also trimmed at start).
   fillerWords: [
     "don't forget to", 'dont forget to', 'remind me to', 'i want to', 'i need to', 'i have to',
     'i should', 'remember to', 'need to', 'have to', 'want to', 'gotta', 'let me', 'please',
+    'hmhmhm', 'hmm', 'hm', 'umm', 'um', 'uhh', 'uh', 'erm', 'eh',
+  ],
+
+  // Action-verb stems that start a new task ("watch a movie read a book" = two tasks). The split
+  // only fires when there's an object between two verbs, so "go for a walk" stays one task.
+  verbs: [
+    'watch', 'view', 'read', 'cook', 'bake', 'boil', 'fry', 'roast', 'prepare', 'buy', 'purchase',
+    'order', 'grab', 'call', 'write', 'send', 'clean', 'wash', 'visit', 'go', 'walk', 'do', 'make',
+    'finish', 'pay', 'book', 'submit', 'pick', 'bring', 'return',
+  ],
+
+  // Known subject names (matched by stem) so the Study subject is found even when not right
+  // after the word "class".
+  subjectWords: [
+    'math', 'algebra', 'geometry', 'physic', 'chemist', 'biolog', 'geograph', 'histor',
+    'literatur', 'english', 'ukrainian', 'german', 'french', 'informatic', 'programming',
+    'philosoph', 'econom', 'law', 'psycholog', 'sociolog', 'astronom', 'ecolog',
   ],
 
   // Module stems (prefix + any ending) → module code.

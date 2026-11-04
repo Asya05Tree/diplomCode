@@ -47,6 +47,8 @@ export function mergeDicts(dicts) {
     durationHours: [], durationMinutes: [], dayOfMonthWords: [], ordinalSuffixes: [],
     fillerWords: [], modules: {}, edgeWords: [],
     lessonMarkers: [], teacherMarkers: [], linkWords: [], noneWords: [],
+    afterMarkers: [], numberWords: {}, durationUnits: {}, deadlineMarkers: [], byThenMarkers: [],
+    verbs: [], subjectWords: [],
   }
   for (const d of dicts) {
     merged.delimiters.push(...(d.delimiters || []))
@@ -69,6 +71,13 @@ export function mergeDicts(dicts) {
     merged.teacherMarkers.push(...(d.teacherMarkers || []))
     merged.linkWords.push(...(d.linkWords || []))
     merged.noneWords.push(...(d.noneWords || []))
+    merged.afterMarkers.push(...(d.afterMarkers || []))
+    Object.assign(merged.numberWords, d.numberWords)
+    Object.assign(merged.durationUnits, d.durationUnits)
+    merged.deadlineMarkers.push(...(d.deadlineMarkers || []))
+    merged.byThenMarkers.push(...(d.byThenMarkers || []))
+    merged.verbs.push(...(d.verbs || []))
+    merged.subjectWords.push(...(d.subjectWords || []))
     // Коди модулів беремо з самих словників — додати модуль = дописати ключ у dict.*.js.
     for (const key of Object.keys(d.modules || {})) {
       merged.modules[key] = merged.modules[key] || []
@@ -125,6 +134,9 @@ function buildMatchers(m, now) {
   const domWords = alt(m.dayOfMonthWords)
   const ord = alt(m.ordinalSuffixes)
   const ordWords = alt(Object.keys(m.ordinalWords))
+  const afterMark = alt(m.afterMarkers)
+  const numWords = alt(Object.keys(m.numberWords))
+  const units = alt(Object.keys(m.durationUnits))
   const nextSet = new Set(m.nextWeekMarkers.map((w) => w.toLowerCase()))
 
   const applyMeridiem = (hour, suffix) => {
@@ -198,6 +210,19 @@ function buildMatchers(m, now) {
         const day = m.ordinalWords[mm[1].toLowerCase()]
         if (!day) return null
         return { dateStr: resolveDayOfMonth(day, now) }
+      },
+    },
+    // 4в) "через N одиниць" ("через два тижні", "in 3 days"). Потребує одиниці — тому
+    //     "in 6 o'clock" сюди не потрапляє (там немає день/тиждень/місяць).
+    {
+      type: 'date', priority: 72,
+      re: () => new RegExp(`${BB}(?:${afterMark})\\s+(\\d{1,2}|${numWords})\\s+(${units})${BE}`, 'giu'),
+      read: (mm) => {
+        const nRaw = mm[1].toLowerCase()
+        const n = /^\d+$/.test(nRaw) ? Number(nRaw) : m.numberWords[nRaw]
+        const unit = m.durationUnits[mm[2].toLowerCase()]
+        if (!n || !unit) return null
+        return { dateStr: resolveRelative(n * unit, now) }
       },
     },
     // 5) Відносні дати ("завтра", "tomorrow").
@@ -334,33 +359,64 @@ function cap(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s
 }
 
-// Для модуля "Навчання": витягти предмет (після маркера заняття), викладача (після
-// маркера викладача, до стоп-слова) і стан посилання. Усе редаговане на екрані підтвердження.
+// Для модуля "Навчання": витягти предмет, викладача, номер пари й стан посилання.
+// Усе редаговане на екрані підтвердження.
 function extractStudy(piece, m) {
-  const out = { subject: '', teacher: '', link: '' }
+  const out = { subject: '', teacher: '', link: '', lessonNumber: null }
   const W = `[${L}'0-9.\\-]` // символи "слова" для імен/назв (з апострофом, крапкою, дефісом)
+  const edge = new Set(m.edgeWords.map((w) => w.toLowerCase()))
+  const lessonStem = alt(m.lessonMarkers)
 
-  const lm = alt(m.lessonMarkers)
+  // Номер пари: "3 парою"/"3 пара" або "пара 3".
   if (m.lessonMarkers.length) {
-    const re = new RegExp(`${BB}(?:${lm})${L}*\\s+(${W}+)`, 'iu')
-    const mm = re.exec(piece)
-    if (mm) out.subject = mm[1]
+    const mm = new RegExp(`${BB}(\\d{1,2})\\s*(?:${lessonStem})${L}*${BE}`, 'iu').exec(piece)
+      || new RegExp(`${BB}(?:${lessonStem})${L}*\\s*(\\d{1,2})${BE}`, 'iu').exec(piece)
+    if (mm) out.lessonNumber = Number(mm[1])
   }
 
-  const tm = alt(m.teacherMarkers)
-  if (m.teacherMarkers.length) {
-    const re = new RegExp(`${BB}(?:${tm})${L}*\\s+(${W}+(?:\\s+${W}+){0,2})`, 'iu')
-    const mm = re.exec(piece)
+  // Предмет: 1) відоме слово-предмет (за основою) будь-де; 2) інакше перше змістовне слово
+  // після маркера заняття, пропускаючи прийменники, числа та імена з великої літери (викладач).
+  const subjStem = alt(m.subjectWords)
+  if (m.subjectWords.length) {
+    const mm = new RegExp(`${BB}(?:${subjStem})${L}*${BE}`, 'iu').exec(piece)
+    if (mm) out.subject = mm[0]
+  }
+  if (!out.subject && m.lessonMarkers.length) {
+    const mm = new RegExp(`${BB}(?:${lessonStem})${L}*\\s+(.+)$`, 'iu').exec(piece)
     if (mm) {
-      const stop = new Set([...m.lessonMarkers, ...m.linkWords, ...m.noneWords].map((w) => w.toLowerCase()))
-      const kept = []
-      for (const w of mm[1].split(/\s+/)) {
+      for (const raw of mm[1].split(/\s+/)) {
+        const w = raw.replace(/[.,;:!?]+$/u, '')
         if (!w) continue
-        if (stop.has(w.toLowerCase()) || /\d/.test(w)) break
-        kept.push(w)
+        if (edge.has(w.toLowerCase()) || /\d/.test(w) || /^\p{Lu}/u.test(w)) continue
+        out.subject = w; break
       }
-      out.teacher = kept.join(' ')
     }
+  }
+
+  // Викладач: після маркера викладача АБО після прийменника-зв'язки + слова з великої літери
+  // ("з Віктором Федоровичем", "with Smith"). Беремо до 3 слів, зупиняємось на числі/стоп-слові.
+  const tm = alt(m.teacherMarkers)
+  let teacher = ''
+  if (m.teacherMarkers.length) {
+    const mm = new RegExp(`${BB}(?:${tm})${L}*\\s+(${W}+(?:\\s+${W}+){0,2})`, 'iu').exec(piece)
+    if (mm) teacher = mm[1]
+  }
+  if (!teacher) {
+    const cap = `\\p{Lu}[${L}'\\-]+`
+    const mm = new RegExp(`${BB}(?:з|зі|із|від|у|в|with|by|of)\\s+(${cap}(?:\\s+${cap}){0,2})`, 'u').exec(piece)
+    if (mm) teacher = mm[1]
+  }
+  if (teacher) {
+    const stop = new Set([...m.lessonMarkers, ...m.linkWords, ...m.noneWords, ...m.subjectWords].map((w) => w.toLowerCase()))
+    const kept = []
+    for (const w of teacher.split(/\s+/)) {
+      if (!w) continue
+      if (/\d/.test(w)) break
+      if ([...stop].some((s) => w.toLowerCase().startsWith(s))) break
+      if (kept.length && !/^\p{Lu}/u.test(w)) break // після першого імені беремо лише слова з великої
+      kept.push(w)
+    }
+    out.teacher = kept.join(' ')
   }
 
   // Посилання: URL після слова-маркера, або явна відмітка "немає".
@@ -385,7 +441,19 @@ function assemble(piece, m, now) {
   const durs = accepted.filter((s) => s.type === 'duration').sort((a, b) => a.start - b.start)
   const nums = accepted.filter((s) => s.type === 'number').sort((a, b) => a.start - b.start)
 
-  let date = dates[0]?.data.dateStr || ''
+  // Дата, перед якою стоїть маркер дедлайну ("до 15", "by friday"), — це термін, а не початок.
+  const dlSet = new Set(m.deadlineMarkers.map((w) => w.toLowerCase()))
+  const precededByDeadline = (seg) => {
+    const before = piece.slice(0, seg.start).replace(/\s+$/u, '')
+    const mm = before.match(new RegExp(`([${L}']+)$`, 'u'))
+    return mm ? dlSet.has(mm[1].toLowerCase()) : false
+  }
+  let date = ''
+  let deadline = ''
+  for (const seg of dates) {
+    if (!deadline && precededByDeadline(seg)) deadline = seg.data.dateStr
+    else if (!date) date = seg.data.dateStr
+  }
   let time = times[0]?.data.timeStr || ''
   const durationMinutes = durs[0]?.data.minutes ?? null
 
@@ -420,7 +488,7 @@ function assemble(piece, m, now) {
     if (study.subject) title = cap(study.subject)
   }
 
-  return { raw: piece.trim(), title, date, time, durationMinutes, module, ambiguous, study }
+  return { raw: piece.trim(), title, date, deadline, time, durationMinutes, module, ambiguous, study }
 }
 
 // Різні символи апострофа (ʼ ' ' ` ´) → один прямий, щоб "пʼятницю" збігалося зі словником.
