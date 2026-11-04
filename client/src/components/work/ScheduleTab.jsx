@@ -57,10 +57,12 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
   const [showTypeForm, setShowTypeForm] = useState(false)
   const [editingTypeId, setEditingTypeId] = useState(null)
   const [typeForm, setTypeForm] = useState(emptyType)
+  const [typeError, setTypeError] = useState('')
 
-  const openAddType = () => { setEditingTypeId(null); setTypeForm(emptyType); setShowTypeForm(true) }
+  const openAddType = () => { setEditingTypeId(null); setTypeForm(emptyType); setTypeError(''); setShowTypeForm(true) }
   const openEditType = (tp) => {
     setEditingTypeId(tp.id)
+    setTypeError('')
     setTypeForm({
       name: tp.name, color: tp.color, startTime: hhmm(tp.startTime), endTime: hhmm(tp.endTime),
       kind: tp.kind ?? 'normal', startTime2: hhmm(tp.startTime2) || '', endTime2: hhmm(tp.endTime2) || '',
@@ -72,9 +74,16 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
   const withSeconds = (tm) => (tm && tm.length === 5 ? `${tm}:00` : tm || null)
   const submitType = async (e) => {
     e.preventDefault()
-    if (!typeForm.name.trim()) return
+    const name = typeForm.name.trim()
+    if (!name) { setTypeError(t('work.errShiftName')); return }
     const kind = typeForm.kind ?? 'normal'
-    if (kind === 'split' && (!typeForm.startTime2 || !typeForm.endTime2)) { return }
+    if (kind === 'split' && (!typeForm.startTime2 || !typeForm.endTime2)) { setTypeError(t('work.errShiftSplit')); return }
+    // Унікальність типів змін: не можна повторювати назву, колір чи час іншої зміни.
+    const others = shiftTypes.filter((tp) => tp.id !== editingTypeId)
+    if (others.some((tp) => tp.name.trim().toLowerCase() === name.toLowerCase())) { setTypeError(t('work.errTypeName')); return }
+    if (others.some((tp) => tp.color === typeForm.color)) { setTypeError(t('work.errTypeColor')); return }
+    if (others.some((tp) => hhmm(tp.startTime) === typeForm.startTime && hhmm(tp.endTime) === typeForm.endTime)) { setTypeError(t('work.errTypeTime')); return }
+    setTypeError('')
     const payload = {
       name: typeForm.name.trim(), color: typeForm.color,
       startTime: withSeconds(typeForm.startTime), endTime: withSeconds(typeForm.endTime),
@@ -135,16 +144,34 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
     setScheduleError('')
   }
 
+  // Перевірка графіка: максимум 5 записів і без перетину (дати × час зміни) з наявними.
+  // Повертає код помилки для перекладу або null. editingId — виключаємо з перевірки сам запис.
+  const scheduleGuard = (type, startDate, endDate, editingId) => {
+    if (!editingId && entries.length >= 5) return 'work.errScheduleMax'
+    const nS = hhmm(type.startTime)
+    const nE = hhmm(type.endTime)
+    const clash = entries.some((e) => {
+      if (e.id === editingId) return false
+      const datesOverlap = e.startDate <= endDate && startDate <= (e.endDate ?? '9999-12-31')
+      const timesOverlap = nS < hhmm(e.endTime) && hhmm(e.startTime) < nE
+      return datesOverlap && timesOverlap
+    })
+    return clash ? 'work.errScheduleOverlap' : null
+  }
+
   const addQuick = async () => {
     const type = shiftTypes.find((x) => x.id === Number(pickTypeId))
     if (!type) { setScheduleError(t('work.errPickType')); return }
+    const endDate = toApiDate(addMonths(fromApiDate(quickStart), DEFAULT_END_MONTHS))
+    const errKey = scheduleGuard(type, quickStart, endDate, null)
+    if (errKey) { setScheduleError(t(errKey)); return }
     setScheduleError('')
     const days = Array.from({ length: workDays }, (_, i) => i + 1).join(',')
     await addScheduleEntry({
       shiftTypeId: type.id,
       recurrence: {
         type: 'WeekCycle', timeOfDay: `${hhmm(type.startTime)}:00`,
-        startDate: quickStart, endDate: toApiDate(addMonths(fromApiDate(quickStart), DEFAULT_END_MONTHS)),
+        startDate: quickStart, endDate,
         cycleWeeks: 1, cycleAnchorDate: null, weekDaysPattern: `0:${days}`,
         weekDayTimesPattern: null, intervalDays: null, monthDayMode: null, monthDays: null, monthDayTimesPattern: null,
       },
@@ -157,6 +184,8 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
     if (!type) { setScheduleError(t('work.errPickType')); return }
     const errCode = validateRecurrenceValue(customRec)
     if (errCode) { setScheduleError(t(`taskForm.${errCode}`)); return }
+    const errKey = scheduleGuard(type, customRec.startDate, customRec.endDate, editingEntryId)
+    if (errKey) { setScheduleError(t(errKey)); return }
     setScheduleError('')
     const body = { shiftTypeId: type.id, recurrence: recurrenceValueToPayload(customRec) }
     if (editingEntryId) await updateScheduleEntry(editingEntryId, body)
@@ -272,6 +301,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
         <p className="placeholder-text">{t('work.shiftTypesHint')}</p>
 
         {showTypeForm && (
+          <>
           <form className="work-form work-inline-form" onSubmit={submitType}>
             <label className="work-form-grow">{t('work.shiftName')}<input value={typeForm.name} maxLength={24} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} placeholder={t('work.shiftNamePlaceholder')} /></label>
             <label>{t('work.shiftKind')}
@@ -300,6 +330,8 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
             </div>
             <button type="submit" className="btn-accent">{t('common.save')}</button>
           </form>
+          {typeError && <p className="task-form-error">{typeError}</p>}
+          </>
         )}
 
         {shiftTypes.length === 0 ? (
