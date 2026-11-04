@@ -122,7 +122,7 @@ public class ShoppingService
     public async Task<int?> AddItemAsync(int userId, string section, string? category, string? text, int? productId, int? medicineId,
         string source = "Manual", int? sourceEntityId = null)
     {
-        if (section is not ("Groceries" or "Pharmacy" or "Other")) return null;
+        if (section is not ("Groceries" or "Pharmacy" or "Household" or "Cosmetics" or "Stationery" or "Pets" or "Other")) return null;
         // Має бути рівно одне джерело назви: продукт, ліки або довільний текст
         if (productId is null && medicineId is null && string.IsNullOrWhiteSpace(text)) return null;
 

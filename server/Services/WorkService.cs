@@ -40,7 +40,7 @@ public class WorkService
         string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2);
 
     public record ContactDto(int Id, string GroupName, string Status, string FullName, string Phone,
-        string? Email, DateOnly? Birthday, string? Socials);
+        string? Email, DateOnly? Birthday, string? Socials, string? Telegram, string? Viber);
 
     public record LeaveDto(int Id, string Type, DateOnly StartDate, DateOnly EndDate);
 
@@ -323,7 +323,7 @@ public class WorkService
         await _db.WorkContacts
             .Where(x => x.UserId == userId)
             .OrderBy(x => x.GroupName).ThenBy(x => x.FullName)
-            .Select(x => new ContactDto(x.Id, x.GroupName, x.Status, x.FullName, x.Phone, x.Email, x.Birthday, x.Socials))
+            .Select(x => new ContactDto(x.Id, x.GroupName, x.Status, x.FullName, x.Phone, x.Email, x.Birthday, x.Socials, x.Telegram, x.Viber))
             .ToListAsync();
 
     public async Task<int> AddContactAsync(int userId, ContactDto dto)
@@ -338,6 +338,8 @@ public class WorkService
             Email = Trim(dto.Email),
             Birthday = dto.Birthday,
             Socials = Trim(dto.Socials),
+            Telegram = Trim(dto.Telegram),
+            Viber = Trim(dto.Viber),
         };
         _db.WorkContacts.Add(c);
         await _db.SaveChangesAsync();
@@ -355,6 +357,8 @@ public class WorkService
         c.Email = Trim(dto.Email);
         c.Birthday = dto.Birthday;
         c.Socials = Trim(dto.Socials);
+        c.Telegram = Trim(dto.Telegram);
+        c.Viber = Trim(dto.Viber);
         await _db.SaveChangesAsync();
         return true;
     }

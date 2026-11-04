@@ -10,8 +10,8 @@ public record WorkSettingsRequest(string JobName, string? Position, string? Empl
 public record WorkShiftTypeRequest(string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
     string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier);
 public record WorkScheduleRequest(int ShiftTypeId, WorkService.Recurrence Recurrence);
-public record WorkContactRequest(string GroupName, string Status, string FullName, string Phone,
-    string? Email, DateOnly? Birthday, string? Socials);
+public record WorkContactRequest(string GroupName, string? Status, string FullName, string Phone,
+    string? Email, DateOnly? Birthday, string? Socials, string? Telegram, string? Viber);
 public record WorkLeaveRequest(string Type, DateOnly StartDate, DateOnly EndDate);
 public record WorkMeetingRequest(string WithWhom, DateTime When, string? Place);
 public record WorkObligationRequest(string Title, string? Note, DateOnly? DueDate, bool IsDone);
@@ -133,7 +133,7 @@ public class WorkController : ControllerBase
         await _work.DeleteContactAsync(CurrentUserId, id) ? Ok() : NotFound();
 
     private static WorkService.ContactDto ToContactDto(int id, WorkContactRequest r) =>
-        new(id, r.GroupName ?? "", r.Status ?? "online", r.FullName, r.Phone ?? "", r.Email, r.Birthday, r.Socials);
+        new(id, r.GroupName ?? "", r.Status ?? "online", r.FullName, r.Phone ?? "", r.Email, r.Birthday, r.Socials, r.Telegram, r.Viber);
 
     // ---- Відсутності ----------------------------------------------------------
 

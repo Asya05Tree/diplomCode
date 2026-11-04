@@ -71,12 +71,14 @@ public class WorkContact
     public User? User { get; set; }
 
     public string GroupName { get; set; } = "";    // група (керівництво / команда / суміжні…)
-    public string Status { get; set; } = "online"; // online | busy | offline | vacation
-    public string FullName { get; set; } = "";      // ПІБ
+    public string Status { get; set; } = "online"; // (застаріле поле, в UI не показується)
+    public string FullName { get; set; } = "";      // ПІБ (складається на клієнті з прізвища/імені/по батькові)
     public string Phone { get; set; } = "";         // номер телефону
     public string? Email { get; set; }              // за бажанням
-    public DateOnly? Birthday { get; set; }         // за бажанням
-    public string? Socials { get; set; }            // за бажанням (вільний рядок, напр. "IG @x · TG @y")
+    public DateOnly? Birthday { get; set; }         // за бажанням (рік ігнорується — показуємо лише число й місяць)
+    public string? Socials { get; set; }            // (застаріле поле; замість нього Telegram/Viber)
+    public string? Telegram { get; set; }           // за бажанням
+    public string? Viber { get; set; }              // за бажанням
 }
 
 // Відсутність: тип + дата початку й кінця (таблиця, як просив користувач). У календар не виноситься.
