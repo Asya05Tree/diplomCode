@@ -470,5 +470,4 @@
 
 @media (max-width: 760px) {
   .work-tab { flex-basis: calc(50% - 10px); }
-  .work-meet-time { width: 96px; }
 }
