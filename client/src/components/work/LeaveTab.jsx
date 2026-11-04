@@ -37,15 +37,17 @@ export default function LeaveTab() {
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.sickUsed')}</span><span className="work-kpi-value">{sickDaysUsed} {t('work.daysShort')}</span></div>
       </div>
 
-      <form className="work-form work-inline-form" onSubmit={submit}>
-        <label>{t('work.leaveType')}
-          <select value={type} onChange={(e) => setType(e.target.value)}>
-            {LEAVE_TYPES.map((v) => <option key={v} value={v}>{t(`work.leaveKind.${v}`)}</option>)}
-          </select>
-        </label>
-        <label>{t('work.startDate')}<input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></label>
-        <label>{t('work.endDate')}<input type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></label>
-        <button type="submit" className="btn-accent">{t('work.addLeave')}</button>
+      <form className="work-form" onSubmit={submit}>
+        <div className="work-form-grid">
+          <label>{t('work.leaveType')}
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              {LEAVE_TYPES.map((v) => <option key={v} value={v}>{t(`work.leaveKind.${v}`)}</option>)}
+            </select>
+          </label>
+          <label>{t('work.startDate')}<input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></label>
+          <label>{t('work.endDate')}<input type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></label>
+        </div>
+        <div className="work-form-actions"><button type="submit" className="btn-accent">{t('work.addLeave')}</button></div>
       </form>
 
       {leaves.length === 0 ? (

@@ -113,6 +113,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
   const [customRec, setCustomRec] = useState(() => createDefaultRecurrenceValue(new Date()))
   const [scheduleError, setScheduleError] = useState('')
   const [editingEntryId, setEditingEntryId] = useState(null) // редагування наявного запису графіка
+  const [showScheduleHint, setShowScheduleHint] = useState(false) // підказка про зміну графіка (за іконкою)
 
   // Відкрити наявний запис графіка на редагування (у режимі "свій": тип зміни + повторення/дати).
   const openEditEntry = (e) => {
@@ -216,7 +217,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
         </div>
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.hoursThisMonth')}</span><span className="work-kpi-value">{monthStats.hours} {t('work.hoursShort')}</span></div>
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.shiftsThisMonth')}</span><span className="work-kpi-value">{monthStats.shifts}</span></div>
-        {earnings != null && <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.earningsApprox')}</span><span className="work-kpi-value">≈ {earnings}</span></div>}
+        {earnings != null && <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.earningsApprox')}</span><span className="work-kpi-value">≈ {earnings} {t('landing.moneyCurrency')}</span></div>}
       </div>
 
       <div className="card">
@@ -272,7 +273,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
 
         {showTypeForm && (
           <form className="work-form work-inline-form" onSubmit={submitType}>
-            <label className="work-form-grow">{t('work.shiftName')}<input value={typeForm.name} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} placeholder={t('work.shiftNamePlaceholder')} /></label>
+            <label className="work-form-grow">{t('work.shiftName')}<input value={typeForm.name} maxLength={24} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} placeholder={t('work.shiftNamePlaceholder')} /></label>
             <label>{t('work.shiftKind')}
               <select value={typeForm.kind} onChange={(e) => setTypeForm({ ...typeForm, kind: e.target.value })}>
                 {SHIFT_KINDS.map((k) => <option key={k} value={k}>{t(`work.shiftKind.${k}`)}</option>)}
@@ -333,7 +334,11 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
 
       {/* --- Налаштування графіка (додавання змін у графік) --- */}
       <div className="card">
-        <div className="work-section-head"><h3>{t('work.scheduleTitle')}</h3></div>
+        <div className="work-section-head">
+          <h3>{t('work.scheduleTitle')}</h3>
+          <button type="button" className="work-icon-btn" onClick={() => setShowScheduleHint((v) => !v)} aria-label={t('work.scheduleHistoryHint')} title={t('work.scheduleHistoryHint')}><Icon name="info" /></button>
+        </div>
+        {showScheduleHint && <p className="placeholder-text work-regime-hint">{t('work.scheduleHistoryHint')}</p>}
 
         {shiftTypes.length === 0 ? (
           <p className="placeholder-text">{t('work.needTypeFirst')}</p>
@@ -382,7 +387,6 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
               </div>
             )}
             {scheduleError && <p className="task-form-error">{scheduleError}</p>}
-            {!editingEntryId && <p className="placeholder-text work-regime-hint">{t('work.scheduleHistoryHint')}</p>}
           </>
         )}
 
