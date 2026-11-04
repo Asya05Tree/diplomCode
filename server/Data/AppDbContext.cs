@@ -76,6 +76,7 @@ public class AppDbContext : DbContext
     public DbSet<WorkLeave> WorkLeaves => Set<WorkLeave>();
     public DbSet<WorkMeeting> WorkMeetings => Set<WorkMeeting>();
     public DbSet<WorkObligation> WorkObligations => Set<WorkObligation>();
+    public DbSet<WorkProcessTask> WorkProcessTasks => Set<WorkProcessTask>();
 
     // Нотатки й чекап здоров'я
     public DbSet<Note> Notes => Set<Note>();
@@ -332,5 +333,9 @@ public class AppDbContext : DbContext
         b.Entity<WorkContact>().HasIndex(x => new { x.UserId, x.GroupName });
         b.Entity<WorkLeave>().HasIndex(x => new { x.UserId, x.StartDate });
         b.Entity<WorkMeeting>().HasIndex(x => new { x.UserId, x.When });
+
+        b.Entity<WorkProcessTask>()
+            .HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<WorkProcessTask>().HasIndex(x => new { x.UserId, x.Status });
     }
 }

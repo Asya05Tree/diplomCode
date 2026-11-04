@@ -15,6 +15,7 @@ public record WorkContactRequest(string GroupName, string Status, string FullNam
 public record WorkLeaveRequest(string Type, DateOnly StartDate, DateOnly EndDate);
 public record WorkMeetingRequest(string WithWhom, DateTime When, string? Place);
 public record WorkObligationRequest(string Title, string? Note, DateOnly? DueDate, bool IsDone);
+public record WorkProcessTaskRequest(string Title, string? Note, string? Status, DateOnly? DueDate);
 
 // Модуль "Робота": профіль/оплата, типи змін, графік (створює правила ModuleCode="work"), календар
 // змін, контакти, відсутності, зустрічі (створюють задачі ModuleCode="work") та зобов'язання.
@@ -206,4 +207,29 @@ public class WorkController : ControllerBase
     [HttpDelete("obligations/{id}")]
     public async Task<IActionResult> DeleteObligation(int id) =>
         await _work.DeleteObligationAsync(CurrentUserId, id) ? Ok() : NotFound();
+
+    // ---- Планування процесу ---------------------------------------------------
+
+    [HttpGet("process")]
+    public async Task<IActionResult> GetProcess() => Ok(await _work.GetProcessTasksAsync(CurrentUserId));
+
+    [HttpPost("process")]
+    public async Task<IActionResult> AddProcess([FromBody] WorkProcessTaskRequest r)
+    {
+        if (string.IsNullOrWhiteSpace(r.Title)) return BadRequest(new { error = "missing_title" });
+        var id = await _work.AddProcessTaskAsync(CurrentUserId, r.Title, r.Note, r.Status ?? "planned", r.DueDate);
+        return Ok(new { id });
+    }
+
+    [HttpPut("process/{id}")]
+    public async Task<IActionResult> UpdateProcess(int id, [FromBody] WorkProcessTaskRequest r)
+    {
+        if (string.IsNullOrWhiteSpace(r.Title)) return BadRequest(new { error = "missing_title" });
+        var ok = await _work.UpdateProcessTaskAsync(CurrentUserId, id, r.Title, r.Note, r.Status ?? "planned", r.DueDate);
+        return ok ? Ok() : NotFound();
+    }
+
+    [HttpDelete("process/{id}")]
+    public async Task<IActionResult> DeleteProcess(int id) =>
+        await _work.DeleteProcessTaskAsync(CurrentUserId, id) ? Ok() : NotFound();
 }

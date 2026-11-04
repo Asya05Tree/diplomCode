@@ -48,6 +48,8 @@ public class WorkService
 
     public record ObligationDto(int Id, string Title, string? Note, DateOnly? DueDate, bool IsDone);
 
+    public record ProcessTaskDto(int Id, string Title, string? Note, string Status, DateOnly? DueDate);
+
     // Параметри повторення для запису графіка (той самий набір, що в RecurrenceRule)
     public record Recurrence(string Type, TimeOnly TimeOfDay, DateOnly StartDate, DateOnly? EndDate,
         int? CycleWeeks, DateOnly? CycleAnchorDate, string? WeekDaysPattern, string? WeekDayTimesPattern,
@@ -501,5 +503,85 @@ public class WorkService
         _db.WorkObligations.Remove(o);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    // ---- Планування процесу (to-do з колонками; дедлайн синхронізується з календарем) ----------
+
+    private static readonly string[] ProcessStatuses = { "planned", "doing", "done" };
+
+    public async Task<List<ProcessTaskDto>> GetProcessTasksAsync(int userId) =>
+        await _db.WorkProcessTasks
+            .Where(x => x.UserId == userId)
+            .OrderBy(x => x.DueDate == null)
+            .ThenBy(x => x.DueDate)
+            .ThenBy(x => x.Id)
+            .Select(x => new ProcessTaskDto(x.Id, x.Title, x.Note, x.Status, x.DueDate))
+            .ToListAsync();
+
+    public async Task<int> AddProcessTaskAsync(int userId, string title, string? note, string status, DateOnly? dueDate)
+    {
+        var p = new WorkProcessTask
+        {
+            UserId = userId,
+            Title = title.Trim(),
+            Note = Trim(note),
+            Status = Normalize(status, ProcessStatuses, "planned"),
+            DueDate = dueDate,
+        };
+        _db.WorkProcessTasks.Add(p);
+        await _db.SaveChangesAsync();
+        await SyncProcessCalendarAsync(userId, p);
+        await _db.SaveChangesAsync();
+        return p.Id;
+    }
+
+    public async Task<bool> UpdateProcessTaskAsync(int userId, int id, string title, string? note, string status, DateOnly? dueDate)
+    {
+        var p = await _db.WorkProcessTasks.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+        if (p is null) return false;
+        p.Title = title.Trim();
+        p.Note = Trim(note);
+        p.Status = Normalize(status, ProcessStatuses, "planned");
+        p.DueDate = dueDate;
+        await SyncProcessCalendarAsync(userId, p);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteProcessTaskAsync(int userId, int id)
+    {
+        var p = await _db.WorkProcessTasks.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+        if (p is null) return false;
+        if (p.TaskId is int taskId)
+            await _taskService.DeleteTaskAsync(userId, taskId, cascadeSource: false);
+        _db.WorkProcessTasks.Remove(p);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    // Подію на дедлайн тримаємо в календарі, лише доки задача має дату й не виконана. Інакше — прибираємо.
+    private async Task SyncProcessCalendarAsync(int userId, WorkProcessTask p)
+    {
+        var shouldHave = p.DueDate is not null && p.Status != "done";
+        var title = $"Задача: {p.Title}";
+        if (shouldHave)
+        {
+            var when = p.DueDate!.Value.ToDateTime(new TimeOnly(9, 0));
+            if (p.TaskId is int taskId)
+            {
+                await _taskService.UpdateTaskAsync(userId, taskId, title, p.Note, when, null, when);
+            }
+            else
+            {
+                var task = await _taskService.CreateTaskAsync(userId, title, p.Note, when, null, when,
+                    moduleCode: "work", sourceModule: "work-process", sourceEntityId: p.Id);
+                p.TaskId = task.Id;
+            }
+        }
+        else if (p.TaskId is int taskId)
+        {
+            await _taskService.DeleteTaskAsync(userId, taskId, cascadeSource: false);
+            p.TaskId = null;
+        }
     }
 }

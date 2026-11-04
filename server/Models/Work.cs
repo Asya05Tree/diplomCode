@@ -104,7 +104,9 @@ public class WorkMeeting
     public int? TaskId { get; set; }             // пов'язана подія календаря (логічне посилання)
 }
 
-// Робоче зобов'язання / пункт планування процесу: назва, опційний дедлайн, прапорець виконання.
+// Зобов'язання: статичний перелік того, що людина робить на посаді (назва + опис). Без дедлайнів
+// і статусу — це опис ролі, а не задачі. (Поля DueDate/IsDone лишилися з попередньої версії, але
+// більше не використовуються в інтерфейсі; планування задач винесено у WorkProcessTask нижче.)
 public class WorkObligation
 {
     public int Id { get; set; }
@@ -115,4 +117,20 @@ public class WorkObligation
     public string? Note { get; set; }
     public DateOnly? DueDate { get; set; }
     public bool IsDone { get; set; }
+}
+
+// Планування процесу: to-do з колонками (планую / роблю / зроблено) і опційним дедлайном. Дедлайн
+// виноситься в спільний календар (ModuleCode="work") через TaskService. "Прострочено" — похідний стан
+// (DueDate < сьогодні && Status != done), окремо не зберігається.
+public class WorkProcessTask
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public User? User { get; set; }
+
+    public string Title { get; set; } = "";
+    public string? Note { get; set; }
+    public string Status { get; set; } = "planned"; // planned | doing | done
+    public DateOnly? DueDate { get; set; }
+    public int? TaskId { get; set; }                 // пов'язана подія календаря (логічне посилання)
 }
