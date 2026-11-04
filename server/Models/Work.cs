@@ -47,6 +47,8 @@ public class WorkShiftType
     public TimeOnly? StartTime2 { get; set; }        // друга частина (split): початок
     public TimeOnly? EndTime2 { get; set; }          // друга частина (split): кінець
     public decimal? OnCallMultiplier { get; set; }   // коефіцієнт тарифу для чергування (напр. 1.5)
+
+    public bool IsActive { get; set; } = true;       // неактивний тип не потрапляє в календар змін і в вибір
 }
 
 // Запис графіка: тип зміни + правило повторення (ModuleCode="work"), що породжує події календаря.

@@ -8,7 +8,7 @@ namespace Server.Controllers;
 public record WorkSettingsRequest(string JobName, string? Position, string? Employer, string PayType, decimal? Rate,
     string? Regime, string? Workplace, decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
 public record WorkShiftTypeRequest(string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
-    string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier);
+    string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool? IsActive);
 public record WorkScheduleRequest(int ShiftTypeId, WorkService.Recurrence Recurrence);
 public record WorkContactRequest(string GroupName, string? Status, string FullName, string Phone,
     string? Email, DateOnly? Birthday, string? Socials, string? Telegram, string? Viber);
@@ -58,7 +58,7 @@ public class WorkController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
         var id = await _work.AddShiftTypeAsync(CurrentUserId, new WorkService.ShiftTypeDto(0, r.Name, r.Color, r.StartTime, r.EndTime,
-            r.Kind ?? "normal", r.StartTime2, r.EndTime2, r.OnCallMultiplier));
+            r.Kind ?? "normal", r.StartTime2, r.EndTime2, r.OnCallMultiplier, r.IsActive ?? true));
         return Ok(new { id });
     }
 
@@ -67,7 +67,7 @@ public class WorkController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(r.Name)) return BadRequest(new { error = "missing_name" });
         var ok = await _work.UpdateShiftTypeAsync(CurrentUserId, id, new WorkService.ShiftTypeDto(id, r.Name, r.Color, r.StartTime, r.EndTime,
-            r.Kind ?? "normal", r.StartTime2, r.EndTime2, r.OnCallMultiplier));
+            r.Kind ?? "normal", r.StartTime2, r.EndTime2, r.OnCallMultiplier, r.IsActive ?? true));
         return ok ? Ok() : NotFound();
     }
 

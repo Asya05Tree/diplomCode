@@ -25,7 +25,7 @@ public class WorkService
         string Regime, string Workplace, decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
 
     public record ShiftTypeDto(int Id, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
-        string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier);
+        string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool IsActive);
 
     public record ShiftEntryDto(int Id, int ShiftTypeId, string ShiftTypeName, string Color,
         TimeOnly StartTime, TimeOnly EndTime, int RecurrenceRuleId, string RuleType, TimeOnly TimeOfDay,
@@ -119,9 +119,10 @@ public class WorkService
     public async Task<List<ShiftTypeDto>> GetShiftTypesAsync(int userId) =>
         await _db.WorkShiftTypes
             .Where(x => x.UserId == userId)
-            .OrderBy(x => x.StartTime)
+            .OrderByDescending(x => x.IsActive)
+            .ThenBy(x => x.StartTime)
             .Select(x => new ShiftTypeDto(x.Id, x.Name, x.Color, x.StartTime, x.EndTime,
-                x.Kind, x.StartTime2, x.EndTime2, x.OnCallMultiplier))
+                x.Kind, x.StartTime2, x.EndTime2, x.OnCallMultiplier, x.IsActive))
             .ToListAsync();
 
     // Приводить поля виду до узгодженого стану: друга частина — лише для split, коефіцієнт — лише для oncall
@@ -142,6 +143,7 @@ public class WorkService
             Color = dto.Color,
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
+            IsActive = dto.IsActive,
         };
         ApplyKind(type, dto);
         _db.WorkShiftTypes.Add(type);
@@ -157,6 +159,7 @@ public class WorkService
         type.Color = dto.Color;
         type.StartTime = dto.StartTime;
         type.EndTime = dto.EndTime;
+        type.IsActive = dto.IsActive;
         ApplyKind(type, dto);
 
         // Синхронізуємо заголовок/опис шаблон-задач залежних правил, щоб календар не відставав
@@ -289,7 +292,7 @@ public class WorkService
             .ToDictionaryAsync(r => r.Id);
 
         return entries
-            .Where(e => e.ShiftType is not null && rules.ContainsKey(e.RecurrenceRuleId))
+            .Where(e => e.ShiftType is not null && e.ShiftType.IsActive && rules.ContainsKey(e.RecurrenceRuleId))
             .Select(e => (e.ShiftType!, rules[e.RecurrenceRuleId]))
             .ToList();
     }
