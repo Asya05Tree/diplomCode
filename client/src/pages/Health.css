@@ -920,6 +920,8 @@
 .checkup-modal {
   width: 100%;
   max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   padding: 20px;

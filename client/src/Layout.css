@@ -85,7 +85,11 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  animation: fade-in-up 0.32s cubic-bezier(0.4, 0, 0.2, 1) both;
+  /* backwards (а не both): застосовує стартовий кадр до запуску, але НЕ лишає transform після
+     завершення. Інакше retained transform: translateY(0) робив .app-content containing-block для
+     position:fixed, і модалки (напр. "Запланувати візит") центрувалися відносно контенту, а не
+     вьюпорта — тобто з'їжджали вгору. */
+  animation: fade-in-up 0.32s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 /* Сайдбар на вузьких екранах стає горизонтальною смугою (Sidebar.css) — тут лише

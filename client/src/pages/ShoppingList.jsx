@@ -3,6 +3,7 @@ import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import NumberStepper from '../components/NumberStepper'
 import { RANGES } from '../utils/validation'
+import { SHOPPING_CATEGORIES, shoppingCategoryName } from '../utils/shoppingCategories'
 import {
   getShoppingList,
   addShoppingItem,
@@ -186,12 +187,17 @@ export default function ShoppingList() {
             ))}
           </select>
         </label>
-        <input
-          className="shopping-list-cat-input"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder={t('shoppingList.categoryPlaceholder')}
-        />
+        <label className="shopping-list-cat-field">
+          <span>{t('shoppingList.categoryFormLabel')}</span>
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">{t('shoppingList.categoryNone')}</option>
+            {SHOPPING_CATEGORIES.map((c) => (
+              <option key={c.key} value={c.key}>
+                {language === 'en' ? c.en : c.uk}
+              </option>
+            ))}
+          </select>
+        </label>
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
       </form>
 
@@ -227,16 +233,19 @@ export default function ShoppingList() {
                         )}
                       </span>
                     )}
-                    <input
-                      className="shopping-list-cat-input shopping-list-cat-inline"
-                      defaultValue={item.category ?? ''}
-                      placeholder={t('shoppingList.categoryPlaceholder')}
-                      onBlur={(e) => {
-                        if ((e.target.value.trim() || null) !== (item.category ?? null)) {
-                          handleCategoryChange(item.id, e.target.value)
-                        }
-                      }}
-                    />
+                    <select
+                      className="shopping-list-cat-inline"
+                      value={SHOPPING_CATEGORIES.some((c) => c.key === item.category) ? item.category : ''}
+                      title={shoppingCategoryName(item.category, language) || t('shoppingList.categoryFormLabel')}
+                      onChange={(e) => handleCategoryChange(item.id, e.target.value)}
+                    >
+                      <option value="">{t('shoppingList.categoryNone')}</option>
+                      {SHOPPING_CATEGORIES.map((c) => (
+                        <option key={c.key} value={c.key}>
+                          {language === 'en' ? c.en : c.uk}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       className="shopping-list-del"

@@ -27,6 +27,13 @@
   align-items: center;
 }
 
+/* Форма додавання компактніша: базовий input/select 16px виглядав завеликим */
+.shopping-list-add input,
+.shopping-list-add select {
+  font-size: 0.9rem;
+  padding: 8px 12px;
+}
+
 .shopping-list-add input:first-child {
   flex: 1;
   min-width: 160px;
@@ -191,9 +198,10 @@
   padding: 8px 10px;
 }
 .shopping-list-cat-inline {
-  width: 130px;
+  width: 150px;
   font-size: 0.82rem;
   padding: 6px 10px;
+  color: var(--color-text-muted);
 }
 
 .shopping-list-price-age {
