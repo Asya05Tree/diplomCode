@@ -27,6 +27,10 @@ builder.Services.AddScoped<StudyService>();
 builder.Services.AddScoped<WorkService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<CheckupService>();
+builder.Services.AddScoped<BillingService>();
+
+// Вихідні запити до платіжки WayForPay (перевірка статусу замовлення)
+builder.Services.AddHttpClient();
 
 // Фонове видалення акаунтів, неактивних понад рік
 builder.Services.AddHostedService<InactiveAccountCleanupService>();
