@@ -3,14 +3,76 @@
   flex-direction: column;
   gap: 20px;
   padding: clamp(20px, 4vw, 32px);
-  max-width: 640px;
+  max-width: 1000px;
 }
 
-.settings-page > h2 {
-  margin: 0;
-  font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+/* Заголовок-рядок: назва зліва (текстом, не великим h2), хто увійшов — справа */
+.settings-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.settings-head-title {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--color-heading);
+}
+.settings-head-user {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Вкладки налаштувань (зовнішній вигляд / календар / користувач / акаунт) */
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.settings-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.settings-tab .icon { width: 17px; height: 17px; }
+.settings-tab:hover { border-color: var(--color-border-strong); }
+.settings-tab--active {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Зовнішній вигляд: тема/стиль поруч (2 колонки), палітра — широким рядком знизу */
+.settings-appearance {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.settings-appearance-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 560px) {
+  .settings-appearance-row { grid-template-columns: 1fr; }
 }
 
 /* Переозначує спільний .card (index.css) саме для карток налаштувань — м'якша тінь
@@ -109,10 +171,12 @@
   background: var(--color-accent-gradient);
 }
 
+/* Палітра — широким горизонтальним рядком: на десктопі всі свотчі вміщаються в один ряд,
+   на вузьких екранах перенос. */
 .settings-palette-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
 }
 
 .settings-swatch {

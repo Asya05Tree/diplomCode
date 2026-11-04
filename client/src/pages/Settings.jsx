@@ -15,15 +15,24 @@ const ISO_WEEK_DAYS = [1, 2, 3, 4, 5, 6, 7]
 // Налаштування (planner-spec.md §4.10): мова, тема, акцентна палітра й вихід з акаунта.
 // Тема/стиль/палітра підняті в App.jsx (застосовуються до всього додатку через
 // data-* атрибути на кореневому div), тому сюди приходять через Outlet context.
+// Згруповано у вкладки: зовнішній вигляд / календар / користувач / акаунт.
 export default function Settings() {
   const { t, language, setLanguage, weekStart, setWeekStart, dateFormat, setDateFormat, timeFormat, setTimeFormat, weekdaysIso } = useI18n()
   const {
-    onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette,
+    user, onLogout, themeMode, onSetThemeMode, paletteStyle, onSetPaletteStyle, palette, onSetPalette,
     studentType, isWorking, onSetStudyStatus, gender, onSetGender,
   } = useOutletContext()
 
   const STUDENT_TYPES = ['pupil', 'student', 'none']
   const GENDER_OPTIONS = ['female', 'male', 'other']
+
+  const [tab, setTab] = useState('appearance')
+  const TABS = [
+    { key: 'appearance', icon: 'sun' },
+    { key: 'calendar', icon: 'calendar-days' },
+    { key: 'user', icon: 'user' },
+    { key: 'account', icon: 'settings' },
+  ]
 
   // --- Акаунт і дані: експорт, видалення даних, видалення акаунта ---
   const [exporting, setExporting] = useState(false)
@@ -88,217 +97,257 @@ export default function Settings() {
 
   return (
     <div className="settings-page">
-      <h2>{t('settings.title')}</h2>
+      {/* Заголовок: зліва назва (текстом, не великим h), справа хто увійшов — нік + пошта в дужках */}
+      <div className="settings-head">
+        <span className="settings-head-title">{t('settings.title')}</span>
+        {user && (
+          <span className="settings-head-user">
+            {user.nickname ? `${user.nickname} (${user.email})` : user.email}
+          </span>
+        )}
+      </div>
 
-      <section className="settings-section">
-        <h3>{t('settings.languageLabel')}</h3>
-        <div className="settings-options">
-          {['uk', 'en'].map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              className={language === lang ? 'settings-option settings-option--active' : 'settings-option'}
-              onClick={() => setLanguage(lang)}
-            >
-              {t(`settings.language.${lang}`)}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.themeLabel')}</h3>
-        <div className="settings-options">
-          {['light', 'dark'].map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              className={themeMode === mode ? 'settings-option settings-option--active' : 'settings-option'}
-              onClick={() => onSetThemeMode(mode)}
-            >
-              <Icon name={mode === 'light' ? 'sun' : 'moon'} />
-              {t(`settings.theme.${mode}`)}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.styleLabel')}</h3>
-        <div className="settings-options">
-          {['pastel', 'vivid'].map((style) => (
-            <button
-              key={style}
-              type="button"
-              className={
-                paletteStyle === style ? 'settings-option settings-option--active' : 'settings-option'
-              }
-              onClick={() => onSetPaletteStyle(style)}
-            >
-              {t(`settings.style.${style}`)}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.paletteLabel')}</h3>
-        <div className="settings-palette-grid">
-          {PALETTES.map((name) => {
-            const [c1, c2] = PALETTE_COLORS[name][paletteStyle]
-            return (
-              <button
-                key={name}
-                type="button"
-                className={
-                  palette === name ? 'settings-swatch settings-swatch--active' : 'settings-swatch'
-                }
-                onClick={() => onSetPalette(name)}
-              >
-                <span
-                  className="settings-swatch-preview"
-                  style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
-                />
-                <span className="settings-swatch-label">{t(`settings.palette.${name}`)}</span>
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.weekStartLabel')}</h3>
-        <p className="settings-hint">{t('settings.weekStartHint')}</p>
-        <div className="settings-options">
-          {ISO_WEEK_DAYS.map((day) => (
-            <button
-              key={day}
-              type="button"
-              className={weekStart === day ? 'settings-option settings-option--active' : 'settings-option'}
-              onClick={() => setWeekStart(day)}
-            >
-              {weekdaysIso[day - 1]}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.dateFormatLabel')}</h3>
-        <div className="settings-options">
-          {DATE_FORMATS.map((format) => (
-            <button
-              key={format}
-              type="button"
-              className={
-                dateFormat === format
-                  ? 'settings-option settings-option--stacked settings-option--active'
-                  : 'settings-option settings-option--stacked'
-              }
-              onClick={() => setDateFormat(format)}
-            >
-              <span className="settings-option-title">{t(`settings.dateFormat.${format}`)}</span>
-              <span className="settings-option-example">{formatDateFor(SAMPLE_DATE, format)}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.timeFormatLabel')}</h3>
-        <div className="settings-options">
-          {TIME_FORMATS.map((format) => (
-            <button
-              key={format}
-              type="button"
-              className={
-                timeFormat === format
-                  ? 'settings-option settings-option--stacked settings-option--active'
-                  : 'settings-option settings-option--stacked'
-              }
-              onClick={() => setTimeFormat(format)}
-            >
-              <span className="settings-option-title">{t(`settings.timeFormat.${format}`)}</span>
-              <span className="settings-option-example">{clockFor(13, 0, format)}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.studyStatusLabel')}</h3>
-        <div className="settings-options">
-          {STUDENT_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={studentType === type ? 'settings-option settings-option--active' : 'settings-option'}
-              onClick={() => onSetStudyStatus({ studentType: type })}
-            >
-              {t(`register.studentType.${type}`)}
-            </button>
-          ))}
-        </div>
-        <label className="settings-check">
-          <input
-            type="checkbox"
-            checked={Boolean(isWorking)}
-            onChange={(e) => onSetStudyStatus({ isWorking: e.target.checked })}
-          />
-          {t('register.working')}
-        </label>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.genderLabel')}</h3>
-        <div className="settings-options">
-          {GENDER_OPTIONS.map((g) => (
-            <button
-              key={g}
-              type="button"
-              className={gender === g ? 'settings-option settings-option--active' : 'settings-option'}
-              onClick={() => onSetGender(g)}
-            >
-              {t(`register.gender.${g}`)}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.logoutSection')}</h3>
-        <button type="button" className="settings-logout" onClick={onLogout}>
-          <Icon name="arrow-right" />
-          {t('settings.logoutButton')}
-        </button>
-      </section>
-
-      <section className="settings-section">
-        <h3>{t('settings.account.title')}</h3>
-        <p className="settings-hint">{t('settings.account.exportHint')}</p>
-        <div className="settings-account-actions">
-          <button type="button" className="settings-account-btn" onClick={handleExport} disabled={exporting}>
-            <Icon name="download" />
-            {exporting ? t('settings.account.exporting') : t('settings.account.export')}
+      <div className="settings-tabs">
+        {TABS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={tab === item.key ? 'settings-tab settings-tab--active' : 'settings-tab'}
+            onClick={() => setTab(item.key)}
+          >
+            <Icon name={item.icon} />
+            {t(`settings.tab.${item.key}`)}
           </button>
-          {accountNote && <span className="settings-account-note">{accountNote}</span>}
-        </div>
+        ))}
+      </div>
 
-        <div className="settings-danger">
-          <p className="settings-danger-title">{t('settings.account.dangerZone')}</p>
-          <div className="settings-account-actions">
-            <button type="button" className="settings-danger-btn" onClick={() => openConfirm('wipe')}>
-              <Icon name="trash" />
-              {t('settings.account.wipe')}
-            </button>
-            <button type="button" className="settings-danger-btn settings-danger-btn--strong" onClick={() => openConfirm('delete')}>
-              <Icon name="trash" />
-              {t('settings.account.delete')}
-            </button>
+      {/* === Зовнішній вигляд: мова зверху, тема зліва / стиль справа, палітра широким рядком знизу === */}
+      {tab === 'appearance' && (
+        <div className="settings-appearance">
+          <section className="settings-section">
+            <h3>{t('settings.languageLabel')}</h3>
+            <div className="settings-options">
+              {['uk', 'en'].map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  className={language === lang ? 'settings-option settings-option--active' : 'settings-option'}
+                  onClick={() => setLanguage(lang)}
+                >
+                  {t(`settings.language.${lang}`)}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <div className="settings-appearance-row">
+            <section className="settings-section">
+              <h3>{t('settings.themeLabel')}</h3>
+              <div className="settings-options">
+                {['light', 'dark'].map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={themeMode === mode ? 'settings-option settings-option--active' : 'settings-option'}
+                    onClick={() => onSetThemeMode(mode)}
+                  >
+                    <Icon name={mode === 'light' ? 'sun' : 'moon'} />
+                    {t(`settings.theme.${mode}`)}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="settings-section">
+              <h3>{t('settings.styleLabel')}</h3>
+              <div className="settings-options">
+                {['pastel', 'vivid'].map((style) => (
+                  <button
+                    key={style}
+                    type="button"
+                    className={paletteStyle === style ? 'settings-option settings-option--active' : 'settings-option'}
+                    onClick={() => onSetPaletteStyle(style)}
+                  >
+                    {t(`settings.style.${style}`)}
+                  </button>
+                ))}
+              </div>
+            </section>
           </div>
-          <p className="settings-hint">{t('settings.account.wipeHint')}</p>
+
+          <section className="settings-section">
+            <h3>{t('settings.paletteLabel')}</h3>
+            <div className="settings-palette-grid">
+              {PALETTES.map((name) => {
+                const [c1, c2] = PALETTE_COLORS[name][paletteStyle]
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    className={palette === name ? 'settings-swatch settings-swatch--active' : 'settings-swatch'}
+                    onClick={() => onSetPalette(name)}
+                  >
+                    <span
+                      className="settings-swatch-preview"
+                      style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+                    />
+                    <span className="settings-swatch-label">{t(`settings.palette.${name}`)}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
         </div>
-      </section>
+      )}
+
+      {/* === Календар: перший день тижня, формат дати, формат часу === */}
+      {tab === 'calendar' && (
+        <>
+          <section className="settings-section">
+            <h3>{t('settings.weekStartLabel')}</h3>
+            <p className="settings-hint">{t('settings.weekStartHint')}</p>
+            <div className="settings-options">
+              {ISO_WEEK_DAYS.map((day) => (
+                <button
+                  key={day}
+                  type="button"
+                  className={weekStart === day ? 'settings-option settings-option--active' : 'settings-option'}
+                  onClick={() => setWeekStart(day)}
+                >
+                  {weekdaysIso[day - 1]}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <h3>{t('settings.dateFormatLabel')}</h3>
+            <div className="settings-options">
+              {DATE_FORMATS.map((format) => (
+                <button
+                  key={format}
+                  type="button"
+                  className={
+                    dateFormat === format
+                      ? 'settings-option settings-option--stacked settings-option--active'
+                      : 'settings-option settings-option--stacked'
+                  }
+                  onClick={() => setDateFormat(format)}
+                >
+                  <span className="settings-option-title">{t(`settings.dateFormat.${format}`)}</span>
+                  <span className="settings-option-example">{formatDateFor(SAMPLE_DATE, format)}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <h3>{t('settings.timeFormatLabel')}</h3>
+            <div className="settings-options">
+              {TIME_FORMATS.map((format) => (
+                <button
+                  key={format}
+                  type="button"
+                  className={
+                    timeFormat === format
+                      ? 'settings-option settings-option--stacked settings-option--active'
+                      : 'settings-option settings-option--stacked'
+                  }
+                  onClick={() => setTimeFormat(format)}
+                >
+                  <span className="settings-option-title">{t(`settings.timeFormat.${format}`)}</span>
+                  <span className="settings-option-example">{clockFor(13, 0, format)}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* === Користувач: навчання/робота, стать === */}
+      {tab === 'user' && (
+        <>
+          <section className="settings-section">
+            <h3>{t('settings.studyStatusLabel')}</h3>
+            <div className="settings-options">
+              {STUDENT_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={studentType === type ? 'settings-option settings-option--active' : 'settings-option'}
+                  onClick={() => onSetStudyStatus({ studentType: type })}
+                >
+                  {t(`register.studentType.${type}`)}
+                </button>
+              ))}
+            </div>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={Boolean(isWorking)}
+                onChange={(e) => onSetStudyStatus({ isWorking: e.target.checked })}
+              />
+              {t('register.working')}
+            </label>
+          </section>
+
+          <section className="settings-section">
+            <h3>{t('settings.genderLabel')}</h3>
+            <div className="settings-options">
+              {GENDER_OPTIONS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  className={gender === g ? 'settings-option settings-option--active' : 'settings-option'}
+                  onClick={() => onSetGender(g)}
+                >
+                  {t(`register.gender.${g}`)}
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* === Акаунт: вихід, експорт даних, небезпечна зона === */}
+      {tab === 'account' && (
+        <>
+          <section className="settings-section">
+            <h3>{t('settings.logoutSection')}</h3>
+            <button type="button" className="settings-logout" onClick={onLogout}>
+              <Icon name="arrow-right" />
+              {t('settings.logoutButton')}
+            </button>
+          </section>
+
+          <section className="settings-section">
+            <h3>{t('settings.account.title')}</h3>
+            <p className="settings-hint">{t('settings.account.exportHint')}</p>
+            <div className="settings-account-actions">
+              <button type="button" className="settings-account-btn" onClick={handleExport} disabled={exporting}>
+                <Icon name="download" />
+                {exporting ? t('settings.account.exporting') : t('settings.account.export')}
+              </button>
+              {accountNote && <span className="settings-account-note">{accountNote}</span>}
+            </div>
+
+            <div className="settings-danger">
+              <p className="settings-danger-title">{t('settings.account.dangerZone')}</p>
+              <div className="settings-account-actions">
+                <button type="button" className="settings-danger-btn" onClick={() => openConfirm('wipe')}>
+                  <Icon name="trash" />
+                  {t('settings.account.wipe')}
+                </button>
+                <button type="button" className="settings-danger-btn settings-danger-btn--strong" onClick={() => openConfirm('delete')}>
+                  <Icon name="trash" />
+                  {t('settings.account.delete')}
+                </button>
+              </div>
+              <p className="settings-hint">{t('settings.account.wipeHint')}</p>
+            </div>
+          </section>
+        </>
+      )}
 
       {confirm && (
         <div className="settings-modal-backdrop" onClick={closeConfirm}>
