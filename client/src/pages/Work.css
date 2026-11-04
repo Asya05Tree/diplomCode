@@ -115,11 +115,12 @@
 .work-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px 18px; margin-bottom: 4px; }
 .work-form-wide { grid-column: 1 / -1; }
 .work-inline-form { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 14px 16px; }
-.work-form label, .work-field-row label { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; color: var(--color-text-muted); }
+.work-form label, .work-field-row label, .work-profile-form label { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; color: var(--color-text-muted); }
 .work-bday { display: flex; gap: 8px; }
 .work-bday select { flex: 1; min-width: 0; }
 .work-form-grow { flex: 1 1 180px; }
-.work-form input, .work-form select, .work-field-row input, .work-field-row select {
+.work-form input, .work-form select, .work-field-row input, .work-field-row select,
+.work-profile-form input, .work-profile-form select {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 7px 10px;
