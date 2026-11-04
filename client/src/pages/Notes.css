@@ -1,4 +1,5 @@
 .notes-page {
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -175,6 +176,10 @@
   overflow: hidden;
   background: #ffffff;
   box-shadow: var(--shadow-sm);
+  /* Трохи вужча за робочу область і обмежена по висоті, щоб дошка не була завеликою */
+  width: 100%;
+  max-width: 860px;
+  align-self: center;
 }
 .board-canvas {
   display: block;
