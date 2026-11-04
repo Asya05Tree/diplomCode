@@ -60,6 +60,17 @@ public class WorkService
 
     private static string? Trim(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
+    // Телефони зберігаються одним рядком через кому: лишаємо до 3 унікальних номерів.
+    private static string NormalizePhones(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "";
+        var parts = raw
+            .Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct()
+            .Take(3);
+        return string.Join(", ", parts);
+    }
+
     // Допустимі значення режимів/видів (решта зводиться до безпечного дефолту)
     private static readonly string[] PayTypes = { "hourly", "monthly", "project" };
     private static readonly string[] Regimes =
@@ -322,7 +333,7 @@ public class WorkService
     public async Task<List<ContactDto>> GetContactsAsync(int userId) =>
         await _db.WorkContacts
             .Where(x => x.UserId == userId)
-            .OrderBy(x => x.GroupName).ThenBy(x => x.FullName)
+            .OrderBy(x => x.FullName)
             .Select(x => new ContactDto(x.Id, x.GroupName, x.Status, x.FullName, x.Phone, x.Email, x.Birthday, x.Socials, x.Telegram, x.Viber))
             .ToListAsync();
 
@@ -334,7 +345,7 @@ public class WorkService
             GroupName = (dto.GroupName ?? "").Trim(),
             Status = Normalize(dto.Status, new[] { "online", "busy", "offline", "vacation" }, "online"),
             FullName = dto.FullName.Trim(),
-            Phone = (dto.Phone ?? "").Trim(),
+            Phone = NormalizePhones(dto.Phone),
             Email = Trim(dto.Email),
             Birthday = dto.Birthday,
             Socials = Trim(dto.Socials),
@@ -353,7 +364,7 @@ public class WorkService
         c.GroupName = (dto.GroupName ?? "").Trim();
         c.Status = Normalize(dto.Status, new[] { "online", "busy", "offline", "vacation" }, "online");
         c.FullName = dto.FullName.Trim();
-        c.Phone = (dto.Phone ?? "").Trim();
+        c.Phone = NormalizePhones(dto.Phone);
         c.Email = Trim(dto.Email);
         c.Birthday = dto.Birthday;
         c.Socials = Trim(dto.Socials);

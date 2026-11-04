@@ -376,6 +376,74 @@
 .work-contact-card { transition: border-color var(--transition), box-shadow var(--transition); }
 .work-contact-card:hover { border-color: var(--color-accent); box-shadow: var(--shadow-sm); }
 
+/* --- Контакти: подання (абетка/оператор/соцмережа/пошта) та панель додавання --- */
+.work-contact-views { margin-bottom: 14px; }
+.contact-merge-note {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+  font-size: 0.8rem;
+}
+.contact-form { display: flex; flex-direction: column; gap: 13px; }
+.contact-form label { display: flex; flex-direction: column; gap: 5px; font-size: 0.8rem; color: var(--color-text-muted); }
+.contact-form input, .contact-form select {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+.contact-phones { display: flex; flex-direction: column; gap: 7px; }
+.contact-phone-row { display: flex; gap: 8px; align-items: center; }
+.contact-phone-row input { flex: 1; min-width: 0; }
+.contact-phone-row .work-icon-btn { flex-shrink: 0; margin-left: 0; }
+.contact-add-phone { align-self: flex-start; }
+.contact-form .work-form-actions { margin-top: 4px; }
+
+/* Панель (drawer) для додавання/редагування контакту — виїжджає справа (спільний патерн із «Їжею»).
+   Scoped на .work-page, щоб не перетинатися з однойменними класами в інших розділах. */
+.work-page .drawer-overlay { position: fixed; inset: 0; z-index: 60; }
+.work-page .drawer-backdrop { position: absolute; inset: 0; background: rgba(17, 24, 39, 0.4); cursor: pointer; animation: fade-in 0.2s ease both; }
+.work-page .drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(380px, 94vw);
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  animation: drawer-in 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes drawer-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.work-page .drawer-head { display: flex; align-items: center; justify-content: space-between; }
+.work-page .drawer-head h3 { margin: 0; font-size: 1.05rem; }
+.work-page .drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+.work-page .drawer-close:hover { background: var(--pill-bg-hover); color: var(--color-heading); transform: rotate(90deg); }
+.work-page .drawer-close .icon { width: 18px; height: 18px; }
+
 .work-schedule { display: flex; flex-direction: column; gap: 16px; }
 
 @media (max-width: 680px) {
