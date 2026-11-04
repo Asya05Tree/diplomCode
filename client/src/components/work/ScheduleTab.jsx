@@ -123,6 +123,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
   const [scheduleError, setScheduleError] = useState('')
   const [editingEntryId, setEditingEntryId] = useState(null) // редагування наявного запису графіка
   const [showScheduleHint, setShowScheduleHint] = useState(false) // підказка про зміну графіка (за іконкою)
+  const [panel, setPanel] = useState(null) // центральне вікно: 'types' | 'schedule' | null
 
   // Відкрити наявний запис графіка на редагування (у режимі "свій": тип зміни + повторення/дати).
   const openEditEntry = (e) => {
@@ -246,6 +247,10 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
       </div>
 
       <div className="card">
+        <div className="work-cal-toolbar">
+          <button type="button" className="work-pill" onClick={() => setPanel('types')}>{t('work.shiftTypesTitle')}</button>
+          <button type="button" className="work-pill" onClick={() => setPanel('schedule')}>{t('work.scheduleTitle')}</button>
+        </div>
         <div className="work-month-nav">
           <button type="button" className="work-nav-btn" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}><Icon name="chevron-left" /></button>
           <span className="work-month-label">{monthLabel}</span>
@@ -288,8 +293,11 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
         )}
       </div>
 
-      {/* --- Типи змін --- */}
-      <div className="card">
+      {/* --- Типи змін (центральне вікно) --- */}
+      {panel === 'types' && (
+      <div className="work-modal-overlay" onClick={() => setPanel(null)}>
+      <div className="work-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="work-modal-bar"><button type="button" className="work-modal-close" onClick={() => setPanel(null)} aria-label={t('common.cancel')}><Icon name="close" /></button></div>
         <div className="work-section-head">
           <h3>{t('work.shiftTypesTitle')}</h3>
           <button type="button" className="btn-outline" onClick={showTypeForm ? () => setShowTypeForm(false) : openAddType}>{showTypeForm ? t('common.cancel') : t('work.addShiftType')}</button>
@@ -359,9 +367,14 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
           </div>
         )}
       </div>
+      </div>
+      )}
 
-      {/* --- Налаштування графіка (додавання змін у графік) --- */}
-      <div className="card">
+      {/* --- Графік змін (центральне вікно) --- */}
+      {panel === 'schedule' && (
+      <div className="work-modal-overlay" onClick={() => setPanel(null)}>
+      <div className="work-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="work-modal-bar"><button type="button" className="work-modal-close" onClick={() => setPanel(null)} aria-label={t('common.cancel')}><Icon name="close" /></button></div>
         <div className="work-section-head">
           <h3>{t('work.scheduleTitle')}</h3>
           <button type="button" className="work-icon-btn" onClick={() => setShowScheduleHint((v) => !v)} aria-label={t('work.scheduleHistoryHint')} title={t('work.scheduleHistoryHint')}><Icon name="info" /></button>
@@ -436,6 +449,8 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
           </div>
         )}
       </div>
+      </div>
+      )}
     </div>
   )
 }
