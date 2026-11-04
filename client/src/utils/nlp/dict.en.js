@@ -9,7 +9,8 @@ export default {
   code: 'en',
 
   // Step 1. Task delimiters (phrases). Comma and period are handled separately by the engine.
-  delimiters: ['and then', 'then', 'after that', 'and also', 'also', 'plus', 'as well as'],
+  // Bare "but" is also a clause boundary ("buy bread but tomorrow a class").
+  delimiters: ['and then', 'then', 'after that', 'and also', 'also', 'plus', 'as well as', 'but'],
 
   // Relative dates: word → day offset from today.
   relativeDates: {
@@ -143,6 +144,9 @@ export default {
     "i have", "i've got", 'i got', 'to stock', 'to pantry', 'in stock',
   ],
   stockStopWords: ['that', 'this', 'some', 'got', 'home', 'already'],
+  // Stem of the "add to stock" verb — bounds the stock clause so a previous task is not
+  // swallowed ("buy bread now add milk to stock" → stock is only "milk").
+  stockVerbs: ['add'],
 
   // Prepositions/conjunctions — trimmed only at the EDGES of a title.
   edgeWords: ['a', 'an', 'the', 'at', 'on', 'to', 'in', 'of', 'for', 'by', 'and', 'with', 'my', 'me'],

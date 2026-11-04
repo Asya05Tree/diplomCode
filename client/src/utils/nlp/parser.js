@@ -50,7 +50,7 @@ export function mergeDicts(dicts) {
     fillerWords: [], modules: {}, edgeWords: [],
     lessonMarkers: [], teacherMarkers: [], linkWords: [], noneWords: [],
     afterMarkers: [], numberWords: {}, durationUnits: {}, deadlineMarkers: [], byThenMarkers: [],
-    verbs: [], subjectWords: [], stockMarkers: [], stockStopWords: [],
+    verbs: [], subjectWords: [], stockMarkers: [], stockStopWords: [], stockVerbs: [],
   }
   for (const d of dicts) {
     merged.delimiters.push(...(d.delimiters || []))
@@ -82,6 +82,7 @@ export function mergeDicts(dicts) {
     merged.subjectWords.push(...(d.subjectWords || []))
     merged.stockMarkers.push(...(d.stockMarkers || []))
     merged.stockStopWords.push(...(d.stockStopWords || []))
+    merged.stockVerbs.push(...(d.stockVerbs || []))
     // Коди модулів беремо з самих словників — додати модуль = дописати ключ у dict.*.js.
     for (const key of Object.keys(d.modules || {})) {
       merged.modules[key] = merged.modules[key] || []
