@@ -44,6 +44,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Заповнюємо всю висоту сайдбару й рівномірно розподіляємо пункти по вертикалі */
+  flex: 1;
+  justify-content: space-evenly;
 }
 
 .sidebar-item {
@@ -68,6 +71,7 @@
 .sidebar-icon {
   width: 21px;
   height: 21px;
+  flex-shrink: 0;
   /* Іконки — у тон обраної палітри (читабельний акцент-ink), щоб сайдбар був єдиним цілим */
   color: var(--color-accent-ink);
   transition: transform var(--transition), color var(--transition);
@@ -80,6 +84,11 @@
 .sidebar-label {
   font-family: var(--font-display);
   font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1;
+  /* Компенсація нижнього «хвоста» рядка в декоративному шрифті — щоб текст
+     був оптично на одній осі з іконкою */
+  margin-top: 2px;
   letter-spacing: 0.02em;
   /* Текст у тон іконок (акцент-ink), щоб сайдбар був єдиним цілим */
   color: var(--color-accent-ink);
@@ -141,7 +150,9 @@
   }
 
   .sidebar-items {
+    flex: initial;
     flex-direction: row;
+    justify-content: flex-start;
     overflow-x: auto;
     gap: 2px;
     padding-bottom: 2px;
@@ -164,6 +175,7 @@
 
   .sidebar-label {
     font-size: 0.82rem;
+    margin-top: 0;
     white-space: nowrap;
   }
 }
