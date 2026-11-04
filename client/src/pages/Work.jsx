@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
-import { getWorkSettings, getNextShift } from '../api/work'
+import { getWorkSettings, setWorkSettings, getNextShift } from '../api/work'
 import { shiftRangeOf } from '../components/work/workShared'
 import ScheduleTab from '../components/work/ScheduleTab'
 import ContactsTab from '../components/work/ContactsTab'
@@ -25,6 +25,12 @@ export default function Work() {
   const [settings, setSettings] = useState(null)
   const [nextShift, setNextShift] = useState(null)
 
+  // Профіль (назва/посада/роботодавець) редагується прямо в заголовку й зберігається на blur,
+  // як зріст/вага у здоров'ї. Поля — локальні рядки, синхронізуються з settings.
+  const [jobName, setJobName] = useState('')
+  const [position, setPosition] = useState('')
+  const [employer, setEmployer] = useState('')
+
   const reloadHeader = useCallback(() => {
     return Promise.all([getWorkSettings(), getNextShift()]).then(([s, n]) => {
       setSettings(s)
@@ -39,6 +45,30 @@ export default function Work() {
       .catch(() => { if (!cancelled) { setError(true); setLoading(false) } })
     return () => { cancelled = true }
   }, [reloadHeader])
+
+  useEffect(() => {
+    setJobName(settings?.jobName ?? '')
+    setPosition(settings?.position ?? '')
+    setEmployer(settings?.employer ?? '')
+  }, [settings])
+
+  // Зберегти профіль: решту полів settings (тип оплати тощо) лишаємо незмінними.
+  const saveWorkProfile = async () => {
+    const payload = {
+      jobName: jobName.trim(),
+      position: position.trim() || null,
+      employer: employer.trim() || null,
+      payType: settings?.payType ?? 'hourly',
+      rate: settings?.rate ?? null,
+      regime: settings?.regime ?? 'standard',
+      workplace: settings?.workplace ?? 'onsite',
+      normHours: settings?.normHours ?? null,
+      fullRateRetained: settings?.fullRateRetained ?? false,
+      extraVacationDays: settings?.extraVacationDays ?? null,
+    }
+    setSettings((s) => ({ ...(s || {}), ...payload }))
+    await setWorkSettings(payload).catch(() => {})
+  }
 
   if (loading) {
     return <div className="work-page"><p className="placeholder-text">{t('common.loading')}</p></div>
@@ -56,29 +86,26 @@ export default function Work() {
     { key: 'process', icon: 'board' },
   ]
 
-  const payLabel = settings?.rate
-    ? `${t(`work.pay.${settings.payType}`)} · ${settings.rate} ${t(`work.rateUnit.${settings.payType}`)}`
-    : t(`work.pay.${settings?.payType ?? 'hourly'}`)
-
-  const roleLine = [settings?.position, settings?.employer].filter(Boolean).join(' · ')
-
   return (
     <div className="work-page">
-      {/* Заголовок роботи зверху (назва + посада) */}
+      {/* Заголовок роботи зверху: назва/посада/роботодавець редагуються прямо тут (зберігаються на blur) */}
       <div className="card work-top">
         <div className="work-top-avatar"><Icon name="work" /></div>
         <div className="work-top-main">
-          <span className="work-name">{settings?.jobName || t('work.noJobName')}</span>
-          <span className="work-role">{roleLine || t('work.noRole')}</span>
+          <input
+            className="work-name-input"
+            value={jobName}
+            maxLength={60}
+            placeholder={t('work.jobName')}
+            onChange={(e) => setJobName(e.target.value)}
+            onBlur={saveWorkProfile}
+          />
+          <div className="work-role-inputs">
+            <input className="work-role-input" value={position} maxLength={40} placeholder={t('work.position')} onChange={(e) => setPosition(e.target.value)} onBlur={saveWorkProfile} />
+            <input className="work-role-input" value={employer} maxLength={60} placeholder={t('work.employer')} onChange={(e) => setEmployer(e.target.value)} onBlur={saveWorkProfile} />
+          </div>
         </div>
         <div className="work-top-meta">
-          {settings?.regime && settings.regime !== 'standard' && (
-            <span className="work-chip"><span className="work-chip-label">{t('work.regime')}</span> {t(`work.regime.${settings.regime}`)}</span>
-          )}
-          {settings?.workplace && settings.workplace !== 'onsite' && (
-            <span className="work-chip"><span className="work-chip-label">{t('work.workplace')}</span> {t(`work.workplace.${settings.workplace}`)}</span>
-          )}
-          <span className="work-chip"><span className="work-chip-label">{t('work.payLabel')}</span> {payLabel}</span>
           {nextShift && (
             <span className="work-chip work-chip--accent">
               <Icon name="calendar" />
@@ -103,7 +130,7 @@ export default function Work() {
       </div>
 
       {tab === 'schedule' && (
-        <ScheduleTab settings={settings} onSettingsChange={setSettings} onScheduleChange={reloadHeader} />
+        <ScheduleTab settings={settings} onScheduleChange={reloadHeader} />
       )}
       {tab === 'contacts' && <ContactsTab />}
       {tab === 'leave' && <LeaveTab />}

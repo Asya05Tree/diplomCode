@@ -41,9 +41,45 @@
   color: var(--color-on-accent);
 }
 .work-top-avatar .icon { width: 28px; height: 28px; }
-.work-top-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.work-top-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .work-name { font-family: var(--font-heading); font-size: clamp(1.3rem, 2.6vw, 1.7rem); font-weight: 700; color: var(--color-heading); line-height: 1.1; }
 .work-role { font-size: 0.92rem; color: var(--color-text-muted); }
+
+/* Редаговані поля профілю прямо в заголовку (виглядають як текст, рамка-підкреслення при фокусі) */
+.work-top .work-name-input {
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+  font-weight: 700;
+  color: var(--color-heading);
+  line-height: 1.15;
+  width: 100%;
+  max-width: 460px;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  border-radius: 0;
+  background: transparent;
+  padding: 2px 0;
+}
+.work-top .work-role-inputs { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 3px; }
+.work-top .work-role-input {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  flex: 1 1 150px;
+  min-width: 0;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  border-radius: 0;
+  background: transparent;
+  padding: 2px 0;
+}
+.work-top .work-name-input:hover, .work-top .work-role-input:hover { border-bottom-color: var(--color-border-strong); }
+.work-top .work-name-input:focus, .work-top .work-role-input:focus {
+  outline: none;
+  box-shadow: none;
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text);
+}
+.work-top .work-name-input::placeholder, .work-top .work-role-input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
 .work-top-meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 
 .work-chip {
@@ -153,23 +189,22 @@
 .work-pill:hover { background: var(--color-accent-soft); color: var(--color-accent-ink); }
 .work-pill--active, .work-pill--active:hover { background: var(--color-accent-gradient); color: var(--color-on-accent); font-weight: 600; box-shadow: var(--shadow-sm); }
 
-/* --- KPI-плитки --- */
-.work-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+/* --- KPI: прості текстові показники в рамочці (пласкі, без тіні й градієнта — щоб не зливались
+   із заголовком-карткою вгорі) --- */
+.work-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
 .work-kpi-tile {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 13px 16px;
-  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  background: transparent;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  box-shadow: var(--shadow-sm);
+  gap: 2px;
 }
-.work-kpi-tile--accent { background: var(--color-accent-gradient); border-color: transparent; }
-.work-kpi-tile--accent .work-kpi-label, .work-kpi-tile--accent .work-kpi-sub { color: color-mix(in srgb, var(--color-on-accent) 75%, transparent); }
-.work-kpi-tile--accent .work-kpi-value { color: var(--color-on-accent); }
-.work-kpi-label { font-size: 0.74rem; color: var(--color-text-muted); }
-.work-kpi-value { font-size: 1.2rem; font-weight: 700; color: var(--color-heading); }
+/* Наступна зміна — лише тонка акцентна смужка зліва, а не суцільний градієнт */
+.work-kpi-tile--accent { border-left: 3px solid var(--color-accent); }
+.work-kpi-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.work-kpi-value { font-size: 1.15rem; font-weight: 700; color: var(--color-heading); }
 .work-kpi-sub { font-size: 0.76rem; color: var(--color-text-muted); }
 
 /* --- Місячний календар змін --- */
