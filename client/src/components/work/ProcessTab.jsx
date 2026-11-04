@@ -90,9 +90,6 @@ export default function ProcessTab() {
 
   return (
     <div className="card">
-      <div className="work-section-head"><h3>{t('work.processTitle')}</h3></div>
-      <p className="work-regime-hint">{t('work.processHint')}</p>
-
       <form className="work-form work-inline-form" onSubmit={submit}>
         <label className="work-form-grow">{t('work.processTaskTitle')}<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('work.processPlaceholder')} /></label>
         <label className="work-form-grow"><span className="work-label-head">{t('work.obligationNote')} <span className="work-optional">({t('work.optional')})</span></span><input value={note} onChange={(e) => setNote(e.target.value)} /></label>
