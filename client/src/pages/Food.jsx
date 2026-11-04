@@ -22,11 +22,26 @@ const STOCK_TOGGLE = [
   { state: 'OutOfStock', cls: 'bad' },
 ]
 
+// Тижневе меню зберігаємо локально (як дошка в нотатках) — це особистий план користувача
+// поверх серверних довідників, окремого ендпоінта під нього немає. Структура: { ISO-день: [recipeId] }.
+const MENU_KEY = 'food:weeklyMenu'
+
+function loadMenu() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(MENU_KEY) || '{}')
+    const menu = {}
+    for (let d = 1; d <= 7; d++) menu[d] = Array.isArray(raw[d]) ? raw[d] : []
+    return menu
+  } catch {
+    return { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [] }
+  }
+}
+
 // Модуль "Їжа" (planner-spec.md §4.6): лента рецептів з фільтрами, запаси з триступеневим
 // станом "є / закінчується / немає", обрані страви та підтвердження готовки. Дані тепер із
 // бекенда (/api/food/overview): довідники продуктів/рецептів системні, стан — користувацький.
 export default function Food() {
-  const { t, language } = useI18n()
+  const { t, language, weekdays, orderedWeekDays } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -46,8 +61,11 @@ export default function Food() {
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [addStockOpen, setAddStockOpen] = useState(false)
   const [stockSearch, setStockSearch] = useState('')
-  // Дві вкладки розділу: "Страви" і "Запаси".
-  const [tab, setTab] = useState('dishes') // 'dishes' | 'stock'
+  // Три вкладки розділу: "Меню" (план на тиждень), "Страви" і "Запаси".
+  const [tab, setTab] = useState('menu') // 'menu' | 'dishes' | 'stock'
+  // Тижневе меню: { ISO-день: [recipeId] }. Зберігається локально; день-пікер — через menuPickDay.
+  const [menu, setMenu] = useState(loadMenu)
+  const [menuPickDay, setMenuPickDay] = useState(null) // ISO-день для вибору страви або null
   const [stockCat, setStockCat] = useState('all')
   const [stockSort, setStockSort] = useState('default') // 'default' | 'alpha' | 'availability'
   // Id продуктів, що вже є у списку покупок (невідмічені) — щоб не пропонувати додати двічі.
@@ -90,6 +108,7 @@ export default function Food() {
   }, [])
 
   const productMap = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products])
+  const recipeMap = useMemo(() => Object.fromEntries(recipes.map((r) => [r.id, r])), [recipes])
   const getProduct = (id) => productMap[id] ?? null
   const isPresent = (productId) => stock[productId] === 'Available' || stock[productId] === 'RunningLow'
   const tagLabel = (key) => tagLabelFrom(restrictions, key)
@@ -162,6 +181,24 @@ export default function Food() {
     await apiAddStockProduct(productId)
   }
 
+  // Меню тримаємо в localStorage — зберігаємо на кожну зміну (план особистий, без бекенда).
+  useEffect(() => {
+    localStorage.setItem(MENU_KEY, JSON.stringify(menu))
+  }, [menu])
+
+  const addToMenu = (day, recipeId) => {
+    setMenu((prev) => ({ ...prev, [day]: [...prev[day], recipeId] }))
+    setMenuPickDay(null)
+  }
+
+  const removeFromMenu = (day, index) => {
+    setMenu((prev) => ({ ...prev, [day]: prev[day].filter((_, i) => i !== index) }))
+  }
+
+  const clearMenuDay = (day) => {
+    setMenu((prev) => ({ ...prev, [day]: [] }))
+  }
+
   const handleToggleFavorite = async (recipe) => {
     const willSelect = !selected.includes(recipe.id)
     setSelected((prev) => (willSelect ? [...prev, recipe.id] : prev.filter((id) => id !== recipe.id)))
@@ -227,6 +264,7 @@ export default function Food() {
   }
 
   const favoriteRecipes = recipes.filter((r) => selected.includes(r.id))
+  const menuCount = Object.values(menu).reduce((sum, ids) => sum + ids.length, 0)
   const stockRows = products
     .filter((p) => stock[p.id] && stock[p.id] !== 'OutOfStock')
     .map((p) => ({ product: p, state: stock[p.id] }))
@@ -251,6 +289,15 @@ export default function Food() {
       <div className="food-tabs">
         <button
           type="button"
+          className={tab === 'menu' ? 'food-tab food-tab--active' : 'food-tab'}
+          onClick={() => setTab('menu')}
+        >
+          <span className="food-tab-icon"><Icon name="calendar-days" /></span>
+          <span className="food-tab-title">{t('food.tabMenu')}</span>
+          <span className="food-tab-meta">{t('food.tabMenuMeta', { count: menuCount })}</span>
+        </button>
+        <button
+          type="button"
           className={tab === 'dishes' ? 'food-tab food-tab--active' : 'food-tab'}
           onClick={() => setTab('dishes')}
         >
@@ -271,7 +318,68 @@ export default function Food() {
         </button>
       </div>
 
-      {tab === 'dishes' ? (
+      {tab === 'menu' ? (
+        <div className="food-menu">
+          {favoriteRecipes.length === 0 && (
+            <p className="food-health-note food-menu-note">{t('food.menuNoFavorites')}</p>
+          )}
+          <div className="food-menu-grid">
+            {orderedWeekDays.map((day, i) => {
+              const dayIds = menu[day] || []
+              return (
+                <div key={day} className="food-menu-day">
+                  <div className="food-menu-day-head">
+                    <span className="food-menu-day-name">{weekdays[i]}</span>
+                    {dayIds.length > 0 && (
+                      <button
+                        type="button"
+                        className="food-menu-clear"
+                        onClick={() => clearMenuDay(day)}
+                        title={t('food.menuClearDay')}
+                        aria-label={t('food.menuClearDay')}
+                      >
+                        <Icon name="close" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="food-menu-dishes">
+                    {dayIds.length === 0 ? (
+                      <span className="food-menu-empty">{t('food.menuDayEmpty')}</span>
+                    ) : (
+                      dayIds.map((id, idx) => {
+                        const r = recipeMap[id]
+                        if (!r) return null
+                        return (
+                          <span key={`${id}-${idx}`} className="food-menu-chip">
+                            <span className="food-menu-chip-emoji">{r.emoji}</span>
+                            <span className="food-menu-chip-name">{recipeName(r, language)}</span>
+                            <button
+                              type="button"
+                              className="food-menu-chip-x"
+                              onClick={() => removeFromMenu(day, idx)}
+                              aria-label={t('common.delete')}
+                            >
+                              <Icon name="close" />
+                            </button>
+                          </span>
+                        )
+                      })
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="food-menu-add"
+                    onClick={() => setMenuPickDay(day)}
+                    disabled={favoriteRecipes.length === 0}
+                  >
+                    <Icon name="plus" /> {t('food.menuAddDish')}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ) : tab === 'dishes' ? (
         <div className="food-feed">
           <div className="filter-bar">
             <div className="filter-bar-modes">
@@ -440,6 +548,35 @@ export default function Food() {
             {t('food.addStock')}
           </button>
         </div>
+      )}
+
+      {/* Пікер страви для дня тижневого меню — зі списку обраних страв */}
+      {menuPickDay != null && (
+        <Drawer
+          title={t('food.menuPickTitle', { day: weekdays[orderedWeekDays.indexOf(menuPickDay)] })}
+          onClose={() => setMenuPickDay(null)}
+        >
+          {favoriteRecipes.length === 0 ? (
+            <p className="placeholder-text">{t('food.favoritesEmpty')}</p>
+          ) : (
+            <ul className="dish-list">
+              {favoriteRecipes.map((recipe) => (
+                <li key={recipe.id} className="dish-row">
+                  <span className="dish-name">
+                    {recipe.emoji} {recipeName(recipe, language)}
+                  </span>
+                  <button
+                    type="button"
+                    className="pill"
+                    onClick={() => addToMenu(menuPickDay, recipe.id)}
+                  >
+                    {t('food.add')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Drawer>
       )}
 
       {/* Панель "Обрані страви" — виїжджає справа (planner-spec.md §4.6) */}
