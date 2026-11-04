@@ -21,10 +21,11 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
   // Робочі дні (задачі/зміни з moduleCode="work") — позначаємо іконкою роботи
   const works = workDays ?? new Set()
 
-  const monthLabel = visibleMonth.toLocaleDateString(LOCALE_BY_LANGUAGE[language] ?? 'uk-UA', {
+  // Назва місяця + рік БЕЗ локального суфікса "р." (напр. "Листопад 2026", а не "листопад 2026 р.")
+  const monthName = visibleMonth.toLocaleDateString(LOCALE_BY_LANGUAGE[language] ?? 'uk-UA', {
     month: 'long',
-    year: 'numeric',
   })
+  const monthLabel = `${monthName} ${year}`
 
   return (
     <div className="month-grid">
