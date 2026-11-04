@@ -31,22 +31,12 @@ import {
 
 const AUTH_TOKEN_KEY = 'authToken'
 
-function Layout({ user, studentType, isWorking, gender, outletContext }) {
-  const initial = (user?.nickname || user?.email || '?').trim().charAt(0).toUpperCase()
+function Layout({ studentType, isWorking, gender, outletContext }) {
   const location = useLocation()
   return (
     <div className="app-shell">
       <Sidebar studentType={studentType} isWorking={isWorking} gender={gender} />
       <main className="app-main">
-        <header className="app-header">
-          <div className="app-header-user" title={user?.email}>
-            <span className="app-header-avatar" aria-hidden="true">{initial}</span>
-            <span className="app-header-user-text">
-              <span className="app-header-nickname">{user?.nickname}</span>
-              <span className="app-header-email">{user?.email}</span>
-            </span>
-          </div>
-        </header>
         <div className="app-content" key={location.pathname}>
           <Outlet context={outletContext} />
         </div>
@@ -149,6 +139,7 @@ function AppContent() {
   if (!authChecked) return null
 
   const settingsOutletContext = {
+    user,
     onLogout: handleLogout,
     themeMode,
     onSetThemeMode: handleSetThemeMode,
@@ -198,7 +189,7 @@ function AppContent() {
           path="/app"
           element={
             user ? (
-              <Layout user={user} studentType={studentType} isWorking={isWorking} gender={gender} outletContext={settingsOutletContext} />
+              <Layout studentType={studentType} isWorking={isWorking} gender={gender} outletContext={settingsOutletContext} />
             ) : (
               <Navigate to="/" replace />
             )
