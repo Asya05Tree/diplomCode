@@ -18,6 +18,7 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: flex-end; /* поля вирівнюються по низу — підписи різної висоти (напр. "По дату" з підказкою) */
 }
 .recurrence-fields .task-form-row > label {
   flex: 1;

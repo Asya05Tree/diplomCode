@@ -7,11 +7,11 @@ import {
 } from '../../utils/recurrence'
 import { getMonthGridCells, toApiDate, fromApiDate, addMonths, isSameDate, todayApiDate } from '../../utils/date'
 import {
-  setWorkSettings, getShiftTypes, addShiftType, updateShiftType, removeShiftType,
+  getShiftTypes, addShiftType, updateShiftType, removeShiftType,
   getScheduleEntries, addScheduleEntry, updateScheduleEntry, removeScheduleEntry, getScheduleCalendar, getNextShift,
 } from '../../api/work'
 import {
-  PAY_TYPES, SHIFT_COLORS, WORK_REGIMES, WORKPLACES, SHIFT_KINDS, REGIMES_WITH_NORM,
+  SHIFT_COLORS, SHIFT_KINDS,
   hhmm, shiftRangeOf, shiftTotalHours,
 } from './workShared'
 
@@ -20,36 +20,8 @@ const LOCALE = { uk: 'uk-UA', en: 'en-US' }
 // Округлення годин до 0.5 для показу
 const round1 = (h) => Math.round(h * 2) / 2
 
-export default function ScheduleTab({ settings, onSettingsChange, onScheduleChange }) {
+export default function ScheduleTab({ settings, onScheduleChange }) {
   const { t, language, weekStart, weekdays, weekdaysIso, formatClock, formatDate } = useI18n()
-
-  // --- Профіль роботи / оплата (локальний чернетковий стан) ---
-  // Профіль відкритий на редагування, поки даних немає; коли збережено — показуємо згорнутий підсумок,
-  // а форма відкривається лише за кнопкою "Редагувати".
-  const hasProfile = (data) => Boolean((data?.jobName ?? '').trim())
-  const [profile, setProfile] = useState(settings)
-  const [editingProfile, setEditingProfile] = useState(!hasProfile(settings))
-  const [savedNote, setSavedNote] = useState('')
-  useEffect(() => { setProfile(settings); setEditingProfile(!hasProfile(settings)) }, [settings])
-
-  const cancelProfileEdit = () => { setProfile(settings); setEditingProfile(false) }
-
-  const saveProfile = async () => {
-    const regime = profile.regime ?? 'standard'
-    const payload = {
-      jobName: profile.jobName ?? '', position: profile.position ?? null, employer: profile.employer ?? null,
-      payType: profile.payType ?? 'hourly', rate: profile.rate ? Number(profile.rate) : null,
-      regime, workplace: profile.workplace ?? 'onsite',
-      normHours: profile.normHours ? Number(profile.normHours) : null,
-      fullRateRetained: regime === 'reduced' ? Boolean(profile.fullRateRetained) : false,
-      extraVacationDays: regime === 'irregular' && profile.extraVacationDays ? Number(profile.extraVacationDays) : null,
-    }
-    await setWorkSettings(payload)
-    onSettingsChange({ ...profile, ...payload })
-    setEditingProfile(false) // згортаємо в підсумок одразу після збереження
-    setSavedNote(t('work.saved'))
-    setTimeout(() => setSavedNote(''), 1800)
-  }
 
   // --- Типи змін, записи графіка, календар ---
   const [shiftTypes, setShiftTypes] = useState([])
@@ -199,8 +171,8 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
     return { shifts: inMonth.length, hours: Math.round(hours), paidHours }
   }, [calendar, visibleMonth])
 
-  const earnings = profile?.payType === 'hourly' && profile?.rate
-    ? Math.round(monthStats.paidHours * Number(profile.rate))
+  const earnings = settings?.payType === 'hourly' && settings?.rate
+    ? Math.round(monthStats.paidHours * Number(settings.rate))
     : null
 
   const today = new Date()
@@ -221,97 +193,6 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
 
   return (
     <div className="work-schedule">
-      {/* --- Профіль роботи й оплата --- */}
-      <div className="card">
-        <div className="work-section-head">
-          <h3>{t('work.profileTitle')}</h3>
-          {editingProfile ? (
-            <div className="work-save-row">
-              {savedNote && <span className="work-saved-note">{savedNote}</span>}
-              {hasProfile(settings) && <button type="button" className="btn-outline" onClick={cancelProfileEdit}>{t('common.cancel')}</button>}
-              <button type="button" className="btn-accent" onClick={saveProfile}>{t('common.save')}</button>
-            </div>
-          ) : (
-            <button type="button" className="btn-outline" onClick={() => setEditingProfile(true)}>{t('common.edit')}</button>
-          )}
-        </div>
-
-        {!editingProfile && (
-          <div className="work-profile-summary">
-            <div className="work-top-main">
-              <span className="work-name">{profile?.jobName}</span>
-              {(profile?.position || profile?.employer) && (
-                <span className="work-role">{[profile?.position, profile?.employer].filter(Boolean).join(' · ')}</span>
-              )}
-            </div>
-            <div className="work-top-meta">
-              <span className="work-chip work-chip--accent">
-                <span className="work-chip-label">{t('work.payLabel')}</span>
-                {profile?.rate ? `${profile.rate} ${t(`work.rateUnit.${profile?.payType ?? 'hourly'}`)}` : t(`work.pay.${profile?.payType ?? 'hourly'}`)}
-              </span>
-              <span className="work-chip">{t(`work.regime.${profile?.regime ?? 'standard'}`)}</span>
-              <span className="work-chip">{t(`work.workplace.${profile?.workplace ?? 'onsite'}`)}</span>
-            </div>
-          </div>
-        )}
-
-        {editingProfile && (
-        <div className="work-profile-form">
-        <div className="work-form-grid">
-          <label>{t('work.jobName')}<input value={profile?.jobName ?? ''} onChange={(e) => setProfile({ ...profile, jobName: e.target.value })} /></label>
-          <label>{t('work.position')}<input value={profile?.position ?? ''} onChange={(e) => setProfile({ ...profile, position: e.target.value })} /></label>
-          <label>{t('work.employer')}<input value={profile?.employer ?? ''} onChange={(e) => setProfile({ ...profile, employer: e.target.value })} /></label>
-          <label><span className="work-label-head">{t('work.rate')} <span className="work-optional">({t(`work.rateUnit.${profile?.payType ?? 'hourly'}`)})</span></span>
-            <input type="number" min="0" value={profile?.rate ?? ''} onChange={(e) => setProfile({ ...profile, rate: e.target.value })} />
-          </label>
-        </div>
-        <div className="work-field-row">
-          <span className="work-field-label">{t('work.payLabel')}</span>
-          <div className="work-pills">
-            {PAY_TYPES.map((p) => (
-              <button key={p} type="button" className={profile?.payType === p ? 'work-pill work-pill--active' : 'work-pill'} onClick={() => setProfile({ ...profile, payType: p })}>
-                {t(`work.pay.${p}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Режим і місце роботи (спеціальні формати організації праці) */}
-        <div className="work-form-grid">
-          <label>{t('work.regime')}
-            <select value={profile?.regime ?? 'standard'} onChange={(e) => setProfile({ ...profile, regime: e.target.value })}>
-              {WORK_REGIMES.map((r) => <option key={r} value={r}>{t(`work.regime.${r}`)}</option>)}
-            </select>
-          </label>
-          <label>{t('work.workplace')}
-            <select value={profile?.workplace ?? 'onsite'} onChange={(e) => setProfile({ ...profile, workplace: e.target.value })}>
-              {WORKPLACES.map((w) => <option key={w} value={w}>{t(`work.workplace.${w}`)}</option>)}
-            </select>
-          </label>
-          {REGIMES_WITH_NORM.includes(profile?.regime) && (
-            <label><span className="work-label-head">{t('work.normHours')} <span className="work-optional">({t('work.perWeek')})</span></span>
-              <input type="number" min="0" max="60" value={profile?.normHours ?? ''} onChange={(e) => setProfile({ ...profile, normHours: e.target.value })} />
-            </label>
-          )}
-          {profile?.regime === 'irregular' && (
-            <label><span className="work-label-head">{t('work.extraVacation')} <span className="work-optional">({t('work.daysShort')})</span></span>
-              <input type="number" min="0" max="35" value={profile?.extraVacationDays ?? ''} onChange={(e) => setProfile({ ...profile, extraVacationDays: e.target.value })} />
-            </label>
-          )}
-        </div>
-        {profile?.regime === 'reduced' && (
-          <label className="work-check-row">
-            <input type="checkbox" checked={Boolean(profile?.fullRateRetained)} onChange={(e) => setProfile({ ...profile, fullRateRetained: e.target.checked })} />
-            {t('work.fullRateRetained')}
-          </label>
-        )}
-        {profile?.regime && profile.regime !== 'standard' && (
-          <p className="placeholder-text work-regime-hint">{t(`work.regimeHint.${profile.regime}`)}</p>
-        )}
-        </div>
-        )}
-      </div>
-
       {/* --- Підсумки + календар --- */}
       <div className="work-kpis">
         <div className="work-kpi-tile work-kpi-tile--accent">
