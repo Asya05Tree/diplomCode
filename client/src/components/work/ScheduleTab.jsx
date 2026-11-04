@@ -144,17 +144,13 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
     setScheduleError('')
   }
 
-  // Перевірка графіка: максимум 5 записів і без перетину (дати × час зміни) з наявними.
-  // Повертає код помилки для перекладу або null. editingId — виключаємо з перевірки сам запис.
+  // Перевірка графіка: максимум 5 записів і не можна додати ТУ САМУ зміну з перетином дат
+  // (різні зміни перетинатися в графіку МОЖУТЬ). Повертає код помилки або null; editingId — виключаємо сам запис.
   const scheduleGuard = (type, startDate, endDate, editingId) => {
     if (!editingId && entries.length >= 5) return 'work.errScheduleMax'
-    const nS = hhmm(type.startTime)
-    const nE = hhmm(type.endTime)
     const clash = entries.some((e) => {
-      if (e.id === editingId) return false
-      const datesOverlap = e.startDate <= endDate && startDate <= (e.endDate ?? '9999-12-31')
-      const timesOverlap = nS < hhmm(e.endTime) && hhmm(e.startTime) < nE
-      return datesOverlap && timesOverlap
+      if (e.id === editingId || e.shiftTypeId !== type.id) return false
+      return e.startDate <= endDate && startDate <= (e.endDate ?? '9999-12-31')
     })
     return clash ? 'work.errScheduleOverlap' : null
   }

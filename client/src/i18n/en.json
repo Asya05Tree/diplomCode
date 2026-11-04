@@ -114,7 +114,7 @@
   "work.errTypeColor": "This color is already used by another shift",
   "work.errTypeTime": "A shift with this time already exists",
   "work.errScheduleMax": "The schedule already has the maximum of 5 shifts",
-  "work.errScheduleOverlap": "This period overlaps with an existing one in the schedule",
+  "work.errScheduleOverlap": "This shift is already in the schedule for this period",
   "work.contactsTitle": "Work contacts",
   "work.addContact": "+ Contact",
   "work.noContacts": "No contacts yet",
