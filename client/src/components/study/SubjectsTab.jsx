@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { addSubject, updateSubject, removeSubject } from '../../api/study'
-import { roomLinkVisibility } from './studyShared'
+import { roomLinkVisibility, SUBJECT_PRESETS } from './studyShared'
 
 const EMPTY = { id: null, name: '', teacher: '', lectureRoom: '', lectureLink: '', seminarRoom: '', seminarLink: '' }
 
 // Предмети. Назва + викладач обов'язкові. Поля кабінет/посилання залежать від форми навчання,
 // а поділ лекція/семінар — лише у студента (школяр має один набір "заняття" = Lecture*).
 export default function SubjectsTab({ subjects, reloadSubjects, learningForm, isPupil }) {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const [form, setForm] = useState(EMPTY)
   const { showRoom, showLink } = roomLinkVisibility(learningForm)
 
@@ -80,9 +80,15 @@ export default function SubjectsTab({ subjects, reloadSubjects, learningForm, is
         <input
           type="text"
           placeholder={t('study.subjectName')}
+          list="study-subject-presets"
           value={form.name}
           onChange={(e) => set({ name: e.target.value })}
         />
+        <datalist id="study-subject-presets">
+          {SUBJECT_PRESETS.map((s) => (
+            <option key={s.uk} value={language === 'en' ? s.en : s.uk} />
+          ))}
+        </datalist>
         <input
           type="text"
           placeholder={t('study.subjectTeacher')}

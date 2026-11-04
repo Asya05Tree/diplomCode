@@ -150,7 +150,7 @@ export default function Study() {
       )}
       {tab === 'bells' && <BellsTab bells={bells} setBells={setBells} isPupil={isPupil} />}
       {tab === 'assignments' && <AssignmentsTab subjects={subjects} isPupil={isPupil} />}
-      {tab === 'extra' && <ExtraTab subjects={subjects} learningForm={learningForm} />}
+      {tab === 'extra' && <ExtraTab subjects={subjects} learningForm={learningForm} isPupil={isPupil} />}
       {tab === 'projects' && isStudent && <ProjectsTab />}
     </div>
   )

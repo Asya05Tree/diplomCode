@@ -87,9 +87,14 @@ export default function AssignmentsTab({ subjects, isPupil }) {
             <option key={k} value={k}>{t(`study.deadline.${k}`)}</option>
           ))}
         </select>
-        {form.deadlineKind === 'date' && (
-          <input type="date" className="time-field" value={form.dueDate} onChange={(e) => set({ dueDate: e.target.value })} />
-        )}
+        {/* Своя дата доступна завжди: обравши дату, автоматично перемикаємося на "До дати" */}
+        <input
+          type="date"
+          className="time-field"
+          title={t('study.deadline.date')}
+          value={form.dueDate}
+          onChange={(e) => set({ dueDate: e.target.value, deadlineKind: e.target.value ? 'date' : form.deadlineKind })}
+        />
         <textarea
           className="study-textarea"
           rows={2}

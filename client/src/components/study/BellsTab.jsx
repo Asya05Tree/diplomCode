@@ -3,21 +3,26 @@ import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import { setBells as apiSetBells } from '../../api/study'
 
-// Межі кількості пар: школяр 4–8 (дефолт 6), студент 2–5 (дефолт 3)
-const BOUNDS = { pupil: { min: 4, max: 8, def: 6, len: 45, brk: 10 }, student: { min: 2, max: 5, def: 3, len: 90, brk: 10 } }
+// Фіксовані дефолтні дзвінки. Школяр: урок 45 хв, максимум 7 уроків. Студент: пара 90 хв, максимум 6 пар.
+const PUPIL_TIMES = [
+  ['08:30', '09:15'], ['09:25', '10:10'], ['10:30', '11:15'], ['11:35', '12:20'],
+  ['12:35', '13:20'], ['13:30', '14:15'], ['14:25', '15:10'],
+]
+const STUDENT_TIMES = [
+  ['08:30', '09:50'], ['10:10', '11:30'], ['11:50', '13:10'],
+  ['13:30', '14:50'], ['15:10', '16:30'], ['16:50', '18:10'],
+]
 
-// Генеруємо типову сітку: від 08:30 підряд, кожна пара len хв + brk перерва
+// Межі кількості: школяр 1–7 (дефолт — усі 7 уроків), студент 1–6 (дефолт — усі 6 пар).
+const BOUNDS = {
+  pupil: { min: 1, max: 7, len: 45, brk: 10, times: PUPIL_TIMES },
+  student: { min: 1, max: 6, len: 90, brk: 10, times: STUDENT_TIMES },
+}
+
+// Дефолтна сітка — фіксовані часи дзвінків (за замовчуванням уся максимальна кількість).
 function seedDefaults(isPupil) {
   const b = isPupil ? BOUNDS.pupil : BOUNDS.student
-  const rows = []
-  let mins = 8 * 60 + 30
-  for (let i = 0; i < b.def; i++) {
-    const start = mins
-    const end = mins + b.len
-    rows.push({ startTime: hhmm(start), endTime: hhmm(end) })
-    mins = end + b.brk
-  }
-  return rows
+  return b.times.map(([startTime, endTime]) => ({ startTime, endTime }))
 }
 
 function hhmm(totalMins) {
@@ -43,6 +48,12 @@ export default function BellsTab({ bells, setBells, isPupil }) {
 
   const addRow = () => {
     if (rows.length >= b.max) return
+    // Якщо для цього номера є фіксований дефолтний час — беремо його, інакше рахуємо від останнього.
+    const preset = b.times[rows.length]
+    if (preset) {
+      setRows((prev) => [...prev, { startTime: preset[0], endTime: preset[1] }])
+      return
+    }
     const last = rows[rows.length - 1]
     const start = last ? toMins(last.endTime) + b.brk : 8 * 60 + 30
     setRows((prev) => [...prev, { startTime: hhmm(start), endTime: hhmm(start + b.len) }])

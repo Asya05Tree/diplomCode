@@ -4,13 +4,15 @@ import Icon from '../Icon'
 import RecurrenceFields from '../planner/RecurrenceFields'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
 import { getScheduleEntries, addScheduleEntry, removeScheduleEntry } from '../../api/study'
-import { ENTRY_FORM_KINDS, LEARNING_FORMS, roomLinkVisibility, summarizeEntry } from './studyShared'
+import { entryKindsFor, LEARNING_FORMS, roomLinkVisibility, summarizeEntry } from './studyShared'
 
 // Консультації / факультативи. Кожен має власну форму навчання (кабінет/посилання) і періодичність,
 // як у календарі (повний RecurrenceFields). Створює правило повторення → з'являється у спільному календарі.
-export default function ExtraTab({ subjects, learningForm }) {
+// Факультативи доступні лише школярам; у студентів — тільки консультації (isPupil).
+export default function ExtraTab({ subjects, learningForm, isPupil }) {
   const { t, formatClock } = useI18n()
   const weekdayLabels = t('planner.weekdaysShort').split(',')
+  const kinds = entryKindsFor(isPupil)
 
   const [entries, setEntries] = useState([])
   const [kind, setKind] = useState('consultation')
@@ -67,18 +69,20 @@ export default function ExtraTab({ subjects, learningForm }) {
   return (
     <div className="card">
       <form className="study-lesson-form" onSubmit={submit}>
-        <div className="study-seg study-seg--inline">
-          {ENTRY_FORM_KINDS.map((k) => (
-            <button
-              key={k}
-              type="button"
-              className={kind === k ? 'study-seg-btn study-seg-btn--active' : 'study-seg-btn'}
-              onClick={() => setKind(k)}
-            >
-              {t(`study.entryKind.${k}`)}
-            </button>
-          ))}
-        </div>
+        {kinds.length > 1 && (
+          <div className="study-seg study-seg--inline">
+            {kinds.map((k) => (
+              <button
+                key={k}
+                type="button"
+                className={kind === k ? 'study-seg-btn study-seg-btn--active' : 'study-seg-btn'}
+                onClick={() => setKind(k)}
+              >
+                {t(`study.entryKind.${k}`)}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="study-form">
           <input type="text" placeholder={t('study.extraName')} value={name} onChange={(e) => setName(e.target.value)} />
