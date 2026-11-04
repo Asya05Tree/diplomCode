@@ -838,39 +838,47 @@
   font-size: 0.82rem;
 }
 
-/* --- Чекап: список лікарів із плануванням візитів --- */
+/* --- Чекап: лікарі — картки з плануванням візитів --- */
 .checkup-list {
   list-style: none;
   margin: 12px 0 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
 }
 .checkup-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 14px 15px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 12px);
+  border-radius: var(--radius-lg, 16px);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
-/* Сімейний лікар — зверху, виділений акцентом */
+.checkup-row:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+/* Сімейний лікар — виділений акцентом */
 .checkup-row--primary {
   border-color: var(--color-accent);
   background: var(--color-accent-soft);
 }
-.checkup-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.checkup-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1; }
 .checkup-doctor {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-weight: 600;
   color: var(--color-heading);
 }
-.checkup-doctor-icon { width: 18px; height: 18px; color: var(--color-health); }
+.checkup-doctor-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--color-health); }
 .checkup-primary-badge {
   font-size: 0.68rem;
   font-weight: 600;
@@ -881,15 +889,19 @@
   background: var(--color-accent-gradient);
   color: var(--color-on-accent);
 }
-.checkup-visits { display: flex; flex-direction: column; gap: 4px; }
+.checkup-visits { display: flex; flex-direction: column; gap: 6px; }
 .checkup-visit {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--color-text);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-health) 12%, var(--color-surface));
 }
-.checkup-visit .icon { width: 15px; height: 15px; color: var(--color-accent-ink); }
+.checkup-visit .icon { width: 15px; height: 15px; flex-shrink: 0; color: var(--color-accent-ink); }
+.checkup-visit-cancel { margin-left: auto; }
 .checkup-visit-cancel {
   display: inline-flex;
   border: none;
@@ -903,12 +915,14 @@
 .checkup-plan-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  flex-shrink: 0;
+  width: 100%;
+  margin-top: auto;
   border: 1px solid var(--color-accent);
   background: transparent;
   color: var(--color-accent-ink);
-  padding: 7px 12px;
+  padding: 9px 12px;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
   font-weight: 600;

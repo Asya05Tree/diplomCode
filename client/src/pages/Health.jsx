@@ -676,7 +676,6 @@ export default function Health() {
                     <span className="checkup-doctor">
                       <Icon name={key === 'family' ? 'health' : 'user'} className="checkup-doctor-icon" />
                       {t(`checkup.doctor.${key}`)}
-                      {key === 'family' && <span className="checkup-primary-badge">{t('checkup.primary')}</span>}
                     </span>
                     {docVisits.length > 0 && (
                       <div className="checkup-visits">
