@@ -3,12 +3,12 @@ import { useI18n } from '../../i18n'
 import Icon from '../Icon'
 import RecurrenceFields from '../planner/RecurrenceFields'
 import {
-  createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue, DEFAULT_END_MONTHS,
+  createDefaultRecurrenceValue, ruleToRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue, DEFAULT_END_MONTHS,
 } from '../../utils/recurrence'
 import { getMonthGridCells, toApiDate, fromApiDate, addMonths, isSameDate, todayApiDate } from '../../utils/date'
 import {
   setWorkSettings, getShiftTypes, addShiftType, updateShiftType, removeShiftType,
-  getScheduleEntries, addScheduleEntry, removeScheduleEntry, getScheduleCalendar, getNextShift,
+  getScheduleEntries, addScheduleEntry, updateScheduleEntry, removeScheduleEntry, getScheduleCalendar, getNextShift,
 } from '../../api/work'
 import {
   PAY_TYPES, SHIFT_COLORS, WORK_REGIMES, WORKPLACES, SHIFT_KINDS, REGIMES_WITH_NORM,
@@ -21,12 +21,18 @@ const LOCALE = { uk: 'uk-UA', en: 'en-US' }
 const round1 = (h) => Math.round(h * 2) / 2
 
 export default function ScheduleTab({ settings, onSettingsChange, onScheduleChange }) {
-  const { t, language, weekStart, weekdays, weekdaysIso, formatClock } = useI18n()
+  const { t, language, weekStart, weekdays, weekdaysIso, formatClock, formatDate } = useI18n()
 
   // --- Профіль роботи / оплата (локальний чернетковий стан) ---
+  // Профіль відкритий на редагування, поки даних немає; коли збережено — показуємо згорнутий підсумок,
+  // а форма відкривається лише за кнопкою "Редагувати".
+  const hasProfile = (data) => Boolean((data?.jobName ?? '').trim())
   const [profile, setProfile] = useState(settings)
+  const [editingProfile, setEditingProfile] = useState(!hasProfile(settings))
   const [savedNote, setSavedNote] = useState('')
-  useEffect(() => { setProfile(settings) }, [settings])
+  useEffect(() => { setProfile(settings); setEditingProfile(!hasProfile(settings)) }, [settings])
+
+  const cancelProfileEdit = () => { setProfile(settings); setEditingProfile(false) }
 
   const saveProfile = async () => {
     const regime = profile.regime ?? 'standard'
@@ -40,6 +46,7 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
     }
     await setWorkSettings(payload)
     onSettingsChange({ ...profile, ...payload })
+    setEditingProfile(false) // згортаємо в підсумок одразу після збереження
     setSavedNote(t('work.saved'))
     setTimeout(() => setSavedNote(''), 1800)
   }
@@ -118,6 +125,27 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
   const [quickStart, setQuickStart] = useState(todayApiDate())
   const [customRec, setCustomRec] = useState(() => createDefaultRecurrenceValue(new Date()))
   const [scheduleError, setScheduleError] = useState('')
+  const [editingEntryId, setEditingEntryId] = useState(null) // редагування наявного запису графіка
+
+  // Відкрити наявний запис графіка на редагування (у режимі "свій": тип зміни + повторення/дати).
+  const openEditEntry = (e) => {
+    setPickTypeId(String(e.shiftTypeId))
+    setCustomRec(ruleToRecurrenceValue({
+      type: e.ruleType, timeOfDay: e.timeOfDay, startDate: e.startDate, endDate: e.endDate,
+      cycleWeeks: e.cycleWeeks, cycleAnchorDate: null, weekDaysPattern: e.weekDaysPattern,
+      weekDayTimesPattern: null, intervalDays: e.intervalDays, monthDayMode: e.monthDayMode,
+      monthDays: e.monthDays, monthDayTimesPattern: null,
+    }))
+    setAddMode('custom')
+    setEditingEntryId(e.id)
+    setScheduleError('')
+  }
+
+  const cancelEntryEdit = () => {
+    setEditingEntryId(null)
+    setCustomRec(createDefaultRecurrenceValue(new Date()))
+    setScheduleError('')
+  }
 
   const addQuick = async () => {
     const type = shiftTypes.find((x) => x.id === Number(pickTypeId))
@@ -142,7 +170,10 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
     const errCode = validateRecurrenceValue(customRec)
     if (errCode) { setScheduleError(t(`taskForm.${errCode}`)); return }
     setScheduleError('')
-    await addScheduleEntry({ shiftTypeId: type.id, recurrence: recurrenceValueToPayload(customRec) })
+    const body = { shiftTypeId: type.id, recurrence: recurrenceValueToPayload(customRec) }
+    if (editingEntryId) await updateScheduleEntry(editingEntryId, body)
+    else await addScheduleEntry(body)
+    setEditingEntryId(null)
     setCustomRec(createDefaultRecurrenceValue(new Date()))
     afterScheduleMutation()
   }
