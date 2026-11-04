@@ -129,6 +129,8 @@
   font-family: inherit;
 }
 .work-optional { color: var(--color-text-muted); font-weight: 400; font-size: 0.72rem; }
+/* Заголовок поля: назва + «(за бажанням)» в одному рядку (а не окремим рядком над полем) */
+.work-label-head { display: inline-flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .work-form-actions { display: flex; gap: 8px; }
 .work-field-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin: 6px 0 16px; }
 .work-field-label { font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 6px; }
@@ -279,15 +281,31 @@
 .work-cstatus--offline::before { background: #9ca3af; }
 .work-cstatus--vacation::before { background: #6c8ec9; }
 
-/* --- Зустрічі --- */
-.work-meet-list { display: flex; flex-direction: column; gap: 8px; }
-.work-meet-row { display: flex; gap: 12px; align-items: center; padding: 10px 13px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
-.work-meet-time { flex-shrink: 0; width: 120px; font-size: 0.8rem; color: var(--color-text-muted); display: flex; flex-direction: column; }
-.work-meet-time b { color: var(--color-heading); font-size: 0.95rem; }
-.work-meet-main { flex: 1; min-width: 0; }
-.work-meet-title { font-weight: 600; font-size: 0.88rem; }
+/* --- Зустрічі (картки: майбутні зверху від найближчої, минулі знизу) --- */
+.work-meet-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 4px; }
+.work-meet-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.work-meet-card:hover { border-color: var(--color-accent); box-shadow: var(--shadow-sm); }
+.work-meet-card--past { opacity: 0.62; background: var(--color-surface-muted, rgba(127, 127, 127, 0.06)); }
+.work-meet-when { display: flex; align-items: baseline; gap: 7px; font-size: 0.76rem; color: var(--color-text-muted); }
+.work-meet-when b { color: var(--color-heading); font-size: 0.95rem; }
+.work-meet-who { font-weight: 600; font-size: 0.88rem; color: var(--color-heading); padding-right: 30px; }
 .work-meet-place { font-size: 0.78rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 5px; }
 .work-meet-place .icon { width: 13px; height: 13px; }
+.work-meet-card .work-icon-btn { position: absolute; top: 8px; right: 8px; margin-left: 0; }
+/* Заголовок групи зустрічей з кнопкою «видалити минулі» праворуч */
+.work-group-head--spread { justify-content: space-between; }
+.work-meet-clear { margin-left: auto; color: var(--status-bad-text); }
+.work-meet-clear:hover { background: var(--status-bad-bg); color: var(--status-bad-text); }
 .work-sync-note { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; }
 .work-sync-note .icon { width: 15px; height: 15px; }
 

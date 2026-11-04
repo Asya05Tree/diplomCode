@@ -55,8 +55,8 @@ export default function ProcessTab() {
 
       <form className="work-form work-inline-form" onSubmit={submit}>
         <label className="work-form-grow">{t('work.processTaskTitle')}<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('work.processPlaceholder')} /></label>
-        <label className="work-form-grow">{t('work.obligationNote')} <span className="work-optional">({t('work.optional')})</span><input value={note} onChange={(e) => setNote(e.target.value)} /></label>
-        <label>{t('work.processDue')} <span className="work-optional">({t('work.optional')})</span><input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></label>
+        <label className="work-form-grow"><span className="work-label-head">{t('work.obligationNote')} <span className="work-optional">({t('work.optional')})</span></span><input value={note} onChange={(e) => setNote(e.target.value)} /></label>
+        <label><span className="work-label-head">{t('work.processDue')} <span className="work-optional">({t('work.optional')})</span></span><input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></label>
         <button type="submit" className="btn-accent">{t('work.addProcessTask')}</button>
       </form>
 

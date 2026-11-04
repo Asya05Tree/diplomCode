@@ -203,7 +203,7 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
           <label>{t('work.jobName')}<input value={profile?.jobName ?? ''} onChange={(e) => setProfile({ ...profile, jobName: e.target.value })} /></label>
           <label>{t('work.position')}<input value={profile?.position ?? ''} onChange={(e) => setProfile({ ...profile, position: e.target.value })} /></label>
           <label>{t('work.employer')}<input value={profile?.employer ?? ''} onChange={(e) => setProfile({ ...profile, employer: e.target.value })} /></label>
-          <label>{t('work.rate')} <span className="work-optional">({t(`work.rateUnit.${profile?.payType ?? 'hourly'}`)})</span>
+          <label><span className="work-label-head">{t('work.rate')} <span className="work-optional">({t(`work.rateUnit.${profile?.payType ?? 'hourly'}`)})</span></span>
             <input type="number" min="0" value={profile?.rate ?? ''} onChange={(e) => setProfile({ ...profile, rate: e.target.value })} />
           </label>
         </div>
@@ -231,12 +231,12 @@ export default function ScheduleTab({ settings, onSettingsChange, onScheduleChan
             </select>
           </label>
           {REGIMES_WITH_NORM.includes(profile?.regime) && (
-            <label>{t('work.normHours')} <span className="work-optional">({t('work.perWeek')})</span>
+            <label><span className="work-label-head">{t('work.normHours')} <span className="work-optional">({t('work.perWeek')})</span></span>
               <input type="number" min="0" max="60" value={profile?.normHours ?? ''} onChange={(e) => setProfile({ ...profile, normHours: e.target.value })} />
             </label>
           )}
           {profile?.regime === 'irregular' && (
-            <label>{t('work.extraVacation')} <span className="work-optional">({t('work.daysShort')})</span>
+            <label><span className="work-label-head">{t('work.extraVacation')} <span className="work-optional">({t('work.daysShort')})</span></span>
               <input type="number" min="0" max="35" value={profile?.extraVacationDays ?? ''} onChange={(e) => setProfile({ ...profile, extraVacationDays: e.target.value })} />
             </label>
           )}

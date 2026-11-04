@@ -271,11 +271,11 @@ export default function ContactsTab() {
               <label>{t('work.firstName')}
                 <input value={form.firstName} maxLength={40} onChange={(e) => set({ firstName: e.target.value })} />
               </label>
-              <label>{t('work.middleName')} <span className="work-optional">({t('work.optional')})</span>
+              <label><span className="work-label-head">{t('work.middleName')} <span className="work-optional">({t('work.optional')})</span></span>
                 <input value={form.middleName} maxLength={40} onChange={(e) => set({ middleName: e.target.value })} />
               </label>
 
-              <label>{t('work.birthday')} <span className="work-optional">({t('work.optional')})</span>
+              <label><span className="work-label-head">{t('work.birthday')} <span className="work-optional">({t('work.optional')})</span></span>
                 <div className="work-bday">
                   <select value={form.bDay} onChange={(e) => set({ bDay: e.target.value })}>
                     <option value="">{t('work.bdayDay')}</option>
@@ -303,10 +303,10 @@ export default function ContactsTab() {
                 )}
               </div>
 
-              <label>{t('work.email')} <span className="work-optional">({t('work.optional')})</span>
+              <label><span className="work-label-head">{t('work.email')} <span className="work-optional">({t('work.optional')})</span></span>
                 <input type="email" value={form.email} maxLength={120} placeholder="name@mail.com" onChange={(e) => set({ email: e.target.value })} />
               </label>
-              <label>{t('work.telegram')} <span className="work-optional">({t('work.optional')})</span>
+              <label><span className="work-label-head">{t('work.telegram')} <span className="work-optional">({t('work.optional')})</span></span>
                 <input value={form.telegram} maxLength={40} placeholder="@username" onChange={(e) => set({ telegram: e.target.value })} />
               </label>
 
