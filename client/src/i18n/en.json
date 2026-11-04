@@ -363,6 +363,7 @@
   "shoppingList.addButton": "Add",
   "shoppingList.categoryFormLabel": "Category",
   "shoppingList.categoryNone": "No category",
+  "shoppingList.allSections": "All sections",
   "shoppingList.autoCategory": "Auto (by name)",
   "shoppingList.groupEmpty": "Empty",
   "shoppingList.empty": "The shopping list is empty",

@@ -204,6 +204,72 @@
   color: var(--color-text-muted);
 }
 
+/* --- Фільтр розділів + маленькі картки позицій --- */
+.shopping-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.shopping-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+.shopping-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.shopping-card:hover { border-color: var(--color-accent); box-shadow: var(--shadow-sm); }
+.shopping-card.is-owned { opacity: 0.55; }
+.shopping-card.is-owned .shopping-card-name { text-decoration: line-through; }
+.shopping-card-check { display: flex; padding-top: 2px; }
+.shopping-card-check input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+.shopping-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.shopping-card-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-heading);
+  word-break: break-word;
+}
+.shopping-card-cat {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  color: var(--color-text-muted);
+}
+.shopping-card-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+.shopping-card-del .icon { width: 16px; height: 16px; }
+.shopping-card-del:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+
 .shopping-list-price-age {
   color: var(--color-text-muted);
   font-size: 0.78rem;

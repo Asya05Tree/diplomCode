@@ -1586,8 +1586,14 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Telegram")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Viber")
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 

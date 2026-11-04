@@ -1,28 +1,47 @@
-// Фіксований набір категорій для списку покупок (двомовний). Ключ зберігається у
-// ShoppingItem.Category на бекенді (вільний рядок), назва показується мовою інтерфейсу.
-// Раніше категорія була вільним хештегом — тепер це вибір зі списку реальних категорій,
-// але старі (довільні) значення лишаються читабельними завдяки fallback у categoryName.
+// Категорії та розділи списку покупок (двомовні). Розділ (section) — широка група «де купувати»
+// (Продукти/Аптека/…); категорія (category) — точніше (овочі, молочне…). Обидва визначаються
+// автоматично за назвою позиції (rule-based, без ШІ), але категорію можна змінити в картці.
+
+// Розділи (широкі групи). Ключ зберігається у ShoppingItem.Section (валідований на бекенді).
+const SECTION_DEFS = [
+  ['Groceries', 'Продукти', 'Groceries'],
+  ['Pharmacy', 'Аптека', 'Pharmacy'],
+  ['Cosmetics', 'Косметика та гігієна', 'Cosmetics & hygiene'],
+  ['Household', 'Побутова хімія та дім', 'Household'],
+  ['Stationery', 'Канцтовари', 'Stationery'],
+  ['Pets', 'Для тварин', 'Pet supplies'],
+  ['Other', 'Інше', 'Other'],
+]
+export const SHOPPING_SECTIONS = SECTION_DEFS.map(([key, uk, en]) => ({ key, uk, en }))
+const SECTION_BY_KEY = new Map(SHOPPING_SECTIONS.map((s) => [s.key, s]))
+
+export function sectionName(key, language) {
+  const s = SECTION_BY_KEY.get(key)
+  if (!s) return key
+  return language === 'en' ? s.en : s.uk
+}
+
+// Категорії: [ключ, uk, en, розділ]
 const DEFS = [
-  ['produce', 'Овочі та фрукти', 'Fruits & vegetables'],
-  ['meat_fish', "М'ясо та риба", 'Meat & fish'],
-  ['dairy', 'Молочне та яйця', 'Dairy & eggs'],
-  ['bakery', 'Хліб та випічка', 'Bread & bakery'],
-  ['grocery', 'Бакалія (крупи, макарони)', 'Grocery staples'],
-  ['drinks', 'Напої', 'Drinks'],
-  ['frozen', 'Заморожене', 'Frozen'],
-  ['sweets', 'Снеки та солодощі', 'Snacks & sweets'],
-  ['condiments', 'Соуси та спеції', 'Sauces & spices'],
-  ['medicine', 'Ліки', 'Medicine'],
-  ['hygiene', 'Гігієна та косметика', 'Hygiene & cosmetics'],
-  ['household', 'Побутова хімія', 'Household chemicals'],
-  ['home', 'Товари для дому', 'Home goods'],
-  ['stationery', 'Канцтовари', 'Stationery'],
-  ['pets', 'Для тварин', 'Pet supplies'],
-  ['other', 'Інше', 'Other'],
+  ['produce', 'Овочі та фрукти', 'Fruits & vegetables', 'Groceries'],
+  ['meat_fish', "М'ясо та риба", 'Meat & fish', 'Groceries'],
+  ['dairy', 'Молочне та яйця', 'Dairy & eggs', 'Groceries'],
+  ['bakery', 'Хліб та випічка', 'Bread & bakery', 'Groceries'],
+  ['grocery', 'Бакалія (крупи, макарони)', 'Grocery staples', 'Groceries'],
+  ['drinks', 'Напої', 'Drinks', 'Groceries'],
+  ['frozen', 'Заморожене', 'Frozen', 'Groceries'],
+  ['sweets', 'Снеки та солодощі', 'Snacks & sweets', 'Groceries'],
+  ['condiments', 'Соуси та спеції', 'Sauces & spices', 'Groceries'],
+  ['medicine', 'Ліки', 'Medicine', 'Pharmacy'],
+  ['hygiene', 'Гігієна та косметика', 'Hygiene & cosmetics', 'Cosmetics'],
+  ['household', 'Побутова хімія', 'Household chemicals', 'Household'],
+  ['home', 'Товари для дому', 'Home goods', 'Household'],
+  ['stationery', 'Канцтовари', 'Stationery', 'Stationery'],
+  ['pets', 'Для тварин', 'Pet supplies', 'Pets'],
+  ['other', 'Інше', 'Other', 'Other'],
 ]
 
-export const SHOPPING_CATEGORIES = DEFS.map(([key, uk, en]) => ({ key, uk, en }))
-
+export const SHOPPING_CATEGORIES = DEFS.map(([key, uk, en, section]) => ({ key, uk, en, section }))
 const BY_KEY = new Map(SHOPPING_CATEGORIES.map((c) => [c.key, c]))
 
 // Локалізована назва категорії за ключем; невідомий ключ показуємо як є (старі довільні дані).
@@ -31,4 +50,38 @@ export function shoppingCategoryName(key, language) {
   const c = BY_KEY.get(key)
   if (!c) return key
   return language === 'en' ? c.en : c.uk
+}
+
+// Розділ для категорії (щоб визначати section автоматично разом із категорією).
+export function sectionForCategory(categoryKey) {
+  return BY_KEY.get(categoryKey)?.section ?? 'Other'
+}
+
+// Ключові слова → категорія (uk/en, нижній регістр, підрядок). Порядок = пріоритет (специфічні вище).
+const KEYWORDS = [
+  ['medicine', ['таблетк', 'ліки', 'лікарськ', 'сироп', 'мазь', 'бинт', 'пластир', 'вітамін', 'парацетамол', 'ібупрофен', 'аспірин', 'спрей', 'краплі', 'антисептик', 'градусник', 'шприц', 'pill', 'medicine', 'vitamin', 'bandage', 'syrup']],
+  ['hygiene', ['шампун', 'мило', 'зубн', 'паст', 'гель для душу', 'дезодорант', 'крем', 'серветк', 'памперс', 'підгузк', 'прокладк', 'бритв', 'ватн', 'тампон', 'shampoo', 'soap', 'toothpaste', 'deodorant', 'wipe', 'razor', 'diaper']],
+  ['household', ['порошок', 'пральн', 'засіб', 'чист', 'мийн', 'губк', 'пакет', 'сміттєв', 'освіжувач', 'рукавичк', 'відбілювач', 'мішк', 'detergent', 'cleaner', 'sponge', 'trash', 'bleach']],
+  ['stationery', ['ручк', 'олівец', 'зошит', 'папір', 'блокнот', 'маркер', 'клей', 'ножиц', 'скотч', 'файл', 'pen', 'pencil', 'notebook', 'paper', 'marker', 'glue']],
+  ['pets', ['корм', 'котяч', 'собач', 'наповнювач', 'pet', 'cat food', 'dog food', 'litter']],
+  ['dairy', ['молок', 'молочн', 'сир', 'творог', 'кефір', 'йогурт', 'сметан', 'масло', 'вершк', 'яйц', 'milk', 'cheese', 'yogurt', 'butter', 'egg', 'cream']],
+  ['meat_fish', ["м'яс", 'мяс', 'курк', 'куряч', 'свинин', 'яловичин', 'фарш', 'ковбас', 'сосиск', 'риб', 'лосос', 'тунец', 'креветк', 'філе', 'бекон', 'шинк', 'meat', 'chicken', 'beef', 'pork', 'fish', 'sausage', 'shrimp', 'bacon']],
+  ['bakery', ['хліб', 'булк', 'батон', 'лаваш', 'випічк', 'круасан', 'багет', 'bread', 'bun', 'pastry', 'croissant', 'baguette']],
+  ['frozen', ['заморож', 'морозиво', 'пельмен', 'вареник', 'frozen', 'ice cream']],
+  ['sweets', ['шоколад', 'цукерк', 'печив', 'снек', 'чіпс', 'вафл', 'жувальн', 'мармелад', 'зефір', 'халва', 'chocolate', 'candy', 'chips', 'snack', 'cookie', 'wafer']],
+  ['drinks', ['вода', 'сік', 'напій', 'пиво', 'вино', 'кола', 'лимонад', 'мінерал', 'енергетик', 'water', 'juice', 'drink', 'beer', 'wine', 'soda', 'cola']],
+  ['condiments', ['соус', 'кетчуп', 'майонез', 'спеці', 'приправ', 'оцет', 'гірчиц', 'аджик', 'sauce', 'ketchup', 'mayo', 'spice', 'vinegar', 'mustard']],
+  ['grocery', ['крупа', 'рис', 'гречк', 'макарон', 'борошн', 'цукор', 'сіль', 'олі', 'олія', 'чай', 'кава', 'консерв', 'сода', 'дріжд', 'мед', 'rice', 'pasta', 'flour', 'sugar', 'salt', 'oil', 'tea', 'coffee', 'honey', 'cereal']],
+  ['produce', ['яблук', 'банан', 'помідор', 'огірк', 'картопл', 'цибул', 'морков', 'капуст', 'салат', 'лимон', 'апельсин', 'груш', 'виноград', 'перец', 'часник', 'зелен', 'ягод', 'полуниц', 'кавун', 'диня', 'авокадо', 'фрукт', 'овоч', 'apple', 'banana', 'tomato', 'cucumber', 'potato', 'onion', 'carrot', 'fruit', 'vegetable', 'lemon', 'orange', 'berry']],
+  ['home', ['лампочк', 'батарейк', 'посуд', 'рушник', 'свічк', 'bulb', 'battery', 'towel', 'candle']],
+]
+
+// Вгадати категорію за назвою; якщо нічого не знайдено — 'other'.
+export function guessShoppingCategory(name) {
+  const n = (name || '').toLowerCase()
+  if (!n.trim()) return 'other'
+  for (const [cat, words] of KEYWORDS) {
+    if (words.some((w) => n.includes(w))) return cat
+  }
+  return 'other'
 }

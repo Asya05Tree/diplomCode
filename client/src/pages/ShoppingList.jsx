@@ -3,7 +3,14 @@ import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import NumberStepper from '../components/NumberStepper'
 import { RANGES } from '../utils/validation'
-import { SHOPPING_CATEGORIES, shoppingCategoryName } from '../utils/shoppingCategories'
+import {
+  SHOPPING_CATEGORIES,
+  SHOPPING_SECTIONS,
+  shoppingCategoryName,
+  sectionName,
+  sectionForCategory,
+  guessShoppingCategory,
+} from '../utils/shoppingCategories'
 import {
   getShoppingList,
   addShoppingItem,
@@ -15,11 +22,10 @@ import {
 } from '../api/shopping'
 import './ShoppingList.css'
 
-// planner-spec.md §3.8 + spisok-pokupok.md — список покупок на бекенді. Позиції згруповано за
-// трьома розділами (Продукти / Аптека / Інше), ціна вводиться в момент відмітки покупки (один
-// жест: запас + ціна + витрата), а не при додаванні. Під списком — «часто купуєте», сума чека
-// та фільтр докупівлі в межах бюджету. Жодних захардкоджених цін.
-const SECTIONS = ['Groceries', 'Pharmacy', 'Other']
+// planner-spec.md §3.8 + spisok-pokupok.md — список покупок на бекенді. Позиції показуються
+// картками з фільтром за розділом; розділ і категорія визначаються автоматично за назвою (можна
+// змінити категорію в картці). Ціна вводиться в момент відмітки покупки (один жест: запас + ціна +
+// витрата). Під списком — «часто купуєте», сума чека та фільтр докупівлі в межах бюджету.
 
 export default function ShoppingList() {
   const { t, language } = useI18n()
@@ -31,10 +37,10 @@ export default function ShoppingList() {
   const [suggestions, setSuggestions] = useState([])
   const [priceCoverage, setPriceCoverage] = useState({ known: 0, total: 0 })
 
-  // Форма додавання: назва + розділ (+ необов'язкова категорія-хештег).
+  // Форма додавання: лише назва — розділ і категорію визначаємо автоматично.
   const [name, setName] = useState('')
-  const [section, setSection] = useState('Groceries')
-  const [category, setCategory] = useState('')
+  // Фільтр за розділом ('all' = усі розділи).
+  const [sectionFilter, setSectionFilter] = useState('all')
 
   // Відмітка покупки: активна позиція + введена (необов'язкова) ціна.
   const [checkingId, setCheckingId] = useState(null)
@@ -81,10 +87,12 @@ export default function ShoppingList() {
 
   const handleAdd = async (e) => {
     e.preventDefault()
-    if (!name.trim()) return
-    await addShoppingItem({ section, text: name.trim(), category: category.trim() || null })
+    const text = name.trim()
+    if (!text) return
+    // Автовизначення категорії за назвою → звідси й розділ.
+    const cat = guessShoppingCategory(text)
+    await addShoppingItem({ section: sectionForCategory(cat), text, category: cat })
     setName('')
-    setCategory('')
     await reload()
   }
 
@@ -164,8 +172,10 @@ export default function ShoppingList() {
     )
   }
 
-  const grouped = SECTIONS.map((sec) => [sec, items.filter((x) => x.section === sec)])
   const currency = t('landing.moneyCurrency')
+  // Розділи, у яких є позиції (для фільтра), у сталому порядку
+  const presentSections = SHOPPING_SECTIONS.filter((s) => items.some((x) => x.section === s.key))
+  const visibleItems = sectionFilter === 'all' ? items : items.filter((x) => x.section === sectionFilter)
 
   return (
     <div className="shopping-list-page">
@@ -177,91 +187,72 @@ export default function ShoppingList() {
           onChange={(e) => setName(e.target.value)}
           placeholder={t('shoppingList.addPlaceholder')}
         />
-        <label className="shopping-list-cat-field">
-          <span>{t('shoppingList.sectionFormLabel')}</span>
-          <select value={section} onChange={(e) => setSection(e.target.value)}>
-            {SECTIONS.map((sec) => (
-              <option key={sec} value={sec}>
-                {t(`shoppingList.section.${sec}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="shopping-list-cat-field">
-          <span>{t('shoppingList.categoryFormLabel')}</span>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">{t('shoppingList.categoryNone')}</option>
-            {SHOPPING_CATEGORIES.map((c) => (
-              <option key={c.key} value={c.key}>
-                {language === 'en' ? c.en : c.uk}
-              </option>
-            ))}
-          </select>
-        </label>
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
       </form>
 
-      <div className="shopping-list-groups">
-        {grouped.map(([sec, list]) => (
-          <div key={sec} className="card shopping-list-group">
-            <h3>{t(`shoppingList.section.${sec}`)}</h3>
-            {list.length === 0 ? (
-              <p className="shopping-list-group-empty">{t('shoppingList.groupEmpty')}</p>
-            ) : (
-              <ul>
-                {list.map((item) => (
-                  <li
-                    key={item.id}
-                    className={item.isChecked ? 'shopping-list-row is-owned' : 'shopping-list-row'}
-                  >
-                    <label className="shopping-list-owned" title={t('shoppingList.checkButton')}>
-                      <input
-                        type="checkbox"
-                        checked={item.isChecked}
-                        disabled={item.isChecked}
-                        onChange={() => openCheck(item.id)}
-                      />
-                    </label>
-                    <span className="shopping-list-name">{displayName(item)}</span>
-                    {item.estimatedPrice != null && (
-                      <span className="shopping-list-price">
-                        {item.estimatedPrice} {currency}
-                        {item.priceAgeMonths != null && item.priceAgeMonths > 0 && (
-                          <span className="shopping-list-price-age">
-                            {' '}· {t('shoppingList.priceAge', { n: item.priceAgeMonths })}
-                          </span>
-                        )}
-                      </span>
-                    )}
-                    <select
-                      className="shopping-list-cat-inline"
-                      value={SHOPPING_CATEGORIES.some((c) => c.key === item.category) ? item.category : ''}
-                      title={shoppingCategoryName(item.category, language) || t('shoppingList.categoryFormLabel')}
-                      onChange={(e) => handleCategoryChange(item.id, e.target.value)}
-                    >
-                      <option value="">{t('shoppingList.categoryNone')}</option>
-                      {SHOPPING_CATEGORIES.map((c) => (
-                        <option key={c.key} value={c.key}>
-                          {language === 'en' ? c.en : c.uk}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="shopping-list-del"
-                      onClick={() => handleDelete(item.id)}
-                      aria-label={t('planner.actionDelete')}
-                      data-tooltip={t('planner.actionDelete')}
-                    >
-                      <Icon name="trash" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      {/* Фільтр за розділом: усі / наявні розділи */}
+      <div className="shopping-sections">
+        <button type="button" className={sectionFilter === 'all' ? 'pill pill--active' : 'pill'} onClick={() => setSectionFilter('all')}>
+          {t('shoppingList.allSections')}
+        </button>
+        {presentSections.map((s) => (
+          <button key={s.key} type="button" className={sectionFilter === s.key ? 'pill pill--active' : 'pill'} onClick={() => setSectionFilter(s.key)}>
+            {sectionName(s.key, language)}
+          </button>
         ))}
       </div>
+
+      {visibleItems.length === 0 ? (
+        <p className="placeholder-text">{t('shoppingList.empty')}</p>
+      ) : (
+        <div className="shopping-cards">
+          {visibleItems.map((item) => (
+            <div key={item.id} className={item.isChecked ? 'shopping-card is-owned' : 'shopping-card'}>
+              <label className="shopping-card-check" title={t('shoppingList.checkButton')}>
+                <input
+                  type="checkbox"
+                  checked={item.isChecked}
+                  disabled={item.isChecked}
+                  onChange={() => openCheck(item.id)}
+                />
+              </label>
+              <div className="shopping-card-body">
+                <span className="shopping-card-name">{displayName(item)}</span>
+                {item.estimatedPrice != null && (
+                  <span className="shopping-list-price">
+                    {item.estimatedPrice} {currency}
+                    {item.priceAgeMonths != null && item.priceAgeMonths > 0 && (
+                      <span className="shopping-list-price-age"> · {t('shoppingList.priceAge', { n: item.priceAgeMonths })}</span>
+                    )}
+                  </span>
+                )}
+                <select
+                  className="shopping-card-cat"
+                  value={SHOPPING_CATEGORIES.some((c) => c.key === item.category) ? item.category : ''}
+                  title={shoppingCategoryName(item.category, language) || t('shoppingList.categoryFormLabel')}
+                  onChange={(e) => handleCategoryChange(item.id, e.target.value)}
+                >
+                  <option value="">{t('shoppingList.categoryNone')}</option>
+                  {SHOPPING_CATEGORIES.map((c) => (
+                    <option key={c.key} value={c.key}>
+                      {language === 'en' ? c.en : c.uk}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                className="shopping-card-del"
+                onClick={() => handleDelete(item.id)}
+                aria-label={t('planner.actionDelete')}
+                data-tooltip={t('planner.actionDelete')}
+              >
+                <Icon name="trash" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Спливна відмітка покупки: ціна необов'язкова (spisok-pokupok.md §2) */}
       {checkingId != null && (
