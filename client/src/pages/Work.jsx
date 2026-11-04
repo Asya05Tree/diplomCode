@@ -8,6 +8,7 @@ import ContactsTab from '../components/work/ContactsTab'
 import LeaveTab from '../components/work/LeaveTab'
 import MeetingsTab from '../components/work/MeetingsTab'
 import ObligationsTab from '../components/work/ObligationsTab'
+import ProcessTab from '../components/work/ProcessTab'
 import './Work.css'
 
 // Розділ "Робота". Зверху — заголовок роботи (назва + посада + роботодавець + тип оплати), далі
@@ -52,6 +53,7 @@ export default function Work() {
     { key: 'leave', icon: 'health' },
     { key: 'meetings', icon: 'bell' },
     { key: 'obligations', icon: 'clipboard' },
+    { key: 'process', icon: 'board' },
   ]
 
   const payLabel = settings?.rate
@@ -107,6 +109,7 @@ export default function Work() {
       {tab === 'leave' && <LeaveTab />}
       {tab === 'meetings' && <MeetingsTab />}
       {tab === 'obligations' && <ObligationsTab />}
+      {tab === 'process' && <ProcessTab />}
     </div>
   )
 }

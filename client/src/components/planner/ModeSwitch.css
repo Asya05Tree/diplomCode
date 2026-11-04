@@ -117,3 +117,9 @@
   text-shadow: var(--on-accent-shadow);
   border-color: transparent;
 }
+
+/* Є прострочені борги — пілюля підсвічується, щоб звернути увагу (коли не активна) */
+.tab-pill--debts:not(.tab-pill--active) {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 45%, transparent);
+}

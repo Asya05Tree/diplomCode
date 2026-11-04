@@ -8,8 +8,10 @@ import DayView from '../components/planner/DayView'
 import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
 import UnassignedView from '../components/planner/UnassignedView'
+import DebtsView from '../components/planner/DebtsView'
 import { getFreeDays, getPeriodTasks, getUnassignedCount } from '../api/tasks'
 import { getCycle } from '../api/cycle'
+import { loadDebts } from '../utils/debts'
 import { addDays, getMonthGridCells, fromApiDate, startOfDay, toApiDate } from '../utils/date'
 import './Planner.css'
 
@@ -20,7 +22,7 @@ const AUTH_TOKEN_KEY = 'authToken'
 // запасом вільного часу підсвічені кольором, порожні дні без заливки; працює завжди, без перемикача.
 export default function Planner() {
   const { t, weekStart } = useI18n()
-  const { gender } = useOutletContext() ?? {}
+  const { gender, studentType } = useOutletContext() ?? {}
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
 
   const [visibleMonth, setVisibleMonth] = useState(() => {
@@ -39,6 +41,9 @@ export default function Planner() {
   const [busyMarkings, setBusyMarkings] = useState(new Map())
   const [recurringMarkings, setRecurringMarkings] = useState(new Map())
   const [unassignedCount, setUnassignedCount] = useState(0)
+  // Важливі борги: прострочені дедлайни навчання/роботи (збираються з доменних API, оновлюються
+  // після будь-якої зміни задач).
+  const [debts, setDebts] = useState([])
   // Тип Manual (RecurringView): клік по дню в лівій сітці = вставити/зняти ручну дату
   const [manualDateHandler, setManualDateHandler] = useState(null)
   // Бампається після будь-якої зміни задач у Дні/Періоді/Нерозподілених, щоб заливка сітки
@@ -109,6 +114,15 @@ export default function Planner() {
       .then((res) => setUnassignedCount(res.count))
       .catch(() => {})
   }, [token, tasksVersion])
+
+  // Важливі борги оновлюємо на старті й після будь-якої зміни задач
+  useEffect(() => {
+    let cancelled = false
+    loadDebts(studentType)
+      .then((list) => { if (!cancelled) setDebts(list) })
+      .catch(() => { if (!cancelled) setDebts([]) })
+    return () => { cancelled = true }
+  }, [studentType, tasksVersion])
 
   // Дні місячних для сітки: лише для жіночих профілів; будуємо Set 'YYYY-MM-DD' із записів циклу
   useEffect(() => {
@@ -191,11 +205,14 @@ export default function Planner() {
             mode={mode}
             onModeChange={setMode}
             unassignedCount={unassignedCount}
+            debtsCount={debts.length}
           />
         </div>
 
         <div className="card planner-content-card">
-          {activeTab === 'recurring' ? (
+          {activeTab === 'debts' ? (
+            <DebtsView items={debts} />
+          ) : activeTab === 'recurring' ? (
             <RecurringView
               token={token}
               visibleRange={visibleGridRange}

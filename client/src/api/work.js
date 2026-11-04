@@ -89,7 +89,7 @@ export function removeMeeting(id) {
   return apiSend('DELETE', `/api/work/meetings/${id}`)
 }
 
-// ---- Зобов'язання / планування ----
+// ---- Зобов'язання (статичний перелік того, що людина робить на посаді) ----
 export function getObligations() {
   return apiGet('/api/work/obligations')
 }
@@ -101,4 +101,18 @@ export function updateObligation(id, data) {
 }
 export function removeObligation(id) {
   return apiSend('DELETE', `/api/work/obligations/${id}`)
+}
+
+// ---- Планування процесу (to-do з колонками планую/роблю/зроблено; дедлайн → у календар) ----
+export function getProcessTasks() {
+  return apiGet('/api/work/process')
+}
+export function addProcessTask(data) {
+  return apiSend('POST', '/api/work/process', data)
+}
+export function updateProcessTask(id, data) {
+  return apiSend('PUT', `/api/work/process/${id}`, data)
+}
+export function removeProcessTask(id) {
+  return apiSend('DELETE', `/api/work/process/${id}`)
 }

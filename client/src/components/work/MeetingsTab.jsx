@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
-import { getMeetings, addMeeting, removeMeeting } from '../../api/work'
+import { getMeetings, addMeeting, removeMeeting, getContacts } from '../../api/work'
 import { todayApiDate, fromApiDateTime } from '../../utils/date'
 
 // Зустрічі: з ким, коли (дата+час), посилання або кабінет. Кожна створює подію в спільному
-// календарі (moduleCode="work"), тож видалення зустрічі прибирає й подію.
+// календарі (moduleCode="work"), тож видалення зустрічі прибирає й подію. "З ким" можна обрати
+// зі списку робочих контактів (datalist) або ввести вручну.
 export default function MeetingsTab() {
   const { t, formatDate, formatTime } = useI18n()
   const [meetings, setMeetings] = useState([])
+  const [contacts, setContacts] = useState([])
   const [withWhom, setWithWhom] = useState('')
   const [date, setDate] = useState(todayApiDate())
   const [time, setTime] = useState('10:00')
@@ -16,7 +18,10 @@ export default function MeetingsTab() {
   const [error, setError] = useState('')
 
   const reload = () => getMeetings().then(setMeetings).catch(() => setMeetings([]))
-  useEffect(() => { reload() }, [])
+  useEffect(() => {
+    reload()
+    getContacts().then((list) => setContacts(list || [])).catch(() => setContacts([]))
+  }, [])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -35,7 +40,10 @@ export default function MeetingsTab() {
       <div className="work-section-head"><h3>{t('work.meetingsTitle')}</h3></div>
 
       <form className="work-form work-inline-form" onSubmit={submit}>
-        <label className="work-form-grow">{t('work.meetingWith')}<input value={withWhom} onChange={(e) => setWithWhom(e.target.value)} placeholder={t('work.meetingWithPlaceholder')} /></label>
+        <label className="work-form-grow">{t('work.meetingWith')}<input value={withWhom} onChange={(e) => setWithWhom(e.target.value)} placeholder={t('work.meetingWithPlaceholder')} list="work-contacts-list" /></label>
+        <datalist id="work-contacts-list">
+          {contacts.map((c) => <option key={c.id} value={c.fullName} />)}
+        </datalist>
         <label>{t('work.meetingDate')}<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
         <label>{t('work.meetingTime')}<input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
         <label className="work-form-grow">{t('work.meetingPlace')} <span className="work-optional">({t('work.optional')})</span><input value={place} onChange={(e) => setPlace(e.target.value)} placeholder={t('work.meetingPlacePlaceholder')} /></label>

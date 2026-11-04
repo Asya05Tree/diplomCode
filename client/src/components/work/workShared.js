@@ -3,6 +3,7 @@
 export const PAY_TYPES = ['hourly', 'monthly', 'project'] // погодинна / за місяць / за проєкт
 export const CONTACT_STATUSES = ['online', 'busy', 'offline', 'vacation']
 export const LEAVE_TYPES = ['vacation', 'sick'] // відпустка / лікарняний
+export const PROCESS_STATUSES = ['planned', 'doing', 'done'] // планую / роблю / зроблено
 
 // Режими (формати організації праці) — профіль роботи
 export const WORK_REGIMES = [

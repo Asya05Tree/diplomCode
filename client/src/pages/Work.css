@@ -93,7 +93,20 @@
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
-.work-section-head h3 { font-size: 1rem; }
+.work-section-head h3 {
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+/* Акцентна позначка перед заголовком секції — однаковий «фірмовий» вигляд у профілі, контактах тощо */
+.work-section-head h3::before {
+  content: "";
+  width: 4px;
+  height: 1.05em;
+  border-radius: 3px;
+  background: var(--color-accent-gradient);
+}
 .work-save-row { display: flex; align-items: center; gap: 10px; }
 .work-saved-note { font-size: 0.8rem; color: var(--status-ok-text); }
 
@@ -132,7 +145,8 @@
   font-family: inherit;
   transition: background var(--transition), color var(--transition);
 }
-.work-pill--active { background: var(--color-accent-gradient); color: var(--color-on-accent); font-weight: 600; box-shadow: var(--shadow-sm); }
+.work-pill:hover { background: var(--color-accent-soft); color: var(--color-accent-ink); }
+.work-pill--active, .work-pill--active:hover { background: var(--color-accent-gradient); color: var(--color-on-accent); font-weight: 600; box-shadow: var(--shadow-sm); }
 
 /* --- KPI-плитки --- */
 .work-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
@@ -288,7 +302,83 @@
 .work-obl-note { font-size: 0.78rem; color: var(--color-text-muted); }
 .work-obl-due { font-size: 0.78rem; color: var(--color-text-muted); white-space: nowrap; }
 
+/* --- Зобов'язання: статичний перелік обов'язків ролі --- */
+.work-duty-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.work-duty-row { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.work-duty-bullet { display: inline-flex; color: var(--color-accent-ink); flex-shrink: 0; }
+.work-duty-bullet .icon { width: 18px; height: 18px; }
+
+/* --- Планування процесу: канбан --- */
+.work-kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+.work-kanban-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted, rgba(127, 127, 127, 0.07));
+  border-top: 3px solid var(--color-border-strong);
+}
+.work-kanban-col--planned { border-top-color: #6c8ec9; }
+.work-kanban-col--doing { border-top-color: #c77c10; }
+.work-kanban-col--done { border-top-color: #2e9e5b; }
+.work-kanban-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: var(--color-heading);
+}
+.work-kanban-count {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+}
+.work-kanban-cards { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+.work-kanban-empty { font-size: 0.78rem; color: var(--color-text-muted); font-style: italic; margin: 4px 2px; }
+.work-kanban-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.work-kanban-card--overdue { border-color: var(--status-bad-text); background: var(--status-bad-bg); }
+.work-kanban-card-title { font-size: 0.86rem; font-weight: 600; color: var(--color-heading); }
+.work-kanban-card-note { font-size: 0.78rem; color: var(--color-text-muted); }
+.work-kanban-card-due { font-size: 0.76rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.work-kanban-card-due .icon { width: 13px; height: 13px; }
+.work-kanban-overdue {
+  background: var(--status-bad-text);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.work-kanban-card-actions { display: flex; gap: 4px; margin-top: 2px; }
+.work-kanban-card-actions .work-icon-btn { width: 28px; height: 28px; margin-left: 0; }
+.work-kanban-card-actions .work-icon-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* Контакти: легке підсвічування картки при наведенні */
+.work-contact-card { transition: border-color var(--transition), box-shadow var(--transition); }
+.work-contact-card:hover { border-color: var(--color-accent); box-shadow: var(--shadow-sm); }
+
 .work-schedule { display: flex; flex-direction: column; gap: 16px; }
+
+@media (max-width: 680px) {
+  .work-kanban { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 760px) {
   .work-tab { flex-basis: calc(50% - 10px); }

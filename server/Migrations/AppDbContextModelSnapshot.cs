@@ -1686,6 +1686,41 @@ namespace Server.Migrations
                     b.ToTable("WorkObligations");
                 });
 
+            modelBuilder.Entity("Server.Models.WorkProcessTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("WorkProcessTasks");
+                });
+
             modelBuilder.Entity("Server.Models.WorkSettings", b =>
                 {
                     b.Property<int>("UserId")
@@ -2413,6 +2448,17 @@ namespace Server.Migrations
                 });
 
             modelBuilder.Entity("Server.Models.WorkObligation", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.WorkProcessTask", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
                         .WithMany()
