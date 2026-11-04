@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserModule> UserModules => Set<UserModule>();
     public DbSet<EmailVerificationCode> EmailVerificationCodes => Set<EmailVerificationCode>();
@@ -100,6 +101,13 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<EmailVerificationCode>()
             .HasIndex(c => c.Email);
+
+        // Платежі: FK на користувача каскадний (видалили акаунт — пішла історія платежів),
+        // orderReference унікальний — за ним звіряємось із платіжкою.
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Payment>()
+            .HasIndex(p => p.OrderReference).IsUnique();
 
         // Самопосилання Tag.ParentId — забороняємо каскадне видалення, щоб видалення батька не зносило все дерево нащадків
         modelBuilder.Entity<Tag>()

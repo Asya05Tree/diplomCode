@@ -12,6 +12,11 @@ public class User
     // полем автоматично видаляються акаунти, неактивні понад рік (InactiveAccountCleanupService).
     public DateTime LastActiveAt { get; set; } = DateTime.UtcNow;
 
+    // Платна фіча "швидке додавання": скільки безкоштовних використань уже витрачено і чи
+    // куплено повний доступ назавжди. Ліміт безкоштовних — у конфізі (Billing:FreeLimit).
+    public int QuickAddUsedCount { get; set; }
+    public bool QuickAddUnlocked { get; set; }
+
     public UserProfile? Profile { get; set; }
     public List<UserModule> Modules { get; set; } = new();
 }
