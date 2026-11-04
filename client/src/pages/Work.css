@@ -245,6 +245,12 @@
 .work-cal-num { font-size: 0.76rem; font-weight: 600; color: var(--color-heading); }
 .work-cal-chip { font-size: 0.66rem; font-weight: 700; padding: 1px 5px; border-radius: 6px; color: #243; text-align: center; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .work-cal-more { font-size: 0.64rem; color: var(--color-text-muted); }
+.work-cal-toomany { font-size: 0.62rem; font-weight: 700; color: var(--status-bad-text); background: var(--status-bad-bg); border-radius: 6px; padding: 1px 5px; text-align: center; line-height: 1.3; }
+
+/* Неактивний тип зміни: приглушений рядок + кнопка-перемикач активності */
+.work-type-row--inactive td:not(.work-row-actions) { opacity: 0.45; }
+.work-type-off { font-size: 0.72rem; color: var(--color-text-muted); }
+.work-type-toggle { margin-left: 6px; padding: 5px 11px; font-size: 0.78rem; vertical-align: middle; }
 
 .work-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; margin-top: 14px; }
 .work-legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text); }

@@ -1817,6 +1817,9 @@ namespace Server.Migrations
                     b.Property<TimeOnly?>("EndTime2")
                         .HasColumnType("time(6)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("longtext");

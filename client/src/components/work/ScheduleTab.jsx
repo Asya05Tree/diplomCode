@@ -53,7 +53,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
   }
 
   // --- Форма типу зміни ---
-  const emptyType = { name: '', color: SHIFT_COLORS[1], startTime: '09:00', endTime: '17:00', kind: 'normal', startTime2: '', endTime2: '', onCallMultiplier: '' }
+  const emptyType = { name: '', color: SHIFT_COLORS[1], startTime: '09:00', endTime: '17:00', kind: 'normal', startTime2: '', endTime2: '', onCallMultiplier: '', isActive: true }
   const [showTypeForm, setShowTypeForm] = useState(false)
   const [editingTypeId, setEditingTypeId] = useState(null)
   const [typeForm, setTypeForm] = useState(emptyType)
@@ -64,7 +64,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
     setTypeForm({
       name: tp.name, color: tp.color, startTime: hhmm(tp.startTime), endTime: hhmm(tp.endTime),
       kind: tp.kind ?? 'normal', startTime2: hhmm(tp.startTime2) || '', endTime2: hhmm(tp.endTime2) || '',
-      onCallMultiplier: tp.onCallMultiplier ?? '',
+      onCallMultiplier: tp.onCallMultiplier ?? '', isActive: tp.isActive,
     })
     setShowTypeForm(true)
   }
@@ -82,6 +82,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
       startTime2: kind === 'split' ? withSeconds(typeForm.startTime2) : null,
       endTime2: kind === 'split' ? withSeconds(typeForm.endTime2) : null,
       onCallMultiplier: kind === 'oncall' && typeForm.onCallMultiplier ? Number(typeForm.onCallMultiplier) : null,
+      isActive: typeForm.isActive ?? true,
     }
     if (editingTypeId) await updateShiftType(editingTypeId, payload)
     else await addShiftType(payload)
@@ -89,6 +90,20 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
     afterScheduleMutation()
   }
   const deleteType = async (id) => { await removeShiftType(id); afterScheduleMutation() }
+
+  // Перемкнути активність типу зміни: неактивні не потрапляють у календар і у вибір графіка.
+  const toggleTypeActive = async (tp) => {
+    await updateShiftType(tp.id, {
+      name: tp.name, color: tp.color,
+      startTime: withSeconds(hhmm(tp.startTime)), endTime: withSeconds(hhmm(tp.endTime)),
+      kind: tp.kind ?? 'normal',
+      startTime2: tp.kind === 'split' ? withSeconds(hhmm(tp.startTime2)) : null,
+      endTime2: tp.kind === 'split' ? withSeconds(hhmm(tp.endTime2)) : null,
+      onCallMultiplier: tp.kind === 'oncall' ? tp.onCallMultiplier : null,
+      isActive: !tp.isActive,
+    })
+    afterScheduleMutation()
+  }
 
   // --- Додавання графіка: швидкий X/Y або свій (як подія календаря) ---
   const [addMode, setAddMode] = useState('quick') // quick | custom
@@ -224,19 +239,23 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
             return (
               <div key={key} className={cls.join(' ')}>
                 <span className="work-cal-num">{date.getDate()}</span>
-                {shifts.slice(0, 1).map((s, i) => (
-                  <span key={i} className="work-cal-chip" style={{ background: s.color }} title={`${s.name} ${shiftRangeOf(s, formatClock)}`}>
-                    {s.name}
-                  </span>
-                ))}
-                {shifts.length > 1 && <span className="work-cal-more">+{shifts.length - 1}</span>}
+                {shifts.length > 3 ? (
+                  // не більше 3 змін на день: якщо більше — показуємо позначку "забагато"
+                  <span className="work-cal-toomany">{t('work.tooManyShifts')}</span>
+                ) : (
+                  shifts.map((s, i) => (
+                    <span key={i} className="work-cal-chip" style={{ background: s.color }} title={`${s.name} ${shiftRangeOf(s, formatClock)}`}>
+                      {s.name}
+                    </span>
+                  ))
+                )}
               </div>
             )
           })}
         </div>
-        {shiftTypes.length > 0 && (
+        {shiftTypes.some((tp) => tp.isActive) && (
           <div className="work-legend">
-            {shiftTypes.map((tp) => (
+            {shiftTypes.filter((tp) => tp.isActive).map((tp) => (
               <span key={tp.id} className="work-legend-item"><span className="work-legend-dot" style={{ background: tp.color }} />{tp.name} {shiftRangeOf(tp, formatClock)}</span>
             ))}
           </div>
@@ -290,8 +309,8 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
               <thead><tr><th>{t('work.shiftName')}</th><th>{t('work.shiftKind')}</th><th>{t('work.shiftColor')}</th><th>{t('work.shiftTime')}</th><th>{t('work.shiftDuration')}</th><th /></tr></thead>
               <tbody>
                 {shiftTypes.map((tp) => (
-                  <tr key={tp.id}>
-                    <td>{tp.name}</td>
+                  <tr key={tp.id} className={tp.isActive ? undefined : 'work-type-row--inactive'}>
+                    <td>{tp.name}{!tp.isActive && <span className="work-type-off"> · {t('work.inactive')}</span>}</td>
                     <td>
                       <span className="work-kind-badge">{t(`work.shiftKind.${tp.kind ?? 'normal'}`)}</span>
                       {tp.kind === 'oncall' && tp.onCallMultiplier ? <span className="work-kind-mult"> ×{tp.onCallMultiplier}</span> : null}
@@ -300,6 +319,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
                     <td>{shiftRangeOf(tp, formatClock)}</td>
                     <td>{round1(shiftTotalHours(tp))} {t('work.hoursShort')}</td>
                     <td className="work-row-actions">
+                      <button type="button" className="work-pill work-type-toggle" onClick={() => toggleTypeActive(tp)}>{tp.isActive ? t('work.deactivate') : t('work.activate')}</button>
                       <button type="button" className="work-icon-btn" onClick={() => openEditType(tp)} aria-label={t('common.edit')}><Icon name="pencil" /></button>
                       <button type="button" className="work-icon-btn work-icon-btn--danger" onClick={() => deleteType(tp.id)} aria-label={t('common.delete')}><Icon name="trash" /></button>
                     </td>
@@ -323,7 +343,7 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
               <label className="work-form-grow">{t('work.pickShiftType')}
                 <select value={pickTypeId} onChange={(e) => setPickTypeId(e.target.value)}>
                   <option value="">{t('work.pickShiftTypePh')}</option>
-                  {shiftTypes.map((tp) => <option key={tp.id} value={tp.id}>{tp.name} ({shiftRangeOf(tp, formatClock)})</option>)}
+                  {shiftTypes.filter((tp) => tp.isActive).map((tp) => <option key={tp.id} value={tp.id}>{tp.name} ({shiftRangeOf(tp, formatClock)})</option>)}
                 </select>
               </label>
             </div>
