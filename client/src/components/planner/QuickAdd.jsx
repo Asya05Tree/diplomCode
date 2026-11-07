@@ -68,6 +68,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
   const [activeTab, setActiveTab] = useState(null) // активна вкладка модалки (код модуля або STOCK_TAB)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
+  const [langWarn, setLangWarn] = useState('') // попередження про мову у модалці (не блокує)
 
   // Платна фіча: стан ліміту (used/remaining/unlocked/price) і екрани оплати.
   const [status, setStatus] = useState(null)
@@ -155,20 +156,22 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
   const handleParse = () => {
     setNote('')
-    // Підтримуються лише українська та англійська: якщо є літери з інших мов (напр. рос. ы/э) —
-    // не розбираємо, а просимо виправити (інакше парсер "не зрозуміє" текст і зліпить задачі).
+    setLangWarn('')
+    // Чужі символи (напр. рос. ы/э) більше НЕ блокують розбір: парсимо best-effort і лише
+    // попереджаємо в модалці (інакше один символ ховав увесь коректний текст — QA-03).
     const badChars = findUnsupportedChars(text)
-    if (badChars.length) {
-      setNote(t('quickAdd.unsupportedLang', { chars: badChars.join(' ') }))
-      return
-    }
     // Назви наявних предметів передаємо у фаззі-шар — щоб виправляти й помилки в них.
     const parsed = parseInput(text, new Date(), subjects.map((s) => s.name).filter(Boolean))
     const stockItems = (parsed.stock || []).flatMap((s) => s.items)
     if (!parsed.tasks.length && !parsed.notRecognized.length && !stockItems.length) {
-      setNote(t('quickAdd.nothing'))
+      // Нічого не розпізнано: якщо були чужі символи — пояснюємо їх, інакше загальна нота.
+      setNote(badChars.length ? t('quickAdd.unsupportedLang', { chars: badChars.join(' ') }) : t('quickAdd.nothing'))
       return
     }
+    // Попередження про мову показуємо вгорі модалки, не втрачаючи розпізнане (QA-03/QA-04).
+    setLangWarn(badChars.length
+      ? t('quickAdd.partialWarn', { chars: badChars.join(' ') })
+      : (parsed.suspectedUnsupportedLang ? t('quickAdd.suspectLang') : ''))
     setResult(parsed)
     setRows(parsed.tasks.map((task) => {
       const r = toRow(task)
@@ -187,6 +190,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
     setRows([])
     setStockRows([])
     setActiveTab(null)
+    setLangWarn('')
   }
 
   const patchStock = (i, changes) => setStockRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
@@ -335,6 +339,10 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
           <div className="quick-add-modal" onClick={(e) => e.stopPropagation()}>
             <h3>{t('quickAdd.modalTitle')}</h3>
             <p className="quick-add-modal-hint">{t('quickAdd.modalHint')}</p>
+
+            {langWarn && (
+              <p className="quick-add-warn"><Icon name="warning" /> {langWarn}</p>
+            )}
 
             {result.corrections?.length > 0 && (
               <p className="quick-add-corrections">

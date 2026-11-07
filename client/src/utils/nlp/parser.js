@@ -799,8 +799,13 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
 
   // Крок 0. Фаззі-виправлення друкарських помилок у словникових словах (субботу→суботу).
   // protect боронить уже-валідні слова/основи від корекції (the→then тощо, QA-01/QA-05).
+  // Якщо текст схожий на непідтримувану мову (рос.) — фаззі ВИМИКАЄМО: інакше рос. слова
+  // «виправляються» в укр. структуру й фабрикують хибні дати ("пятницу"→"п'ятницю", QA-04).
+  const suspected = looksUnsupportedLanguage(raw0)
   const index = buildFuzzyIndex(fuzzyLexicon(m, extraWords))
-  const { text: raw, corrections } = fuzzyCorrect(raw0, index, buildFuzzyProtect(m))
+  const { text: raw, corrections } = suspected
+    ? { text: raw0, corrections: [] }
+    : fuzzyCorrect(raw0, index, buildFuzzyProtect(m))
 
   // Крок 0.5. Речення-запаси ("додати до запасів…") виймаємо ДО поділу на задачі, щоб
   // перелік через кому не ділився на окремі задачі. Решта тексту йде у звичайний розбір.
@@ -855,6 +860,6 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
   }
   return {
     language: detectLanguage(raw), tasks, notRecognized, corrections, stock,
-    suspectedUnsupportedLang: looksUnsupportedLanguage(raw0),
+    suspectedUnsupportedLang: suspected,
   }
 }

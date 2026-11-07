@@ -270,6 +270,21 @@
   color: var(--color-text);
 }
 
+/* Попередження про непідтримувану мову — помітне, але не блокує розбір. */
+.quick-add-warn {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  border-radius: 8px;
+  background: var(--color-warning-surface, rgba(240, 180, 40, 0.14));
+  color: var(--color-warning-ink, var(--color-text));
+  border: 1px solid var(--color-warning, rgba(240, 180, 40, 0.5));
+}
+
 /* Вкладки модалки підтвердження — по одній на розпізнаний розділ (+ "Запаси"). */
 .qa-tabs {
   display: flex;
