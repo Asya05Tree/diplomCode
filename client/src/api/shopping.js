@@ -31,8 +31,9 @@ export function checkItem(id, price) {
 }
 
 // Альтернатива поцінового вводу: сума чека, яку система розкладає по позиціях без цін.
-export function submitReceiptTotal(total) {
-  return apiSend('POST', '/api/shopping-list/receipt-total', { total })
+// itemIds — позиції саме цього походу (відмічені в поточному сеансі), щоб чек не чіпав давні позиції.
+export function submitReceiptTotal(total, itemIds) {
+  return apiSend('POST', '/api/shopping-list/receipt-total', { total, itemIds: itemIds ?? [] })
 }
 
 // Створити задачу-нагадування "похід у магазин" (повертає { taskId }).

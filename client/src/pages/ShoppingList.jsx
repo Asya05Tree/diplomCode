@@ -46,6 +46,10 @@ export default function ShoppingList() {
   const [checkingId, setCheckingId] = useState(null)
   const [checkPrice, setCheckPrice] = useState('')
 
+  // Позиції, відмічені САМЕ в цьому поході (цьому сеансі). Чек списує лише їх, а не всі колись
+  // відмічені — інакше давні позиції з минулих походів потрапляли б у новий чек.
+  const [tripItemIds, setTripItemIds] = useState([])
+
   // Сума чека та її розподіл по позиціях без ціни.
   const [receiptTotal, setReceiptTotal] = useState('')
   const [receiptResult, setReceiptResult] = useState(null)
@@ -117,6 +121,8 @@ export default function ShoppingList() {
     setCheckingId(null)
     setCheckPrice('')
     await checkItem(id, price)
+    // Запамʼятовуємо позицію як відмічену в цьому поході — щоб чек списав саме її.
+    setTripItemIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
     await reload()
   }
 
@@ -127,8 +133,11 @@ export default function ShoppingList() {
 
   const handleReceipt = async () => {
     if (receiptTotal === '') return
-    const result = await submitReceiptTotal(Number(receiptTotal))
+    const result = await submitReceiptTotal(Number(receiptTotal), tripItemIds)
     setReceiptResult(result)
+    // Похід завершено чеком — наступний чек починає новий сеанс з чистого аркуша.
+    setTripItemIds([])
+    setReceiptTotal('')
     await reload()
   }
 

@@ -236,23 +236,33 @@ public class ShoppingService
         else { pp.LastPrice = price; pp.UpdatedAt = now; }
     }
 
-    // Альтернатива поцінним цінам (spisok-pokupok.md §2): одна сума чека. Відомі ціни віднімаємо,
-    // залишок рівно розкладаємо на відмічені позиції без ціни, створюємо одну витрату на весь чек.
-    public async Task<ReceiptSplitDto> ApplyReceiptTotalAsync(int userId, decimal total)
+    // Альтернатива поцінним цінам (spisok-pokupok.md §2): одна сума чека. Інваріант обліку: кожна позиція
+    // дає витрату РІВНО один раз. Позиції з уже відомою ціною стали окремими витратами ще під час відмітки,
+    // тож їхню суму віднімаємо від чека; залишок рівно розкладаємо на позиції без ціни й додаємо ОДНУ
+    // витрату саме на цей залишок (а не на весь чек — інакше відомі ціни рахувалися б двічі).
+    //
+    // itemIds — позиції саме цього походу (їх передає клієнт зі свого сеансу відмітки). Чек не чіпає всі
+    // колись відмічені позиції: інакше давні позиції з минулих походів «розмазувалися» б у новий чек.
+    public async Task<ReceiptSplitDto> ApplyReceiptTotalAsync(int userId, decimal total, IReadOnlyCollection<int>? itemIds)
     {
+        if (total < 0 || total > MoneyMax) throw new BadInputException("invalid_total");
         var now = DateTime.Now;
-        var checkedItems = await _db.ShoppingItems
-            .Where(x => x.UserId == userId && x.IsChecked)
-            .Include(x => x.Product).Include(x => x.Medicine)
-            .ToListAsync();
 
-        var knownSum = checkedItems.Where(x => x.EstimatedPrice.HasValue).Sum(x => x.EstimatedPrice!.Value);
-        var unknown = checkedItems.Where(x => !x.EstimatedPrice.HasValue).ToList();
+        var ids = itemIds is { Count: > 0 } ? itemIds.ToHashSet() : new HashSet<int>();
+        var sessionItems = ids.Count == 0
+            ? new List<ShoppingItem>()
+            : await _db.ShoppingItems
+                .Where(x => x.UserId == userId && x.IsChecked && ids.Contains(x.Id))
+                .Include(x => x.Product).Include(x => x.Medicine)
+                .ToListAsync();
+
+        var knownSum = sessionItems.Where(x => x.EstimatedPrice.HasValue).Sum(x => x.EstimatedPrice!.Value);
+        var priceless = sessionItems.Where(x => !x.EstimatedPrice.HasValue).ToList();
         var remainder = Math.Max(0m, total - knownSum);
-        var perItem = unknown.Count > 0 ? Math.Round(remainder / unknown.Count, 2) : 0m;
+        var perItem = priceless.Count > 0 ? Math.Round(remainder / priceless.Count, 2) : 0m;
 
         var split = new List<SplitEntryDto>();
-        foreach (var item in unknown)
+        foreach (var item in priceless)
         {
             item.EstimatedPrice = perItem;
             if (item.ProductId is int productId) await UpsertPriceAsync(userId, productId, perItem, now);
@@ -260,15 +270,20 @@ public class ShoppingService
             split.Add(new SplitEntryDto(item.Id, nameUk, nameEn, perItem));
         }
 
-        _db.FinanceTransactions.Add(new FinanceTransaction
+        // Витрату додаємо лише коли є що списати: є нерозподілені позиції й додатний залишок. Порожній
+        // чек (нічого не відмічено) чи чек без позицій без ціни НЕ створює фантомної витрати.
+        if (priceless.Count > 0 && remainder > 0)
         {
-            UserId = userId,
-            Amount = total,
-            Type = "Expense",
-            Category = "shopping",
-            Description = "Покупки за чеком",
-            OccurredAt = now,
-        });
+            _db.FinanceTransactions.Add(new FinanceTransaction
+            {
+                UserId = userId,
+                Amount = remainder,
+                Type = "Expense",
+                Category = "shopping",
+                Description = "Покупки за чеком",
+                OccurredAt = now,
+            });
+        }
 
         await _db.SaveChangesAsync();
         return new ReceiptSplitDto(total, knownSum, remainder, perItem, split);
