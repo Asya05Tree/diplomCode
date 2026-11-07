@@ -104,3 +104,17 @@ public class UserRecipeState
     public Recipe? Recipe { get; set; }
     public DateTime? LastCookedAt { get; set; }
 }
+
+// Тижневе меню користувача: рецепт у клітинці дня тижня. DayOfWeek — ISO (1=Пн..7=Нд), Position —
+// порядок у межах дня (рецепт може повторюватися). Раніше меню жило лише в localStorage браузера
+// й губилося при зміні пристрою (planner-spec.md §4.6, ПЛАН P3-3). Замінюється цілою сіткою (PUT).
+public class FoodMenuItem
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public User? User { get; set; }
+    public int DayOfWeek { get; set; } // 1..7 (ISO)
+    public int Position { get; set; }  // порядок у межах дня
+    public int RecipeId { get; set; }
+    public Recipe? Recipe { get; set; }
+}

@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<StockItem> StockItems => Set<StockItem>();
     public DbSet<SelectedDish> SelectedDishes => Set<SelectedDish>();
     public DbSet<UserRecipeState> UserRecipeStates => Set<UserRecipeState>();
+    public DbSet<FoodMenuItem> FoodMenuItems => Set<FoodMenuItem>();
 
     // Здоров'я / аптечка
     public DbSet<Substance> Substances => Set<Substance>();
@@ -210,6 +211,12 @@ public class AppDbContext : DbContext
 
         b.Entity<UserRecipeState>().HasKey(x => new { x.UserId, x.RecipeId });
         b.Entity<UserRecipeState>()
+            .HasOne(x => x.Recipe).WithMany()
+            .HasForeignKey(x => x.RecipeId).OnDelete(DeleteBehavior.Restrict);
+
+        // Тижневе меню: FK на користувача каскадний (за конвенцією), на рецепт — Restrict (довідник).
+        b.Entity<FoodMenuItem>().HasIndex(x => new { x.UserId, x.DayOfWeek, x.Position });
+        b.Entity<FoodMenuItem>()
             .HasOne(x => x.Recipe).WithMany()
             .HasForeignKey(x => x.RecipeId).OnDelete(DeleteBehavior.Restrict);
     }
