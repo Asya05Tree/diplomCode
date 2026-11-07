@@ -24,5 +24,15 @@ public class ApiExceptionMiddleware
                 await ctx.Response.WriteAsJsonAsync(new { error = "unauthorized" });
             }
         }
+        catch (Server.Authorization.LimitReachedException ex)
+        {
+            // Досягнуто ліміту записів → 409 з кодом і межею, щоб клієнт показав зрозуміле повідомлення.
+            if (!ctx.Response.HasStarted)
+            {
+                ctx.Response.Clear();
+                ctx.Response.StatusCode = StatusCodes.Status409Conflict;
+                await ctx.Response.WriteAsJsonAsync(new { error = "limit_reached", entity = ex.Entity, limit = ex.Limit });
+            }
+        }
     }
 }

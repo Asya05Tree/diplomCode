@@ -40,7 +40,9 @@ public class NotesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] NoteRequest r)
     {
-        var maxPos = await _db.Notes.Where(n => n.UserId == CurrentUserId).Select(n => (int?)n.Position).MaxAsync() ?? -1;
+        var userId = CurrentUserId;
+        Limits.Ensure(await _db.Notes.CountAsync(n => n.UserId == userId), Limits.Notes, "notes");
+        var maxPos = await _db.Notes.Where(n => n.UserId == userId).Select(n => (int?)n.Position).MaxAsync() ?? -1;
         var note = new Note
         {
             UserId = CurrentUserId,

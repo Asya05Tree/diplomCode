@@ -461,6 +461,10 @@ public class TaskService
         int userId, string title, string? description, DateTime? startDateTime, int? durationMinutes, DateTime? deadline,
         string moduleCode = "tasks", string? sourceModule = null, int? sourceEntityId = null)
     {
+        // Ліміт одноразових задач (разом із нерозподіленими — та сама таблиця): досягнуто → 409.
+        Limits.Ensure(await _db.Tasks.CountAsync(t => t.UserId == userId && t.RecurrenceRuleId == null),
+            Limits.CalendarTasks, "calendar_tasks");
+
         var task = new TaskItem
         {
             UserId = userId,
@@ -550,6 +554,10 @@ public class TaskService
         int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern,
         string moduleCode = "tasks")
     {
+        // Ліміт правил повторення на користувача.
+        Limits.Ensure(await _db.RecurrenceRules.CountAsync(r => r.UserId == userId),
+            Limits.RecurrenceRules, "recurrence_rules");
+
         var rule = new RecurrenceRule
         {
             UserId = userId,
@@ -627,6 +635,8 @@ public class TaskService
             .AnyAsync(m => m.RecurrenceRuleId == ruleId && m.Date == date);
         if (alreadyExists) return true;
 
+        Limits.Ensure(await _db.ManualRecurrenceDates.CountAsync(m => m.RecurrenceRuleId == ruleId),
+            Limits.ManualDatesPerRule, "manual_dates");
         _db.ManualRecurrenceDates.Add(new ManualRecurrenceDate { RecurrenceRuleId = ruleId, Date = date });
         await _db.SaveChangesAsync();
         return true;
@@ -679,6 +689,8 @@ public class TaskService
         var ex = await _db.RecurrenceExceptions.FirstOrDefaultAsync(e => e.RecurrenceRuleId == ruleId && e.Date == date);
         if (ex is null)
         {
+            Limits.Ensure(await _db.RecurrenceExceptions.CountAsync(e => e.RecurrenceRuleId == ruleId),
+                Limits.ExceptionsPerRule, "recurrence_exceptions");
             ex = new RecurrenceException { RecurrenceRuleId = ruleId, Date = date };
             _db.RecurrenceExceptions.Add(ex);
         }
