@@ -119,24 +119,28 @@ console.log('=== TAB-02 NLP parser attacks ===\n')
   line('garbage inputs', crashed === 0 ? 'CONFIRMED' : 'refuted', `${cases.length - crashed}/${cases.length} parsed without throwing`)
 }
 
-// --- §9/§12 ReDoS / quadratic blow-up timing (main-thread block) ----------
+// --- §9/§12 ReDoS / quadratic blow-up timing — FIXED (ПЛАН P3-2) ----------
+// parseInput ріже вхід до MAX_PARSE_LENGTH=2000, тож час розбору обмежений незалежно від розміру вставки.
 {
-  console.log('\n--- §9/§12 ReDoS / quadratic timing (synchronous, blocks UI) ---')
-  for (const n of [2000, 4000, 8000]) {
-    const input = 'завтра '.repeat(n)
+  console.log('\n--- §9/§12 timing after input cap (MAX_PARSE_LENGTH=2000) ---')
+  let maxMs = 0
+  for (const [lbl, input] of [
+    ['завтра x2000', 'завтра '.repeat(2000)],   // 14000 chars
+    ['завтра x8000', 'завтра '.repeat(8000)],   // 56000 chars
+    ['spaces x50k', ' '.repeat(50000) + 'завтра'],
+    ['teacher-ish', 'з ' + 'Ab '.repeat(5000)],
+  ]) {
     const s = process.hrtime.bigint()
     P(input)
     const ms = Number(process.hrtime.bigint() - s) / 1e6
-    console.log(`   ${String(input.length).padStart(6)} chars → ${ms.toFixed(0)} ms blocked`)
+    maxMs = Math.max(maxMs, ms)
+    console.log(`   ${lbl.padEnd(14)} (${String(input.length).padStart(6)} chars) → ${ms.toFixed(0)} ms`)
   }
-  // pathological whitespace / repeats for the suspected regexes
-  for (const [lbl, input] of [['spaces x50k', ' '.repeat(50000) + 'завтра'], ['teacher-ish', 'з ' + 'Ab '.repeat(5000)]]) {
-    const s = process.hrtime.bigint()
-    P(input)
-    const ms = Number(process.hrtime.bigint() - s) / 1e6
-    console.log(`   ${lbl} (${input.length} chars) → ${ms.toFixed(0)} ms`)
-  }
-  console.log('   => CONFIRMED super-linear growth; no size cap/async → UX DoS on large paste (textarea has no maxLength)')
+  // Після капу навіть 56 КБ-вставка має розбиратися швидко (поріг із запасом: 250 мс).
+  const refuted = maxMs < 250
+  console.log('   => ' + (refuted
+    ? `REFUTED — усі великі вставки розбираються за <250 мс (макс ${maxMs.toFixed(0)} мс): вхід обмежено 2000 символами, UI не блокується.`
+    : `CONFIRMED — ще повільно (макс ${maxMs.toFixed(0)} мс), кап замалий або складність лишилась.`))
 }
 
 console.log('\n=== done ===')
