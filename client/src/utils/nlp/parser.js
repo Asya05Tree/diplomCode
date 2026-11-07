@@ -722,6 +722,22 @@ export function findUnsupportedChars(text) {
   return [...bad]
 }
 
+// Часті РОСІЙСЬКІ слова, яких немає в українській (для м'якого попередження, коли текст
+// складається лише зі спільних кириличних літер і гейт findUnsupportedChars мовчить, QA-04).
+// Евристика, НЕ повний словник: що не зловилось — стане low-confidence задачею (не блокуємо).
+const RU_HINTS = new Set([
+  'что', 'это', 'чтобы', 'сейчас', 'нужно', 'надо', 'делать', 'сделать', 'сделай', 'сделаю',
+  'купить', 'куплю', 'позвонить', 'позвони', 'убрать', 'убраться', 'встретиться', 'встретить',
+  'пойти', 'сходить', 'забрать', 'приготовить', 'помыть', 'деньги', 'работу', 'уроки',
+  'квартиру', 'маме', 'папе', 'другом', 'подруге', 'ещё', 'если', 'только', 'очень',
+])
+
+// Схоже на непідтримувану мову (напр. російську на спільних літерах)? М'який сигнал для UI.
+export function looksUnsupportedLanguage(text) {
+  const toks = String(text || '').toLowerCase().match(/[\p{L}']+/gu) || []
+  return toks.some((w) => RU_HINTS.has(w))
+}
+
 // Визначення мови за наявністю кирилиці/латиниці (окремого перемикача немає).
 export function detectLanguage(text) {
   const cyr = /[Ѐ-ӿ]/.test(text)
@@ -837,5 +853,8 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
     else if (lastDate && !byThen) { task.date = lastDate; task.inheritedDate = true }
     tasks.push(task)
   }
-  return { language: detectLanguage(raw), tasks, notRecognized, corrections, stock }
+  return {
+    language: detectLanguage(raw), tasks, notRecognized, corrections, stock,
+    suspectedUnsupportedLang: looksUnsupportedLanguage(raw0),
+  }
 }

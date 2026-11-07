@@ -935,6 +935,8 @@
   "quickAdd.modalHint": "Review and fix what was recognized. Only the checked tasks will be created.",
   "quickAdd.nothing": "Nothing could be recognized. Try rephrasing.",
   "quickAdd.unsupportedLang": "Only Ukrainian and English are supported. Please remove characters from other languages: {chars}",
+  "quickAdd.partialWarn": "The text contains characters outside Ukrainian/English ({chars}) — they were ignored and the rest was parsed. Please review the result.",
+  "quickAdd.suspectLang": "This looks like an unsupported language — parsed as-is, please review the result.",
   "quickAdd.field.title": "Title",
   "quickAdd.field.date": "Date",
   "quickAdd.field.time": "Time",
