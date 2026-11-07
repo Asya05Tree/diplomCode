@@ -1,35 +1,37 @@
-// §9.4 (🟡) — deactivating a shift type hides it from the WORK calendar/next-shift
-// (LoadEntriesWithRulesAsync filters ShiftType.IsActive, WorkService.cs:295) BUT the
-// underlying RecurrenceRule stays, and the SHARED planner calendar
-// (TaskService.GetTasksForRangeAsync) materialises ALL rules with no IsActive filter.
-// Result: "I turned the shift off" yet it still shows in the main calendar.
+// §9.4 — деактивація типу зміни тепер ховає його і з вкладки Роботи, і зі СПІЛЬНОГО календаря.
+// FIXED (залишок 10-work/08): TaskService.GetTasksForRangeAsync пропускає правила, чий WorkShiftType
+// деактивовано (inactiveShiftRuleIds), тож «вимкнена зміна» зникає скрізь.
 import { provision, api } from '../_lib/provision.mjs'
 const line = (s) => console.log(s)
-const ok = (c) => (c ? 'CONFIRMED' : 'not-as-expected')
 
-const u = await provision({ email: 'adv.t10.deact@gmail.com', isWorking: true })
+const tag = Math.random().toString(36).slice(2, 7)
+const u = await provision({ email: `adv.t10.deact.${tag}@gmail.com`, isWorking: true })
 const t = await api('POST', '/api/work/shift-types', { token: u.token, body: {
   name: 'DEACT-SHIFT', color: '#ffd59e', startTime: '09:00:00', endTime: '17:00:00', kind: 'normal' } })
 const typeId = t.json.id
 await api('POST', '/api/work/schedule', { token: u.token, body: { shiftTypeId: typeId, recurrence: {
-  type:'EveryNDays', timeOfDay:'09:00:00', startDate:'2026-12-01', endDate:'2026-12-31',
-  cycleWeeks:null, cycleAnchorDate:null, weekDaysPattern:null, weekDayTimesPattern:null,
-  intervalDays:1, monthDayMode:null, monthDays:null, monthDayTimesPattern:null } } })
+  type: 'EveryNDays', timeOfDay: '09:00:00', startDate: '2026-12-01', endDate: '2026-12-31',
+  cycleWeeks: null, cycleAnchorDate: null, weekDaysPattern: null, weekDayTimesPattern: null,
+  intervalDays: 1, monthDayMode: null, monthDays: null, monthDayTimesPattern: null } } })
 
-const before = await api('GET', '/api/work/schedule/calendar?from=2026-12-01&to=2026-12-31', { token: u.token })
-line(`[active] work calendar items=${(before.json||[]).length}`)
+const beforeWork = await api('GET', '/api/work/schedule/calendar?from=2026-12-01&to=2026-12-31', { token: u.token })
+const beforeShared = await api('GET', '/api/tasks/period?from=2026-12-01&to=2026-12-31', { token: u.token })
+const sharedCount = (j) => (Array.isArray(j) ? j : (j?.items || j?.tasks || [])).filter(x => (x.title || '') === 'DEACT-SHIFT').length
+line(`[active] work calendar=${(beforeWork.json || []).length}; shared calendar=${sharedCount(beforeShared.json)} (обидва > 0)`)
 
-// Deactivate the shift type
+// Деактивуємо тип зміни
 await api('PUT', `/api/work/shift-types/${typeId}`, { token: u.token, body: {
-  name:'DEACT-SHIFT', color:'#ffd59e', startTime:'09:00:00', endTime:'17:00:00', kind:'normal', isActive:false } })
+  name: 'DEACT-SHIFT', color: '#ffd59e', startTime: '09:00:00', endTime: '17:00:00', kind: 'normal', isActive: false } })
 
 const workCal = await api('GET', '/api/work/schedule/calendar?from=2026-12-01&to=2026-12-31', { token: u.token })
-line(`[deactivated] work calendar items=${(workCal.json||[]).length} (expected 0 — filtered by IsActive)`)
-
 const shared = await api('GET', '/api/tasks/period?from=2026-12-01&to=2026-12-31', { token: u.token })
-const arr = Array.isArray(shared.json) ? shared.json : (shared.json?.items || shared.json?.tasks || [])
-const deactInShared = arr.filter(x => (x.title||'') === 'DEACT-SHIFT').length
-line(`[deactivated] SHARED planner calendar still shows 'DEACT-SHIFT' instances: ${deactInShared}`)
+const workAfter = (workCal.json || []).length
+const sharedAfter = sharedCount(shared.json)
+line(`[deactivated] work calendar=${workAfter} (очік. 0); shared calendar=${sharedAfter} (очік. 0)`)
 
+const refuted = (beforeWork.json || []).length > 0 && workAfter === 0 && sharedAfter === 0
 line(`\n==== VERDICT ====`)
-line(`${ok((workCal.json||[]).length===0 && deactInShared>0)}: deactivated shift hidden in Work tab but STILL in shared calendar (IsActive not honoured by TaskService). §9.4 🟡`)
+line(refuted
+  ? 'REFUTED — деактивована зміна зникає і з вкладки Роботи, і зі спільного календаря (IsActive тепер ' +
+    'шанується і в TaskService).'
+  : `CONFIRMED/partial — workAfter=${workAfter} sharedAfter=${sharedAfter}`)

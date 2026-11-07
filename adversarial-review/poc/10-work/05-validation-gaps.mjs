@@ -40,15 +40,19 @@ const rateOk = await api('PUT', '/api/work/settings', { token: u.token, body: {
 line(`  control: multiplier 1.5 POST=${oncallOk.status}; rate 500 PUT=${rateOk.status} (expect 200/200)`)
 line(`  => ${incomeRefuted && oncallOk.status===200 && rateOk.status===200 ? 'REFUTED: rate & multiplier capped (1e9 -> 400, sane -> 200)' : 'CONFIRMED'} (§10, P2-10).`)
 
-// 4) RESIDUAL (не P2-10): phone/email/telegram формат + абсурдні дати зустрічі
-const c = await api('POST', '/api/work/contacts', { token: u.token, body: {
-  groupName:'', fullName:'Garbage', phone:'<script>alert(1)</script>', email:'@@@not-an-email', telegram:'no spaces allowed??' } })
-const gc = ((await api('GET', '/api/work/contacts', { token: u.token })).json||[]).find(x => x.fullName==='Garbage')
+// 4) Формат email контакту + діапазон дати зустрічі — тепер валідуються на сервері (залишок 10-work/05)
+const badEmail = await api('POST', '/api/work/contacts', { token: u.token, body: {
+  fullName:'Garbage', phone:'+380991112233', email:'@@@not-an-email', telegram:'tg' } })
+const okEmail = await api('POST', '/api/work/contacts', { token: u.token, body: {
+  fullName:'Valid Person', phone:'+380991112234', email:'name@mail.com', telegram:'tg' } })
 const mFar = await api('POST', '/api/work/meetings', { token: u.token, body: { withWhom:'future', when:'9999-12-31T23:59:00' } })
-line(`\n[RESIDUAL] contact email stored="${gc?.email}" (format not checked); meeting when=9999 status=${mFar.status}`)
-line(`  => KNOWN-OPEN (поза P2-10): формат телефону/email та діапазон дати зустрічі — кандидати у P3 (React екранує текст на рендері).`)
+const mOk = await api('POST', '/api/work/meetings', { token: u.token, body: { withWhom:'soon', when:'2026-12-20T10:00:00' } })
+line(`\n[contact email] garbage=${badEmail.status} ${badEmail.json?.error ?? ''}; valid=${okEmail.status} (expect 400/200)`)
+line(`[meeting date] 9999=${mFar.status} ${mFar.json?.error ?? ''}; 2026=${mOk.status} (expect 400/200)`)
+const formatRefuted = badEmail.status === 400 && badEmail.json?.error === 'invalid_email' && okEmail.status === 200 &&
+  mFar.status === 400 && mFar.json?.error === 'invalid_meeting_date' && mOk.status === 200
 
 line(`\n==== VERDICT ====`)
-line((lengthRefuted && colorRefuted && incomeRefuted)
-  ? `REFUTED (P2-10 scope): income ceiling enforced (rate/multiplier), length & color already capped. Residual contact-format / meeting-date are out-of-scope P3 nits.`
-  : `CONFIRMED/partial: length=${lengthRefuted} color=${colorRefuted} income=${incomeRefuted}.`)
+line((lengthRefuted && colorRefuted && incomeRefuted && formatRefuted)
+  ? `REFUTED: income ceiling (rate/multiplier), length & color capped, email format + meeting date range enforced server-side.`
+  : `CONFIRMED/partial: length=${lengthRefuted} color=${colorRefuted} income=${incomeRefuted} format=${formatRefuted}.`)
