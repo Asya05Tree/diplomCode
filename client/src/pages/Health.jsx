@@ -482,11 +482,14 @@ export default function Health() {
                           </td>
                           <td>{substance || <span className="none-text">—</span>}</td>
                           <td>
-                            <div className="stock-toggle">
+                            <div className="stock-toggle" role="radiogroup" aria-label={t('health.col.state')}>
                               {STOCK_TOGGLE.map(({ state: s, cls }) => (
                                 <button
                                   key={s}
                                   type="button"
+                                  role="radio"
+                                  aria-checked={m.state === s}
+                                  aria-label={t(`food.state.${s}`)}
                                   title={t(`food.state.${s}`)}
                                   className={`stock-circle stock-circle--${cls}${m.state === s ? ' stock-circle--on' : ''}`}
                                   onClick={() => handleMedState(m, s)}

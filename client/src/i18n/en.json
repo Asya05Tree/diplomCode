@@ -635,6 +635,7 @@
   "food.addStockTitle": "Add stock",
   "food.searchProduct": "Search product…",
   "food.add": "+ Add",
+  "food.col.state": "State",
   "food.state.Available": "Available",
   "food.state.RunningLow": "Running low",
   "food.state.OutOfStock": "Out of stock",

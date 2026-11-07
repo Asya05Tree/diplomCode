@@ -635,6 +635,7 @@
   "food.addStockTitle": "Додати запаси",
   "food.searchProduct": "Пошук продукту…",
   "food.add": "+ Додати",
+  "food.col.state": "Стан",
   "food.state.Available": "Є",
   "food.state.RunningLow": "Закінчується",
   "food.state.OutOfStock": "Немає",

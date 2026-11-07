@@ -539,11 +539,14 @@ export default function Food() {
                     ) : (
                       <span className="health-flag health-flag--ok">{t('food.health.ok')}</span>
                     )}
-                    <div className="stock-toggle">
+                    <div className="stock-toggle" role="radiogroup" aria-label={t('food.col.state')}>
                       {STOCK_TOGGLE.map(({ state: s, cls }) => (
                         <button
                           key={s}
                           type="button"
+                          role="radio"
+                          aria-checked={state === s}
+                          aria-label={t(`food.state.${s}`)}
                           title={t(`food.state.${s}`)}
                           className={`stock-circle stock-circle--${cls}${state === s ? ' stock-circle--on' : ''}`}
                           onClick={() => handleStockState(product.id, s)}
@@ -697,11 +700,14 @@ export default function Food() {
                     return (
                       <li key={ing.productId}>
                         <span>{productName(product, language)}</span>
-                        <div className="stock-toggle">
+                        <div className="stock-toggle" role="radiogroup" aria-label={t('food.col.state')}>
                           {STOCK_TOGGLE.map(({ state: s, cls }) => (
                             <button
                               key={s}
                               type="button"
+                              role="radio"
+                              aria-checked={cooking.states[ing.productId] === s}
+                              aria-label={t(`food.state.${s}`)}
                               title={t(`food.state.${s}`)}
                               className={`stock-circle stock-circle--${cls}${cooking.states[ing.productId] === s ? ' stock-circle--on' : ''}`}
                               onClick={() => setResultState(ing.productId, s)}
