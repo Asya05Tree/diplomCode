@@ -16,7 +16,7 @@ const fc = (await api('GET', '/api/cycle', { token: T })).json.forecast
 console.log('(FORECAST blow-up) spread-driven rangeDays:')
 console.log(`   forecast = ${JSON.stringify(fc)}`)
 console.log(`   predicted window = +/- ${fc.rangeDays} days  -> ~${fc.rangeDays * 2}-day-wide "next start" range`)
-console.log(`   ${fc.rangeDays > 30 ? 'CONFIRMED: rangeDays has no upper cap; a dirty/short interval inflates the window to absurd width' : 'rangeDays=' + fc.rangeDays}`)
+console.log(`   ${fc.rangeDays > 30 ? 'CONFIRMED (ACCEPTED/out-of-scope: forecast width is cosmetic, NOT part of the committed P1-6 fix — see below): rangeDays has no upper cap; a dirty/short interval inflates the window' : 'rangeDays=' + fc.rangeDays}`)
 console.log(`   avg cycle length reported = ${fc.averageLength} days (skewed by 1-day + 300-day intervals)`)
 for (const r of (await api('GET', '/api/cycle', { token: T })).json.records) await api('DELETE', `/api/cycle/records/${r.id}`, { token: T })
 
@@ -24,16 +24,19 @@ for (const r of (await api('GET', '/api/cycle', { token: T })).json.records) awa
 const today = new Date().toISOString().slice(0, 10)
 await api('PUT', '/api/cycle/settings', { token: T, body: { reduceLoadOnHeavyDays: false, hygieneProduct: 'pads' } })
 await api('POST', '/api/cycle/start', { token: T, body: { date: today } }) // ongoing today
-const before = sql(`SELECT COUNT(*) FROM ShoppingItems WHERE UserId=${u.userId} AND Source='Cycle';`)
+const before = Number(sql(`SELECT COUNT(*) FROM ShoppingItems WHERE UserId=${u.userId} AND Source='Cycle';`))
 for (let i = 0; i < 3; i++) await api('GET', '/api/cycle', { token: T }) // repeated reads
-const afterReads = sql(`SELECT COUNT(*) FROM ShoppingItems WHERE UserId=${u.userId} AND Source='Cycle';`)
-console.log('\n(GET SIDE-EFFECT) non-idempotent read:')
-console.log(`   Cycle ShoppingItems before=${before}, after 3x GET=${afterReads}`)
-console.log(`   ${Number(afterReads) >= 1 ? 'CONFIRMED: GET /api/cycle performs writes (EnsureHygieneSupply inserts a shopping item) — read is not idempotent' : 'no insert observed'}`)
+const afterReads = Number(sql(`SELECT COUNT(*) FROM ShoppingItems WHERE UserId=${u.userId} AND Source='Cycle';`))
+console.log('\n(GET IDEMPOTENCY) P1-6 — "повторний GET не змінює рядки в БД":')
+console.log(`   Cycle ShoppingItems before reads=${before}, after 3x GET=${afterReads}`)
+// Коректний критерій: GET мутує лише якщо КІЛЬКІСТЬ ЗРОСЛА від читань (before — вже 1 через POST /start,
+// а не через GET; стара перевірка ">=1" була хибно-позитивною).
+console.log(`   ${afterReads > before ? 'CONFIRMED: GET /api/cycle performs writes (read not idempotent)' : 'REFUTED: GET /api/cycle is idempotent — 3 reads inserted 0 rows (GetAsync не кличе EnsureHygieneSupply; докидання засобу — лише на POST записів/налаштувань)'}`)
 
-// Re-add after checking off: dedup only blocks UNCHECKED items -> checking off re-adds on next GET
+// Re-add after checking off: раніше дедуп блокував лише НЕвідмічені → відмітка + GET повторно докидали.
+// Тепер GET не докидає взагалі, тож відмітка + GET не створює нового рядка.
 sql(`UPDATE ShoppingItems SET IsChecked=1 WHERE UserId=${u.userId} AND Source='Cycle';`)
 await api('GET', '/api/cycle', { token: T })
-const afterCheck = sql(`SELECT COUNT(*) FROM ShoppingItems WHERE UserId=${u.userId} AND Source='Cycle';`)
-console.log(`   after checking off + 1 GET: total Cycle items=${afterCheck} (${Number(afterCheck) > Number(afterReads) ? 'CONFIRMED: re-adds once checked off — no one-per-cycle binding' : 'no re-add'})`)
+const afterCheck = Number(sql(`SELECT COUNT(*) FROM ShoppingItems WHERE UserId=${u.userId} AND Source='Cycle';`))
+console.log(`   after checking off + 1 GET: total Cycle items=${afterCheck} (${afterCheck > afterReads ? 'CONFIRMED: re-adds once checked off — no one-per-cycle binding' : 'REFUTED: checking off + GET does not re-add (GET більше не тригерить EnsureHygieneSupply)'})`)
 for (const r of (await api('GET', '/api/cycle', { token: T })).json.records) await api('DELETE', `/api/cycle/records/${r.id}`, { token: T })
