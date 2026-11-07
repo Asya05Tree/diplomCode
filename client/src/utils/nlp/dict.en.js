@@ -109,6 +109,8 @@ export default {
     'watch', 'read', 'cook', 'bake', 'boil', 'fry', 'roast', 'prepare', 'buy', 'purchase',
     'order', 'grab', 'call', 'write', 'send', 'clean', 'wash', 'visit', 'walk', 'finish',
     'submit', 'bring', 'return',
+    // everyday actions (QA-02: comma-free multi-task strings)
+    'water', 'feed', 'think', 'pay', 'find', 'check', 'email', 'text', 'fix', 'book',
   ],
 
   // Known subject names (matched by stem) so the Study subject is found even when not right

@@ -13,8 +13,9 @@ import './QuickAdd.css'
 // Модулі, у які вміє класифікувати парсер (+ "звичайна"). none-модуль → "tasks".
 const MODULES = ['tasks', 'shopping', 'media', 'food', 'health', 'study', 'work', 'finance', 'notes']
 
-// Максимальна довжина вхідного рядка швидкого додавання.
-const MAX_INPUT = 300
+// М'яка межа довжини вводу: лічильник підсвічується, але текст НЕ обрізається (QA-11) —
+// багаторядкове поле приймає скільки завгодно, обрізання браузером більше немає.
+const MAX_INPUT = 1000
 
 // Ключ вкладки "Запаси" у модалці підтвердження (решта вкладок — коди модулів).
 const STOCK_TAB = '__stock__'
@@ -298,14 +299,14 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
   return (
     <div className="quick-add card">
       <div className="quick-add-bar">
-        <input
-          type="text"
+        <textarea
           className="quick-add-input"
           value={text}
-          maxLength={MAX_INPUT}
+          rows={2}
           placeholder={t('quickAdd.placeholder')}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleParse() } }}
+          // Кожен рядок — окрема задача; Enter переносить рядок, Ctrl/⌘+Enter запускає розбір.
+          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleParse() } }}
         />
         <button type="button" className="btn-accent quick-add-btn" onClick={handleParse} disabled={!text.trim()}>
           <Icon name="sparkles" />
@@ -314,8 +315,8 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
       </div>
       <div className="quick-add-hintrow">
         <p className="quick-add-hint">{t('quickAdd.hint')}</p>
-        <span className={`quick-add-count${text.length >= MAX_INPUT ? ' quick-add-count--full' : ''}`}>
-          {text.length}/{MAX_INPUT}
+        <span className={`quick-add-count${text.length > MAX_INPUT ? ' quick-add-count--full' : ''}`}>
+          {text.length}
         </span>
       </div>
 

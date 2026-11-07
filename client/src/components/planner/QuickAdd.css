@@ -23,10 +23,15 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: flex-start;
 }
 .quick-add-input {
   flex: 1;
   min-width: 220px;
+  font: inherit;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 2.6em;
 }
 .quick-add-btn {
   display: inline-flex;

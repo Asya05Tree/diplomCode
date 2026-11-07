@@ -772,18 +772,23 @@ function splitTasks(text, m) {
   // Роздільники-фрази та кома — "м'яка" межа (задачі одного ланцюжка, дата успадковується).
   // Крапка/;/!/? перед пробілом або кінцем рядка — "тверда" межа речення (дата НЕ успадковується).
   // Крапка не чіпає "4.5"/"15.11" — там після неї цифра.
-  const withSep = text
-    .replace(new RegExp(`${BB}(?:${delim})${BE}`, 'giu'), ',')
-    .replace(/[.;!?]+(?=\s|$)/gu, HARD)
   const out = []
-  withSep.split(HARD).forEach((segment, hi) => {
-    segment.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
-      .forEach((text2, si) => {
-        // Кожен фрагмент додатково ділимо за дієсловами (підзадачі — м'яка межа, дата успадковується).
-        verbSplit(text2, m).forEach((sub, vi) => {
-          out.push({ text: sub, hardBreak: hi > 0 && si === 0 && vi === 0 })
+  // Новий рядок — тверда межа (textarea: кожен рядок — окрема задача, дата НЕ успадковується, QA-02).
+  text.split(/\r?\n+/).forEach((line, li) => {
+    const withSep = line
+      .replace(new RegExp(`${BB}(?:${delim})${BE}`, 'giu'), ',')
+      .replace(/[.;!?]+(?=\s|$)/gu, HARD)
+    withSep.split(HARD).forEach((segment, hi) => {
+      segment.split(/,(?!\d)/u).map((p) => p.trim()).filter(Boolean)
+        .forEach((text2, si) => {
+          // Кожен фрагмент додатково ділимо за дієсловами (підзадачі — м'яка межа, дата успадковується).
+          verbSplit(text2, m).forEach((sub, vi) => {
+            const withinHard = hi > 0 && si === 0 && vi === 0 // нове речення в межах рядка
+            const lineHard = li > 0 && hi === 0 && si === 0 && vi === 0 // перший фрагмент нового рядка
+            out.push({ text: sub, hardBreak: withinHard || lineHard })
+          })
         })
-      })
+    })
   })
   return out
 }
