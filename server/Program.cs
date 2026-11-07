@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Server.Data;
+using Server.Middleware;
 using Server.Services;
 
 // За замовчуванням ASP.NET перейменовує claim "sub" на ClaimTypes.NameIdentifier — вимикаємо,
@@ -103,6 +104,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // У Production необроблені винятки віддаємо коротким JSON без stack trace (витік внутрішньої
+    // структури). У Development лишається детальна сторінка розробника (додається автоматично).
+    app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
+    {
+        ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        ctx.Response.ContentType = "application/json";
+        await ctx.Response.WriteAsJsonAsync(new { error = "internal_error" });
+    }));
+}
+
+// Кривий токен (валідний підпис, але без sub) → 401 JSON замість 500. Решту винятків прокидає далі.
+app.UseMiddleware<ApiExceptionMiddleware>();
 
 app.UseCors(DevClientPolicy);
 app.UseAuthentication();

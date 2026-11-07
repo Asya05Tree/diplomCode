@@ -34,7 +34,7 @@ public class WorkController : ControllerBase
         _work = work;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     // ---- Профіль роботи -------------------------------------------------------
 
@@ -103,8 +103,12 @@ public class WorkController : ControllerBase
         await _work.DeleteScheduleEntryAsync(CurrentUserId, id) ? Ok() : NotFound();
 
     [HttpGet("schedule/calendar")]
-    public async Task<IActionResult> GetCalendar([FromQuery] DateOnly from, [FromQuery] DateOnly to) =>
-        Ok(await _work.GetScheduleCalendarAsync(CurrentUserId, from, to));
+    public async Task<IActionResult> GetCalendar([FromQuery] DateOnly from, [FromQuery] DateOnly to)
+    {
+        // Діапазон не більше року: інакше розгортання графіка змін дає десятки тисяч входжень у пам'яті.
+        if (from > to || to.DayNumber - from.DayNumber > 366) return BadRequest(new { error = "invalid_range" });
+        return Ok(await _work.GetScheduleCalendarAsync(CurrentUserId, from, to));
+    }
 
     [HttpGet("schedule/next")]
     public async Task<IActionResult> GetNextShift() => Ok(await _work.GetNextShiftAsync(CurrentUserId));

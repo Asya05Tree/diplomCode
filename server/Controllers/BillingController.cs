@@ -21,7 +21,7 @@ public class BillingController : ControllerBase
         _billing = billing;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     // Поточний стан: скільки безкоштовних використань лишилось і чи куплено повний доступ.
     [Authorize]

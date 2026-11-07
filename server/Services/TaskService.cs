@@ -53,8 +53,12 @@ public class TaskService
         {
             var kv = part.Split(':');
             if (kv.Length != 2 || !int.TryParse(kv[0], out var weekIndex)) continue;
+            // TryParse + фільтр 1..7: кривий день ("abc") не валить розгортання календаря у 500,
+            // а просто ігнорується (той самий спільний /api/tasks/period малює всі правила користувача)
             var days = kv[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse).ToHashSet();
+                .Select(s => int.TryParse(s, out var n) ? n : -1)
+                .Where(n => n is >= 1 and <= 7)
+                .ToHashSet();
             result[weekIndex] = days;
         }
 
@@ -129,8 +133,13 @@ public class TaskService
 
     private static List<DateOnly> GenerateMonthDaysDates(RecurrenceRule rule, DateOnly from, DateOnly to)
     {
+        // TryParse + фільтр 1..31: криві MonthDays ("abc,99"), збережені будь-яким модулем, не валять
+        // спільне розгортання календаря у 500 — недійсні числа просто пропускаються
         var specificDays = rule.MonthDayMode == "Specific"
-            ? (rule.MonthDays ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToHashSet()
+            ? (rule.MonthDays ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => int.TryParse(s.Trim(), out var n) ? n : -1)
+                .Where(n => n is >= 1 and <= 31)
+                .ToHashSet()
             : null;
 
         var result = new List<DateOnly>();
@@ -180,11 +189,20 @@ public class TaskService
         return result;
     }
 
+    // Винятки за датою. Якщо в БД опинилось два винятки на одну дату (стара дірка), ToDictionary кидав
+    // ArgumentException → 500 на всіх day/period/preview. Тут дубль не валить: лишається останній.
+    private static Dictionary<DateOnly, RecurrenceException> ExceptionsByDate(RecurrenceRule rule)
+    {
+        var map = new Dictionary<DateOnly, RecurrenceException>();
+        foreach (var e in rule.Exceptions) map[e.Date] = e;
+        return map;
+    }
+
     // Для лівої сітки в режимі "Повторювані": усі типи днів одним списком (§4.3)
     public static List<PreviewEntry> PreviewOccurrences(RecurrenceRule rule, DateOnly from, DateOnly to)
     {
         var baseDates = GenerateBaseDates(rule, from, to);
-        var exceptionByDate = rule.Exceptions.ToDictionary(e => e.Date, e => e);
+        var exceptionByDate = ExceptionsByDate(rule);
         var result = new List<PreviewEntry>();
 
         foreach (var d in baseDates)
@@ -208,7 +226,7 @@ public class TaskService
     public static List<DateTime> GetEffectiveOccurrences(RecurrenceRule rule, DateOnly from, DateOnly to)
     {
         var baseDates = GenerateBaseDates(rule, from, to);
-        var exceptionByDate = rule.Exceptions.ToDictionary(e => e.Date, e => e);
+        var exceptionByDate = ExceptionsByDate(rule);
         // Непорожній WeekDayTimesPattern (WeekCycle) чи MonthDayTimesPattern (MonthDays/Specific) —
         // свій час на день замість спільного TimeOfDay
         var customWeekTimes = rule.Type == "WeekCycle" ? ParseWeekDayTimes(rule.WeekDayTimesPattern) : null;
@@ -656,14 +674,16 @@ public class TaskService
         var ruleExists = await _db.RecurrenceRules.AnyAsync(r => r.Id == ruleId && r.UserId == userId);
         if (!ruleExists) return null;
 
-        var ex = new RecurrenceException
+        // Один виняток на одну дату: повторне додавання тієї ж дати оновлює наявний, а не плодить
+        // дублікати (саме два винятки на одну дату валили розгортання календаря у 500).
+        var ex = await _db.RecurrenceExceptions.FirstOrDefaultAsync(e => e.RecurrenceRuleId == ruleId && e.Date == date);
+        if (ex is null)
         {
-            RecurrenceRuleId = ruleId,
-            Date = date,
-            ExceptionType = exceptionType,
-            NewDateTime = newDateTime,
-        };
-        _db.RecurrenceExceptions.Add(ex);
+            ex = new RecurrenceException { RecurrenceRuleId = ruleId, Date = date };
+            _db.RecurrenceExceptions.Add(ex);
+        }
+        ex.ExceptionType = exceptionType;
+        ex.NewDateTime = newDateTime;
         await _db.SaveChangesAsync();
         return new RecurrenceExceptionDto(ex.Id, ex.Date, ex.ExceptionType, ex.NewDateTime);
     }

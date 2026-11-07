@@ -24,7 +24,7 @@ public class ShoppingListController : ControllerBase
         _shoppingService = shoppingService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     [HttpGet]
     public async Task<IActionResult> GetList()

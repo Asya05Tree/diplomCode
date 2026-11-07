@@ -28,7 +28,7 @@ public class AccountController : ControllerBase
         _account = account;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     // Експорт усіх даних користувача — файл JSON на пристрій
     [HttpGet("export")]

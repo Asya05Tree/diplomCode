@@ -44,7 +44,7 @@ public class StudyController : ControllerBase
         _studyService = studyService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     // ---- Налаштування навчання ------------------------------------------------
 

@@ -25,7 +25,7 @@ public class CycleController : ControllerBase
         _cycleService = cycleService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     [HttpGet]
     public async Task<IActionResult> Get()

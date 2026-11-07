@@ -132,7 +132,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Me()
     {
-        var userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+        var userId = User.GetUserId();
         var user = await _db.Users.FindAsync(userId);
         if (user is null) return NotFound();
 

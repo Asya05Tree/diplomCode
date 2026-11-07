@@ -43,7 +43,7 @@ public class RecurrenceRulesController : ControllerBase
         _taskService = taskService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     private static bool IsValidRule(
         string title, string type, DateOnly startDate, DateOnly? endDate,
@@ -60,12 +60,21 @@ public class RecurrenceRulesController : ControllerBase
             "WeekCycle" => cycleWeeks is >= 1 and <= 4
                 && (cycleWeeks == 1 || cycleAnchorDate.HasValue)
                 && !string.IsNullOrWhiteSpace(weekDaysPattern),
-            "EveryNDays" => intervalDays is >= 1,
+            "EveryNDays" => intervalDays is >= 1 and <= 366,
             "MonthDays" => ValidMonthDayModes.Contains(monthDayMode)
-                && (monthDayMode != "Specific" || !string.IsNullOrWhiteSpace(monthDays)),
+                && (monthDayMode != "Specific" || IsValidMonthDaysList(monthDays)),
             "Manual" => true, // дати додаються окремими запитами після створення
             _ => false,
         };
+    }
+
+    // "Specific": перелік чисел місяця має бути непорожнім і складатися лише з 1..31. Інакше кривий
+    // рядок ("abc,99") зберігся б і згодом валив розгортання спільного календаря (див. TaskService).
+    private static bool IsValidMonthDaysList(string? monthDays)
+    {
+        if (string.IsNullOrWhiteSpace(monthDays)) return false;
+        var parts = monthDays.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 0 && parts.All(p => int.TryParse(p.Trim(), out var n) && n is >= 1 and <= 31);
     }
 
     [HttpGet]
@@ -118,7 +127,7 @@ public class RecurrenceRulesController : ControllerBase
     [HttpGet("{id}/preview")]
     public async Task<IActionResult> Preview(int id, [FromQuery] DateOnly from, [FromQuery] DateOnly to)
     {
-        if (from > to) return BadRequest(new { error = "invalid_range" });
+        if (from > to || to.DayNumber - from.DayNumber > 366) return BadRequest(new { error = "invalid_range" });
         var preview = await _taskService.GetRulePreviewAsync(CurrentUserId, id, from, to);
         return Ok(preview);
     }

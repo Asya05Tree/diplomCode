@@ -23,7 +23,7 @@ public class TasksController : ControllerBase
         _taskService = taskService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     [HttpGet("day")]
     public async Task<IActionResult> GetDay([FromQuery] DateOnly date)
@@ -32,10 +32,14 @@ public class TasksController : ControllerBase
         return Ok(tasks);
     }
 
+    // Діапазон обмежений роком (366 днів): інакше один запит на 100 років розгортає десятки тисяч
+    // входжень у пам'яті (planner-spec.md §3.3 — календар показує не більше року).
+    private const int MaxRangeDays = 366;
+
     [HttpGet("period")]
     public async Task<IActionResult> GetPeriod([FromQuery] DateOnly from, [FromQuery] DateOnly to)
     {
-        if (from > to) return BadRequest(new { error = "invalid_range" });
+        if (from > to || to.DayNumber - from.DayNumber > MaxRangeDays) return BadRequest(new { error = "invalid_range" });
         var tasks = await _taskService.GetPeriodTasksAsync(CurrentUserId, from, to);
         return Ok(tasks);
     }
@@ -43,7 +47,7 @@ public class TasksController : ControllerBase
     [HttpGet("free-days")]
     public async Task<IActionResult> GetFreeDays([FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] double minHours = 2)
     {
-        if (from > to) return BadRequest(new { error = "invalid_range" });
+        if (from > to || to.DayNumber - from.DayNumber > MaxRangeDays) return BadRequest(new { error = "invalid_range" });
         var days = await _taskService.GetFreeDaysAsync(CurrentUserId, from, to, minHours);
         return Ok(days);
     }

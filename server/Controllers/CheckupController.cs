@@ -21,7 +21,7 @@ public class CheckupController : ControllerBase
         _checkup = checkup;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     [HttpGet("visits")]
     public async Task<IActionResult> GetVisits() => Ok(await _checkup.GetVisitsAsync(CurrentUserId));

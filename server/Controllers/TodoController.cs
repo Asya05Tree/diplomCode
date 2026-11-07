@@ -26,7 +26,7 @@ public class TodoController : ControllerBase
         _db = db;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     [HttpGet]
     public async Task<IActionResult> Get()

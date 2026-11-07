@@ -25,7 +25,7 @@ public class NotesController : ControllerBase
         _db = db;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     public record NoteDto(int Id, string Text, string Color, int Position);
 

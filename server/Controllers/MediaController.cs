@@ -50,7 +50,7 @@ public class MediaController : ControllerBase
         _tasks = tasks;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     private static string? Clean(string? text, int max)
     {

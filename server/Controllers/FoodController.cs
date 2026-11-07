@@ -22,7 +22,7 @@ public class FoodController : ControllerBase
         _recipeService = recipeService;
     }
 
-    private int CurrentUserId => int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    private int CurrentUserId => User.GetUserId();
 
     [HttpGet("overview")]
     public async Task<IActionResult> GetOverview()
