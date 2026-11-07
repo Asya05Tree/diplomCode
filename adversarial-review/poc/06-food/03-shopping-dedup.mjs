@@ -7,7 +7,10 @@
 // Run: node 03-shopping-dedup.mjs
 import { provision, api } from '../_lib/provision.mjs'
 
-const U = await provision({ email: 'adv.t06.shop@gmail.com' })
+// Унікальний email на кожен прогін: provision при email_taken лише логіниться (не чистить дані), тож
+// фіксований email накопичував би позиції з попередніх сесій і маскував справжню поведінку дедупу.
+const tag = Math.random().toString(36).slice(2, 7)
+const U = await provision({ email: `adv.t06.shop.${tag}@gmail.com` })
 
 // pick a real system product to toggle
 const ov0 = await api('GET', '/api/food/overview', { token: U.token })

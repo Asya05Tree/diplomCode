@@ -4,7 +4,10 @@
 import { provision, api } from '../_lib/provision.mjs'
 import { execFileSync } from 'node:child_process'
 
-const A = await provision({ email: 'adv.t05.trip@gmail.com' })
+// Унікальний email на прогін: provision при email_taken лише логіниться (не чистить), тож фіксований
+// email тягнув би відкриту задачу-похід із попередньої сесії й «1» був би неоднозначним.
+const tag = Math.random().toString(36).slice(2, 7)
+const A = await provision({ email: `adv.t05.trip.${tag}@gmail.com` })
 const db = (sql) => execFileSync('docker', ['exec', 'planner-mysql', 'mysql', '-N', '-uplanner', '-pplanner_dev_password', 'planner', '-e', sql], { encoding: 'utf8' }).trim()
 
 const N = 5
