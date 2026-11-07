@@ -74,3 +74,18 @@ public static class Limits
         if (current >= max) throw new LimitReachedException(entity, max);
     }
 }
+
+// Максимальна ДОВЖИНА текстових полів (символів). Клієнтські maxLength — лише UX; прямий виклик API
+// обходить їх і зберігає блоби в кілька сотень КБ (storage-DoS, роздуті відповіді). Тому ті самі межі
+// дублюються на сервері як [StringLength] на полях DTO — [ApiController] автоматично віддає 400, якщо
+// рядок довший (ПЛАН P2-2). Межі щедрі для реального тексту, але скінченні.
+public static class TextLimits
+{
+    public const int Title = 200;        // заголовки/короткі назви (задача, проєкт, предмет, обов'язок…)
+    public const int Name = 200;         // імена/назви (контакт, робота, продукт, діагноз…)
+    public const int Code = 64;          // короткі токени/ключі (категорія, тег, doctorKey, групи…)
+    public const int Phone = 40;         // телефон
+    public const int Color = 32;         // колір (hex або токен теми)
+    public const int Note = 280;         // нотатка-«квадратик»
+    public const int Description = 5000; // вільний текст (опис, коментар, відгук, нотатка зустрічі…)
+}
