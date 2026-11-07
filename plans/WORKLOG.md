@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-11-07 (сесія 4) — Ремедіація безпеки, фаза P2 (продовження): P2-7
+
+**Контекст:** той самий цикл по `adversarial-review/ПЛАН-ВИПРАВЛЕНЬ.md`; кожен фікс має перевести відповідний PoC з CONFIRMED у REFUTED (наживо, `http://localhost:5080`).
+
+**Зроблено цієї сесії — P2-7 (TOCTOU лічильника Quick Add):** `server/Services/BillingService.cs`, метод `ConsumeAsync`.
+- **Корінь:** було read-check-increment трьома кроками (прочитали `QuickAddUsedCount`, перевірили `< FreeLimit`, окремо інкрементували + `SaveChanges`). Паралельні `consume` усі читали `used=0`, усі проходили перевірку й інкрементували → ліміт обходився (12 паралельних → 8 проходжень при ліміті 3).
+- **Фікс:** інкремент тепер **атомарний одним UPDATE** — `_db.Users.Where(x => x.Id == userId && !x.QuickAddUnlocked && x.QuickAddUsedCount < FreeLimit).ExecuteUpdateAsync(... used = used + 1)`; гейт за кількістю змінених рядків: `consumed == 1` → витратили спробу (200); `0` рядків і `QuickAddUnlocked` → куплено, ліміт не діє (200); інакше → ліміт вичерпано (402). Рядковий лок MySQL (InnoDB) серіалізує конкурентні UPDATE, тож проходить рівно `FreeLimit`. Без транзакцій/локів у коді, без concurrency-токена — одна атомарна умова в БД (coding-guide §2).
+
+**Перевірка (наживо, збірка 0/0):**
+- `02-quick-add/consume_race` (12 паралельних, ліміт 3) → **REFUTED** стабільно у 3 прогонах поспіль: рівно **3×200**, **9×402**, збережений `QuickAddUsedCount=3`. Ні limit-skip, ні lost-updates. PoC оновлено на явний REFUTED-вердикт (було: «not reproduced»).
+- Регресій немає (`02-quick-add/billing_bypass`): послідовні 5 `consume` → 402 на вичерпанні; mock-confirm і `alreadyUnlocked` розблокування цілі (шлях `QuickAddUnlocked` не чіпався); callback-forgery → 400, confirm-IDOR → paid:false. (CONFIRMED-рядки там — відома/задокументована поведінка mock-режиму та «paywall гейтить лише NLP, не створення сутностей» з P0-рев'ю білінгу, не P2-7 і не регресія.)
+- Бекенд зупинено в кінці (0 слухачів на :5080).
+
+**Відмічено в DoD:** P2-7.
+
+**Де зупинився / далі:** лишилось у P2 — **P2-8** (watchlist: сирота `ReturnTaskId` при видаленні книги + гонка `/schedule` + минулі дедлайни, `server/Services/TaskService.cs:485`), **P2-9** (ідемпотентність списку покупок: spam plan-trip + автокатегоризація; дедуп Food→покупки видно в `06-food/03`), **P2-10** (інваріанти роботи/навчання: стелі розкладу/доходу/оцінок; leave `end<start` своп — `10-work/07`). Далі фаза P3.
+
+---
+
 ## 2026-11-07 (сесія 3) — Ремедіація безпеки, фаза P2 (продовження): P2-6
 
 **Контекст:** той самий цикл по `adversarial-review/ПЛАН-ВИПРАВЛЕНЬ.md`; кожен фікс має перевести відповідний PoC з CONFIRMED у REFUTED (наживо, `http://localhost:5080`).
