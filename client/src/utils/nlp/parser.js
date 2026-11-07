@@ -879,7 +879,7 @@ function buildFuzzyProtect(m) {
 // extraWords — додаткові слова для фаззі (назви предметів/продуктів користувача).
 // Повертає { language, tasks[], notRecognized[], corrections[] }. Задачі НЕ створюються.
 export function parseInput(text, dicts, now = new Date(), extraWords = []) {
-  const raw0 = normalizeApostrophes((text || '').trim())
+  const raw0 = normalizeApostrophes(String(text ?? '').trim())
   if (!raw0) return { language: 'uk', tasks: [], notRecognized: [], corrections: [], stock: [] }
   const m = mergeDicts(dicts)
 
