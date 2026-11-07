@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,7 +7,8 @@ using Server.Services;
 namespace Server.Controllers;
 
 public record SetStockStateRequest(string State); // Available | RunningLow | OutOfStock
-public record AddStockByNameRequest(string Name);  // швидке додавання запасу за вільним текстом
+// [StringLength]: назва — вільний текст, без межі приймались 8 КБ+ (ПЛАН P2-2, перенесено з P1-8). Завелике → 400.
+public record AddStockByNameRequest([property: StringLength(TextLimits.Name)] string Name);
 
 // planner-spec.md §3.4. Екран "Їжа": збірний /overview для початкового завантаження сторінки
 // + точкові дії над запасами/обраними стравами. Уся логіка — у RecipeService.

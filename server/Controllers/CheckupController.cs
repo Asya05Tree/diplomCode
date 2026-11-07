@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -5,7 +6,10 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record CheckupVisitRequest(string DoctorKey, string DoctorName, DateTime When, string? Place, string? Note);
+// [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
+public record CheckupVisitRequest([property: StringLength(TextLimits.Code)] string DoctorKey,
+    [property: StringLength(TextLimits.Name)] string DoctorName, DateTime When,
+    [property: StringLength(TextLimits.Name)] string? Place, [property: StringLength(TextLimits.Description)] string? Note);
 
 // Чекап здоров'я: заплановані візити до лікарів (створюють події ModuleCode="health" у календарі).
 // Перелік лікарів — сталий на фронтенді; тут лише зберігаємо/видаляємо візити. Логіка — у CheckupService.

@@ -1,13 +1,20 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using Server.Services;
 
 namespace Server.Controllers;
 
-public record CreateTaskRequest(string Title, string? Description, DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline, string? ModuleCode = null);
-public record UpdateTaskRequest(string Title, string? Description, DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline);
-public record ResolveTaskRequest(string Action); // Done | Skipped | Postpone
+// [StringLength] на вільнотекстових полях: [ApiController] автоматично віддає 400, якщо рядок довший
+// за межу (клієнтський maxLength обходиться прямим викликом API) — ПЛАН P2-2.
+public record CreateTaskRequest([property: StringLength(TextLimits.Title)] string Title,
+    [property: StringLength(TextLimits.Description)] string? Description,
+    DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline,
+    [property: StringLength(TextLimits.Code)] string? ModuleCode = null);
+public record UpdateTaskRequest([property: StringLength(TextLimits.Title)] string Title,
+    [property: StringLength(TextLimits.Description)] string? Description,
+    DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline);
+public record ResolveTaskRequest(string Action); // Done | Skipped | Postpone (allowlist у сервісі)
 
 // Задачі й календар: День/Період/Нерозподілені (planner-spec.md §4.2-4.5). CRUD одноразової
 // задачі + похідні вибірки з TaskService; повторення — окремо в RecurrenceRulesController.

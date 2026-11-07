@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,7 +10,8 @@ namespace Server.Controllers;
 public record AddCycleRecordRequest(DateOnly StartDate);
 public record EndCycleRecordRequest(DateOnly EndDate);
 public record CycleDateRequest(DateOnly Date);
-public record CycleSettingsRequest(bool ReduceLoadOnHeavyDays, string? HygieneProduct);
+// [StringLength] на вільному тексті → 400 на завеликому рядку (ПЛАН P2-2).
+public record CycleSettingsRequest(bool ReduceLoadOnHeavyDays, [property: StringLength(TextLimits.Name)] string? HygieneProduct);
 
 // planner-spec.md §3.7. Цикл: записи, прогноз, налаштування. Уся логіка — у CycleService.
 [ApiController]

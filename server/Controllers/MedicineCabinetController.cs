@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -5,8 +6,11 @@ using Server.Services;
 
 namespace Server.Controllers;
 
+// [StringLength]: NameUk/Tag без обмеження дозволяли величезні діагнози й спам глобальної таблиці
+// Tags гігантськими ключами (ПЛАН P2-2). Завеликий рядок → 400.
 public record UpdateMedicineRequest(string State, DateTime? ExpiresAt); // Available | RunningLow | OutOfStock
-public record AddConditionRequest(string NameUk, bool AffectsFood, string? Tag, string Relation); // Forbidden | Avoid
+public record AddConditionRequest([property: StringLength(TextLimits.Name)] string NameUk, bool AffectsFood,
+    [property: StringLength(TextLimits.Code)] string? Tag, string Relation); // Forbidden | Avoid
 
 // planner-spec.md §3.5. Аптечка: особистий список ліків, пошук у довіднику ДРЛЗ для додавання,
 // перевірка взаємодій на рівні діючої речовини та хронічні хвороби (що можуть впливати на "Їжу").

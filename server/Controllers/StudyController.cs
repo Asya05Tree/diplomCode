@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,22 +7,32 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record StudySettingsRequest(string LearningForm, string TermType, DateOnly? StudyStart, DateOnly? StudyEnd,
+// [StringLength] на текстових полях → 400 на завеликому рядку (клієнтський maxLength обходиться
+// прямим викликом API; без цього зберігались блоби в сотні КБ) — ПЛАН P2-2.
+public record StudySettingsRequest([property: StringLength(TextLimits.Code)] string LearningForm,
+    [property: StringLength(TextLimits.Code)] string TermType, DateOnly? StudyStart, DateOnly? StudyEnd,
     DateOnly? SemesterEnd, DateOnly? YearEnd, DateOnly? VacationStart, DateOnly? VacationEnd);
 
-public record StudySubjectRequest(string Name, string? Teacher, string? Color,
-    string? LectureRoom, string? LectureLink, string? SeminarRoom, string? SeminarLink);
+public record StudySubjectRequest([property: StringLength(TextLimits.Name)] string Name,
+    [property: StringLength(TextLimits.Name)] string? Teacher, [property: StringLength(TextLimits.Color)] string? Color,
+    [property: StringLength(TextLimits.Name)] string? LectureRoom, [property: StringLength(TextLimits.Name)] string? LectureLink,
+    [property: StringLength(TextLimits.Name)] string? SeminarRoom, [property: StringLength(TextLimits.Name)] string? SeminarLink);
 
-public record StudyAssignmentRequest(int? SubjectId, string Type, string Description, string DeadlineKind,
+public record StudyAssignmentRequest(int? SubjectId, [property: StringLength(TextLimits.Code)] string Type,
+    [property: StringLength(TextLimits.Description)] string Description, [property: StringLength(TextLimits.Code)] string DeadlineKind,
     DateOnly? DueDate, bool IsDone, decimal? Grade);
 
 public record ReplaceBellsRequest(List<StudyService.BellDto> Bells);
 
-public record StudyScheduleRequest(string EntryKind, int? SubjectId, string? Name, string? SessionKind,
-    int? PairNumber, string? Form, string? Room, string? Link, StudyService.Recurrence Recurrence);
+public record StudyScheduleRequest([property: StringLength(TextLimits.Code)] string EntryKind, int? SubjectId,
+    [property: StringLength(TextLimits.Name)] string? Name, [property: StringLength(TextLimits.Code)] string? SessionKind,
+    int? PairNumber, [property: StringLength(TextLimits.Code)] string? Form, [property: StringLength(TextLimits.Name)] string? Room,
+    [property: StringLength(TextLimits.Name)] string? Link, StudyService.Recurrence Recurrence);
 
-public record StudyProjectRequest(string Kind, string Name, string? Curator, string? DeadlineKind, DateOnly? DueDate);
-public record StudyStepRequest(string Name, DateOnly? StartDate, DateOnly? EndDate, bool IsDone);
+public record StudyProjectRequest([property: StringLength(TextLimits.Code)] string Kind,
+    [property: StringLength(TextLimits.Name)] string Name, [property: StringLength(TextLimits.Name)] string? Curator,
+    [property: StringLength(TextLimits.Code)] string? DeadlineKind, DateOnly? DueDate);
+public record StudyStepRequest([property: StringLength(TextLimits.Name)] string Name, DateOnly? StartDate, DateOnly? EndDate, bool IsDone);
 
 // Модуль "Навчання": налаштування, предмети, завдання, сітка дзвінків, розклад/консультації та
 // великі роботи (диплом/курсова/практика). Розклад і консультації також створюють правило повторення

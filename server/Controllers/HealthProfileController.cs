@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,8 @@ using Server.Models;
 
 namespace Server.Controllers;
 
-public record PutRestrictionRequest(string TagKey, string Relation, int? Weight); // Forbidden | Avoid | Prefer
+// [StringLength] на TagKey: без межі тег спамив би глобальну таблицю Tags гігантськими ключами (ПЛАН P2-2).
+public record PutRestrictionRequest([property: StringLength(TextLimits.Code)] string TagKey, string Relation, int? Weight); // Forbidden | Avoid | Prefer
 
 // planner-spec.md §3.1/§3.2. Профіль здоровʼя: естетичні поля (зріст/вага/рік/стать) + обмеження
 // користувача (UserTagPreference). Обмеження — ті самі дані, що читає рушій правил "Їжі", тому

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -5,8 +6,10 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record AddShoppingItemRequest(string Section, string? Category, string? Text, int? ProductId, int? MedicineId);
-public record SetShoppingCategoryRequest(string? Category);
+// [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
+public record AddShoppingItemRequest([property: StringLength(TextLimits.Code)] string Section,
+    [property: StringLength(TextLimits.Name)] string? Category, [property: StringLength(TextLimits.Name)] string? Text, int? ProductId, int? MedicineId);
+public record SetShoppingCategoryRequest([property: StringLength(TextLimits.Name)] string? Category);
 public record CheckShoppingItemRequest(decimal? Price);
 public record ReceiptTotalRequest(decimal Total, List<int>? ItemIds);
 

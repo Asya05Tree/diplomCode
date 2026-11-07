@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +8,9 @@ using Server.Models;
 
 namespace Server.Controllers;
 
-public record AddTodoRequest(string Text);
-public record MoveTodoRequest(string Status, int OrderIndex); // todo | doing | done
+// [StringLength] на тексті → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
+public record AddTodoRequest([property: StringLength(TextLimits.Title)] string Text);
+public record MoveTodoRequest([property: StringLength(TextLimits.Code)] string Status, int OrderIndex); // todo | doing | done
 
 // Проста дошка задач (три колонки todo/doing/done). Окремо від TaskItem — канбан без дат і
 // повторень, тому це прямий CRUD без сервісу (працюємо з AppDbContext).

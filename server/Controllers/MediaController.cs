@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,19 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record AddMediaRequest(string Kind, string Title, string? Author, string? Genre, string? MediaType,
+// [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
+public record AddMediaRequest([property: StringLength(TextLimits.Code)] string Kind,
+    [property: StringLength(TextLimits.Title)] string Title, [property: StringLength(TextLimits.Name)] string? Author,
+    [property: StringLength(TextLimits.Name)] string? Genre, [property: StringLength(TextLimits.Code)] string? MediaType,
     bool IsLibrary = false, DateTime? ReturnDeadline = null);
-public record ScheduleMediaRequest(DateTime StartDateTime, int? DurationMinutes, string? Genre, string? MediaType);
-public record SetMediaStatusRequest(string Status, int? RatingStars, string? Review);
-public record UpdateMediaRequest(string Title, string? Author, int? RatingStars, string? Review, string? Genre, string? MediaType,
+public record ScheduleMediaRequest(DateTime StartDateTime, int? DurationMinutes,
+    [property: StringLength(TextLimits.Name)] string? Genre, [property: StringLength(TextLimits.Code)] string? MediaType);
+public record SetMediaStatusRequest([property: StringLength(TextLimits.Code)] string Status, int? RatingStars,
+    [property: StringLength(TextLimits.Description)] string? Review);
+public record UpdateMediaRequest([property: StringLength(TextLimits.Title)] string Title,
+    [property: StringLength(TextLimits.Name)] string? Author, int? RatingStars,
+    [property: StringLength(TextLimits.Description)] string? Review, [property: StringLength(TextLimits.Name)] string? Genre,
+    [property: StringLength(TextLimits.Code)] string? MediaType,
     bool IsLibrary = false, DateTime? ReturnDeadline = null, DateTime? StartDateTime = null);
 // Чекбокс "повернено" (true) або його зняття в налаштуваннях картки (false).
 public record ReturnMediaRequest(bool Returned);
