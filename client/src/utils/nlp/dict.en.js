@@ -127,7 +127,7 @@ export default {
     health: ['doctor', 'dentist', 'pharmac', 'pill', 'vitamin', 'appointment', 'clinic', 'vaccin', 'checkup'],
     study: ['lecture', 'seminar', 'class', 'lesson', 'exam', 'homework', 'assignment', 'quiz', 'course', 'professor', 'teacher', 'tutorial'],
     work: ['meeting', 'deadline', 'shift', 'client', 'standup', 'interview', 'overtime'],
-    finance: ['pay', 'bill', 'invoice', 'rent', 'credit', 'loan', 'tax', 'deposit'],
+    finance: ['pay', 'bill', 'invoice', 'rent', 'credit', 'loan', 'tax', 'deposit', 'salary', 'income', 'bonus', 'paycheck', 'wage', 'expense', 'spend', 'spent'],
     notes: ['note', 'jot', 'memo'],
   },
 
@@ -157,6 +157,14 @@ export default {
   // Leading negation ("don't buy milk") — inverts intent: we do NOT create the module entity
   // (no shopping-list item / no expense), the task stays a plain reminder.
   negationWords: ["don't", 'dont', 'do not', 'never', "won't", 'wont'],
+
+  // Income markers in Finance (stems): transaction = income if present, else expense.
+  incomeWords: ['salary', 'income', 'bonus', 'paycheck', 'wage', 'received', 'earned', 'got paid', 'refund'],
+
+  // Explicit "add to shopping list" intent (a Shopping-list item, NOT a calendar task).
+  // "buy X" stays a task on purpose.
+  shoppingListMarkers: ['to shopping list', 'to the shopping list', 'to grocery list', 'to the grocery list', 'add to list', 'shopping list'],
+  shoppingListVerbs: ['add', 'put', 'write'],
 
   // Conditional/subordinating leads — do NOT reorder words (QA-14).
   conditionalWords: ['if', 'when', 'while', 'unless', 'until', 'after', 'before', 'once'],

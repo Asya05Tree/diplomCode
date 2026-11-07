@@ -51,7 +51,7 @@ export function mergeDicts(dicts) {
     lessonMarkers: [], teacherMarkers: [], linkWords: [], noneWords: [],
     afterMarkers: [], numberWords: {}, durationUnits: {}, deadlineMarkers: [], byThenMarkers: [],
     verbs: [], subjectWords: [], stockMarkers: [], stockStopWords: [], stockVerbs: [],
-    currencyWords: [], negationWords: [], conditionalWords: [],
+    currencyWords: [], negationWords: [], conditionalWords: [], incomeWords: [],
     shoppingListMarkers: [], shoppingListVerbs: [],
   }
   for (const d of dicts) {
@@ -88,6 +88,7 @@ export function mergeDicts(dicts) {
     merged.currencyWords.push(...(d.currencyWords || []))
     merged.negationWords.push(...(d.negationWords || []))
     merged.conditionalWords.push(...(d.conditionalWords || []))
+    merged.incomeWords.push(...(d.incomeWords || []))
     merged.shoppingListMarkers.push(...(d.shoppingListMarkers || []))
     merged.shoppingListVerbs.push(...(d.shoppingListVerbs || []))
     // Коди модулів беремо з самих словників — додати модуль = дописати ключ у dict.*.js.
@@ -608,21 +609,34 @@ function assemble(piece, m, now) {
     consumed.add(weekdaySeg)
   }
 
+  const amounts = accepted.filter((s) => s.type === 'amount').sort((a, b) => a.start - b.start)
+  const module = detectModule(piece, m)
+
   let date = ''
   let deadline = ''
+  const extraDates = [] // кілька дат в одній задачі — зайві не губимо тихо (QA-09)
   for (const seg of dates) {
     if (consumed.has(seg)) continue
     if (!deadline && precededByDeadline(seg)) deadline = seg.data.dateStr
     else if (!date) date = seg.data.dateStr
+    else extraDates.push(seg.data.dateStr)
   }
   let time = times[0]?.data.timeStr || ''
+  const extraTimes = times.slice(1).map((s) => s.data.timeStr) // зайві часи (QA-09)
   const durationMinutes = durs[0]?.data.minutes ?? null
+
+  // Сума: спершу з явної валюти ("500 грн"); для Фінансів — також голе число як сума (QA-10).
+  let amount = amounts[0]?.data.amount ?? null
+  let currency = amounts[0]?.data.currency ?? null
 
   // Число, за яким одразу йде маркер заняття ("3 парою"), — це номер пари, а не час/дата.
   const lessonAfter = new RegExp(`^\\s*(?:${alt(m.lessonMarkers)})${L}*${BE}`, 'iu')
   const isLessonNumber = (seg) => m.lessonMarkers.length && lessonAfter.test(piece.slice(seg.end))
+  // Товарна кількість: число, за яким ОДРАЗУ йде слово ("2 кг цукру", "3 apples") — лишаємо в назві (QA-06).
+  const followedByWord = (seg) => new RegExp(`^\\s*[${L}]`, 'u').test(piece.slice(seg.end))
 
   // Крок 4. Знімаємо неоднозначності голих чисел контекстом.
+  const quantitySegs = new Set() // кількості — НЕ вирізаємо з назви
   const ambiguous = []
   for (const seg of nums) {
     if (isLessonNumber(seg)) continue
@@ -632,6 +646,10 @@ function assemble(piece, m, now) {
       deadline = resolveDayOfMonth(n, now)
       continue
     }
+    // Фінанси: голе число — це сума платежу, а не дата/час (QA-10). Першу беремо як суму.
+    if (module === 'finance' && amount == null) { amount = n; continue }
+    // Товарна кількість — лишаємо в назві, без питань про дату/час (QA-06).
+    if (followedByWord(seg)) { quantitySegs.add(seg); continue }
     const canDay = n >= 1 && n <= 31
     const canHour = n >= 0 && n <= 23
     if (date && !time && canHour) {
@@ -648,24 +666,58 @@ function assemble(piece, m, now) {
     }
   }
 
-  let title = buildTitle(piece, accepted, m)
-  const module = detectModule(piece, m)
+  // Фінанси без явної валюти й без 1–2-значного числа: сума з 3+ цифр ("рахунок 250"), але
+  // не чіпаємо цифри, що вже є частиною дати/часу/суми (ranges з accepted).
+  let financeAmountRange = null
+  if (module === 'finance' && amount == null) {
+    const re = /\d{2,}(?:[.,]\d{1,2})?/gu
+    let am
+    while ((am = re.exec(piece)) !== null) {
+      const s = am.index; const e = am.index + am[0].length
+      if (accepted.some((a) => s < a.end && a.start < e)) continue // всередині вже розпізнаного — пропускаємо
+      amount = parseFloat(am[0].replace(',', '.'))
+      financeAmountRange = { start: s, end: e }
+      break
+    }
+  }
 
-  // Навчання: витягаємо предмет/викладача/посилання. Якщо є предмет — він стає назвою
-  // задачі (сирий рядок "пара математики викладач…" у назві не потрібен).
+  // Відрізки для вирізання з назви: усе розпізнане, КРІМ товарних кількостей (їх лишаємо, QA-06);
+  // + діапазон фінансової суми без валюти.
+  const titleSegs = accepted.filter((s) => !quantitySegs.has(s))
+  if (financeAmountRange) titleSegs.push(financeAmountRange)
+  let title = buildTitle(piece, titleSegs, m)
+
+  // QA-13: голий предмет ("математика") без жодного іншого модуля → Навчання.
+  let moduleFinal = module
+  if (!moduleFinal && m.subjectWords.length) {
+    const subjRe = new RegExp(`${BB}(?:${alt(m.subjectWords)})${L}*${BE}`, 'iu')
+    if (subjRe.test(piece)) moduleFinal = 'study'
+  }
+
+  // Навчання: витягаємо предмет/викладача/посилання. Якщо є предмет — він стає назвою задачі.
   let study = null
-  if (module === 'study') {
+  if (moduleFinal === 'study') {
     study = extractStudy(piece, m)
     if (study.subject) title = cap(study.subject)
+  }
+
+  // Заперечення на початку назви ("не купувати молоко") — інвертує намір (QA-12): у Фазі 5
+  // НЕ створюємо сутність модуля, задача лишається звичайним нагадуванням.
+  let negated = false
+  if (m.negationWords.length) {
+    negated = new RegExp(`^\\s*(?:${alt(m.negationWords)})${BE}`, 'iu').test(title)
   }
 
   // Рівень впевненості (порада ШІ — «три результати»): high — є дата (задача на час);
   // medium — дату не знайшли, але зрозуміли ТИП задачі (модуль); low — лише сирий текст у назві.
   let confidence = 'low'
   if (date || deadline) confidence = 'high'
-  else if (module) confidence = 'medium'
+  else if (moduleFinal) confidence = 'medium'
 
-  return { raw: piece.trim(), title, date, deadline, time, durationMinutes, module, ambiguous, study, confidence }
+  return {
+    raw: piece.trim(), title, date, deadline, time, durationMinutes, module: moduleFinal,
+    ambiguous, study, confidence, amount, currency, extraDates, extraTimes, negated,
+  }
 }
 
 // Різні символи апострофа (ʼ ' ' ` ´) → один прямий, щоб "пʼятницю" збігалося зі словником.
