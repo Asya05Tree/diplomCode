@@ -19,7 +19,7 @@ import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import { getMe } from './api/client'
-import { getHealthProfile, setHealthProfile } from './api/healthProfile'
+import { getHealthProfile, setProfileStatus } from './api/healthProfile'
 import {
   getPalette,
   getPaletteStyle,
@@ -103,13 +103,13 @@ function AppContent() {
     const working = nextWorking ?? isWorking
     setStudentType(type)
     setIsWorking(working)
-    await setHealthProfile({ studentType: type, isWorking: working })
+    await setProfileStatus({ studentType: type, isWorking: working })
   }
 
   // Зміна статі в налаштуваннях: оновлюємо стан (sidebar/цикл реагують) і пишемо в профіль
   const handleSetGender = async (nextGender) => {
     setGender(nextGender)
-    await setHealthProfile({ gender: nextGender })
+    await setProfileStatus({ gender: nextGender })
   }
 
   const handleLogout = () => {

@@ -5,11 +5,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Models;
 using Server.Services;
 
 namespace Server.Controllers;
 
 public record PasswordConfirmRequest(string Password);
+public record UpdateProfileStatusRequest(string? Gender, string? StudentType, bool? IsWorking);
 
 // Керування акаунтом: експорт усіх даних у JSON, видалення всіх даних (акаунт лишається) та
 // повне видалення акаунта. Видалення потребують повторного вводу пароля (захист від випадкового
@@ -29,6 +31,33 @@ public class AccountController : ControllerBase
     }
 
     private int CurrentUserId => User.GetUserId();
+
+    // Контрольований шлях для полів профілю, що керують доступом до модулів (стать → Цикл,
+    // статус навчання → Навчання, робота → Робота). Винесено з /api/health-profile, щоб «здоровʼя»
+    // не могло самовільно розблоковувати модулі (mass-assignment). Оновлення ЧАСТКОВЕ: змінюються лише
+    // передані поля, зріст/вага/рік народження НЕ зачіпаються (інакше зміна статі обнуляла б їх).
+    [HttpPut("profile-status")]
+    public async Task<IActionResult> UpdateProfileStatus([FromBody] UpdateProfileStatusRequest request)
+    {
+        // Приймаємо лише відомі значення — жодних довільних рядків (стать читає гейтинг Циклу).
+        if (request.Gender is not null && request.Gender is not ("female" or "male" or "other"))
+            return BadRequest(new { error = "invalid_gender" });
+        if (request.StudentType is not null && request.StudentType is not ("pupil" or "student" or "none"))
+            return BadRequest(new { error = "invalid_student_type" });
+
+        var profile = await _db.UserProfiles.FindAsync(CurrentUserId);
+        if (profile is null)
+        {
+            profile = new UserProfile { UserId = CurrentUserId };
+            _db.UserProfiles.Add(profile);
+        }
+
+        if (request.Gender is not null) profile.Gender = request.Gender;
+        if (request.StudentType is not null) profile.StudentType = request.StudentType;
+        if (request.IsWorking is bool working) profile.IsWorking = working;
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
 
     // Експорт усіх даних користувача — файл JSON на пристрій
     [HttpGet("export")]

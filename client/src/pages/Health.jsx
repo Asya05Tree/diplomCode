@@ -151,7 +151,8 @@ export default function Health() {
     if (height != null) setHeightInput(String(height))
     if (age != null) setAgeInput(String(age))
     const birthYear = age != null ? currentYear - age : null
-    const payload = { weight, height, birthYear, gender: profile?.gender ?? null }
+    // Лише естетичні поля. Стать не редагується тут (вона керує модулем Циклу — змінюється в Налаштуваннях).
+    const payload = { weight, height, birthYear }
     setProfile((p) => ({ ...(p || {}), ...payload }))
     await setHealthProfile(payload).catch(() => {})
   }
