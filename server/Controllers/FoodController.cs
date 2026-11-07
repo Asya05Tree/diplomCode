@@ -34,8 +34,10 @@ public class FoodController : ControllerBase
     [HttpPut("stock/{productId}")]
     public async Task<IActionResult> SetStock(int productId, [FromBody] SetStockStateRequest request)
     {
+        // Невалідний стан кидає BadInputException (→ 400 invalid_stock) у сервісі; false означає, що
+        // продукт недоступний (не існує або чужий приватний) → 404 (не плутати з «поганим значенням»).
         var ok = await _recipeService.SetStockStateAsync(CurrentUserId, productId, request.State);
-        return ok ? Ok() : BadRequest(new { error = "invalid_stock" });
+        return ok ? Ok() : NotFound(new { error = "product_not_found" });
     }
 
     [HttpPost("stock/{productId}")]

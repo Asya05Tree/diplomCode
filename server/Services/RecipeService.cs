@@ -56,7 +56,11 @@ public class RecipeService
             .Select(p => new RuleEvaluator.Restriction(p.TagId, p.Tag!.Key, p.Relation))
             .ToList();
 
-        var products = await _db.Products.Include(p => p.Tags).ToListAsync();
+        // Лише системні продукти + власні продукти користувача: чужі приватні продукти не мають
+        // потрапляти у відповідь (інакше чуже ім'я продукту «протікало» б у чужий огляд — IDOR).
+        var products = await _db.Products
+            .Where(p => p.IsSystem || p.CreatedByUserId == userId)
+            .Include(p => p.Tags).ToListAsync();
         var prices = await _db.UserProductPrices
             .Where(x => x.UserId == userId)
             .ToDictionaryAsync(x => x.ProductId, x => x.LastPrice);
@@ -105,7 +109,11 @@ public class RecipeService
                 r.Ingredients.Select(i => new IngredientDto(i.ProductId, i.AmountUk, i.AmountEn)).ToList(),
                 r.Steps.OrderBy(s => s.StepNumber).Select(s => new StepDto(s.StepNumber, s.TextUk, s.TextEn)).ToList(),
                 Health(aggregatedTags), missing);
-        }).ToList();
+        })
+        // Заборонені правилами здоровʼя страви сервер НЕ повертає зовсім (spec §4.6, §2.3) — заборона
+        // стережеться тут, а не лише ховається в UI, тож «одна точка перевірки» справді на сервері.
+        .Where(dto => dto.Health.Forbidden == null)
+        .ToList();
 
         var restrictionDtos = prefs
             .Where(p => p.Tag != null)
@@ -118,11 +126,15 @@ public class RecipeService
 
     // ---- Запаси (StockItem) ----------------------------------------------------
 
+    // Повертає false, якщо продукт недоступний (не існує або чужий приватний) → контролер віддає 404.
+    // Невалідний стан — окрема помилка (400), щоб клієнт розрізняв «погане значення» і «нема продукту».
     public async Task<bool> SetStockStateAsync(int userId, int productId, string state)
     {
-        if (state is not ("Available" or "RunningLow" or "OutOfStock")) return false;
-        var exists = await _db.Products.AnyAsync(p => p.Id == productId);
-        if (!exists) return false;
+        if (state is not ("Available" or "RunningLow" or "OutOfStock")) throw new BadInputException("invalid_stock");
+        // Дозволено лише системні продукти або власні продукти користувача: чужий приватний productId
+        // не можна ні редагувати, ні «підтягнути» у свій огляд (IDOR на запаси).
+        var allowed = await _db.Products.AnyAsync(p => p.Id == productId && (p.IsSystem || p.CreatedByUserId == userId));
+        if (!allowed) return false;
 
         var item = await _db.StockItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId);
         if (item is null)
@@ -181,12 +193,47 @@ public class RecipeService
         return new AddStockByNameResult(product.Id, product.NameUk, product.NameEn, created, alreadyInStock);
     }
 
+    // Чи є рецепт ЗАБОРОНЕНИМ для користувача за його жорсткими правилами (RuleEngine) — та сама
+    // логіка, що й у /overview, але для однієї страви. Потрібно, щоб заборону стерегти на сервері
+    // (не можна обрати/приготувати заборонену страву), а не лише ховати її в UI (spec §2.3/§4.6).
+    private async Task<bool> IsRecipeForbiddenAsync(int userId, int recipeId)
+    {
+        var prefs = await _db.UserTagPreferences
+            .Include(p => p.Tag)
+            .Where(p => p.UserId == userId && (p.Relation == "Forbidden" || p.Relation == "Avoid"))
+            .ToListAsync();
+        if (prefs.Count == 0) return false; // немає обмежень — нема що забороняти
+
+        var recipe = await _db.Recipes.Include(r => r.Ingredients).FirstOrDefaultAsync(r => r.Id == recipeId);
+        if (recipe is null) return false;
+
+        var restrictions = prefs
+            .Where(p => p.Tag != null)
+            .Select(p => new RuleEvaluator.Restriction(p.TagId, p.Tag!.Key, p.Relation))
+            .ToList();
+
+        var parentById = (await _db.Tags.ToListAsync()).ToDictionary(t => t.Id, t => t.ParentId);
+        var productIds = recipe.Ingredients.Select(i => i.ProductId).Distinct().ToList();
+        var aggregatedTags = await _db.Products
+            .Where(p => productIds.Contains(p.Id))
+            .Include(p => p.Tags)
+            .SelectMany(p => p.Tags.Where(t => t.Value != "No").Select(t => t.TagId))
+            .ToListAsync();
+
+        var expanded = TagMatcher.ExpandWithAncestors(aggregatedTags, parentById);
+        return RuleEvaluator.Evaluate(expanded, restrictions).Forbidden != null;
+    }
+
     // ---- Обрані страви (SelectedDish) ------------------------------------------
 
     public async Task<bool> ToggleSelectedAsync(int userId, int recipeId, bool selected)
     {
         var exists = await _db.Recipes.AnyAsync(r => r.Id == recipeId);
         if (!exists) return false;
+
+        // Обрати заборонену страву не можна (стережемо на сервері). Зняти вибір — завжди можна.
+        if (selected && await IsRecipeForbiddenAsync(userId, recipeId))
+            throw new BadInputException("recipe_forbidden");
 
         var current = await _db.SelectedDishes.FirstOrDefaultAsync(x => x.UserId == userId && x.RecipeId == recipeId);
         if (selected && current is null)
@@ -206,6 +253,10 @@ public class RecipeService
     {
         var exists = await _db.Recipes.AnyAsync(r => r.Id == recipeId);
         if (!exists) return false;
+
+        // Позначити приготованою заборонену страву не можна (та сама серверна точка перевірки).
+        if (await IsRecipeForbiddenAsync(userId, recipeId))
+            throw new BadInputException("recipe_forbidden");
 
         var state = await _db.UserRecipeStates.FirstOrDefaultAsync(x => x.UserId == userId && x.RecipeId == recipeId);
         if (state is null)
