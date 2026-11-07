@@ -134,6 +134,22 @@ public class ShoppingService
             throw new BadInputException("invalid_product");
         if (medicineId is int mid && !await _db.Medicines.AnyAsync(m => m.Id == mid))
             throw new BadInputException("invalid_medicine");
+
+        // Дедуп: та сама позиція (продукт / ліки / однаковий текст), ще не відмічена, вже є у списку —
+        // не плодимо дубль і повертаємо наявний Id. Інакше повторне «нема в запасі» в Їжі чи повторний
+        // клік додавали б копії тієї самої позиції (ПЛАН P2-9). Відмічені (куплені) не рахуємо — їх
+        // можна додати знову для наступного походу.
+        var customText = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+        ShoppingItem? duplicate = null;
+        if (productId is int dpid)
+            duplicate = await _db.ShoppingItems.FirstOrDefaultAsync(x => x.UserId == userId && !x.IsChecked && x.ProductId == dpid);
+        else if (medicineId is int dmid)
+            duplicate = await _db.ShoppingItems.FirstOrDefaultAsync(x => x.UserId == userId && !x.IsChecked && x.MedicineId == dmid);
+        else if (customText is not null)
+            duplicate = await _db.ShoppingItems.FirstOrDefaultAsync(x =>
+                x.UserId == userId && !x.IsChecked && x.ProductId == null && x.MedicineId == null && x.CustomText == customText);
+        if (duplicate is not null) return duplicate.Id;
+
         Limits.Ensure(await _db.ShoppingItems.CountAsync(i => i.UserId == userId), Limits.ShoppingItems, "shopping_items");
 
         var item = new ShoppingItem
@@ -143,7 +159,7 @@ public class ShoppingService
             Category = category,
             ProductId = productId,
             MedicineId = medicineId,
-            CustomText = string.IsNullOrWhiteSpace(text) ? null : text.Trim(),
+            CustomText = customText,
             Source = source,
             SourceEntityId = sourceEntityId,
         };
@@ -299,6 +315,13 @@ public class ShoppingService
     // посиланням на модуль списку, щоб із картки задачі відкрити екран списку з чекбоксами.
     public async Task<int> PlanTripAsync(int userId)
     {
+        // Ідемпотентно: якщо вже є відкрита (не завершена) задача-похід у магазин — повертаємо її,
+        // а не плодимо дублі при кожному повторному кліку (ПЛАН P2-9). Похід у магазин по суті один:
+        // той самий список, та сама задача, доки її не завершили/видалили.
+        var existing = await _db.Tasks.FirstOrDefaultAsync(t =>
+            t.UserId == userId && t.SourceModule == "shopping" && t.RecurrenceRuleId == null && t.Status != "Done");
+        if (existing is not null) return existing.Id;
+
         var task = await _taskService.CreateTaskAsync(
             userId, "Купити за списком", null, null, null, null,
             moduleCode: "shopping", sourceModule: "shopping", sourceEntityId: 0);

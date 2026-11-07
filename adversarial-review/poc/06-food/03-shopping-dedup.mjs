@@ -1,7 +1,8 @@
-// §9 🔴 Shopping-list duplicates from stock toggling, and §8 🟡 productId not validated.
-// handleStockState (Food.jsx:160-177): every OutOfStock unconditionally calls addShoppingItem,
-// no inShopping check, and ShoppingService.AddItemAsync (ShoppingService.cs:122-143) always INSERTs
-// a new row (no dedup) and never validates that productId exists or belongs to the user.
+// §9 (fixed, ПЛАН P2-9) — Shopping-list dedup + §8 productId validation.
+// AddItemAsync now dedups: an unchecked item with the same (user, productId) is not duplicated —
+// repeated OutOfStock toggles leave exactly ONE Groceries row. A non-existent/foreign productId is
+// rejected with 400 invalid_product (P2-2 guard), not a raw 500 FK violation.
+// Was: 5 toggles -> 5 identical rows; bogus productId -> 500.
 //
 // Run: node 03-shopping-dedup.mjs
 import { provision, api } from '../_lib/provision.mjs'
@@ -33,10 +34,9 @@ const ghostRow = (list.items || []).find((i) => i.productId === ghost)
 console.log(`Add bogus productId=${ghost}: HTTP ${addGhost.status}, row present=${!!ghostRow} name="${ghostRow?.displayNameUk}"`)
 
 const dupCount = countGroceries((await api('GET', '/api/shopping-list', { token: U.token })).json)
-const confirmed = dupCount >= 5
-console.log('\n' + (confirmed
-  ? `CONFIRMED (dedup): ${dupCount} duplicate Groceries rows after 5 OutOfStock toggles. AddItemAsync never dedups; handleStockState skips the inShopping check on the OutOfStock path. Expected: dedup by (user,product,unchecked).`
-  : `NOT CONFIRMED dedup (dup=${dupCount})`))
-console.log(addGhost.status === 500
-  ? `SECONDARY (productId validation): bogus productId ${ghost} -> HTTP 500 (unhandled DB FK violation, no graceful 400). AddItemAsync does not pre-validate productId; data integrity saved only by the FK constraint.`
-  : `productId ${ghost} -> HTTP ${addGhost.status}`)
+console.log('\n' + (dupCount === 1
+  ? `REFUTED (dedup): exactly 1 Groceries row for pid=${pid} after 5 OutOfStock toggles. AddItemAsync dedups by (user, product, unchecked).`
+  : `CONFIRMED (dedup): ${dupCount} rows after 5 toggles (expected 1).`))
+console.log(addGhost.status === 400 && !ghostRow
+  ? `REFUTED (productId validation): bogus productId ${ghost} -> HTTP 400 invalid_product, no row inserted (graceful, not a 500 FK crash).`
+  : `CONFIRMED (productId validation): bogus productId ${ghost} -> HTTP ${addGhost.status}, row present=${!!ghostRow}.`)
