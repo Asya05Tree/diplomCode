@@ -57,13 +57,10 @@ public class FinanceService
 
     public async Task<FinanceDto> GetAsync(int userId)
     {
+        // GET не повинен писати в БД (ПЛАН P2-3): якщо рахунку ще нема — баланс 0, без створення рядка.
+        // Рахунок створиться лінуво при першому SetBalanceAsync (PUT).
         var account = await _db.FinanceAccounts.FindAsync(userId);
-        if (account is null)
-        {
-            account = new FinanceAccount { UserId = userId, Balance = 0 };
-            _db.FinanceAccounts.Add(account);
-            await _db.SaveChangesAsync();
-        }
+        var balance = account?.Balance ?? 0m;
 
         var limits = await _db.FinanceLimits
             .Where(x => x.UserId == userId)
@@ -92,7 +89,7 @@ public class FinanceService
             .Select(x => x.CategoryKey)
             .ToListAsync();
 
-        return new FinanceDto(account.Balance, limits, transactions, categoryNets, hidden);
+        return new FinanceDto(balance, limits, transactions, categoryNets, hidden);
     }
 
     // Тижнева динаміка за місяць: кошики днів 1–7 / 8–14 / 15–21 / 22–кінець — окремо витрати,
@@ -157,7 +154,7 @@ public class FinanceService
             limit = new FinanceLimit { UserId = userId, PeriodType = periodType };
             _db.FinanceLimits.Add(limit);
         }
-        limit.Amount = amount;
+        limit.Amount = ClampMoney(amount); // ліміт — теж гроші: без від'ємних/абсурдних значень (ПЛАН P2-5)
         await _db.SaveChangesAsync();
         return true;
     }
@@ -223,6 +220,7 @@ public class FinanceService
     {
         if (string.IsNullOrWhiteSpace(categoryKey)) return false;
         var key = categoryKey.Trim();
+        if (!CategoryKeys.Contains(key)) return false; // ховати можна лише відому категорію (ПЛАН P2-5)
         var existing = await _db.FinanceHiddenCategories
             .FirstOrDefaultAsync(x => x.UserId == userId && x.CategoryKey == key);
         if (hidden)

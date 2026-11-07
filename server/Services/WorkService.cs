@@ -82,13 +82,9 @@ public class WorkService
 
     public async Task<SettingsDto> GetSettingsAsync(int userId)
     {
-        var s = await _db.WorkSettings.FindAsync(userId);
-        if (s is null)
-        {
-            s = new WorkSettings { UserId = userId };
-            _db.WorkSettings.Add(s);
-            await _db.SaveChangesAsync();
-        }
+        // GET не повинен писати в БД (ПЛАН P2-3): якщо профілю ще нема — віддаємо дефолти з
+        // тимчасового об'єкта, не зберігаючи його. Рядок створиться при першому збереженні.
+        var s = await _db.WorkSettings.FindAsync(userId) ?? new WorkSettings { UserId = userId };
         return new SettingsDto(s.JobName, s.Position, s.Employer, s.PayType, s.Rate,
             s.Regime, s.Workplace, s.NormHours, s.FullRateRetained, s.ExtraVacationDays);
     }

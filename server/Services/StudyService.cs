@@ -55,6 +55,8 @@ public class StudyService
         if (s is null)
         {
             // Дефолти навчального року: якщо зараз вересень+ — рік поточний, інакше попередній.
+            // GET не пише в БД (ПЛАН P2-3): дефолти віддаються з тимчасового об'єкта, рядок створиться
+            // при першому збереженні (клієнт повертає ці ж дати в UpdateSettingsAsync).
             var today = DateOnly.FromDateTime(DateTime.Today);
             var startYear = today.Month >= 9 ? today.Year : today.Year - 1;
             s = new StudySettings
@@ -65,8 +67,6 @@ public class StudyService
                 SemesterEnd = new DateOnly(startYear, 12, 31),
                 YearEnd = new DateOnly(startYear + 1, 5, 31),
             };
-            _db.StudySettings.Add(s);
-            await _db.SaveChangesAsync();
         }
         return ToSettingsDto(s);
     }
