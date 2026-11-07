@@ -512,7 +512,17 @@ public class TaskService
         if (cascadeSource && task.SourceModule == "media" && task.SourceEntityId.HasValue)
         {
             var media = await _db.MediaItems.FirstOrDefaultAsync(m => m.Id == task.SourceEntityId.Value && m.UserId == userId);
-            if (media is not null) _db.MediaItems.Remove(media);
+            if (media is not null)
+            {
+                // Разом із книгою прибираємо і її подію-нагадування про повернення — інакше вона
+                // лишається в календарі без книги-власника (осиротіле нагадування, ПЛАН P2-8).
+                if (media.ReturnTaskId.HasValue)
+                {
+                    var returnTask = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == media.ReturnTaskId.Value && t.UserId == userId);
+                    if (returnTask is not null) _db.Tasks.Remove(returnTask);
+                }
+                _db.MediaItems.Remove(media);
+            }
         }
 
         _db.Tasks.Remove(task);

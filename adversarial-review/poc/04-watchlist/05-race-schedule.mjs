@@ -1,6 +1,8 @@
-// §11 — race on /schedule: no transaction/lock. Two parallel schedules on one
-// planned item can both pass the Status=="planned" check, create TWO calendar
-// events; item.TaskId is overwritten by the 2nd -> first event orphans.
+// §11 (fixed, ПЛАН P2-8) — race on /schedule. The item is now claimed atomically
+// (planned -> in_progress via a conditional UPDATE inside a transaction) before the
+// calendar event is created, so only ONE of N parallel schedules wins (200) and exactly
+// ONE event exists; the rest get 400 already_scheduled. No orphaned events.
+// Was: N parallel -> N events, item.TaskId overwritten, N-1 orphans.
 import { provision, api } from '../_lib/provision.mjs'
 import { db } from './_db.mjs'
 
@@ -30,4 +32,6 @@ console.log(`Orphaned events (not referenced by item.TaskId): ${orphaned.length}
 console.log('\n==== RESULT ====')
 console.log(events.length > 1
   ? `CONFIRMED: ${events.length} reading events from one item; ${orphaned.length} orphaned (TOCTOU, no lock/transaction)`
-  : 'REFUTED: only one event created (race did not win this run — retry)')
+  : (events.length === 1 && ok === 1 && orphaned.length === 0
+    ? `REFUTED: ${N} parallel schedules -> exactly 1 won (200), ${N - 1} got 400, exactly 1 calendar event, 0 orphans. Atomic claim held.`
+    : `unexpected (events=${events.length}, 200s=${ok}, orphans=${orphaned.length}) — investigate`))

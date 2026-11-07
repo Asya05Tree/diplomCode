@@ -152,6 +152,10 @@ public class MediaController : ControllerBase
         var title = Clean(request.Title, TitleMax);
         if (title is null) return BadRequest(new { error = "missing_title" });
 
+        // Дедлайн повернення не може бути в минулому — інакше книга стала б боргом одразу (ПЛАН P2-8).
+        if (kind == "book" && request.IsLibrary && request.ReturnDeadline is { } addDl && addDl.Date < DateTime.Today)
+            return BadRequest(new { error = "past_deadline" });
+
         Limits.Ensure(await _db.MediaItems.CountAsync(x => x.UserId == CurrentUserId), Limits.MediaItems, "media_items");
 
         var item = new MediaItem
@@ -178,9 +182,26 @@ public class MediaController : ControllerBase
     [HttpPost("{id}/schedule")]
     public async Task<IActionResult> Schedule(int id, [FromBody] ScheduleMediaRequest request)
     {
-        var item = await _db.MediaItems.FirstOrDefaultAsync(x => x.Id == id && x.UserId == CurrentUserId);
-        if (item is null) return NotFound();
-        if (item.Status != "planned") return BadRequest(new { error = "already_scheduled" });
+        // Дату перегляду/читання не можна ставити в минуле (клієнтський min= — єдиний захист досі) — ПЛАН P2-8.
+        if (request.StartDateTime.Date < DateTime.Today) return BadRequest(new { error = "past_date" });
+
+        // Атомарно «займаємо» елемент: planned → in_progress одним UPDATE у транзакції. Лише той запит,
+        // що реально змінив рядок (claimed==1), створює подію календаря. Інакше паралельні /schedule усі
+        // проходили б перевірку Status=="planned" і плодили дублі-події, а item.TaskId перетирався б —
+        // осиротілі події (TOCTOU, ПЛАН P2-8). Рядковий лок тримається до коміту, тож решта бачать уже
+        // in_progress і отримують already_scheduled. Транзакція ще й відкочує все, якщо CreateTask кине.
+        await using var tx = await _db.Database.BeginTransactionAsync();
+        var claimed = await _db.MediaItems
+            .Where(x => x.Id == id && x.UserId == CurrentUserId && x.Status == "planned")
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "in_progress"));
+        if (claimed == 0)
+        {
+            await tx.RollbackAsync();
+            var exists = await _db.MediaItems.AnyAsync(x => x.Id == id && x.UserId == CurrentUserId);
+            return exists ? BadRequest(new { error = "already_scheduled" }) : NotFound();
+        }
+
+        var item = await _db.MediaItems.FirstAsync(x => x.Id == id && x.UserId == CurrentUserId);
 
         // Вид/жанр можна доввести саме під час планування (поле необовʼязкове в "У планах").
         var g = CleanGenre(item.Kind, request.Genre);
@@ -199,8 +220,8 @@ public class MediaController : ControllerBase
 
         item.TaskId = task.Id;
         item.StartDate = request.StartDateTime;
-        item.Status = "in_progress";
         await _db.SaveChangesAsync();
+        await tx.CommitAsync();
         return Ok(ToDto(item));
     }
 
@@ -251,6 +272,12 @@ public class MediaController : ControllerBase
 
         var title = Clean(request.Title, TitleMax);
         if (title is null) return BadRequest(new { error = "missing_title" });
+
+        // Дедлайн не можна ВСТАНОВИТИ в минуле. Уже протермінований незмінний дедлайн лишаємо —
+        // борг виникає природно з часом, а редагувати інші поля простроченої книги треба можна (ПЛАН P2-8).
+        if (item.Kind == "book" && request.IsLibrary && request.ReturnDeadline is { } updDl
+            && updDl.Date < DateTime.Today && updDl.Date != item.ReturnDeadline?.Date)
+            return BadRequest(new { error = "past_deadline" });
 
         item.Title = title;
         item.Author = item.Kind == "book" ? Clean(request.Author, AuthorMax) : null;
