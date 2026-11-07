@@ -29,6 +29,7 @@ public class CheckupService
 
     public async Task<int> AddVisitAsync(int userId, string doctorKey, string doctorName, DateTime when, string? place, string? note)
     {
+        Limits.Ensure(await _db.HealthVisits.CountAsync(v => v.UserId == userId), Limits.HealthVisits, "health_visits");
         var visit = new HealthVisit
         {
             UserId = userId,

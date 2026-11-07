@@ -87,6 +87,7 @@ public class CycleService
 
     public async Task<int> AddRecordAsync(int userId, DateOnly startDate)
     {
+        Limits.Ensure(await _db.CycleRecords.CountAsync(r => r.UserId == userId), Limits.CycleRecords, "cycle_records");
         var record = new CycleRecord { UserId = userId, StartDate = startDate };
         _db.CycleRecords.Add(record);
         await _db.SaveChangesAsync();

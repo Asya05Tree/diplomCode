@@ -143,6 +143,8 @@ public class MediaController : ControllerBase
         var title = Clean(request.Title, TitleMax);
         if (title is null) return BadRequest(new { error = "missing_title" });
 
+        Limits.Ensure(await _db.MediaItems.CountAsync(x => x.UserId == CurrentUserId), Limits.MediaItems, "media_items");
+
         var item = new MediaItem
         {
             UserId = CurrentUserId,

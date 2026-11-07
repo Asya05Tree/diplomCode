@@ -12,7 +12,19 @@ export async function getHealth() {
 // email_taken, invalid_code...), щоб форма могла показати конкретний переклад, а не загальну фразу.
 export async function throwApiError(response) {
   const body = await response.json().catch(() => null)
-  throw new Error(body?.error ?? `request_failed_${response.status}`)
+  const code = body?.error ?? `request_failed_${response.status}`
+  // Досягнуто ліміту кількості записів (будь-яка вкладка) — одразу кажемо користувачу, що більше
+  // додати не можна, незалежно від того, чи конкретна сторінка показує помилку сама.
+  if (code === 'record_limit_reached') notifyLimitReached(body?.limit)
+  throw new Error(code)
+}
+
+function notifyLimitReached(limit) {
+  const lang = localStorage.getItem('settings:language') === 'en' ? 'en' : 'uk'
+  const msg = lang === 'en'
+    ? `Record limit reached${limit ? ` (max ${limit})` : ''}. Delete some entries before adding new ones.`
+    : `Досягнуто ліміту кількості записів${limit ? ` (максимум ${limit})` : ''}. Видаліть зайве, щоб додати нове.`
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(msg)
 }
 
 export async function sendCode(email, nickname) {

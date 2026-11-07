@@ -108,6 +108,7 @@ public class StudyService
 
     public async Task<int> AddSubjectAsync(int userId, SubjectDto dto)
     {
+        Limits.Ensure(await _db.StudySubjects.CountAsync(x => x.UserId == userId), Limits.StudySubjects, "study_subjects");
         var subject = new StudySubject
         {
             UserId = userId,
@@ -172,6 +173,7 @@ public class StudyService
     public async Task<int> AddAssignmentAsync(int userId, int? subjectId, string type, string description,
         string deadlineKind, DateOnly? dueDate, bool isDone, decimal? grade)
     {
+        Limits.Ensure(await _db.StudyAssignments.CountAsync(x => x.UserId == userId), Limits.StudyAssignments, "study_assignments");
         var assignment = new StudyAssignment
         {
             UserId = userId,
@@ -285,6 +287,8 @@ public class StudyService
     public async Task<int> AddScheduleEntryAsync(int userId, string entryKind, int? subjectId, string? name,
         string? sessionKind, int? pairNumber, string? form, string? room, string? link, Recurrence rec)
     {
+        Limits.Ensure(await _db.StudyScheduleEntries.CountAsync(x => x.UserId == userId),
+            Limits.StudyScheduleEntries, "study_schedule");
         var subject = subjectId is int sid
             ? await _db.StudySubjects.FirstOrDefaultAsync(x => x.Id == sid && x.UserId == userId)
             : null;
@@ -401,6 +405,7 @@ public class StudyService
     public async Task<int> AddProjectAsync(int userId, string kind, string name, string? curator,
         string? deadlineKind, DateOnly? dueDate)
     {
+        Limits.Ensure(await _db.StudyProjects.CountAsync(x => x.UserId == userId), Limits.StudyProjects, "study_projects");
         var project = new StudyProject
         {
             UserId = userId,
@@ -441,6 +446,8 @@ public class StudyService
     {
         var owns = await _db.StudyProjects.AnyAsync(x => x.Id == projectId && x.UserId == userId);
         if (!owns) return null;
+        Limits.Ensure(await _db.StudyProjectSteps.CountAsync(s => s.ProjectId == projectId),
+            Limits.StudyStepsPerProject, "study_steps");
         var step = new StudyProjectStep { ProjectId = projectId, Name = name.Trim(), StartDate = start, EndDate = end, IsDone = isDone };
         _db.StudyProjectSteps.Add(step);
         await _db.SaveChangesAsync();

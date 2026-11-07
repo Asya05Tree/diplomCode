@@ -139,6 +139,8 @@ public class FinanceService
         if (type is not ("Income" or "Expense")) return null;
         amount = ClampMoney(amount);
         if (amount <= 0) return null; // нульові/відʼємні операції не додаємо
+        Limits.Ensure(await _db.FinanceTransactions.CountAsync(t => t.UserId == userId),
+            Limits.FinanceTransactions, "finance_transactions");
         var tx = new FinanceTransaction
         {
             UserId = userId,

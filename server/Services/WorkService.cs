@@ -136,6 +136,7 @@ public class WorkService
 
     public async Task<int> AddShiftTypeAsync(int userId, ShiftTypeDto dto)
     {
+        Limits.Ensure(await _db.WorkShiftTypes.CountAsync(x => x.UserId == userId), Limits.WorkShiftTypes, "work_shift_types");
         var type = new WorkShiftType
         {
             UserId = userId,
@@ -238,6 +239,9 @@ public class WorkService
     {
         var type = await _db.WorkShiftTypes.FirstOrDefaultAsync(x => x.Id == shiftTypeId && x.UserId == userId);
         if (type is null) return null;
+
+        Limits.Ensure(await _db.WorkShiftEntries.CountAsync(x => x.UserId == userId),
+            Limits.WorkScheduleEntries, "work_schedule");
 
         // Час правила = початок зміни, тож подія стає на початок зміни; опис — проміжок часу
         var rule = await _taskService.CreateRecurrenceRuleAsync(userId, type.Name, BuildShiftDescription(type), null,
@@ -342,6 +346,7 @@ public class WorkService
 
     public async Task<int> AddContactAsync(int userId, ContactDto dto)
     {
+        Limits.Ensure(await _db.WorkContacts.CountAsync(x => x.UserId == userId), Limits.WorkContacts, "work_contacts");
         var c = new WorkContact
         {
             UserId = userId,
@@ -397,6 +402,7 @@ public class WorkService
 
     public async Task<int> AddLeaveAsync(int userId, LeaveDto dto)
     {
+        Limits.Ensure(await _db.WorkLeaves.CountAsync(x => x.UserId == userId), Limits.WorkLeaves, "work_leaves");
         var (start, end) = OrderDates(dto.StartDate, dto.EndDate);
         var l = new WorkLeave
         {
@@ -444,6 +450,7 @@ public class WorkService
 
     public async Task<int> AddMeetingAsync(int userId, string withWhom, DateTime when, string? place)
     {
+        Limits.Ensure(await _db.WorkMeetings.CountAsync(x => x.UserId == userId), Limits.WorkMeetings, "work_meetings");
         var meeting = new WorkMeeting { UserId = userId, WithWhom = withWhom.Trim(), When = when, Place = Trim(place) };
         _db.WorkMeetings.Add(meeting);
         await _db.SaveChangesAsync(); // потрібен Id для посилання задачі на зустріч
@@ -496,6 +503,7 @@ public class WorkService
 
     public async Task<int> AddObligationAsync(int userId, string title, string? note, DateOnly? dueDate)
     {
+        Limits.Ensure(await _db.WorkObligations.CountAsync(x => x.UserId == userId), Limits.WorkObligations, "work_obligations");
         var o = new WorkObligation { UserId = userId, Title = title.Trim(), Note = Trim(note), DueDate = dueDate };
         _db.WorkObligations.Add(o);
         await _db.SaveChangesAsync();
@@ -538,6 +546,7 @@ public class WorkService
 
     public async Task<int> AddProcessTaskAsync(int userId, string title, string? note, string status, DateOnly? dueDate)
     {
+        Limits.Ensure(await _db.WorkProcessTasks.CountAsync(x => x.UserId == userId), Limits.WorkProcessTasks, "work_process");
         var p = new WorkProcessTask
         {
             UserId = userId,

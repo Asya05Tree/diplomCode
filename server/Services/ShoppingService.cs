@@ -125,6 +125,7 @@ public class ShoppingService
         if (section is not ("Groceries" or "Pharmacy" or "Household" or "Cosmetics" or "Stationery" or "Pets" or "Other")) return null;
         // Має бути рівно одне джерело назви: продукт, ліки або довільний текст
         if (productId is null && medicineId is null && string.IsNullOrWhiteSpace(text)) return null;
+        Limits.Ensure(await _db.ShoppingItems.CountAsync(i => i.UserId == userId), Limits.ShoppingItems, "shopping_items");
 
         var item = new ShoppingItem
         {

@@ -180,6 +180,7 @@ public class MedicineService
         var already = await _db.UserMedicines.AnyAsync(x => x.UserId == userId && x.MedicineId == medicineId);
         if (already) return true;
 
+        Limits.Ensure(await _db.UserMedicines.CountAsync(x => x.UserId == userId), Limits.UserMedicines, "user_medicines");
         _db.UserMedicines.Add(new UserMedicine { UserId = userId, MedicineId = medicineId, State = "Available" });
         await _db.SaveChangesAsync();
         return true;
@@ -277,6 +278,7 @@ public class MedicineService
 
     public async Task<ConditionDto> AddConditionAsync(int userId, string nameUk, bool affectsFood, string? tag, string relation)
     {
+        Limits.Ensure(await _db.UserConditions.CountAsync(c => c.UserId == userId), Limits.ChronicConditions, "chronic_conditions");
         var rel = relation == "Forbidden" ? "Forbidden" : "Avoid";
         int? tagId = null;
         string? tagKey = null;

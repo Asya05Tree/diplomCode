@@ -31,7 +31,7 @@ public class ApiExceptionMiddleware
             {
                 ctx.Response.Clear();
                 ctx.Response.StatusCode = StatusCodes.Status409Conflict;
-                await ctx.Response.WriteAsJsonAsync(new { error = "limit_reached", entity = ex.Entity, limit = ex.Limit });
+                await ctx.Response.WriteAsJsonAsync(new { error = "record_limit_reached", entity = ex.Entity, limit = ex.Limit });
             }
         }
     }

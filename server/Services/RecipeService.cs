@@ -127,6 +127,7 @@ public class RecipeService
         var item = await _db.StockItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId);
         if (item is null)
         {
+            Limits.Ensure(await _db.StockItems.CountAsync(x => x.UserId == userId), Limits.StockItems, "stock_items");
             item = new StockItem { UserId = userId, ProductId = productId };
             _db.StockItems.Add(item);
         }
@@ -158,6 +159,7 @@ public class RecipeService
         var created = false;
         if (product is null)
         {
+            Limits.Ensure(await _db.Products.CountAsync(p => p.CreatedByUserId == userId), Limits.FoodProducts, "food_products");
             product = new Product { NameUk = clean, NameEn = clean, StorageGroup = string.Empty, IsSystem = false, CreatedByUserId = userId };
             _db.Products.Add(product);
             await _db.SaveChangesAsync(); // отримати Id
@@ -168,6 +170,7 @@ public class RecipeService
         var alreadyInStock = item is not null && item.State != "OutOfStock";
         if (item is null)
         {
+            Limits.Ensure(await _db.StockItems.CountAsync(x => x.UserId == userId), Limits.StockItems, "stock_items");
             item = new StockItem { UserId = userId, ProductId = product.Id };
             _db.StockItems.Add(item);
         }
@@ -187,7 +190,10 @@ public class RecipeService
 
         var current = await _db.SelectedDishes.FirstOrDefaultAsync(x => x.UserId == userId && x.RecipeId == recipeId);
         if (selected && current is null)
+        {
+            Limits.Ensure(await _db.SelectedDishes.CountAsync(x => x.UserId == userId), Limits.SelectedDishes, "selected_dishes");
             _db.SelectedDishes.Add(new SelectedDish { UserId = userId, RecipeId = recipeId });
+        }
         else if (!selected && current is not null)
             _db.SelectedDishes.Remove(current);
         await _db.SaveChangesAsync();
