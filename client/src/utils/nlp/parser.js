@@ -51,6 +51,8 @@ export function mergeDicts(dicts) {
     lessonMarkers: [], teacherMarkers: [], linkWords: [], noneWords: [],
     afterMarkers: [], numberWords: {}, durationUnits: {}, deadlineMarkers: [], byThenMarkers: [],
     verbs: [], subjectWords: [], stockMarkers: [], stockStopWords: [], stockVerbs: [],
+    currencyWords: [], negationWords: [], conditionalWords: [],
+    shoppingListMarkers: [], shoppingListVerbs: [],
   }
   for (const d of dicts) {
     merged.delimiters.push(...(d.delimiters || []))
@@ -83,6 +85,11 @@ export function mergeDicts(dicts) {
     merged.stockMarkers.push(...(d.stockMarkers || []))
     merged.stockStopWords.push(...(d.stockStopWords || []))
     merged.stockVerbs.push(...(d.stockVerbs || []))
+    merged.currencyWords.push(...(d.currencyWords || []))
+    merged.negationWords.push(...(d.negationWords || []))
+    merged.conditionalWords.push(...(d.conditionalWords || []))
+    merged.shoppingListMarkers.push(...(d.shoppingListMarkers || []))
+    merged.shoppingListVerbs.push(...(d.shoppingListVerbs || []))
     // Коди модулів беремо з самих словників — додати модуль = дописати ключ у dict.*.js.
     for (const key of Object.keys(d.modules || {})) {
       merged.modules[key] = merged.modules[key] || []
@@ -149,10 +156,18 @@ function buildMatchers(m, now) {
   const domWords = alt(m.dayOfMonthWords)
   const ord = alt(m.ordinalSuffixes)
   const ordWords = alt(Object.keys(m.ordinalWords))
-  const afterMark = alt(m.afterMarkers)
+  const afterMark = alt([...m.afterMarkers, ...m.nextWeekMarkers])
   const numWords = alt(Object.keys(m.numberWords))
   const units = alt(Object.keys(m.durationUnits))
+  const curr = alt(m.currencyWords)
   const nextSet = new Set(m.nextWeekMarkers.map((w) => w.toLowerCase()))
+  const normCurrency = (c) => {
+    const s = (c || '').toLowerCase()
+    if (/грн|₴|uah|гривн|грв/.test(s)) return 'UAH'
+    if (/\$|usd|dollar|долар|дол/.test(s)) return 'USD'
+    if (/€|eur|євро|euro/.test(s)) return 'EUR'
+    return s.toUpperCase()
+  }
 
   const applyMeridiem = (hour, suffix) => {
     const s = (suffix || '').toLowerCase()
@@ -227,19 +242,35 @@ function buildMatchers(m, now) {
         return { dateStr: resolveDayOfMonth(day, now) }
       },
     },
-    // 4в) "через N одиниць" ("через два тижні", "in 3 days"). Потребує одиниці — тому
-    //     "in 6 o'clock" сюди не потрапляє (там немає день/тиждень/місяць).
+    // 4в) "через N одиниць" ("через два тижні", "in 3 days") та "через тиждень"/"next week"
+    //     БЕЗ числа (→ N=1). Число опційне; дозволяємо артикль ("in a week"). Потребує одиниці,
+    //     тому "in 6 o'clock" сюди не потрапляє. "next friday" теж ні — там немає одиниці (QA-08).
     {
       type: 'date', priority: 72,
-      re: () => new RegExp(`${BB}(?:${afterMark})\\s+(\\d{1,2}|${numWords})\\s+(${units})${BE}`, 'giu'),
+      re: () => new RegExp(`${BB}(?:${afterMark})\\s+(?:(\\d{1,2}|${numWords})\\s+|(?:a|an|the|один|одну|одне)\\s+)?(${units})${BE}`, 'giu'),
       read: (mm) => {
-        const nRaw = mm[1].toLowerCase()
-        const n = /^\d+$/.test(nRaw) ? Number(nRaw) : m.numberWords[nRaw]
+        const nRaw = (mm[1] || '').toLowerCase()
+        const n = nRaw ? (/^\d+$/.test(nRaw) ? Number(nRaw) : m.numberWords[nRaw]) : 1
         const unit = m.durationUnits[mm[2].toLowerCase()]
         if (!n || !unit) return null
         const days = n * unit
         // anchorDays/isWeekAnchor — щоб далі скомбінувати "через N тижнів" із днем тижня.
         return { dateStr: resolveRelative(days, now), anchorDays: days, isWeekAnchor: unit === 7 }
+      },
+    },
+    // 4г) Сума з валютою ("500 грн", "₴500", "$100"). Вище за голе число/дату, щоб "500 грн"
+    //     читалось як гроші. Нормалізуємо код валюти; вирізається з назви (для Фінансів).
+    {
+      type: 'amount', priority: 98,
+      re: () => (m.currencyWords.length
+        ? new RegExp(`${BB}(?:(\\d+(?:[.,]\\d{1,2})?)\\s*(${curr})|(${curr})\\s*(\\d+(?:[.,]\\d{1,2})?))${BE}`, 'giu')
+        : /(?!x)x/g),
+      read: (mm) => {
+        const num = (mm[1] || mm[4] || '').replace(',', '.')
+        const cur = mm[2] || mm[3] || ''
+        const amount = parseFloat(num)
+        if (!amount || amount <= 0) return null
+        return { amount, currency: normCurrency(cur) }
       },
     },
     // 5) Відносні дати ("завтра", "tomorrow").
@@ -335,11 +366,14 @@ function buildTitle(piece, accepted, m) {
 
   // Нормалізація порядку: дієслово в кінці ("до лікаря піти") → наперед ("піти до лікаря").
   // Робимо ДО зрізання країв, щоб прийменник "до" опинився всередині й не зрізався. Один раз,
-  // лише одне кінцеве дієслово, і лише якщо перше слово ще не дієслово.
+  // лише одне кінцеве дієслово, і лише якщо перше слово ще не дієслово. НЕ переставляємо умовні
+  // фрази ("якщо встигну прибрати"): перше слово — умовний сполучник (QA-14).
   if (m.verbs.length) {
     const verbRe = new RegExp(`^(?:${alt(m.verbs)})${L}*$`, 'iu')
+    const condSet = new Set((m.conditionalWords || []).map((w) => w.toLowerCase()))
     const toks = s.split(' ').filter(Boolean)
-    if (toks.length >= 2 && verbRe.test(toks[toks.length - 1]) && !verbRe.test(toks[0])) {
+    if (toks.length >= 2 && verbRe.test(toks[toks.length - 1]) && !verbRe.test(toks[0])
+      && !condSet.has(toks[0].toLowerCase())) {
       s = [toks[toks.length - 1], ...toks.slice(0, -1)].join(' ')
     }
   }

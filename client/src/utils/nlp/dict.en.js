@@ -150,4 +150,14 @@ export default {
 
   // Prepositions/conjunctions — trimmed only at the EDGES of a title.
   edgeWords: ['a', 'an', 'the', 'at', 'on', 'to', 'in', 'of', 'for', 'by', 'and', 'with', 'my', 'me'],
+
+  // Currencies (to capture a finance amount): symbol or word → normalized code in parser.js.
+  currencyWords: ['$', '€', 'usd', 'eur', 'uah', 'грн', 'dollars', 'dollar', 'euro', 'euros', 'hryvnia'],
+
+  // Leading negation ("don't buy milk") — inverts intent: we do NOT create the module entity
+  // (no shopping-list item / no expense), the task stays a plain reminder.
+  negationWords: ["don't", 'dont', 'do not', 'never', "won't", 'wont'],
+
+  // Conditional/subordinating leads — do NOT reorder words (QA-14).
+  conditionalWords: ['if', 'when', 'while', 'unless', 'until', 'after', 'before', 'once'],
 }
