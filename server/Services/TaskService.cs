@@ -41,6 +41,19 @@ public class TaskService
 
     // ---- Розгортання повторень ----------------------------------------------------------
 
+    // Типи правил, які реально вміє розгортати GenerateBaseDates. Інший рядок просто нічого не генерує
+    // (мертве правило), тож приймати його немає сенсу — відхиляємо на вході (залишок 10-work/04).
+    private static readonly string[] RuleTypes = { "WeekCycle", "EveryNDays", "MonthDays", "Manual" };
+
+    // Валідація параметрів повторення. Клієнт шле лише коректні значення, але прямий POST це обходив:
+    // невідомий Type чи EveryNDays з інтервалом ≤0 (або абсурдно великим) приймалися мовчки.
+    private static void ValidateRecurrence(string type, int? intervalDays)
+    {
+        if (!RuleTypes.Contains(type)) throw new BadInputException("invalid_recurrence_type");
+        if (type == "EveryNDays" && intervalDays is not (>= 1 and <= 366))
+            throw new BadInputException("invalid_interval");
+    }
+
     private static int IsoDayOfWeek(DateOnly d) => d.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)d.DayOfWeek;
 
     // "0:1,3|1:4,5" -> {0: {1,3}, 1: {4,5}} (індекс тижня в циклі -> ISO-дні)
@@ -284,8 +297,16 @@ public class TaskService
                 .ToListAsync();
             var templateByRuleId = templates.ToDictionary(t => t.RecurrenceRuleId!.Value);
 
+            // Правила графіка роботи, чий тип зміни деактивовано, не показуємо у спільному календарі —
+            // щоб «вимкнена зміна» зникала й тут, а не лише на вкладці Роботи (§9.4, залишок 10-work/08).
+            var inactiveShiftRuleIds = (await _db.WorkShiftEntries
+                .Where(e => e.UserId == userId && !e.ShiftType!.IsActive)
+                .Select(e => e.RecurrenceRuleId)
+                .ToListAsync()).ToHashSet();
+
             foreach (var rule in rules)
             {
+                if (inactiveShiftRuleIds.Contains(rule.Id)) continue;
                 if (!templateByRuleId.TryGetValue(rule.Id, out var template)) continue;
                 foreach (var dt in GetEffectiveOccurrences(rule, from, to))
                 {
@@ -564,6 +585,7 @@ public class TaskService
         int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern,
         string moduleCode = "tasks")
     {
+        ValidateRecurrence(type, intervalDays);
         // Ліміт правил повторення на користувача.
         Limits.Ensure(await _db.RecurrenceRules.CountAsync(r => r.UserId == userId),
             Limits.RecurrenceRules, "recurrence_rules");
@@ -609,6 +631,7 @@ public class TaskService
         int? cycleWeeks, DateOnly? cycleAnchorDate, string? weekDaysPattern, string? weekDayTimesPattern,
         int? intervalDays, string? monthDayMode, string? monthDays, string? monthDayTimesPattern)
     {
+        ValidateRecurrence(type, intervalDays);
         var rule = await _db.RecurrenceRules.FirstOrDefaultAsync(r => r.Id == ruleId && r.UserId == userId);
         if (rule is null) return false;
         var template = await _db.Tasks.FirstOrDefaultAsync(t => t.RecurrenceRuleId == ruleId);

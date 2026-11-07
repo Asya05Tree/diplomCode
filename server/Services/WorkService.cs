@@ -60,6 +60,19 @@ public class WorkService
 
     private static string? Trim(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
+    // Той самий простий формат пошти, що й на клієнті (ContactsTab): щось@щось.щось без пробілів.
+    private static readonly System.Text.RegularExpressions.Regex EmailRe =
+        new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    // Email контакту: якщо заданий — має бути валідного формату (прямий API приймав будь-який рядок,
+    // залишок 10-work/05). Повертає вже обрізаний рядок або null.
+    private static string? ValidatedEmail(string? raw)
+    {
+        var email = Trim(raw);
+        if (email is not null && !EmailRe.IsMatch(email)) throw new BadInputException("invalid_email");
+        return email;
+    }
+
     // Телефони зберігаються одним рядком через кому: лишаємо до 3 унікальних номерів.
     private static string NormalizePhones(string? raw)
     {
@@ -373,7 +386,7 @@ public class WorkService
             Status = Normalize(dto.Status, new[] { "online", "busy", "offline", "vacation" }, "online"),
             FullName = dto.FullName.Trim(),
             Phone = NormalizePhones(dto.Phone),
-            Email = Trim(dto.Email),
+            Email = ValidatedEmail(dto.Email),
             Birthday = dto.Birthday,
             Socials = Trim(dto.Socials),
             Telegram = Trim(dto.Telegram),
@@ -392,7 +405,7 @@ public class WorkService
         c.Status = Normalize(dto.Status, new[] { "online", "busy", "offline", "vacation" }, "online");
         c.FullName = dto.FullName.Trim();
         c.Phone = NormalizePhones(dto.Phone);
-        c.Email = Trim(dto.Email);
+        c.Email = ValidatedEmail(dto.Email);
         c.Birthday = dto.Birthday;
         c.Socials = Trim(dto.Socials);
         c.Telegram = Trim(dto.Telegram);
@@ -467,8 +480,17 @@ public class WorkService
             .Select(x => new MeetingDto(x.Id, x.WithWhom, x.When, x.Place))
             .ToListAsync();
 
+    // Дата зустрічі має бути в межах здорового глузду: прямий API приймав будь-що (напр. 9999 рік),
+    // що засмічувало спільний календар подією за тисячоліття (залишок 10-work/05).
+    private static void EnsureSaneMeetingDate(DateTime when)
+    {
+        if (when.Year < 2000 || when > DateTime.Now.AddYears(5))
+            throw new BadInputException("invalid_meeting_date");
+    }
+
     public async Task<int> AddMeetingAsync(int userId, string withWhom, DateTime when, string? place)
     {
+        EnsureSaneMeetingDate(when);
         Limits.Ensure(await _db.WorkMeetings.CountAsync(x => x.UserId == userId), Limits.WorkMeetings, "work_meetings");
         var meeting = new WorkMeeting { UserId = userId, WithWhom = withWhom.Trim(), When = when, Place = Trim(place) };
         _db.WorkMeetings.Add(meeting);
@@ -485,6 +507,7 @@ public class WorkService
     {
         var meeting = await _db.WorkMeetings.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (meeting is null) return false;
+        EnsureSaneMeetingDate(when);
         meeting.WithWhom = withWhom.Trim();
         meeting.When = when;
         meeting.Place = Trim(place);
@@ -520,23 +543,22 @@ public class WorkService
             .Select(x => new ObligationDto(x.Id, x.Title, x.Note, x.DueDate, x.IsDone))
             .ToListAsync();
 
-    public async Task<int> AddObligationAsync(int userId, string title, string? note, DateOnly? dueDate)
+    // Зобов'язання — лише назва + опис (дедлайн/статус переїхали у «Планування процесу»).
+    public async Task<int> AddObligationAsync(int userId, string title, string? note)
     {
         Limits.Ensure(await _db.WorkObligations.CountAsync(x => x.UserId == userId), Limits.WorkObligations, "work_obligations");
-        var o = new WorkObligation { UserId = userId, Title = title.Trim(), Note = Trim(note), DueDate = dueDate };
+        var o = new WorkObligation { UserId = userId, Title = title.Trim(), Note = Trim(note) };
         _db.WorkObligations.Add(o);
         await _db.SaveChangesAsync();
         return o.Id;
     }
 
-    public async Task<bool> UpdateObligationAsync(int userId, int id, string title, string? note, DateOnly? dueDate, bool isDone)
+    public async Task<bool> UpdateObligationAsync(int userId, int id, string title, string? note)
     {
         var o = await _db.WorkObligations.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (o is null) return false;
         o.Title = title.Trim();
         o.Note = Trim(note);
-        o.DueDate = dueDate;
-        o.IsDone = isDone;
         await _db.SaveChangesAsync();
         return true;
     }

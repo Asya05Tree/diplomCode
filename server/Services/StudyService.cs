@@ -100,6 +100,15 @@ public class StudyService
     private static string Normalize(string? value, string[] allowed, string fallback) =>
         allowed.Contains(value) ? value! : fallback;
 
+    // Інваріант «школяр ≠ студент» жив лише в UI (studyShared.js): прямий API дозволяв школяреві
+    // створювати студентські типи завдань / великі роботи й навпаки. Переносимо на сервер (залишок
+    // 09-study/02). Набори мають збігатися з PUPIL_/STUDENT_ASSIGNMENT_TYPES на клієнті.
+    private static readonly string[] PupilAssignmentTypes = { "homework" };
+    private static readonly string[] StudentAssignmentTypes = { "lab", "exam", "practical" };
+
+    private async Task<bool> IsPupilAsync(int userId) =>
+        (await _db.UserProfiles.FindAsync(userId))?.StudentType == "pupil";
+
     // ---- Предмети -------------------------------------------------------------
 
     public async Task<List<SubjectDto>> GetSubjectsAsync(int userId) =>
@@ -178,6 +187,9 @@ public class StudyService
         string deadlineKind, DateOnly? dueDate, bool isDone, decimal? grade)
     {
         Limits.Ensure(await _db.StudyAssignments.CountAsync(x => x.UserId == userId), Limits.StudyAssignments, "study_assignments");
+        // Тип завдання має відповідати профілю: школяр — лише homework, студент — lab/exam/practical.
+        var allowedTypes = (await IsPupilAsync(userId)) ? PupilAssignmentTypes : StudentAssignmentTypes;
+        if (!allowedTypes.Contains(type)) throw new BadInputException("invalid_type_for_profile");
         // Предмет має належати користувачу: інакше чужий subjectId зберігався б, а GET /assignments
         // через Include(Subject) зливав би назву предмета й викладача (IDOR-витік крізь join) — виявлено
         // під час регресії P2-10, це справжня IDOR-діра.
@@ -204,6 +216,8 @@ public class StudyService
     {
         var a = await _db.StudyAssignments.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (a is null) return false;
+        var allowedTypes = (await IsPupilAsync(userId)) ? PupilAssignmentTypes : StudentAssignmentTypes;
+        if (!allowedTypes.Contains(type)) throw new BadInputException("invalid_type_for_profile");
         if (subjectId is int usid && !await _db.StudySubjects.AnyAsync(x => x.Id == usid && x.UserId == userId))
             throw new BadInputException("invalid_subject");
         a.SubjectId = subjectId;
@@ -262,6 +276,17 @@ public class StudyService
 
     public async Task ReplaceBellsAsync(int userId, List<BellDto> bells)
     {
+        // ReplaceBells раніше нічого не перевіряв: прямий PUT міг покласти 50 рядків, від'ємні/дубльовані
+        // індекси, кінець раніше початку (залишок 09-study/06). Порожній список = очищення сітки (легітимно).
+        const int maxBells = 12;
+        if (bells.Count > maxBells) throw new BadInputException("too_many_bells");
+        var seenIndices = new HashSet<int>();
+        foreach (var b in bells)
+        {
+            if (b.Index < 1 || b.Index > maxBells) throw new BadInputException("invalid_bell_index");
+            if (b.EndTime <= b.StartTime) throw new BadInputException("invalid_bell_time");
+            if (!seenIndices.Add(b.Index)) throw new BadInputException("duplicate_bell_index");
+        }
         var existing = await _db.BellPeriods.Where(x => x.UserId == userId).ToListAsync();
         _db.BellPeriods.RemoveRange(existing);
         foreach (var b in bells)
@@ -302,6 +327,9 @@ public class StudyService
         // а не зберігаємо сирий рядок (ПЛАН P2-10; той самий підхід, що в Роботі/Перегляді).
         sessionKind = sessionKind is "lecture" or "seminar" ? sessionKind : null;
         form = form is "distance" or "regular" or "mixed" ? form : null;
+        // Факультатив — лише для школяра (у студента в розкладі лишаються тільки консультації) — 09-study/02.
+        if (entryKind == "elective" && !(await IsPupilAsync(userId)))
+            throw new BadInputException("elective_pupil_only");
         Limits.Ensure(await _db.StudyScheduleEntries.CountAsync(x => x.UserId == userId),
             Limits.StudyScheduleEntries, "study_schedule");
         var subject = subjectId is int sid
@@ -344,6 +372,8 @@ public class StudyService
 
         sessionKind = sessionKind is "lecture" or "seminar" ? sessionKind : null;
         form = form is "distance" or "regular" or "mixed" ? form : null;
+        if (entryKind == "elective" && !(await IsPupilAsync(userId)))
+            throw new BadInputException("elective_pupil_only");
 
         var subject = subjectId is int sid
             ? await _db.StudySubjects.FirstOrDefaultAsync(x => x.Id == sid && x.UserId == userId)
@@ -423,6 +453,8 @@ public class StudyService
     public async Task<int> AddProjectAsync(int userId, string kind, string name, string? curator,
         string? deadlineKind, DateOnly? dueDate)
     {
+        // Великі роботи (диплом/курсова/практика) — лише для студента; у школяра такої вкладки немає.
+        if (await IsPupilAsync(userId)) throw new BadInputException("projects_student_only");
         Limits.Ensure(await _db.StudyProjects.CountAsync(x => x.UserId == userId), Limits.StudyProjects, "study_projects");
         var project = new StudyProject
         {

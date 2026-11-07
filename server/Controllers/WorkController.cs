@@ -17,17 +17,19 @@ public record WorkShiftTypeRequest([StringLength(TextLimits.Name)] string Name,
     [StringLength(TextLimits.Color)] string Color, TimeOnly StartTime, TimeOnly EndTime,
     [StringLength(TextLimits.Code)] string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool? IsActive);
 public record WorkScheduleRequest(int ShiftTypeId, WorkService.Recurrence Recurrence);
-public record WorkContactRequest([StringLength(TextLimits.Name)] string GroupName,
-    [StringLength(TextLimits.Code)] string? Status, [StringLength(TextLimits.Name)] string FullName,
+// Групи, статус, «соцмережі» та Viber прибрано з UI — сервер їх більше не приймає (були мертві поля,
+// що лишалися записуваними через прямий API: mass-assignment, залишок 10-work/06).
+public record WorkContactRequest([StringLength(TextLimits.Name)] string FullName,
     [StringLength(TextLimits.Phone)] string Phone,
     [StringLength(TextLimits.Name)] string? Email, DateOnly? Birthday,
-    [StringLength(TextLimits.Name)] string? Socials, [StringLength(TextLimits.Name)] string? Telegram,
-    [StringLength(TextLimits.Name)] string? Viber);
+    [StringLength(TextLimits.Name)] string? Telegram);
 public record WorkLeaveRequest([StringLength(TextLimits.Code)] string Type, DateOnly StartDate, DateOnly EndDate);
 public record WorkMeetingRequest([StringLength(TextLimits.Name)] string WithWhom, DateTime When,
     [StringLength(TextLimits.Name)] string? Place);
+// Зобов'язання тепер — лише статичний перелік (назва + опис). Дедлайн/статус переїхали у «Планування
+// процесу», тож DueDate/IsDone тут прибрано (були мертві поля, записувані через API — залишок 10-work/06).
 public record WorkObligationRequest([StringLength(TextLimits.Title)] string Title,
-    [StringLength(TextLimits.Description)] string? Note, DateOnly? DueDate, bool IsDone);
+    [StringLength(TextLimits.Description)] string? Note);
 public record WorkProcessTaskRequest([StringLength(TextLimits.Title)] string Title,
     [StringLength(TextLimits.Description)] string? Note, [StringLength(TextLimits.Code)] string? Status, DateOnly? DueDate);
 
@@ -151,8 +153,10 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> DeleteContact(int id) =>
         await _work.DeleteContactAsync(CurrentUserId, id) ? Ok() : NotFound();
 
+    // Мертві поля (група/статус/соцмережі/Viber) жорстко фіксуємо — клієнт їх не задає, і прямий API
+    // більше не може їх підмінити.
     private static WorkService.ContactDto ToContactDto(int id, WorkContactRequest r) =>
-        new(id, r.GroupName ?? "", r.Status ?? "online", r.FullName, r.Phone ?? "", r.Email, r.Birthday, r.Socials, r.Telegram, r.Viber);
+        new(id, "", "online", r.FullName, r.Phone ?? "", r.Email, r.Birthday, null, r.Telegram, null);
 
     // ---- Відсутності ----------------------------------------------------------
 
@@ -211,7 +215,7 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> AddObligation([FromBody] WorkObligationRequest r)
     {
         if (string.IsNullOrWhiteSpace(r.Title)) return BadRequest(new { error = "missing_title" });
-        var id = await _work.AddObligationAsync(CurrentUserId, r.Title, r.Note, r.DueDate);
+        var id = await _work.AddObligationAsync(CurrentUserId, r.Title, r.Note);
         return Ok(new { id });
     }
 
@@ -219,7 +223,7 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> UpdateObligation(int id, [FromBody] WorkObligationRequest r)
     {
         if (string.IsNullOrWhiteSpace(r.Title)) return BadRequest(new { error = "missing_title" });
-        var ok = await _work.UpdateObligationAsync(CurrentUserId, id, r.Title, r.Note, r.DueDate, r.IsDone);
+        var ok = await _work.UpdateObligationAsync(CurrentUserId, id, r.Title, r.Note);
         return ok ? Ok() : NotFound();
     }
 
