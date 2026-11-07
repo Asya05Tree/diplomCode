@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using Server.Data;
 using Server.Models;
@@ -8,10 +9,13 @@ using Server.Services;
 
 namespace Server.Controllers;
 
-public record SendCodeRequest(string Email, string Nickname);
-public record RegisterRequest(string Nickname, string Gender, string Email, string Code, string Password,
-    string? StudentType, bool IsWorking);
-public record LoginRequest(string Email, string Password);
+// [StringLength] на текстових полях → 400 замість 500, коли прямий POST шле рядок, довший за стовпець
+// БД (email/нік зберігаються як varchar(255)); клієнтська форма це не зачіпає (ПЛАН P2-2/P2-6).
+public record SendCodeRequest([StringLength(254)] string Email, [StringLength(TextLimits.Name)] string Nickname);
+public record RegisterRequest([StringLength(TextLimits.Name)] string Nickname, [StringLength(TextLimits.Code)] string Gender,
+    [StringLength(254)] string Email, [StringLength(TextLimits.Code)] string Code, [StringLength(TextLimits.Description)] string Password,
+    [StringLength(TextLimits.Code)] string? StudentType, bool IsWorking);
+public record LoginRequest([StringLength(254)] string Email, [StringLength(TextLimits.Description)] string Password);
 
 // Реєстрація email+код підтвердження та вхід email+пароль (coding-guide.md §4).
 [ApiController]
@@ -59,8 +63,8 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> SendCode([FromBody] SendCodeRequest request)
     {
         var email = NormalizeEmail(request.Email);
-        if (string.IsNullOrWhiteSpace(email) || !IsGmailAddress(email))
-            return BadRequest(new { error = "invalid_email" });
+        if (string.IsNullOrWhiteSpace(email) || !IsGmailAddress(email) || email.StartsWith('@'))
+            return BadRequest(new { error = "invalid_email" }); // StartsWith('@') → порожня локальна частина
 
         if (!string.IsNullOrWhiteSpace(request.Nickname) && !NicknamePattern.IsMatch(request.Nickname))
             return BadRequest(new { error = "invalid_nickname" });
@@ -97,14 +101,18 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var email = NormalizeEmail(request.Email);
-        if (!IsGmailAddress(email))
+        if (!IsGmailAddress(email) || email.StartsWith('@'))
             return BadRequest(new { error = "invalid_email" });
 
         if (string.IsNullOrWhiteSpace(request.Nickname) || !NicknamePattern.IsMatch(request.Nickname))
             return BadRequest(new { error = "invalid_nickname" });
 
-        if (string.IsNullOrWhiteSpace(request.Gender) || string.IsNullOrWhiteSpace(request.Password))
+        if (string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "missing_fields" });
+
+        // Стать — лише з відомого набору (як studentType), щоб не зберігати сирий довільний рядок (ПЛАН P2-6).
+        if (request.Gender is not ("female" or "male" or "other"))
+            return BadRequest(new { error = "invalid_gender" });
 
         // bcrypt рахує 72 БАЙТИ (не символи) й мовчки обрізає решту: 36 кирилічних літер = 72 байти,
         // тож char-ліміт не закривав колізію усічення. Перевіряємо саме байти (ПЛАН P2-6).
