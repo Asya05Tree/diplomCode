@@ -78,6 +78,12 @@ public class WorkService
     private static readonly string[] Workplaces = { "onsite", "remote", "home" };
     private static readonly string[] ShiftKinds = { "normal", "flexible", "split", "oncall" };
 
+    // Серверні стелі сум/лімітів (інваріанти досі жили лише на клієнті — ПЛАН P2-10). Понад — 400.
+    private const decimal RateMax = 10_000_000m;      // ставка (грн/год або /міс): понад — зловживання/помилка
+    private const decimal NormHoursMax = 1000m;       // норма годин на місяць
+    private const decimal MultiplierMax = 100m;       // коефіцієнт чергування (реально ≤ кілька)
+    private const int MaxEntriesPerShiftType = 5;     // максимум записів графіка на один тип зміни
+
     // ---- Профіль роботи -------------------------------------------------------
 
     public async Task<SettingsDto> GetSettingsAsync(int userId)
@@ -101,6 +107,9 @@ public class WorkService
         s.Position = Trim(dto.Position);
         s.Employer = Trim(dto.Employer);
         s.PayType = Normalize(dto.PayType, PayTypes, "hourly");
+        // Стеля ставки/норми годин: захист від абсурдних сум (дохід рахується з них) — ПЛАН P2-10.
+        if (dto.Rate is > RateMax) throw new BadInputException("invalid_rate");
+        if (dto.NormHours is > NormHoursMax) throw new BadInputException("invalid_norm_hours");
         s.Rate = dto.Rate is > 0 ? dto.Rate : null;
         s.Regime = Normalize(dto.Regime, Regimes, "standard");
         s.Workplace = Normalize(dto.Workplace, Workplaces, "onsite");
@@ -124,6 +133,8 @@ public class WorkService
     // Приводить поля виду до узгодженого стану: друга частина — лише для split, коефіцієнт — лише для oncall
     private static void ApplyKind(WorkShiftType type, ShiftTypeDto dto)
     {
+        // Стеля коефіцієнта чергування — щоб дохід не роздували множником 1e9 (ПЛАН P2-10).
+        if (dto.OnCallMultiplier is > MultiplierMax) throw new BadInputException("invalid_multiplier");
         type.Kind = Normalize(dto.Kind, ShiftKinds, "normal");
         type.StartTime2 = type.Kind == "split" ? dto.StartTime2 : null;
         type.EndTime2 = type.Kind == "split" ? dto.EndTime2 : null;
@@ -133,10 +144,15 @@ public class WorkService
     public async Task<int> AddShiftTypeAsync(int userId, ShiftTypeDto dto)
     {
         Limits.Ensure(await _db.WorkShiftTypes.CountAsync(x => x.UserId == userId), Limits.WorkShiftTypes, "work_shift_types");
+        var name = dto.Name.Trim();
+        // Унікальність типу зміни за назвою (колація БД — без урахування регістру). Клієнт блокує дублі,
+        // але прямий POST це обходив — тепер і сервер відхиляє (ПЛАН P2-10).
+        if (await _db.WorkShiftTypes.AnyAsync(x => x.UserId == userId && x.Name == name))
+            throw new BadInputException("duplicate_shift_type");
         var type = new WorkShiftType
         {
             UserId = userId,
-            Name = dto.Name.Trim(),
+            Name = name,
             Color = dto.Color,
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
@@ -152,7 +168,10 @@ public class WorkService
     {
         var type = await _db.WorkShiftTypes.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (type is null) return false;
-        type.Name = dto.Name.Trim();
+        var name = dto.Name.Trim();
+        if (await _db.WorkShiftTypes.AnyAsync(x => x.UserId == userId && x.Id != id && x.Name == name))
+            throw new BadInputException("duplicate_shift_type");
+        type.Name = name;
         type.Color = dto.Color;
         type.StartTime = dto.StartTime;
         type.EndTime = dto.EndTime;
@@ -238,6 +257,10 @@ public class WorkService
 
         Limits.Ensure(await _db.WorkShiftEntries.CountAsync(x => x.UserId == userId),
             Limits.WorkScheduleEntries, "work_schedule");
+
+        // Максимум записів графіка на один тип зміни (клієнтське правило max-5, що прямий POST обходив) — P2-10.
+        if (await _db.WorkShiftEntries.CountAsync(x => x.UserId == userId && x.ShiftTypeId == shiftTypeId) >= MaxEntriesPerShiftType)
+            throw new BadInputException("schedule_limit_per_type");
 
         // Час правила = початок зміни, тож подія стає на початок зміни; опис — проміжок часу
         var rule = await _taskService.CreateRecurrenceRuleAsync(userId, type.Name, BuildShiftDescription(type), null,
@@ -399,13 +422,15 @@ public class WorkService
     public async Task<int> AddLeaveAsync(int userId, LeaveDto dto)
     {
         Limits.Ensure(await _db.WorkLeaves.CountAsync(x => x.UserId == userId), Limits.WorkLeaves, "work_leaves");
-        var (start, end) = OrderDates(dto.StartDate, dto.EndDate);
+        // Кінець не раніше початку: було мовчазне перевертання (end<start приймалося й тихо свопилося),
+        // тепер явна відмова — щоб помилковий діапазон не зберігався «не тим боком» (ПЛАН P2-10).
+        if (dto.EndDate < dto.StartDate) throw new BadInputException("invalid_date_range");
         var l = new WorkLeave
         {
             UserId = userId,
             Type = Normalize(dto.Type, new[] { "vacation", "sick" }, "vacation"),
-            StartDate = start,
-            EndDate = end,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
         };
         _db.WorkLeaves.Add(l);
         await _db.SaveChangesAsync();
@@ -416,10 +441,10 @@ public class WorkService
     {
         var l = await _db.WorkLeaves.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (l is null) return false;
-        var (start, end) = OrderDates(dto.StartDate, dto.EndDate);
+        if (dto.EndDate < dto.StartDate) throw new BadInputException("invalid_date_range");
         l.Type = Normalize(dto.Type, new[] { "vacation", "sick" }, "vacation");
-        l.StartDate = start;
-        l.EndDate = end;
+        l.StartDate = dto.StartDate;
+        l.EndDate = dto.EndDate;
         await _db.SaveChangesAsync();
         return true;
     }
@@ -432,8 +457,6 @@ public class WorkService
         await _db.SaveChangesAsync();
         return true;
     }
-
-    private static (DateOnly, DateOnly) OrderDates(DateOnly a, DateOnly b) => a <= b ? (a, b) : (b, a);
 
     // ---- Зустрічі (синхронізуються з календарем задачею ModuleCode="work") ----
 
