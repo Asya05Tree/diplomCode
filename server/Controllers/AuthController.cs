@@ -24,8 +24,10 @@ public class AuthController : ControllerBase
 {
     private const int CodeLifetimeMinutes = 10;
 
-    // Лише українські або англійські літери (та пробіл/дефіс/апостроф для складених імен)
-    private static readonly Regex NicknamePattern = new(@"^[A-Za-zА-ЯҐЄІЇа-яґєіїʼ' -]{2,30}$", RegexOptions.Compiled);
+    // Лише українські або англійські літери (та пробіл/дефіс/апостроф для складених імен). Lookahead
+    // вимагає хоча б одну літеру, щоб «--» чи «  » не вважалися іменем (ПЛАН P2-6).
+    private static readonly Regex NicknamePattern =
+        new(@"^(?=.*[A-Za-zА-ЯҐЄІЇа-яґєіїʼ])[A-Za-zА-ЯҐЄІЇа-яґєіїʼ' -]{2,30}$", RegexOptions.Compiled);
 
     private readonly AppDbContext _db;
     private readonly EmailService _emailService;

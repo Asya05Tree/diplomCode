@@ -1,9 +1,10 @@
 // §6/§9/§10: server-side validation gaps reachable by direct POST (bypassing the form).
-import { api } from '../_lib/provision.mjs'
+import { api, normalizeEmail } from '../_lib/provision.mjs'
 import { execFileSync } from 'node:child_process'
 const sql = (q) => execFileSync('docker', ['exec', 'planner-mysql', 'mysql', '-N', '-uplanner', '-pplanner_dev_password', 'planner', '-e', q], { encoding: 'utf8' }).trim()
-const readCode = (e) => sql(`SELECT Code FROM EmailVerificationCodes WHERE Email='${e}' AND IsUsed=0 ORDER BY Id DESC LIMIT 1;`).split(/\s+/).pop()
-const clean = (e) => { sql(`DELETE FROM EmailVerificationCodes WHERE Email='${e}';`); sql(`DELETE FROM UserProfiles WHERE UserId IN (SELECT Id FROM Users WHERE Email='${e}');`); sql(`DELETE FROM Users WHERE Email='${e}';`) }
+// Сервер зберігає коди/акаунти під КАНОНІЧНИМ email (gmail без крапок/+suffix) — читаємо/чистимо ним.
+const readCode = (e) => sql(`SELECT Code FROM EmailVerificationCodes WHERE Email='${normalizeEmail(e)}' AND IsUsed=0 ORDER BY Id DESC LIMIT 1;`).split(/\s+/).pop()
+const clean = (e) => { const c = normalizeEmail(e); sql(`DELETE FROM EmailVerificationCodes WHERE Email='${c}';`); sql(`DELETE FROM UserProfiles WHERE UserId IN (SELECT Id FROM Users WHERE Email='${c}');`); sql(`DELETE FROM Users WHERE Email='${c}';`) }
 
 // --- 1. No server email-format check: "   @gmail.com" trims to "@gmail.com" (empty local part) ---
 {
