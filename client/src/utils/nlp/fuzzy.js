@@ -70,8 +70,10 @@ export function bestMatch(token, index, { minDice = 0.6 } = {}) {
     const d = dice(tg, index.tris[i])
     if (d < minDice) continue
     const lev = levenshtein(t, w)
-    // Строго: короткі слова — щонайбільше 1 правка, довші — 2. Інакше «того»→«лютого».
-    const maxLev = Math.max(t.length, w.length) <= 5 ? 1 : 2
+    // Строго: короткі/середні слова — щонайбільше 1 правка, довші — 2. Межу піднято до ≤6,
+    // щоб «квіти»(5)→«квітня»(6) (Lev 2) більше НЕ виправлялось (QA-05), а «субботу»→«суботу»
+    // (Lev 1) лишилось. Краще недовиправити, ніж зіпсувати зміст слова.
+    const maxLev = Math.max(t.length, w.length) <= 6 ? 1 : 2
     if (lev > maxLev) continue
     const score = d - lev * 0.05 // за рівного Дайса віддаємо перевагу меншій правці
     if (!best || score > best.score) best = { word: w, score, dice: d, lev }
@@ -81,7 +83,9 @@ export function bestMatch(token, index, { minDice = 0.6 } = {}) {
 
 // Пройтись рядком і виправити схожі-на-словникові токени. Повертає { text, corrections }.
 // Числа й дуже короткі слова пропускаємо; регістр першої літери зберігаємо.
-export function fuzzyCorrect(text, index) {
+// protect(tok) — предикат «це вже валідне слово» (прийменник/маркер/дата/основа модуля):
+// такі токени НЕ чіпаємо, інакше реальні слова «виправляються» в структурні (the→then, QA-01).
+export function fuzzyCorrect(text, index, protect = null) {
   const re = new RegExp(`${L}['\\-${L}]*`, 'gu') // слово: літери, всередині дозволені ' та -
   const corrections = []
   let out = ''
@@ -92,6 +96,7 @@ export function fuzzyCorrect(text, index) {
     out += text.slice(last, mm.index)
     last = re.lastIndex
     if (/\d/.test(tok) || tok.length < 3) { out += tok; continue }
+    if (protect && protect(tok)) { out += tok; continue }
     const best = bestMatch(tok, index)
     if (best && best.word !== tok.toLowerCase()) {
       const fixed = /^\p{Lu}/u.test(tok) ? best.word.charAt(0).toUpperCase() + best.word.slice(1) : best.word

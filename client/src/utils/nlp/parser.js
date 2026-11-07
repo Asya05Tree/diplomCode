@@ -739,13 +739,38 @@ function fuzzyLexicon(m, extraWords) {
     ...Object.keys(m.ordinalWords), ...Object.keys(m.numberWords), ...Object.keys(m.durationUnits),
     ...Object.keys(m.dayParts), ...m.oclockWords, ...m.durationHours, ...m.durationMinutes,
     ...m.dayOfMonthWords, ...m.weekdayMarkers, ...m.nextWeekMarkers, ...m.afterMarkers,
-    ...m.timeMarkers, ...m.noneWords, ...m.linkWords, ...m.delimiters, ...m.fillerWords,
+    ...m.timeMarkers, ...m.noneWords, ...m.linkWords, ...m.fillerWords,
     ...(extraWords || []),
     // УВАГА: m.verbs і m.subjectWords — це ОСНОВИ (префікси), а не повні слова; у лексикон
     // фаззі їх НЕ додаємо, інакше повні слова "виправлялись" би до основи (почитаю→почит).
+    // m.delimiters теж НЕ додаємо: хибна корекція в роздільник (the→then) плодить зайву
+    // задачу (найдорожча помилка), а типова у "потім"/"then" рідкісна (QA-01).
   ]
   // Багатослівні записи (фрази) у фаззі не беремо — звіряємо потокенно.
   return words.filter((w) => w && !/\s/.test(w))
+}
+
+// Предикат «токен — це вже валідне словникове слово / основа», який боронить його від
+// фаззі-корекції. Точні слова (прийменники, маркери, дати, числівники) + основи модулів/
+// дієслів/предметів. Так "the"/"them"/"they" (edgeWords) не стають "then" (QA-01), а власні
+// дієслова/предмети не псуються. Невідомі слова (напр. "субботу") лишаються під корекцією.
+function buildFuzzyProtect(m) {
+  const exact = new Set()
+  const addWords = (arr) => { for (const w of arr || []) if (w && !/\s/.test(w)) exact.add(w.toLowerCase()) }
+  addWords(m.edgeWords); addWords(m.fillerWords); addWords(m.delimiters)
+  addWords(Object.keys(m.relativeDates)); addWords(Object.keys(m.weekdays)); addWords(Object.keys(m.months))
+  addWords(Object.keys(m.ordinalWords)); addWords(Object.keys(m.numberWords)); addWords(Object.keys(m.durationUnits))
+  addWords(Object.keys(m.dayParts)); addWords(m.oclockWords); addWords(m.timeMarkers); addWords(m.afterMarkers)
+  addWords(m.noneWords); addWords(m.linkWords); addWords(m.dayOfMonthWords)
+  addWords(m.weekdayMarkers); addWords(m.nextWeekMarkers); addWords(m.durationHours); addWords(m.durationMinutes)
+  const stems = [...m.verbs, ...m.subjectWords, ...Object.values(m.modules).flat()]
+    .filter((s) => s && typeof s === 'string').map((s) => s.toLowerCase())
+  return (tok) => {
+    const t = tok.toLowerCase()
+    if (exact.has(t)) return true
+    for (const s of stems) if (s.length >= 3 && t.startsWith(s)) return true
+    return false
+  }
 }
 
 // Головна функція. dicts — масив словників (усі мови; у змішаному тексті шукаються одночасно).
@@ -757,8 +782,9 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
   const m = mergeDicts(dicts)
 
   // Крок 0. Фаззі-виправлення друкарських помилок у словникових словах (субботу→суботу).
+  // protect боронить уже-валідні слова/основи від корекції (the→then тощо, QA-01/QA-05).
   const index = buildFuzzyIndex(fuzzyLexicon(m, extraWords))
-  const { text: raw, corrections } = fuzzyCorrect(raw0, index)
+  const { text: raw, corrections } = fuzzyCorrect(raw0, index, buildFuzzyProtect(m))
 
   // Крок 0.5. Речення-запаси ("додати до запасів…") виймаємо ДО поділу на задачі, щоб
   // перелік через кому не ділився на окремі задачі. Решта тексту йде у звичайний розбір.
