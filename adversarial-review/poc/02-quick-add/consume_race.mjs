@@ -1,7 +1,8 @@
-// TAB-02 §8/§12 TOCTOU race on /api/quick-add/consume.
-// ConsumeAsync does read-check-increment with NO transaction/lock (BillingService.cs:63-69).
-// Fire many parallel consume requests on a fresh user (FreeLimit=3) and see whether more
-// than Limit succeed (limit skip) or the stored count disagrees with the number of 200s.
+// TAB-02 §8/§12 TOCTOU race on /api/quick-add/consume (fixed, ПЛАН P2-7).
+// ConsumeAsync now increments atomically: a single UPDATE ... WHERE QuickAddUsedCount < FreeLimit,
+// гейтований кількістю змінених рядків (BillingService.cs ConsumeAsync). Рядковий лок MySQL серіалізує
+// паралельні UPDATE, тож навіть при 12 одночасних consume проходить РІВНО FreeLimit, решта → 402.
+// Було: 12 паралельних → 8 проходжень (гонка read-check-increment).
 //
 // Run: node adversarial-review/poc/02-quick-add/consume_race.mjs
 import { execFileSync } from 'node:child_process'
@@ -34,7 +35,9 @@ if (limitSkip) {
   console.log(`=> CONFIRMED limit SKIP: ${n200} uses allowed but limit is ${LIMIT} (free uses beyond the cap)`)
 } else if (lostIncrements) {
   console.log(`=> CONFIRMED lost updates: ${n200} requests got 200 but only ${stored} counted (double-spend protection racey)`)
+} else if (n200 === LIMIT && Number(stored) === LIMIT && n402 === PARALLEL - LIMIT) {
+  console.log(`=> REFUTED: exactly ${LIMIT} consume calls got 200 and stored count = ${stored}; the other ${n402} got 402. Atomic UPDATE ... WHERE used < limit held under ${PARALLEL} parallel requests — no limit skip, no lost updates.`)
 } else {
-  console.log(`=> not reproduced this run (n200=${n200}, stored=${stored}); race is timing-dependent — rerun a few times`)
+  console.log(`=> unexpected shape (n200=${n200}, stored=${stored}, n402=${n402}); investigate`)
 }
 console.log('\n=== done ===')

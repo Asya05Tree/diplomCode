@@ -60,13 +60,20 @@ public class BillingService
     // ok=false → ліміт вичерпано й доступ не куплено (контролер віддасть 402 → клієнт покаже paywall).
     public async Task<(bool ok, QuickAddStatus status)> ConsumeAsync(int userId)
     {
-        var u = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        // Інкремент лічильника — атомарно одним UPDATE з умовою у WHERE (ще є вільні спроби й не куплено).
+        // Кількість змінених рядків каже, чи вдалося витратити. Інакше (read-check-increment трьома
+        // кроками) паралельні consume усі прочитали б used=0, проскочили перевірку й перевищили ліміт —
+        // TOCTOU: 12 паралельних давали 8 проходжень при ліміті 3 (ПЛАН P2-7). Рядковий лок MySQL
+        // серіалізує ці UPDATE, тож проходить рівно FreeLimit.
+        var consumed = await _db.Users
+            .Where(x => x.Id == userId && !x.QuickAddUnlocked && x.QuickAddUsedCount < FreeLimit)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.QuickAddUsedCount, x => x.QuickAddUsedCount + 1));
+
+        var u = await _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);
         if (u is null) return (false, new QuickAddStatus(0, FreeLimit, 0, false, Price, Currency));
-        if (u.QuickAddUnlocked) return (true, BuildStatus(u));          // куплено — лічильник не чіпаємо
-        if (u.QuickAddUsedCount >= FreeLimit) return (false, BuildStatus(u));
-        u.QuickAddUsedCount++;
-        await _db.SaveChangesAsync();
-        return (true, BuildStatus(u));
+        if (consumed == 1) return (true, BuildStatus(u));      // витратили одну безкоштовну спробу
+        if (u.QuickAddUnlocked) return (true, BuildStatus(u)); // куплено — ліміт не діє
+        return (false, BuildStatus(u));                        // ліміт вичерпано й не куплено → 402
     }
 
     // Створити платіж (Pending) і підготувати дані для оплати.
