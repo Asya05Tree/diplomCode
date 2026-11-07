@@ -26,8 +26,10 @@ console.log('attacker GET /subjects ->', direct.status, 'sees own count=', (dire
   '(does NOT contain victim subject:', !(direct.json || []).some((s) => s.id === victimSubjectId), ')')
 
 // Attacker creates an assignment referencing the victim's subjectId.
+// Тип 'lab' дійсний для студента (homework тепер гейтиться профілем), тож запит доходить до перевірки
+// власності предмета — саме її ми й тестуємо.
 const asg = await api('POST', '/api/study/assignments', { token: attacker.token, body: {
-  subjectId: victimSubjectId, type: 'homework', description: 'idor probe',
+  subjectId: victimSubjectId, type: 'lab', description: 'idor probe',
   deadlineKind: 'tomorrow', dueDate: null, isDone: false, grade: null } })
 console.log('attacker POST /assignments {subjectId: victim} ->', asg.status, asg.text?.slice(0, 50))
 

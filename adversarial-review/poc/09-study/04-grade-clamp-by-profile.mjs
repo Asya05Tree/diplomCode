@@ -28,10 +28,10 @@ const partB = Number(g3?.grade) === 12
 // (c) student: scale 0..100 from profile (87.55 kept; 999 -> 100)
 const student = await provision({ email: `adv.t09.studgrade.${tag}@gmail.com`, gender: 'female', studentType: 'student', isWorking: false })
 const a1 = await api('POST', '/api/study/assignments', { token: student.token, body: {
-  subjectId: null, type: 'homework', description: 'kept', deadlineKind: 'tomorrow', dueDate: null, isDone: true, grade: 87.55 } })
+  subjectId: null, type: 'lab', description: 'kept', deadlineKind: 'tomorrow', dueDate: null, isDone: true, grade: 87.55 } })
 const g1 = (await api('GET', '/api/study/assignments', { token: student.token })).json?.find((x) => x.id === a1.json?.id)
 const a2 = await api('POST', '/api/study/assignments', { token: student.token, body: {
-  subjectId: null, type: 'homework', description: 'over', deadlineKind: 'tomorrow', dueDate: null, isDone: true, grade: 999 } })
+  subjectId: null, type: 'lab', description: 'over', deadlineKind: 'tomorrow', dueDate: null, isDone: true, grade: 999 } })
 const g2 = (await api('GET', '/api/study/assignments', { token: student.token })).json?.find((x) => x.id === a2.json?.id)
 console.log('(c) studentType=student, grade 87.55 ->', g1?.grade, '; grade 999 ->', g2?.grade, '(0..100 scale from profile)')
 const partC = Number(g1?.grade) === 87.55 && Number(g2?.grade) === 100
