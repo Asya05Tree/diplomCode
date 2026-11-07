@@ -48,16 +48,10 @@ public class CycleService
             .Select(x => new RecordDto(x.Id, x.StartDate, x.EndDate))
             .ToListAsync();
 
-        var settings = await _db.CycleSettings.FindAsync(userId);
-        if (settings is null)
-        {
-            settings = new CycleSettings { UserId = userId };
-            _db.CycleSettings.Add(settings);
-            await _db.SaveChangesAsync();
-        }
-
-        // Лениво перевіряємо, чи треба докинути засіб гігієни у список покупок
-        await EnsureHygieneSupplyAsync(userId, records, settings);
+        // GET лише читає: якщо налаштувань ще нема — повертаємо дефолти БЕЗ запису в БД (читання має
+        // бути ідемпотентним). Докидання засобу гігієни робиться на записах (start/end/settings),
+        // а не на кожному GET — інакше звичайне читання плодило б позиції у списку покупок.
+        var settings = await _db.CycleSettings.FindAsync(userId) ?? new CycleSettings { UserId = userId };
 
         return new CycleDto(records, new SettingsDto(settings.ReduceLoadOnHeavyDays, settings.HygieneProduct), ComputeForecast(records));
     }
@@ -71,7 +65,7 @@ public class CycleService
 
         var last = starts[^1];
         if (starts.Count == 1)
-            return new ForecastDto(true, true, last.AddDays(DefaultCycleLength), NoDataRangeDays, null, null);
+            return new ForecastDto(true, true, SafeAddDays(last, DefaultCycleLength), NoDataRangeDays, null, null);
 
         var lengths = new List<int>();
         for (var i = 1; i < starts.Count; i++)
@@ -82,12 +76,41 @@ public class CycleService
         var isRegular = spread <= RegularSpreadThresholdDays;
         var rangeDays = isRegular ? 2 : (int)Math.Ceiling(spread / 2.0) + 2;
 
-        return new ForecastDto(true, false, last.AddDays((int)Math.Round(avg)), rangeDays, isRegular, (int)Math.Round(avg));
+        return new ForecastDto(true, false, SafeAddDays(last, (int)Math.Round(avg)), rangeDays, isRegular, (int)Math.Round(avg));
+    }
+
+    // Додавання днів до дати без переповнення: дата біля DateOnly.MaxValue (напр. збережена раніше
+    // "9999-12-20") інакше кидала ArgumentOutOfRangeException і валила кожен GET /api/cycle у 500.
+    private static DateOnly SafeAddDays(DateOnly d, int days)
+    {
+        var n = (long)d.DayNumber + days;
+        if (n > DateOnly.MaxValue.DayNumber) return DateOnly.MaxValue;
+        if (n < DateOnly.MinValue.DayNumber) return DateOnly.MinValue;
+        return DateOnly.FromDayNumber((int)n);
+    }
+
+    // Розумний діапазон дат: поза ним не працюємо (і не переповнюємо арифметику дат).
+    private const int MinYear = 2000;
+    private const int MaxYear = 2100;
+    private static void EnsureSaneDate(DateOnly d)
+    {
+        if (d.Year < MinYear || d.Year > MaxYear) throw new BadInputException("date_out_of_range");
     }
 
     public async Task<int> AddRecordAsync(int userId, DateOnly startDate)
     {
+        EnsureSaneDate(startDate);
         Limits.Ensure(await _db.CycleRecords.CountAsync(r => r.UserId == userId), Limits.CycleRecords, "cycle_records");
+
+        // Заборона перекриття/дублю: нова дата початку не може падати всередину наявного періоду
+        // ([StartDate..EndDate], а для відкритого запису — у вікні до OpenPeriodMaxDays). Записів у
+        // користувача небагато — перевіряємо в пам'яті (надійно для DateOnly-арифметики).
+        var existing = await _db.CycleRecords.Where(x => x.UserId == userId).ToListAsync();
+        var overlaps = existing.Any(r =>
+            r.StartDate <= startDate &&
+            startDate <= (r.EndDate ?? r.StartDate.AddDays(OpenPeriodMaxDays)));
+        if (overlaps) throw new BadInputException("overlapping_period");
+
         var record = new CycleRecord { UserId = userId, StartDate = startDate };
         _db.CycleRecords.Add(record);
         await _db.SaveChangesAsync();
@@ -99,6 +122,7 @@ public class CycleService
     // Початок: створюємо запис на цю дату, якщо такого старту ще нема (без дублів).
     public async Task<int> StartByDateAsync(int userId, DateOnly date)
     {
+        EnsureSaneDate(date);
         var existing = await _db.CycleRecords.FirstOrDefaultAsync(x => x.UserId == userId && x.StartDate == date);
         if (existing is not null) return existing.Id;
         return await AddRecordAsync(userId, date);
@@ -107,6 +131,7 @@ public class CycleService
     // Кінець: ставимо EndDate найпізнішому запису, що почався не пізніше за цю дату.
     public async Task<bool> EndByDateAsync(int userId, DateOnly date)
     {
+        EnsureSaneDate(date);
         var record = await _db.CycleRecords
             .Where(x => x.UserId == userId && x.StartDate <= date)
             .OrderByDescending(x => x.StartDate)
@@ -140,8 +165,10 @@ public class CycleService
 
     public async Task<bool> EndRecordAsync(int userId, int id, DateOnly endDate)
     {
+        EnsureSaneDate(endDate);
         var record = await _db.CycleRecords.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (record is null) return false;
+        if (endDate < record.StartDate) throw new BadInputException("end_before_start");
         record.EndDate = endDate;
         await _db.SaveChangesAsync();
         await EnsureHygieneSupplyAsync(userId);

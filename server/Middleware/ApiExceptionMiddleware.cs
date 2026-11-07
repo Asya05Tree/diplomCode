@@ -24,6 +24,16 @@ public class ApiExceptionMiddleware
                 await ctx.Response.WriteAsJsonAsync(new { error = "unauthorized" });
             }
         }
+        catch (Server.Authorization.BadInputException ex)
+        {
+            // Невалідні вхідні дані (бізнес-перевірка в сервісі) → 400 з кодом помилки.
+            if (!ctx.Response.HasStarted)
+            {
+                ctx.Response.Clear();
+                ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await ctx.Response.WriteAsJsonAsync(new { error = ex.Error });
+            }
+        }
         catch (Server.Authorization.LimitReachedException ex)
         {
             // Досягнуто ліміту записів → 409 з кодом і межею, щоб клієнт показав зрозуміле повідомлення.
