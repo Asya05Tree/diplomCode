@@ -178,6 +178,11 @@ public class StudyService
         string deadlineKind, DateOnly? dueDate, bool isDone, decimal? grade)
     {
         Limits.Ensure(await _db.StudyAssignments.CountAsync(x => x.UserId == userId), Limits.StudyAssignments, "study_assignments");
+        // Предмет має належати користувачу: інакше чужий subjectId зберігався б, а GET /assignments
+        // через Include(Subject) зливав би назву предмета й викладача (IDOR-витік крізь join) — виявлено
+        // під час регресії P2-10, це справжня IDOR-діра.
+        if (subjectId is int asid && !await _db.StudySubjects.AnyAsync(x => x.Id == asid && x.UserId == userId))
+            throw new BadInputException("invalid_subject");
         var assignment = new StudyAssignment
         {
             UserId = userId,
@@ -199,6 +204,8 @@ public class StudyService
     {
         var a = await _db.StudyAssignments.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (a is null) return false;
+        if (subjectId is int usid && !await _db.StudySubjects.AnyAsync(x => x.Id == usid && x.UserId == userId))
+            throw new BadInputException("invalid_subject");
         a.SubjectId = subjectId;
         a.Type = type;
         a.Description = description.Trim();
