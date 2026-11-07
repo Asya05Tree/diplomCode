@@ -52,8 +52,24 @@ export async function api(method, path, { token, body, headers = {} } = {}) {
   return { status: res.status, json, text }
 }
 
+// Канонічний email так само, як сервер (AuthController.NormalizeEmail): для gmail прибираємо крапки
+// та "+suffix". Сервер зберігає коди/акаунти саме під канонічним — читати з БД треба ним (ПЛАН P2-6).
+export function normalizeEmail(email) {
+  const e = (email || '').trim().toLowerCase()
+  const at = e.indexOf('@')
+  if (at <= 0) return e
+  let local = e.slice(0, at)
+  const domain = e.slice(at + 1)
+  if (domain === 'gmail.com' || domain === 'googlemail.com') {
+    const plus = local.indexOf('+')
+    if (plus >= 0) local = local.slice(0, plus)
+    local = local.replaceAll('.', '')
+  }
+  return local + '@' + domain
+}
+
 function readCodeFromDb(email) {
-  const sql = `SELECT Code FROM EmailVerificationCodes WHERE Email='${email}' ORDER BY Id DESC LIMIT 1;`
+  const sql = `SELECT Code FROM EmailVerificationCodes WHERE Email='${normalizeEmail(email)}' ORDER BY Id DESC LIMIT 1;`
   const out = execFileSync('docker', [
     'exec', 'planner-mysql', 'mysql', '-N', '-uplanner', '-pplanner_dev_password', 'planner', '-e', sql,
   ], { encoding: 'utf8' })
@@ -71,10 +87,11 @@ export async function provision({
   password = 'Passw0rd!',
 }) {
   const e = email.trim().toLowerCase()
-  // best-effort cleanup of a stale code row for idempotent reruns
+  // best-effort cleanup of a stale code row for idempotent reruns (сервер зберігає код під канонічним
+  // email, тож і чистимо за канонічним — інакше 60-с кулдаун send-code блокуватиме перезапуск)
   try {
     execFileSync('docker', ['exec', 'planner-mysql', 'mysql', '-uplanner', '-pplanner_dev_password', 'planner',
-      '-e', `DELETE FROM EmailVerificationCodes WHERE Email='${e}';`], { encoding: 'utf8' })
+      '-e', `DELETE FROM EmailVerificationCodes WHERE Email='${normalizeEmail(e)}';`], { encoding: 'utf8' })
   } catch { /* ignore */ }
 
   const sc = await api('POST', '/api/auth/send-code', { body: { email: e, nickname } })
