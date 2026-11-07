@@ -39,11 +39,29 @@
   height: 17px;
 }
 
+.quick-add-hintrow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
 .quick-add-hint {
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.4;
   color: var(--color-text-muted);
+}
+/* Лічильник символів поля вводу (ліміт MAX_INPUT). */
+.quick-add-count {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.quick-add-count--full {
+  color: var(--color-danger);
+  font-weight: 600;
 }
 
 /* Індикатор плану платної фічі: скільки безкоштовних використань лишилось / повний доступ. */
@@ -250,6 +268,55 @@
 }
 .quick-add-corrections b {
   color: var(--color-text);
+}
+
+/* Вкладки модалки підтвердження — по одній на розпізнаний розділ (+ "Запаси"). */
+.qa-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.qa-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition);
+}
+.qa-tab:hover {
+  border-color: var(--color-accent);
+}
+.qa-tab--active,
+.qa-tab--active:hover {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+  border-color: transparent;
+}
+.qa-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+}
+.qa-tab--active .qa-tab-count {
+  background: rgba(255, 255, 255, 0.28);
+  color: var(--color-on-accent);
 }
 
 .quick-add-rows {

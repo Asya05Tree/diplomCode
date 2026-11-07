@@ -13,6 +13,12 @@ import './QuickAdd.css'
 // Модулі, у які вміє класифікувати парсер (+ "звичайна"). none-модуль → "tasks".
 const MODULES = ['tasks', 'shopping', 'media', 'food', 'health', 'study', 'work', 'finance', 'notes']
 
+// Максимальна довжина вхідного рядка швидкого додавання.
+const MAX_INPUT = 300
+
+// Ключ вкладки "Запаси" у модалці підтвердження (решта вкладок — коди модулів).
+const STOCK_TAB = '__stock__'
+
 // Грубе зіставлення назв предметів (родовий відмінок «математики» ≈ «Математика»):
 // порівнюємо перші літери основ без урахування регістру.
 function sameSubject(a, b) {
@@ -59,6 +65,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
   const [result, setResult] = useState(null) // { tasks, notRecognized, language, stock } або null
   const [rows, setRows] = useState([])
   const [stockRows, setStockRows] = useState([])
+  const [activeTab, setActiveTab] = useState(null) // активна вкладка модалки (код модуля або STOCK_TAB)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
 
@@ -172,12 +179,14 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
       return r
     }))
     setStockRows(stockItems.map((name) => ({ name, include: true, status: stockStatus(name) })))
+    setActiveTab(null) // почнемо з першої вкладки (визначається під час рендеру)
   }
 
   const close = () => {
     setResult(null)
     setRows([])
     setStockRows([])
+    setActiveTab(null)
   }
 
   const patchStock = (i, changes) => setStockRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
@@ -266,6 +275,22 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
     }
   }
 
+  // Вкладки модалки: по одній на кожен присутній модуль (у порядку MODULES) + "Запаси", якщо є продукти.
+  const tabs = []
+  for (const code of MODULES) {
+    const count = rows.filter((r) => r.module === code).length
+    if (count) tabs.push({ key: code, label: t(`quickAdd.module.${code}`), count })
+  }
+  if (stockRows.length) tabs.push({ key: STOCK_TAB, label: t('quickAdd.stockTitle'), count: stockRows.length })
+  // Активна вкладка: збережена, якщо ще існує, інакше перша наявна.
+  const currentTab = tabs.some((tb) => tb.key === activeTab) ? activeTab : (tabs[0]?.key ?? null)
+
+  // Зміна модуля переносить рядок на вкладку цього модуля — одразу туди й перемикаємось, щоб не "загубити" рядок.
+  const changeModule = (i, module) => {
+    patch(i, { module })
+    setActiveTab(module)
+  }
+
   return (
     <div className="quick-add card">
       <div className="quick-add-bar">
@@ -273,6 +298,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
           type="text"
           className="quick-add-input"
           value={text}
+          maxLength={MAX_INPUT}
           placeholder={t('quickAdd.placeholder')}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleParse() } }}
@@ -282,7 +308,12 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
           {t('quickAdd.parse')}
         </button>
       </div>
-      <p className="quick-add-hint">{t('quickAdd.hint')}</p>
+      <div className="quick-add-hintrow">
+        <p className="quick-add-hint">{t('quickAdd.hint')}</p>
+        <span className={`quick-add-count${text.length >= MAX_INPUT ? ' quick-add-count--full' : ''}`}>
+          {text.length}/{MAX_INPUT}
+        </span>
+      </div>
 
       {status && (
         <div className="quick-add-plan">
@@ -314,8 +345,25 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
               </p>
             )}
 
+            {tabs.length > 1 && (
+              <div className="qa-tabs">
+                {tabs.map((tb) => (
+                  <button
+                    type="button"
+                    key={tb.key}
+                    className={`qa-tab${tb.key === currentTab ? ' qa-tab--active' : ''}`}
+                    onClick={() => setActiveTab(tb.key)}
+                  >
+                    {tb.label}
+                    <span className="qa-tab-count">{tb.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {currentTab !== STOCK_TAB && (
             <div className="quick-add-rows">
-              {rows.map((r, i) => (
+              {rows.map((r, i) => [r, i]).filter(([row]) => row.module === currentTab).map(([r, i]) => (
                 <div className={`qa-row${r.include ? '' : ' qa-row--off'}`} key={i}>
                   <label className="qa-check">
                     <input type="checkbox" checked={r.include} onChange={(e) => patch(i, { include: e.target.checked })} />
@@ -362,7 +410,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
                     <label className="qa-field">
                       <span><Icon name="tag" /> {t('quickAdd.field.module')}</span>
-                      <select value={r.module} onChange={(e) => patch(i, { module: e.target.value })}>
+                      <select value={r.module} onChange={(e) => changeModule(i, e.target.value)}>
                         {MODULES.map((code) => (
                           <option key={code} value={code}>{t(`quickAdd.module.${code}`)}</option>
                         ))}
@@ -416,8 +464,9 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                 </div>
               ))}
             </div>
+            )}
 
-            {stockRows.length > 0 && (
+            {currentTab === STOCK_TAB && (
               <div className="qa-stock">
                 <div className="qa-stock-title"><Icon name="tag" /> {t('quickAdd.stockTitle')}</div>
                 <p className="qa-stock-hint">{t('quickAdd.stockHint')}</p>
