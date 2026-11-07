@@ -9,10 +9,12 @@ import PeriodView from '../components/planner/PeriodView'
 import RecurringView from '../components/planner/RecurringView'
 import UnassignedView from '../components/planner/UnassignedView'
 import DebtsView from '../components/planner/DebtsView'
+import CareBanner from '../components/CareBanner'
 import { getFreeDays, getPeriodTasks, getUnassignedCount } from '../api/tasks'
 import { getCycle } from '../api/cycle'
 import { loadDebts } from '../utils/debts'
-import { addDays, getMonthGridCells, fromApiDate, startOfDay, toApiDate } from '../utils/date'
+import { buildHeavyDays } from '../utils/cycle'
+import { addDays, getMonthGridCells, fromApiDate, startOfDay, toApiDate, todayApiDate } from '../utils/date'
 import './Planner.css'
 
 const AUTH_TOKEN_KEY = 'authToken'
@@ -54,6 +56,10 @@ export default function Planner() {
   const [workDays, setWorkDays] = useState(() => new Set())
   // Дні місячних (факт дня) для жіночих профілів; бампаємо після позначення з Дня
   const [periodDays, setPeriodDays] = useState(() => new Set())
+  // "Важкі дні" (дні менструації: факт + прогноз) і прапорець турботи — для мʼякого нагадування
+  // відпочити, коли увімкнено "знижувати навантаження у важкі дні" (Цикл §3.7)
+  const [heavyDays, setHeavyDays] = useState(() => new Set())
+  const [reduceLoad, setReduceLoad] = useState(false)
   const [cycleVersion, setCycleVersion] = useState(0)
   const notifyCycleChanged = () => setCycleVersion((v) => v + 1)
 
@@ -128,6 +134,8 @@ export default function Planner() {
   useEffect(() => {
     if (gender !== 'female') {
       setPeriodDays(new Set())
+      setHeavyDays(new Set())
+      setReduceLoad(false)
       return
     }
     let cancelled = false
@@ -146,9 +154,15 @@ export default function Planner() {
           }
         }
         setPeriodDays(set)
+        setHeavyDays(buildHeavyDays(data?.records ?? [], data?.forecast ?? null))
+        setReduceLoad(Boolean(data?.settings?.reduceLoadOnHeavyDays))
       })
       .catch(() => {
-        if (!cancelled) setPeriodDays(new Set())
+        if (!cancelled) {
+          setPeriodDays(new Set())
+          setHeavyDays(new Set())
+          setReduceLoad(false)
+        }
       })
     return () => {
       cancelled = true
@@ -156,6 +170,11 @@ export default function Planner() {
   }, [gender, cycleVersion])
 
   const markings = activeTab === 'recurring' ? recurringMarkings : busyMarkings
+
+  // Турбота у "важкі дні": банер на головному екрані, якщо важкий день — сьогодні; у вкладці
+  // "День" — якщо важким є саме обраний день (тоді натяк "запланувати менше" влучає в контекст).
+  const showCareToday = reduceLoad && heavyDays.has(todayApiDate())
+  const careForSelectedDay = reduceLoad && heavyDays.has(toApiDate(selectedDate))
 
   const handleSelectDate = (date) => {
     // Якщо саме триває вибір ручних дат повторення — лишаємо цю поведінку (вставка/зняття дати)
@@ -171,6 +190,8 @@ export default function Planner() {
 
   return (
     <div className="planner">
+      {showCareToday && <CareBanner />}
+
       <section className="planner-grid-panel card">
         <MonthGrid
           visibleMonth={visibleMonth}
@@ -228,6 +249,7 @@ export default function Planner() {
               onTasksChanged={notifyTasksChanged}
               gender={gender}
               onCycleChanged={notifyCycleChanged}
+              showCare={careForSelectedDay}
             />
           ) : (
             <PeriodView

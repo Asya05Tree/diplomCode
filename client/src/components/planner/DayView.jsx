@@ -6,6 +6,7 @@ import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
 import OverlapGroup from './OverlapGroup'
 import ReminderBanner from './ReminderBanner'
+import CareBanner from '../CareBanner'
 import { getDayTasks, getReminder, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
 import { markCycleStart, markCycleEnd, clearCycleDay } from '../../api/cycle'
 import { isSameDate, fromApiDateTime, toApiDate, timeStatusOf, groupOverlapping } from '../../utils/date'
@@ -14,7 +15,7 @@ import './TimeStatus.css'
 
 // planner-spec.md §4.3 "День" — розклад обраної дати. Ранковий банер (§4.5) показується тільки
 // коли обрано "сьогодні" — саме тоді нагадувати про вчора має сенс.
-export default function DayView({ token, date, onTasksChanged, gender, onCycleChanged }) {
+export default function DayView({ token, date, onTasksChanged, gender, onCycleChanged, showCare }) {
   const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
   const [reminderTasks, setReminderTasks] = useState([])
@@ -197,6 +198,9 @@ export default function DayView({ token, date, onTasksChanged, gender, onCycleCh
       {isToday && reminderTasks.length > 0 && (
         <ReminderBanner tasks={reminderTasks} onResolve={handleReminderResolve} />
       )}
+
+      {/* Турбота у "важкі дні": обраний день — день менструації й увімкнено зниження навантаження */}
+      {showCare && <CareBanner />}
 
       <div className="day-view-header">
         <span className="day-view-date">{dateLabel}</span>
