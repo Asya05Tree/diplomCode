@@ -16,8 +16,9 @@ export default function QuickAddPage() {
   const canAddSubjects = studentType === 'pupil' || studentType === 'student'
 
   const [subjects, setSubjects] = useState([])
-  // Довідник продуктів + поточні запаси — для розпізнавання "додати до запасів" і перевірки наявності.
-  const [food, setFood] = useState({ products: [], stock: {} })
+  // Довідник продуктів + запаси + рецепти — для "додати до запасів", перевірки наявності та
+  // прив'язки страви ("приготувати борщ" → рецепт).
+  const [food, setFood] = useState({ products: [], stock: {}, recipes: [] })
 
   useEffect(() => {
     if (!canAddSubjects) { setSubjects([]); return }
@@ -35,15 +36,15 @@ export default function QuickAddPage() {
         if (cancelled) return
         const stock = {}
         for (const s of o.stock || []) stock[s.productId] = s.state
-        setFood({ products: o.products || [], stock })
+        setFood({ products: o.products || [], stock, recipes: o.recipes || [] })
       })
-      .catch(() => { if (!cancelled) setFood({ products: [], stock: {} }) })
+      .catch(() => { if (!cancelled) setFood({ products: [], stock: {}, recipes: [] }) })
     return () => { cancelled = true }
   }, [])
 
   return (
     <div className="quick-add-page">
-      <QuickAdd token={token} subjects={subjects} canAddSubjects={canAddSubjects} products={food.products} stock={food.stock} />
+      <QuickAdd token={token} subjects={subjects} canAddSubjects={canAddSubjects} products={food.products} stock={food.stock} recipes={food.recipes} />
     </div>
   )
 }

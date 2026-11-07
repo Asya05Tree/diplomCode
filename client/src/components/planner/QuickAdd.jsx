@@ -340,10 +340,36 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
       : { extraTimes: rows[i].extraTimes.filter((tm) => tm !== value) })
   }
 
+  // Створити звичайну календарну задачу з рядка (fallback-маршрут + Навчання/Покупки/«прийняти ліки»).
+  const createCalendarTask = async (r) => {
+    // Навчання: за потреби спершу створюємо предмет (помилка не зриває створення задачі).
+    if (r.module === 'study' && r.createSubject && r.subject.trim() && canAddSubjects && !findSubject(r.subject)) {
+      try {
+        await addSubject({
+          name: r.subject.trim(), teacher: r.teacher.trim() || null, color: null,
+          lectureRoom: null, lectureLink: r.link.trim() || null, seminarRoom: null, seminarLink: null,
+        })
+      } catch { /* предмет не критичний — задачу все одно створюємо */ }
+    }
+    let startDateTime = null
+    if (r.date) startDateTime = `${r.date}T${r.time || '09:00'}:00`
+    else if (r.time) startDateTime = `${todayApiDate()}T${r.time}:00`
+    const description = r.module === 'study' && r.lessonNumber
+      ? t('quickAdd.lessonNumberDesc', { n: r.lessonNumber })
+      : null
+    await createTask(token, {
+      title: r.title.trim(), description, startDateTime,
+      durationMinutes: combineDuration(r.durH, r.durM),
+      deadline: r.deadline ? `${r.deadline}T23:59:00` : null,
+      moduleCode: r.module,
+    })
+  }
+
   const createAll = async () => {
     const toCreate = rows.filter((r) => r.include && r.title.trim())
     const toStock = stockRows.filter((r) => r.include && r.name.trim())
-    if (!toCreate.length && !toStock.length) { close(); return }
+    const toShop = shopRows.filter((r) => r.include && r.name.trim())
+    if (!toCreate.length && !toStock.length && !toShop.length) { close(); return }
     setBusy(true)
     try {
       // Платний гейт: списуємо одне безкоштовне використання (або пропуск, якщо куплено).
@@ -356,38 +382,54 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
         throw e
       }
 
+      // Лічильники створених сутностей (для підсумкової ноти).
+      const made = { task: 0, finance: 0, note: 0, media: 0, visit: 0, meeting: 0, recipe: 0 }
       for (const r of toCreate) {
-        // Навчання: за потреби спершу створюємо предмет (помилка не зриває створення задачі).
-        if (r.module === 'study' && r.createSubject && r.subject.trim() && canAddSubjects && !findSubject(r.subject)) {
-          try {
-            await addSubject({
-              name: r.subject.trim(),
-              teacher: r.teacher.trim() || null,
-              color: null,
-              lectureRoom: null,
-              lectureLink: r.link.trim() || null,
-              seminarRoom: null,
-              seminarLink: null,
-            })
-          } catch { /* предмет не критичний — задачу все одно створюємо */ }
+        const when = r.date ? `${r.date}T${r.time || '09:00'}:00` : (r.time ? `${todayApiDate()}T${r.time}:00` : null)
+        try {
+          switch (classifyRow(r)) {
+            case 'finance': // → операція у Фінансах (QA-10): сума, напрямок, категорія
+              await addTransaction({
+                amount: Number(r.amount),
+                type: r.financeType === 'income' ? 'Income' : 'Expense',
+                category: financeCategoryFor(r.title),
+                description: r.title.trim(),
+                occurredAt: r.date ? `${r.date}T12:00:00` : null,
+              })
+              made.finance += 1; break
+            case 'note': // → нотатка (QA-07c)
+              await addNote({ text: r.title.trim(), color: NOTE_COLORS[made.note % NOTE_COLORS.length] })
+              made.note += 1; break
+            case 'media': { // → список перегляду/читання (QA-07)
+              const isBook = /книг|книж|почит|прочит|read a book|book/i.test(r.title)
+              await addMedia({ kind: isBook ? 'book' : 'video', title: r.title.trim() })
+              made.media += 1; break
+            }
+            case 'visit': // → візит у Чекапі (health «записатися до…»)
+              await addVisit({
+                doctorKey: doctorKeyFor(r.title),
+                doctorName: t(`checkup.doctor.${doctorKeyFor(r.title)}`),
+                when: when || `${todayApiDate()}T09:00:00`,
+                place: null, note: r.title.trim(),
+              })
+              made.visit += 1; break
+            case 'meeting': // → зустріч у Роботі
+              await addMeeting({ withWhom: r.title.trim(), when: when || `${todayApiDate()}T09:00:00`, place: null })
+              made.meeting += 1; break
+            case 'recipe': { // → додати страву у «вибрані» (прив'язка до рецепта)
+              const rec = findRecipe(r.title)
+              if (rec) { await toggleSelected(rec.id, true); made.recipe += 1 } else { await createCalendarTask(r); made.task += 1 }
+              break
+            }
+            default:
+              await createCalendarTask(r); made.task += 1
+          }
+        } catch {
+          // Якщо маршрут-сутність не вдалась — не втрачаємо намір: лишаємо хоча б задачу.
+          try { await createCalendarTask(r); made.task += 1 } catch { /* один рядок не критичний */ }
         }
-
-        let startDateTime = null
-        if (r.date) startDateTime = `${r.date}T${r.time || '09:00'}:00`
-        else if (r.time) startDateTime = `${todayApiDate()}T${r.time}:00`
-        // Номер пари (Навчання) кладемо в опис — окремого поля в задачі немає.
-        const description = r.module === 'study' && r.lessonNumber
-          ? t('quickAdd.lessonNumberDesc', { n: r.lessonNumber })
-          : null
-        await createTask(token, {
-          title: r.title.trim(),
-          description,
-          startDateTime,
-          durationMinutes: combineDuration(r.durH, r.durM),
-          deadline: r.deadline ? `${r.deadline}T23:59:00` : null,
-          moduleCode: r.module,
-        })
       }
+
       // Запаси: додаємо за назвою (сервер знаходить/створює продукт і повертає, чи вже був).
       let stockAdded = 0; let stockAlready = 0
       for (const r of toStock) {
@@ -397,9 +439,21 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
           else stockAdded += 1
         } catch { /* один продукт не критичний */ }
       }
+      // Список покупок: вільний текст → пункт секції «Продукти».
+      let shopAdded = 0
+      for (const r of toShop) {
+        try { await addShoppingItem({ section: 'Groceries', text: r.name.trim() }); shopAdded += 1 } catch { /* не критичний */ }
+      }
 
       const parts = []
-      if (toCreate.length) parts.push(t('quickAdd.created', { count: toCreate.length }))
+      if (made.task) parts.push(t('quickAdd.created', { count: made.task }))
+      if (made.finance) parts.push(t('quickAdd.sum.finance', { n: made.finance }))
+      if (made.note) parts.push(t('quickAdd.sum.notes', { n: made.note }))
+      if (made.media) parts.push(t('quickAdd.sum.media', { n: made.media }))
+      if (made.visit) parts.push(t('quickAdd.sum.visits', { n: made.visit }))
+      if (made.meeting) parts.push(t('quickAdd.sum.meetings', { n: made.meeting }))
+      if (made.recipe) parts.push(t('quickAdd.sum.recipe', { n: made.recipe }))
+      if (shopAdded) parts.push(t('quickAdd.sum.shopping', { n: shopAdded }))
       if (stockAdded) parts.push(t('quickAdd.stockAdded', { count: stockAdded }))
       if (stockAlready) parts.push(t('quickAdd.stockAlready', { count: stockAlready }))
       setNote(parts.join(' · '))
@@ -417,9 +471,28 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
     const count = rows.filter((r) => r.module === code).length
     if (count) tabs.push({ key: code, label: t(`quickAdd.module.${code}`), count })
   }
+  if (shopRows.length) tabs.push({ key: SHOPLIST_TAB, label: t('quickAdd.shopListTitle'), count: shopRows.length })
   if (stockRows.length) tabs.push({ key: STOCK_TAB, label: t('quickAdd.stockTitle'), count: stockRows.length })
   // Активна вкладка: збережена, якщо ще існує, інакше перша наявна.
   const currentTab = tabs.some((tb) => tb.key === activeTab) ? activeTab : (tabs[0]?.key ?? null)
+
+  // Підсумок «що саме буде створено» — щоб ефект на інших вкладках не був невидимим (QA-18).
+  const summary = (() => {
+    const by = {}
+    for (const r of rows) {
+      if (!r.include || !r.title.trim()) continue
+      const k = classifyRow(r)
+      by[k] = (by[k] || 0) + 1
+    }
+    const nShop = shopRows.filter((r) => r.include && r.name.trim()).length
+    const nStock = stockRows.filter((r) => r.include && r.name.trim()).length
+    const label = { task: 'quickAdd.sum.tasks', finance: 'quickAdd.sum.finance', note: 'quickAdd.sum.notes', media: 'quickAdd.sum.media', visit: 'quickAdd.sum.visits', meeting: 'quickAdd.sum.meetings', recipe: 'quickAdd.sum.recipe' }
+    const out = []
+    for (const k of Object.keys(label)) if (by[k]) out.push(t(label[k], { n: by[k] }))
+    if (nShop) out.push(t('quickAdd.sum.shopping', { n: nShop }))
+    if (nStock) out.push(t('quickAdd.sum.stockShort', { n: nStock }))
+    return out
+  })()
 
   // Зміна модуля переносить рядок на вкладку цього модуля — одразу туди й перемикаємось, щоб не "загубити" рядок.
   const changeModule = (i, module) => {
@@ -648,6 +721,21 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
             </div>
             )}
 
+            {currentTab === SHOPLIST_TAB && (
+              <div className="qa-stock">
+                <div className="qa-stock-title"><Icon name="tag" /> {t('quickAdd.shopListTitle')}</div>
+                <p className="qa-stock-hint">{t('quickAdd.shopListHint')}</p>
+                {shopRows.map((r, i) => (
+                  <div className={`qa-stock-row${r.include ? '' : ' qa-row--off'}`} key={i}>
+                    <label className="qa-check">
+                      <input type="checkbox" checked={r.include} onChange={(e) => patchShop(i, { include: e.target.checked })} />
+                    </label>
+                    <input className="qa-stock-name" type="text" value={r.name} onChange={(e) => patchShop(i, { name: e.target.value })} />
+                  </div>
+                ))}
+              </div>
+            )}
+
             {currentTab === STOCK_TAB && (
               <div className="qa-stock">
                 <div className="qa-stock-title"><Icon name="tag" /> {t('quickAdd.stockTitle')}</div>
@@ -679,7 +767,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
             <div className="quick-add-modal-actions">
               <button type="button" className="btn-ghost" onClick={close} disabled={busy}>{t('common.cancel')}</button>
-              <button type="button" className="btn-accent" onClick={createAll} disabled={busy || (!rows.some((r) => r.include && r.title.trim()) && !stockRows.some((r) => r.include && r.name.trim()))}>
+              <button type="button" className="btn-accent" onClick={createAll} disabled={busy || (!rows.some((r) => r.include && r.title.trim()) && !stockRows.some((r) => r.include && r.name.trim()) && !shopRows.some((r) => r.include && r.name.trim()))}>
                 {busy ? t('quickAdd.creating') : t('quickAdd.create')}
               </button>
             </div>
