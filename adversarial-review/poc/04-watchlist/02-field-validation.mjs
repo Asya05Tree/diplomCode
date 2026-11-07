@@ -41,11 +41,10 @@ rec('invalid_kind -> 400', ik.status === 400 && ik.json.error === 'invalid_kind'
 let mt = await api('POST', '/api/media', { token: tok, body: { kind: 'video', title: '   ' } })
 rec('missing_title -> 400', mt.status === 400 && mt.json.error === 'missing_title', `status=${mt.status} ${JSON.stringify(mt.json)}`)
 
-// --- huge payload truncated, not rejected ---
+// --- huge payload REJECTED (fixed: [StringLength] on Title/Author -> 400, was silent truncation) ---
 const big = 'A'.repeat(10000)
 let hp = await api('POST', '/api/media', { token: tok, body: { kind: 'book', title: big, author: big } })
-rec('10k title/author truncated', hp.status === 200 && hp.json.title.length === 120 && hp.json.author.length === 60,
-  `status=${hp.status} titleLen=${hp.json.title.length} authorLen=${hp.json.author.length}`)
+rec('10k title/author rejected (400)', hp.status === 400, `status=${hp.status}`)
 
 // --- mass-assignment: status cannot be set via Add/Update ---
 let ma = await api('POST', '/api/media', { token: tok, body: { kind: 'video', title: 'ma', status: 'done' } })

@@ -10,10 +10,11 @@ import { execFileSync } from 'node:child_process'
 const A = await provision({ email: 'adv.t05.limits@gmail.com' })
 const db = (sql) => execFileSync('docker', ['exec', 'planner-mysql', 'mysql', '-N', '-uplanner', '-pplanner_dev_password', 'planner', '-e', sql], { encoding: 'utf8' }).trim()
 
-// 1) very long name
-const longId = (await api('POST', '/api/shopping-list', { token: A.token, body: { section: 'Groceries', text: 'Ж'.repeat(5000) } })).json.id
-const len = db(`SELECT CHAR_LENGTH(CustomText) FROM ShoppingItems WHERE Id=${longId};`)
-console.log(`[long name] stored length=${len} (expected capped, e.g. <=120). ` +
+// 1) very long name — fixed server rejects >200 chars with 400 ([StringLength]) before any row is stored
+const longRes = await api('POST', '/api/shopping-list', { token: A.token, body: { section: 'Groceries', text: 'Ж'.repeat(5000) } })
+const longId = longRes.json?.id
+const len = longId ? db(`SELECT CHAR_LENGTH(CustomText) FROM ShoppingItems WHERE Id=${longId};`) : 'n/a'
+console.log(`[long name] status=${longRes.status} stored length=${len} (expected capped / rejected). ` +
   (Number(len) === 5000 ? 'CONFIRMED: no length limit on CustomText (longtext).' : 'REFUTED'))
 
 // 2) XSS payload stored raw

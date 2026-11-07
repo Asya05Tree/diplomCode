@@ -30,6 +30,31 @@ public class FinanceService
     private const decimal MoneyMax = 1_000_000_000m;
     private static decimal ClampMoney(decimal v) => Math.Round(Math.Clamp(v, 0m, MoneyMax), 2);
 
+    // Allowlist категорій — дзеркало client/src/utils/financeCategories.js. Category транзакції — або
+    // null (без категорії), або один із цих ключів; будь-що інше → 400 invalid_category (ПЛАН P2-5).
+    // Без перевірки прямий виклик API створював би «сироту»: net рахується в «Є зараз», але рядок
+    // невидимий у вкладці Категорії (UI рендерить лише відомі ключі), а сирий ключ показувався як назва.
+    private static readonly HashSet<string> CategoryKeys = new()
+    {
+        "food", "housing", "utilities", "communication", "transport", "car", "health", "household",
+        "clothing", "entertainment", "dining", "hobbies", "beauty", "sport", "subscriptions", "shopping",
+        "pocket", "travel", "car_repair", "taxes", "gifts", "home_big", "education", "medical",
+        "renovation", "kids", "pets", "loans", "savings", "investments", "insurance", "charity", "family_help",
+    };
+
+    // Розумне вікно дати операції: не раніше 2000 р. і не більш ніж на добу в майбутнє (запас на часові
+    // пояси). Клієнт міг слати будь-який OccurredAt і бек-/ф'ючер-дейтити історію та статистику (ПЛАН P2-5).
+    private static readonly DateTime MinOccurredAt = new(2000, 1, 1);
+
+    // Порожня категорія → null (дозволено); відома → повертаємо ключ; невідома → 400.
+    private static string? NormalizeCategory(string? category)
+    {
+        if (string.IsNullOrWhiteSpace(category)) return null;
+        var key = category.Trim();
+        if (!CategoryKeys.Contains(key)) throw new BadInputException("invalid_category");
+        return key;
+    }
+
     public async Task<FinanceDto> GetAsync(int userId)
     {
         var account = await _db.FinanceAccounts.FindAsync(userId);
@@ -74,6 +99,9 @@ public class FinanceService
     // доходи й баланс (дохід−витрата). Транзакції прихованих категорій не враховуються.
     public async Task<StatsDto> GetStatsAsync(int userId, int year, int month)
     {
+        // Діапазон року: 2000…поточний+1. Поза ним new DateTime(year,…) кидав ArgumentOutOfRange → 500
+        // (DoS через ?year=0/-1/10000). Тепер — 400 invalid_year (ПЛАН P2-5).
+        if (year < 2000 || year > DateTime.Now.Year + 1) throw new BadInputException("invalid_year");
         if (month is < 1 or > 12) month = 1;
         var start = new DateTime(year, month, 1);
         var end = start.AddMonths(1);
@@ -139,6 +167,9 @@ public class FinanceService
         if (type is not ("Income" or "Expense")) return null;
         amount = ClampMoney(amount);
         if (amount <= 0) return null; // нульові/відʼємні операції не додаємо
+        category = NormalizeCategory(category);
+        var when = occurredAt ?? DateTime.Now;
+        if (when < MinOccurredAt || when > DateTime.Now.AddDays(1)) throw new BadInputException("invalid_date");
         Limits.Ensure(await _db.FinanceTransactions.CountAsync(t => t.UserId == userId),
             Limits.FinanceTransactions, "finance_transactions");
         var tx = new FinanceTransaction
@@ -148,7 +179,7 @@ public class FinanceService
             Type = type,
             Category = category,
             Description = description,
-            OccurredAt = occurredAt ?? DateTime.Now,
+            OccurredAt = when,
         };
         _db.FinanceTransactions.Add(tx);
         await UnhideIfNeededAsync(userId, category); // внесення у категорію робить її активною
@@ -166,6 +197,7 @@ public class FinanceService
         if (tx is null) return false;
         amount = ClampMoney(amount);
         if (amount <= 0) return false;
+        category = NormalizeCategory(category);
 
         tx.Amount = amount;
         tx.Type = type;

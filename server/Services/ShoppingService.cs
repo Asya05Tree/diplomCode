@@ -128,6 +128,12 @@ public class ShoppingService
         if (section is not ("Groceries" or "Pharmacy" or "Household" or "Cosmetics" or "Stationery" or "Pets" or "Other")) return null;
         // Має бути рівно одне джерело назви: продукт, ліки або довільний текст
         if (productId is null && medicineId is null && string.IsNullOrWhiteSpace(text)) return null;
+        // Посилання мають існувати (і продукт — бути системним або власним): інакше вставка падала б
+        // порушенням зовнішнього ключа у 500. Чужий приватний продукт теж не приймаємо (IDOR) — 400.
+        if (productId is int pid && !await _db.Products.AnyAsync(p => p.Id == pid && (p.IsSystem || p.CreatedByUserId == userId)))
+            throw new BadInputException("invalid_product");
+        if (medicineId is int mid && !await _db.Medicines.AnyAsync(m => m.Id == mid))
+            throw new BadInputException("invalid_medicine");
         Limits.Ensure(await _db.ShoppingItems.CountAsync(i => i.UserId == userId), Limits.ShoppingItems, "shopping_items");
 
         var item = new ShoppingItem
