@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-11-07 (сесія 8) — Зведення позаобсягових залишків (після P2)
+
+**Контекст:** окремий прохід по передіснуючих позаобсягових знахідках, задокументованих у сесії 7 (не входили в жоден пункт P2, лишались CONFIRMED). Усе — перенесення «клієнтських» інваріантів на сервер. Наживо `http://localhost:5080`, збірка 0/0.
+
+**Зроблено:**
+- **Параметри повторення не валідувалися (10-work/04).** `server/Services/TaskService.cs`: `ValidateRecurrence` у `CreateRecurrenceRuleAsync`/`UpdateRecurrenceRuleAsync` — тип лише з {WeekCycle, EveryNDays, MonthDays, Manual} (інакше 400 `invalid_recurrence_type`); `EveryNDays` з інтервалом поза 1..366 → 400 `invalid_interval`. Діапазон календаря вже був обмежений 366 днями (WorkController/TasksController) — DoS через 100-річний діапазон закрито раніше.
+- **Деактивована зміна лишалась у спільному календарі (10-work/08).** `TaskService.GetTasksForRangeAsync`: правила графіка, чий `WorkShiftType.IsActive == false`, пропускаються (`inactiveShiftRuleIds`). Тепер «вимкнена зміна» зникає і з вкладки Роботи, і зі спільного календаря (`/api/tasks/period`).
+- **Мертві поля — mass-assignment (10-work/06, частина P3-4).** Контакт: з `WorkContactRequest` прибрано `GroupName/Status/Socials/Viber`; `ToContactDto` жорстко ставить group="", status="online", socials/viber=null. Зобов'язання тепер лише назва+опис: з `WorkObligationRequest` прибрано `DueDate/IsDone`, `Add/UpdateObligationAsync` пишуть лише title/note. Прямий API більше не підмінить мертвих полів.
+- **Школяр ≠ студент тільки в UI (09-study/02).** `server/Services/StudyService.cs`: `IsPupilAsync` + гейтинг — тип завдання за профілем (школяр лише `homework`, студент `lab/exam/practical` → інакше 400 `invalid_type_for_profile`); великі роботи в школяра → 400 `projects_student_only`; факультатив (`elective`) у студента → 400 `elective_pupil_only`. Набори збігаються з `client/.../studyShared.js`.
+- **Сітка дзвінків без валідації (09-study/06).** `StudyService.ReplaceBellsAsync`: до 12 дзвінків, індекс 1..12 без повторів, `endTime > startTime` → інакше 400; порожній список = очищення (легітимно).
+- **Формат email + абсурдні дати зустрічі (10-work/05, залишок).** `WorkService.ValidatedEmail` (той самий простий формат, що на клієнті) → 400 `invalid_email`; `EnsureSaneMeetingDate` (рік ≥ 2000 і ≤ +5 років) → 400 `invalid_meeting_date`.
+
+**Перевірка (наживо): усі залишкові PoC — REFUTED**
+- `10-work/04` рекурентність: intervalDays 0/−5 → 400 `invalid_interval`; bogus type → 400 `invalid_recurrence_type`; валідний EveryNDays → 200; календар 2000→2100 → 400 `invalid_range`.
+- `10-work/06` мертві поля: контакт status=online, socials/viber/group порожні; зобов'язання dueDate=null/isDone=false навіть після PUT; енами нормалізовано.
+- `10-work/08` деактивація: work-календар 31→0 і спільний 31→0.
+- `10-work/05`: email сміття→400, валідний→200; зустріч 9999→400, 2026→200 (length/color/income з P2 теж тримаються).
+- `09-study/02`: школяр coursework→400, exam/lab/practical→400, homework→200; студент homework→400, lab→200, elective→400.
+- `09-study/06`: 53 криві дзвінки→400 (0 збережено), валідні 2→200.
+
+**Регресій немає.** Перепрогнав суміжні PoC: `09-study/01/03/04/05/07/08`, `10-work/02/03/07` — усі REFUTED/✅. Два PoC (`09-study/03`, `04`) слали для студента `type:'homework'`, що тепер відхиляє новий гейт → поправив їх на `lab` (студентський тип), інваріанти (IDOR предмета, клампінг оцінок) підтверджено. Smoke: WeekCycle/MonthDays-повторення створюються нормально (200).
+- **`10-work/01` (isWorking gating) — не регресія.** Фіксований email `adv.t10.gate@gmail.com` давав хибний «CONFIRMED» через накопичений профіль (provision на email_taken не скидає дані). Свіжим email усі `/api/work/*` → 403 (гейтинг P0-2 на місці). PoC переведено на tagged-email + обчислюваний REFUTED.
+
+**Де зупинився / далі:** позаобсягові залишки з сесії 7 закрито. Лишаються власне пункти **P3** з таблиці в кінці `ПЛАН-ВИПРАВЛЕНЬ.md`: P3-1 (N+1 ліки), P3-2 (debounce/парсер), P3-3 (меню в localStorage), P3-4 (решта — мертва фіча `reduceLoadOnHeavyDays`; mass-assignment частину вже закрито), P3-5 (a11y), P3-6 (Swagger), P3-7 (i18n-дрібниці). Рекомендую починати з P3-1/P3-2 (продуктивність).
+
+---
+
 ## 2026-11-07 (сесія 7) — Ремедіація безпеки, фаза P2 (завершення): P2-10
 
 **Контекст:** той самий цикл по `adversarial-review/ПЛАН-ВИПРАВЛЕНЬ.md`; P2-10 — останній пункт фази P2. Кожен фікс має перевести відповідний PoC з CONFIRMED у REFUTED (наживо, `http://localhost:5080`).
