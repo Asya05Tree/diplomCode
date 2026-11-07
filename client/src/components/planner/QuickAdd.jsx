@@ -5,13 +5,62 @@ import Icon from '../Icon'
 import { parseInput, findUnsupportedChars } from '../../utils/nlp'
 import { createTask } from '../../api/tasks'
 import { addSubject } from '../../api/study'
-import { addStockByName, productName } from '../../api/food'
+import { addStockByName, productName, recipeName, toggleSelected } from '../../api/food'
+import { addShoppingItem } from '../../api/shopping'
+import { addNote } from '../../api/notes'
+import { addTransaction } from '../../api/finance'
+import { addMedia } from '../../api/media'
+import { addVisit } from '../../api/checkup'
+import { addMeeting } from '../../api/work'
 import { getQuickAddStatus, consumeQuickAdd, checkoutQuickAdd, confirmPayment } from '../../api/billing'
 import { combineDuration, splitDuration, todayApiDate } from '../../utils/date'
 import './QuickAdd.css'
 
 // Модулі, у які вміє класифікувати парсер (+ "звичайна"). none-модуль → "tasks".
 const MODULES = ['tasks', 'shopping', 'media', 'food', 'health', 'study', 'work', 'finance', 'notes']
+
+// Кольори для нотаток-«квадратиків» (мають збігатися з Notes.jsx).
+const NOTE_COLORS = ['#fff3b0', '#cdeffd', '#d7f5d3', '#ffd6e0', '#e5d4ff', '#ffe0b3']
+
+// Ключ вкладки «Список покупок» у модалці (решта не-модульних ключів — нижче).
+const SHOPLIST_TAB = '__shoplist__'
+
+// Лікарі чекапу (ключ enum) за словом у тексті — для «записатися до …» (health → візит).
+const DOCTOR_MAP = [
+  [/стоматолог|дантист|зубн|dentist/i, 'dentist'],
+  [/окуліст|офтальмолог|ophthalmolog/i, 'ophthalmologist'],
+  [/отоларинголог|\bлор\b|otolaryngolog|\bent\b/i, 'otolaryngologist'],
+  [/кардіолог|cardiolog/i, 'cardiologist'],
+  [/дерматолог|dermatolog/i, 'dermatologist'],
+  [/невролог|neurolog/i, 'neurologist'],
+  [/гастроентеролог|gastroenterolog/i, 'gastroenterologist'],
+  [/ендокринолог|endocrinolog/i, 'endocrinologist'],
+  [/хірург|surgeon/i, 'surgeon'],
+  [/гінеколог|gynecolog/i, 'gynecologist'],
+  [/уролог|urolog/i, 'urologist'],
+  [/психотерапевт|psychotherap/i, 'psychotherapist'],
+  [/ортопед|orthoped/i, 'orthopedist'],
+  [/педіатр|pediatric/i, 'pediatrician'],
+  [/терапевт|therapist/i, 'therapist'],
+]
+// Слова-маркери наміру ЗАПИСАТИСЯ на прийом (а не «прийняти ліки» — та лишається задачею).
+const APPOINTMENT_RE = /записат|запис на|на прийом|прийом до|чекап|візит|огляд|appointment|checkup|book.*(doctor|dentist)/i
+// Слова-маркери ЗУСТРІЧІ в Роботі (інакше work лишається звичайною задачею).
+const MEETING_RE = /нарад|зустріч|перемов|планерк|співбесід|meeting|stand-?up|interview/i
+// Прості правила «ключове слово → категорія фінансів» (решта — без категорії).
+const FINANCE_CAT_MAP = [
+  [/інтернет|зв'язок|мобільн|телефон|phone|internet|communication/i, 'communication'],
+  [/комунал|світло|газ|\bвод|опален|utilit/i, 'utilities'],
+  [/оренд|житло|квартплат|іпотек|rent|mortgage|housing/i, 'housing'],
+  [/кафе|ресторан|dining|restaurant|cafe/i, 'dining'],
+  [/продукт|їж|groc|food/i, 'food'],
+  [/транспорт|проїзд|метро|автобус|паливо|бензин|transport|fuel/i, 'transport'],
+  [/ліки|аптек|health|medic|pharmac/i, 'health'],
+  [/податок|збір|\btax/i, 'taxes'],
+  [/кредит|борг|позик|loan|debt/i, 'loans'],
+  [/підписк|subscription/i, 'subscriptions'],
+  [/навчанн|курс|education|tuition/i, 'education'],
+]
 
 // М'яка межа довжини вводу: лічильник підсвічується, але текст НЕ обрізається (QA-11) —
 // багаторядкове поле приймає скільки завгодно, обрізання браузером більше немає.
@@ -68,12 +117,13 @@ function toRow(task) {
 // (utils/nlp), задачі ніколи не створюються автоматично: спершу екран підтвердження.
 // subjects — наявні предмети Навчання (для зіставлення/створення); canAddSubjects —
 // чи користувач школяр/студент (інакше предмет у Навчанні створити не можна).
-export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjects = false, products = [], stock = {} }) {
+export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjects = false, products = [], stock = {}, recipes = [] }) {
   const { t, language } = useI18n()
   const [text, setText] = useState('')
   const [result, setResult] = useState(null) // { tasks, notRecognized, language, stock } або null
   const [rows, setRows] = useState([])
   const [stockRows, setStockRows] = useState([])
+  const [shopRows, setShopRows] = useState([]) // пункти списку покупок ("…до списку покупок")
   const [activeTab, setActiveTab] = useState(null) // активна вкладка модалки (код модуля або STOCK_TAB)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
@@ -153,6 +203,39 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
 
   const findSubject = (name) => subjects.find((s) => sameSubject(s.name, name))
 
+  // Рецепт за назвою у тексті ("приготувати борщ" → рецепт «Борщ»), регістронезалежно.
+  const findRecipe = (title) => {
+    const low = (title || '').toLowerCase()
+    return recipes.find((r) => {
+      const n = (recipeName(r, language) || '').toLowerCase().trim()
+      return n && low.includes(n)
+    })
+  }
+
+  // Куди піде рядок при «Створити»: сутність модуля чи звичайна задача (QA-07). Заперечення
+  // ("не купувати") завжди лишає просту задачу — без побічних ефектів (QA-12).
+  const classifyRow = (r) => {
+    if (r.negated) return 'task'
+    const title = (r.title || '').toLowerCase()
+    if (r.module === 'finance' && r.amount !== '' && Number(r.amount) > 0) return 'finance'
+    if (r.module === 'notes') return 'note'
+    if (r.module === 'media') return 'media'
+    if (r.module === 'health' && APPOINTMENT_RE.test(title)) return 'visit'
+    if (r.module === 'work' && MEETING_RE.test(title)) return 'meeting'
+    if (r.module === 'food' && findRecipe(title)) return 'recipe'
+    return 'task'
+  }
+
+  const financeCategoryFor = (title) => {
+    const low = (title || '').toLowerCase()
+    for (const [re, key] of FINANCE_CAT_MAP) if (re.test(low)) return key
+    return null
+  }
+  const doctorKeyFor = (title) => {
+    for (const [re, key] of DOCTOR_MAP) if (re.test(title || '')) return key
+    return 'family'
+  }
+
   // Статус продукту для запасів: present — уже в наявності, known — є в довіднику, new — новий.
   const stockStatus = (name) => {
     const norm = (x) => (x || '').trim().toLowerCase()
@@ -172,7 +255,8 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
     // Назви наявних предметів передаємо у фаззі-шар — щоб виправляти й помилки в них.
     const parsed = parseInput(text, new Date(), subjects.map((s) => s.name).filter(Boolean))
     const stockItems = (parsed.stock || []).flatMap((s) => s.items)
-    if (!parsed.tasks.length && !parsed.notRecognized.length && !stockItems.length) {
+    const shopItems = (parsed.shoppingList || []).flatMap((s) => s.items)
+    if (!parsed.tasks.length && !parsed.notRecognized.length && !stockItems.length && !shopItems.length) {
       // Нічого не розпізнано: якщо були чужі символи — пояснюємо їх, інакше загальна нота.
       setNote(badChars.length ? t('quickAdd.unsupportedLang', { chars: badChars.join(' ') }) : t('quickAdd.nothing'))
       return
@@ -191,6 +275,7 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
       return r
     }))
     setStockRows(stockItems.map((name) => ({ name, include: true, status: stockStatus(name) })))
+    setShopRows(shopItems.map((name) => ({ name, include: true })))
     setActiveTab(null) // почнемо з першої вкладки (визначається під час рендеру)
   }
 
@@ -198,9 +283,12 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
     setResult(null)
     setRows([])
     setStockRows([])
+    setShopRows([])
     setActiveTab(null)
     setLangWarn('')
   }
+
+  const patchShop = (i, changes) => setShopRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
 
   const patchStock = (i, changes) => setStockRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
 
