@@ -63,6 +63,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         };
+        // Відкликання токена (ПЛАН P2-1): підпис і термін дії вже перевірено вище, тут додатково
+        // звіряємо версію з claim "tver" із поточною в БД. Після "Вийти"/видалення акаунта версія
+        // змінюється (або рядок зникає) — старий токен тут відпадає у 401, а не працює до exp.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async ctx =>
+            {
+                var sub = ctx.Principal?.FindFirst("sub")?.Value;
+                var tver = ctx.Principal?.FindFirst("tver")?.Value;
+                if (!int.TryParse(sub, out var userId) || !int.TryParse(tver, out var tokenVersion))
+                {
+                    ctx.Fail("invalid_token");
+                    return;
+                }
+                var db = ctx.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                var current = await db.Users
+                    .Where(u => u.Id == userId)
+                    .Select(u => (int?)u.TokenVersion)
+                    .FirstOrDefaultAsync();
+                if (current is null || current.Value != tokenVersion)
+                    ctx.Fail("token_revoked");
+            },
+        };
     });
 
 // Рядок підключення береться з appsettings.{Environment}.json (ключ ConnectionStrings:Default)

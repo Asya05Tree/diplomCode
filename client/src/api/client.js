@@ -58,6 +58,19 @@ export async function login(email, password) {
   return response.json()
 }
 
+// Серверний вихід: відкликає поточний токен (інкремент версії в БД). Помилка не критична — токен
+// усе одно прибираємо локально, тож ковтаємо її, щоб вихід ніколи не "завис".
+export async function logout(token) {
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch {
+    // мережа недоступна — локальний вихід усе одно відбудеться
+  }
+}
+
 export async function getMe(token) {
   const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },

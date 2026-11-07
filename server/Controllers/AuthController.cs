@@ -112,7 +112,7 @@ public class AuthController : ControllerBase
         });
         await _db.SaveChangesAsync();
 
-        var token = _jwtService.CreateToken(user.Id, user.Email);
+        var token = _jwtService.CreateToken(user.Id, user.Email, user.TokenVersion);
         return Ok(new { token, nickname = user.Nickname, email = user.Email });
     }
 
@@ -124,8 +124,21 @@ public class AuthController : ControllerBase
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return BadRequest(new { error = "invalid_credentials" });
 
-        var token = _jwtService.CreateToken(user.Id, user.Email);
+        var token = _jwtService.CreateToken(user.Id, user.Email, user.TokenVersion);
         return Ok(new { token, nickname = user.Nickname, email = user.Email });
+    }
+
+    // Вийти: інкрементуємо версію токена в БД — усі раніше видані токени цього акаунта миттєво
+    // перестають проходити валідацію (claim "tver" більше не збігається). Сервер не тримає чорний
+    // список; це найпростіший спосіб серверного logout (ПЛАН P2-1).
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        var userId = User.GetUserId();
+        await _db.Users.Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.TokenVersion, u => u.TokenVersion + 1));
+        return Ok();
     }
 
     [HttpGet("me")]

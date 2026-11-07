@@ -1356,6 +1356,9 @@ namespace Server.Migrations
                     b.Property<int>("QuickAddUsedCount")
                         .HasColumnType("int");
 
+                    b.Property<int>("TokenVersion")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

@@ -18,7 +18,7 @@ import Settings from './pages/Settings'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
-import { getMe } from './api/client'
+import { getMe, logout } from './api/client'
 import { getHealthProfile, setProfileStatus } from './api/healthProfile'
 import {
   getPalette,
@@ -113,6 +113,9 @@ function AppContent() {
   }
 
   const handleLogout = () => {
+    // Спершу кажемо серверу відкликати токен (щоб копія токена не лишалась чинною), потім чистимо локально
+    const token = localStorage.getItem(AUTH_TOKEN_KEY)
+    if (token) logout(token)
     localStorage.removeItem(AUTH_TOKEN_KEY)
     setUser(null)
     setStudentType(null)
