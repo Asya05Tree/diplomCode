@@ -14,7 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Унікальний schemaId за повним імʼям типу: два вкладені типи з однаковою назвою
+    // (WorkService.Recurrence і StudyService.Recurrence) інакше дають колізію й падіння
+    // генерації swagger.json у 500 (ПЛАН P3-6). "+" у вкладених типах → "." для читабельності.
+    c.CustomSchemaIds(t => t.FullName?.Replace("+", "."));
+});
 
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<JwtService>();

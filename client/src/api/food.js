@@ -34,6 +34,15 @@ export function markCooked(recipeId) {
   return apiSend('POST', `/api/food/recipes/${recipeId}/cooked`)
 }
 
+// Тижневе меню (зберігається на сервері): карта { день 1..7: [recipeId...] }.
+export function getWeeklyMenu() {
+  return apiGet('/api/food/menu')
+}
+
+export function saveWeeklyMenu(menu) {
+  return apiSend('PUT', '/api/food/menu', { menu })
+}
+
 // Двомовні назви — мову обирає компонент (як було в псевдо-БД).
 export function productName(product, language) {
   if (!product) return ''

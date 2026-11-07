@@ -9,6 +9,8 @@ namespace Server.Controllers;
 public record SetStockStateRequest(string State); // Available | RunningLow | OutOfStock
 // [StringLength]: назва — вільний текст, без межі приймались 8 КБ+ (ПЛАН P2-2, перенесено з P1-8). Завелике → 400.
 public record AddStockByNameRequest([StringLength(TextLimits.Name)] string Name);
+// Тижневе меню: карта «день тижня (1..7) -> список recipeId» (ПЛАН P3-3).
+public record PutMenuRequest(Dictionary<int, List<int>>? Menu);
 
 // planner-spec.md §3.4. Екран "Їжа": збірний /overview для початкового завантаження сторінки
 // + точкові дії над запасами/обраними стравами. Уся логіка — у RecipeService.
@@ -75,5 +77,16 @@ public class FoodController : ControllerBase
     {
         var ok = await _recipeService.MarkCookedAsync(CurrentUserId, recipeId);
         return ok ? Ok() : NotFound();
+    }
+
+    // Тижневе меню: читання всієї сітки та заміна її цілком (зберігається на сервері — ПЛАН P3-3).
+    [HttpGet("menu")]
+    public async Task<IActionResult> GetMenu() => Ok(await _recipeService.GetMenuAsync(CurrentUserId));
+
+    [HttpPut("menu")]
+    public async Task<IActionResult> PutMenu([FromBody] PutMenuRequest r)
+    {
+        await _recipeService.ReplaceMenuAsync(CurrentUserId, r.Menu ?? new Dictionary<int, List<int>>());
+        return Ok();
     }
 }

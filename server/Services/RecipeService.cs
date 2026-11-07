@@ -268,4 +268,46 @@ public class RecipeService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    // ---- Тижневе меню (FoodMenuItem) -------------------------------------------
+    // Раніше меню жило лише в localStorage браузера (губилося при зміні пристрою) — тепер на сервері
+    // (ПЛАН P3-3). Редагується цілою сіткою (PUT), як дзвінки в Навчанні.
+
+    private const int MaxMenuItemsPerDay = 20;
+
+    public async Task<Dictionary<int, List<int>>> GetMenuAsync(int userId)
+    {
+        var items = await _db.FoodMenuItems
+            .Where(x => x.UserId == userId)
+            .OrderBy(x => x.DayOfWeek).ThenBy(x => x.Position)
+            .ToListAsync();
+        var menu = new Dictionary<int, List<int>>();
+        for (var d = 1; d <= 7; d++) menu[d] = new List<int>();
+        foreach (var it in items)
+            if (menu.TryGetValue(it.DayOfWeek, out var list)) list.Add(it.RecipeId);
+        return menu;
+    }
+
+    public async Task ReplaceMenuAsync(int userId, Dictionary<int, List<int>> menu)
+    {
+        // Лишаємо тільки наявні рецепти (довідник) і дні 1..7; не більше MaxMenuItemsPerDay на день.
+        var known = (await _db.Recipes.Select(r => r.Id).ToListAsync()).ToHashSet();
+
+        var existing = await _db.FoodMenuItems.Where(x => x.UserId == userId).ToListAsync();
+        _db.FoodMenuItems.RemoveRange(existing);
+
+        foreach (var (day, ids) in menu)
+        {
+            if (day < 1 || day > 7 || ids is null) continue;
+            var pos = 0;
+            foreach (var rid in ids)
+            {
+                if (pos >= MaxMenuItemsPerDay) break;
+                if (!known.Contains(rid)) continue;
+                _db.FoodMenuItems.Add(new FoodMenuItem { UserId = userId, DayOfWeek = day, Position = pos, RecipeId = rid });
+                pos++;
+            }
+        }
+        await _db.SaveChangesAsync();
+    }
 }

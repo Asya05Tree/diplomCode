@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import { getFinance } from '../api/finance'
@@ -9,6 +9,8 @@ import {
   addStockProduct as apiAddStockProduct,
   toggleSelected as apiToggleSelected,
   markCooked as apiMarkCooked,
+  getWeeklyMenu,
+  saveWeeklyMenu,
   productName,
   recipeName,
   ingredientAmount,
@@ -22,19 +24,12 @@ const STOCK_TOGGLE = [
   { state: 'OutOfStock', cls: 'bad' },
 ]
 
-// Тижневе меню зберігаємо локально (як дошка в нотатках) — це особистий план користувача
-// поверх серверних довідників, окремого ендпоінта під нього немає. Структура: { ISO-день: [recipeId] }.
-const MENU_KEY = 'food:weeklyMenu'
-
-function loadMenu() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(MENU_KEY) || '{}')
-    const menu = {}
-    for (let d = 1; d <= 7; d++) menu[d] = Array.isArray(raw[d]) ? raw[d] : []
-    return menu
-  } catch {
-    return { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [] }
-  }
+// Тижневе меню зберігається на сервері (ПЛАН P3-3) — особистий план поверх серверних довідників.
+// Структура: { ISO-день 1..7: [recipeId] }. Нормалізуємо відповідь сервера до всіх семи днів.
+function normalizeMenu(raw) {
+  const menu = {}
+  for (let d = 1; d <= 7; d++) menu[d] = Array.isArray(raw?.[d]) ? raw[d] : []
+  return menu
 }
 
 // Модуль "Їжа" (planner-spec.md §4.6): лента рецептів з фільтрами, запаси з триступеневим
@@ -63,9 +58,12 @@ export default function Food() {
   const [stockSearch, setStockSearch] = useState('')
   // Три вкладки розділу: "Меню" (план на тиждень), "Страви" і "Запаси".
   const [tab, setTab] = useState('menu') // 'menu' | 'dishes' | 'stock'
-  // Тижневе меню: { ISO-день: [recipeId] }. Зберігається локально; день-пікер — через menuPickDay.
-  const [menu, setMenu] = useState(loadMenu)
+  // Тижневе меню: { ISO-день: [recipeId] }. Завантажується з сервера нижче; день-пікер — через menuPickDay.
+  const [menu, setMenu] = useState(() => normalizeMenu(null))
   const [menuPickDay, setMenuPickDay] = useState(null) // ISO-день для вибору страви або null
+  const menuHydrated = useRef(false)   // true після першого завантаження меню з сервера
+  const lastSavedMenu = useRef('')     // JSON останнього збереженого меню (щоб не слати зайвих PUT)
+  const menuSaveTimer = useRef(null)   // debounce збереження
   const [stockCat, setStockCat] = useState('all')
   const [stockSort, setStockSort] = useState('default') // 'default' | 'alpha' | 'availability'
   // Id продуктів, що вже є у списку покупок (невідмічені) — щоб не пропонувати додати двічі.
@@ -80,8 +78,9 @@ export default function Food() {
       getFoodOverview(),
       getFinance().catch(() => ({ balance: 0 })),
       getShoppingList().catch(() => ({ items: [] })),
+      getWeeklyMenu().catch(() => ({})),
     ])
-      .then(([ov, fin, shop]) => {
+      .then(([ov, fin, shop, menuData]) => {
         if (cancelled) return
         setProducts(ov.products)
         setRecipes(ov.recipes)
@@ -94,6 +93,11 @@ export default function Food() {
         setBalance(bal)
         setRange({ from: 0, to: bal })
         setInShopping(new Set((shop.items || []).filter((x) => !x.isChecked && x.productId != null).map((x) => x.productId)))
+        // Меню з сервера: фіксуємо як «збережене», щоб перший рендер не ганяв зайвий PUT.
+        const loadedMenu = normalizeMenu(menuData)
+        setMenu(loadedMenu)
+        lastSavedMenu.current = JSON.stringify(loadedMenu)
+        menuHydrated.current = true
         setLoading(false)
       })
       .catch(() => {
@@ -181,9 +185,16 @@ export default function Food() {
     await apiAddStockProduct(productId)
   }
 
-  // Меню тримаємо в localStorage — зберігаємо на кожну зміну (план особистий, без бекенда).
+  // Меню зберігаємо на сервері: лише реальні зміни, з debounce 600 мс (ПЛАН P3-3).
   useEffect(() => {
-    localStorage.setItem(MENU_KEY, JSON.stringify(menu))
+    if (!menuHydrated.current) return
+    const json = JSON.stringify(menu)
+    if (json === lastSavedMenu.current) return
+    if (menuSaveTimer.current) clearTimeout(menuSaveTimer.current)
+    menuSaveTimer.current = setTimeout(() => {
+      lastSavedMenu.current = json
+      saveWeeklyMenu(menu).catch(() => {})
+    }, 600)
   }, [menu])
 
   const addToMenu = (day, recipeId) => {
