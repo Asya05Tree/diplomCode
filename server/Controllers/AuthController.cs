@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
 using System.Text.RegularExpressions;
 using Server.Data;
 using Server.Models;
@@ -37,36 +36,67 @@ public class AuthController : ControllerBase
 
     private static bool IsGmailAddress(string email) => email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase);
 
+    // Канонічний вигляд email: lower-case; для gmail — прибираємо крапки та "+suffix" у локальній
+    // частині (gmail їх ігнорує). Одна поштова скринька = один акаунт: інакше аліасами можна плодити
+    // акаунти в обхід email_taken і квоти безкоштовних фіч (ПЛАН P2-6).
+    private static string NormalizeEmail(string email)
+    {
+        var e = (email ?? "").Trim().ToLowerInvariant();
+        var at = e.IndexOf('@');
+        if (at <= 0) return e;
+        var local = e[..at];
+        var domain = e[(at + 1)..];
+        if (domain is "gmail.com" or "googlemail.com")
+        {
+            var plus = local.IndexOf('+');
+            if (plus >= 0) local = local[..plus];
+            local = local.Replace(".", "");
+        }
+        return local + "@" + domain;
+    }
+
     [HttpPost("send-code")]
     public async Task<IActionResult> SendCode([FromBody] SendCodeRequest request)
     {
-        var email = request.Email.Trim().ToLowerInvariant();
+        var email = NormalizeEmail(request.Email);
         if (string.IsNullOrWhiteSpace(email) || !IsGmailAddress(email))
             return BadRequest(new { error = "invalid_email" });
 
         if (!string.IsNullOrWhiteSpace(request.Nickname) && !NicknamePattern.IsMatch(request.Nickname))
             return BadRequest(new { error = "invalid_nickname" });
 
-        if (await _db.Users.AnyAsync(u => u.Email == email))
-            return BadRequest(new { error = "email_taken" });
-
-        var code = Random.Shared.Next(0, 1_000_000).ToString("D6");
-        _db.EmailVerificationCodes.Add(new EmailVerificationCode
+        // Анти-енумерація: далі завжди 200, незалежно від того, існує email чи ні (інакше 400 email_taken
+        // vs 200 видавав, у кого є акаунт). Код реально створюємо й шлемо лише коли email вільний і не було
+        // коду за останні 60 с (кулдаун) — інакше тихо нічого не робимо (ПЛАН P2-6).
+        var now = DateTime.UtcNow;
+        var taken = await _db.Users.AnyAsync(u => u.Email == email);
+        var recent = await _db.EmailVerificationCodes.AnyAsync(c => c.Email == email && c.CreatedAt > now.AddSeconds(-60));
+        if (!taken && !recent)
         {
-            Email = email,
-            Code = code,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(CodeLifetimeMinutes),
-        });
-        await _db.SaveChangesAsync();
+            // Один чинний код на email: гасимо попередні невикористані.
+            await _db.EmailVerificationCodes
+                .Where(c => c.Email == email && !c.IsUsed)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsUsed, true));
 
-        await _emailService.SendVerificationCodeAsync(email, code, request.Nickname, CodeLifetimeMinutes);
+            var code = Random.Shared.Next(0, 1_000_000).ToString("D6");
+            _db.EmailVerificationCodes.Add(new EmailVerificationCode
+            {
+                Email = email,
+                Code = code,
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(CodeLifetimeMinutes),
+            });
+            await _db.SaveChangesAsync();
+
+            await _emailService.SendVerificationCodeAsync(email, code, request.Nickname, CodeLifetimeMinutes);
+        }
         return Ok();
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var email = request.Email.Trim().ToLowerInvariant();
+        var email = NormalizeEmail(request.Email);
         if (!IsGmailAddress(email))
             return BadRequest(new { error = "invalid_email" });
 
@@ -76,19 +106,29 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Gender) || string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "missing_fields" });
 
-        // 72 — межа bcrypt: довші паролі він мовчки обрізає, тому довше не має сенсу дозволяти
-        if (request.Password.Length is < 6 or > 72)
+        // bcrypt рахує 72 БАЙТИ (не символи) й мовчки обрізає решту: 36 кирилічних літер = 72 байти,
+        // тож char-ліміт не закривав колізію усічення. Перевіряємо саме байти (ПЛАН P2-6).
+        if (request.Password.Length < 6 || System.Text.Encoding.UTF8.GetByteCount(request.Password) > 72)
             return BadRequest(new { error = "invalid_password_length" });
 
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return BadRequest(new { error = "email_taken" });
 
+        // Один чинний код на email (найновіший невикористаний непротермінований).
         var codeEntry = await _db.EmailVerificationCodes
-            .Where(c => c.Email == email && c.Code == request.Code && !c.IsUsed && c.ExpiresAt > DateTime.UtcNow)
+            .Where(c => c.Email == email && !c.IsUsed && c.ExpiresAt > DateTime.UtcNow)
             .OrderByDescending(c => c.Id)
             .FirstOrDefaultAsync();
         if (codeEntry is null)
             return BadRequest(new { error = "invalid_code" });
+        if (codeEntry.Code != request.Code)
+        {
+            // Невдала спроба: рахуємо; після 5 — спалюємо код (lockout проти брутфорсу коду, ПЛАН P2-6).
+            codeEntry.Attempts++;
+            if (codeEntry.Attempts >= 5) codeEntry.IsUsed = true;
+            await _db.SaveChangesAsync();
+            return BadRequest(new { error = "invalid_code" });
+        }
         codeEntry.IsUsed = true;
 
         var user = new User
@@ -119,7 +159,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var email = request.Email.Trim().ToLowerInvariant();
+        var email = NormalizeEmail(request.Email);
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return BadRequest(new { error = "invalid_credentials" });
