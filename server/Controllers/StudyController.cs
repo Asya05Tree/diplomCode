@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using Server.Authorization;
 using Server.Services;
 
 namespace Server.Controllers;
@@ -28,6 +29,7 @@ public record StudyStepRequest(string Name, DateOnly? StartDate, DateOnly? EndDa
 [ApiController]
 [Route("api/study")]
 [Authorize]
+[RequireModule("study")]
 public class StudyController : ControllerBase
 {
     private static readonly string[] AssignmentTypes = { "homework", "lab", "exam", "practical" };

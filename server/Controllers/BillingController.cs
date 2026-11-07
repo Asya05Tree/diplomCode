@@ -70,7 +70,8 @@ public class BillingController : ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         var body = await reader.ReadToEndAsync();
-        var ack = await _billing.HandleCallbackAsync(body);
+        var (ok, ack) = await _billing.HandleCallbackAsync(body);
+        if (!ok) return BadRequest(new { error = "invalid_signature" });
         return Content(ack, "application/json");
     }
 

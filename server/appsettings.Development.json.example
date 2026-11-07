@@ -1,0 +1,32 @@
+{
+  "_comment": "Скопіюйте цей файл у appsettings.Development.json і підставте реальні значення. Справжній appsettings.Development.json у git НЕ комітиться (див. .gitignore) — він містить секрети.",
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Port=3306;Database=planner;User=planner;Password=ВАШ_ПАРОЛЬ_БД;"
+  },
+  "Jwt": {
+    "_comment": "Згенеруйте випадковий ключ ≥ 64 байтів, напр.: node -e \"console.log(require('crypto').randomBytes(64).toString('base64'))\". Без нього або з коротким ключем сервер не запуститься.",
+    "Key": "ЗГЕНЕРУЙТЕ_ВИПАДКОВИЙ_КЛЮЧ_БАЗА64_НЕ_МЕНШЕ_64_БАЙТІВ"
+  },
+  "Smtp": {
+    "Host": "",
+    "Port": "587",
+    "User": "",
+    "Password": "",
+    "From": ""
+  },
+  "Billing": {
+    "_comment": "Mock=true лише для локального демо без реальних грошей. У Production Mock=true заборонено (сервер впаде на старті).",
+    "Mock": true,
+    "FreeLimit": 3,
+    "Price": 100,
+    "Currency": "UAH",
+    "ProductName": "Швидке додавання — повний доступ",
+    "ApiBaseUrl": "http://localhost:5080",
+    "ClientReturnUrl": "http://localhost:5173/app/quick-add",
+    "WayForPay": {
+      "MerchantAccount": "ВАШ_MERCHANT_ACCOUNT",
+      "MerchantSecretKey": "ВАШ_MERCHANT_SECRET_KEY",
+      "MerchantDomainName": "localhost"
+    }
+  }
+}

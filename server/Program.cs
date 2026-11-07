@@ -35,6 +35,20 @@ builder.Services.AddHttpClient();
 // Фонове видалення акаунтів, неактивних понад рік
 builder.Services.AddHostedService<InactiveAccountCleanupService>();
 
+// JWT-ключ береться ТІЛЬКИ з конфігу середовища (User Secrets / appsettings.Development.json /
+// змінна Jwt__Key) — у коміченому appsettings.json його немає навмисно. Якщо ключа немає або він
+// закороткий — одразу падаємо, щоб слабкий/плейсхолдерний ключ ніколи не доїхав до продакшену.
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    throw new InvalidOperationException(
+        "Jwt:Key не налаштовано або закороткий (потрібно ≥ 32 байти). Задайте його через User Secrets " +
+        "або змінну середовища Jwt__Key (приклад — appsettings.Development.json.example).");
+
+// Мок-білінг «оплачує» фічу без реальних грошей — припустимо лише локально. У продакшені це дірка
+// в монетизації, тож забороняємо старт із Mock=true поза Development.
+if (builder.Environment.IsProduction() && builder.Configuration.GetValue("Billing:Mock", false))
+    throw new InvalidOperationException("Billing:Mock=true заборонено у Production (безкоштовне розблокування платної фічі).");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -46,7 +60,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         };
     });
 

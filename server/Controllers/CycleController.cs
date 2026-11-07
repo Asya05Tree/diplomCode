@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using Server.Authorization;
 using Server.Services;
 
 namespace Server.Controllers;
@@ -14,6 +15,7 @@ public record CycleSettingsRequest(bool ReduceLoadOnHeavyDays, string? HygienePr
 [ApiController]
 [Route("api/cycle")]
 [Authorize]
+[RequireModule("cycle")]
 public class CycleController : ControllerBase
 {
     private readonly CycleService _cycleService;

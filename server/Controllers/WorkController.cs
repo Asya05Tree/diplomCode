@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using Server.Authorization;
 using Server.Services;
 
 namespace Server.Controllers;
@@ -23,6 +24,7 @@ public record WorkProcessTaskRequest(string Title, string? Note, string? Status,
 [ApiController]
 [Route("api/work")]
 [Authorize]
+[RequireModule("work")]
 public class WorkController : ControllerBase
 {
     private readonly WorkService _work;

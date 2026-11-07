@@ -113,21 +113,32 @@ public class BillingService
         return (true, BuildStatus(u));
     }
 
-    // Серверний callback від WayForPay (serviceUrl). Повертає обов'язкову відповідь-підтвердження.
-    public async Task<string> HandleCallbackAsync(string rawBody)
+    // Серверний callback від WayForPay (serviceUrl). ok=false → тіло невалідне або підпис не збігся
+    // (контролер віддасть 400 і нічого не розблокує). ok=true → ack-відповідь для платіжки.
+    public async Task<(bool ok, string ack)> HandleCallbackAsync(string rawBody)
     {
-        string orderRef = "";
-        string status = "";
+        JsonElement root;
         try
         {
             using var doc = JsonDocument.Parse(rawBody);
-            var root = doc.RootElement;
-            orderRef = root.TryGetProperty("orderReference", out var o) ? (o.GetString() ?? "") : "";
-            status = root.TryGetProperty("transactionStatus", out var s) ? (s.GetString() ?? "") : "";
+            root = doc.RootElement.Clone();   // doc звільниться — тримаємо копію
         }
-        catch { /* невідомий формат тіла — просто повернемо accept нижче */ }
+        catch { return (false, ""); }   // нерозпізнане тіло
 
-        if (!string.IsNullOrEmpty(orderRef) && string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase))
+        var orderRef = Str(root, "orderReference");
+        if (string.IsNullOrEmpty(orderRef)) return (false, "");
+
+        // Перевіряємо підпис WayForPay: HMAC-MD5 за полями у строго заданому порядку. Без валідного
+        // підпису будь-хто міг би POST-нути "оплата пройшла" на [AllowAnonymous] callback і безкоштовно
+        // розблокувати платну фічу — тому розбіжність підпису = відмова, нічого не розблоковуємо.
+        var provided = Str(root, "merchantSignature");
+        var expected = HmacMd5(string.Join(";",
+            Str(root, "merchantAccount"), orderRef, Str(root, "amount"), Str(root, "currency"),
+            Str(root, "authCode"), Str(root, "cardPan"), Str(root, "transactionStatus"), Str(root, "reasonCode")));
+        if (string.IsNullOrEmpty(provided) || !string.Equals(provided, expected, StringComparison.OrdinalIgnoreCase))
+            return (false, "");
+
+        if (string.Equals(Str(root, "transactionStatus"), "Approved", StringComparison.OrdinalIgnoreCase))
         {
             var payment = await _db.Payments.Include(p => p.User).FirstOrDefaultAsync(p => p.OrderReference == orderRef);
             if (payment?.User is not null) await EnsureUnlockedAsync(payment.User, payment);
@@ -135,8 +146,14 @@ public class BillingService
 
         var time = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
         var respSign = HmacMd5(string.Join(";", orderRef, "accept", time));
-        return JsonSerializer.Serialize(new { orderReference = orderRef, status = "accept", time, signature = respSign });
+        return (true, JsonSerializer.Serialize(new { orderReference = orderRef, status = "accept", time, signature = respSign }));
     }
+
+    // Прочитати поле JSON як рядок незалежно від того, прийшло воно числом чи рядком.
+    private static string Str(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var v)
+            ? (v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "") : v.ToString())
+            : "";
 
     private async Task EnsureUnlockedAsync(User u, Payment p)
     {
@@ -210,7 +227,10 @@ public class BillingService
 
     private string HmacMd5(string data)
     {
-        var key = _cfg["Billing:WayForPay:MerchantSecretKey"] ?? "flk3409refn54t54t*FNJRET";
+        // Секрет береться лише з конфігу середовища — без захардкодженого fallback у коді.
+        var key = _cfg["Billing:WayForPay:MerchantSecretKey"];
+        if (string.IsNullOrEmpty(key))
+            throw new InvalidOperationException("Не налаштовано Billing:WayForPay:MerchantSecretKey.");
         using var h = new HMACMD5(Encoding.UTF8.GetBytes(key));
         return Convert.ToHexString(h.ComputeHash(Encoding.UTF8.GetBytes(data))).ToLowerInvariant();
     }
