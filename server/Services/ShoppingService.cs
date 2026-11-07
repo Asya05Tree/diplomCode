@@ -33,6 +33,9 @@ public class ShoppingService
 
     private const int SuggestionWindowDays = 90;
 
+    // Реалістична верхня межа суми (грн), як у Фінансах: захист БД (decimal(18,2)) навіть в обхід UI.
+    private const decimal MoneyMax = 1_000_000_000m;
+
     // Різниця в цілих місяцях між датою ціни й сьогодні (для примітки "N місяців тому").
     private static int MonthsSince(DateTime from)
     {
@@ -165,10 +168,19 @@ public class ShoppingService
     // + оновити особисту ціну + створити витрату (ціна необовʼязкова).
     public async Task<bool> CheckItemAsync(int userId, int id, decimal? price)
     {
+        // Ціна необовʼязкова, але якщо задана — має бути в межах розумного діапазону (не відʼємна й не
+        // більша за межу): інакше був би відʼємний "Expense" (дохід під виглядом витрати) або 500 через
+        // переповнення decimal(18,2). Відхиляємо на вході (→ 400), а не ламаємо БД.
+        if (price is decimal p && (p < 0 || p > MoneyMax)) throw new BadInputException("invalid_price");
+
         var item = await _db.ShoppingItems
             .Include(x => x.Product).Include(x => x.Medicine)
             .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (item is null) return false;
+
+        // Відмітка — одноразова: якщо позицію вже відмічено, повторний виклик нічого не дублює (ні
+        // запасів, ні ціни, ні витрати). Так ті самі гроші не потрапляють у витрати двічі.
+        if (item.IsChecked) return true;
 
         var now = DateTime.Now;
         item.IsChecked = true;
