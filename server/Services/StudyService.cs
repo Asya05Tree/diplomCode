@@ -79,6 +79,10 @@ public class StudyService
             s = new StudySettings { UserId = userId };
             _db.StudySettings.Add(s);
         }
+        // Початок навчання не може бути пізніше кінця — інвертовані дати ламають обчислення дедлайнів
+        // semester/year (раніше приймалися як є) — ПЛАН P2-10.
+        if (dto.StudyStart is { } ss && dto.StudyEnd is { } se && se < ss)
+            throw new BadInputException("invalid_date_range");
         s.LearningForm = Normalize(dto.LearningForm, new[] { "distance", "regular", "mixed" }, "distance");
         s.TermType = Normalize(dto.TermType, new[] { "semester", "trimester" }, "semester");
         s.StudyStart = dto.StudyStart;
@@ -287,6 +291,10 @@ public class StudyService
     public async Task<int> AddScheduleEntryAsync(int userId, string entryKind, int? subjectId, string? name,
         string? sessionKind, int? pairNumber, string? form, string? room, string? link, Recurrence rec)
     {
+        // Вид заняття/форма — лише з відомих наборів; невідоме (напр. прямий POST зі сміттям) → null,
+        // а не зберігаємо сирий рядок (ПЛАН P2-10; той самий підхід, що в Роботі/Перегляді).
+        sessionKind = sessionKind is "lecture" or "seminar" ? sessionKind : null;
+        form = form is "distance" or "regular" or "mixed" ? form : null;
         Limits.Ensure(await _db.StudyScheduleEntries.CountAsync(x => x.UserId == userId),
             Limits.StudyScheduleEntries, "study_schedule");
         var subject = subjectId is int sid
@@ -326,6 +334,9 @@ public class StudyService
     {
         var entry = await _db.StudyScheduleEntries.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (entry is null) return false;
+
+        sessionKind = sessionKind is "lecture" or "seminar" ? sessionKind : null;
+        form = form is "distance" or "regular" or "mixed" ? form : null;
 
         var subject = subjectId is int sid
             ? await _db.StudySubjects.FirstOrDefaultAsync(x => x.Id == sid && x.UserId == userId)
