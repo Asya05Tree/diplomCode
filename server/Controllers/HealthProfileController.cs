@@ -1,16 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
 using Server.Data;
 using Server.Models;
 
 namespace Server.Controllers;
 
-// Лише естетичні поля. Стать/статус навчання/роботи сюди НЕ входять: вони керують доступом до
-// модулів (гейтинг), тож змінюються окремим контрольованим ендпойнтом (PUT /api/account/profile-status).
-// Інакше був би mass-assignment: через «здоровʼя» юзер сам розблоковував би Навчання/Роботу/Цикл.
-public record UpdateHealthProfileRequest(double? Height, double? Weight, int? BirthYear);
 public record PutRestrictionRequest(string TagKey, string Relation, int? Weight); // Forbidden | Avoid | Prefer
 
 // planner-spec.md §3.1/§3.2. Профіль здоровʼя: естетичні поля (зріст/вага/рік/стать) + обмеження
@@ -38,8 +34,15 @@ public class HealthProfileController : ControllerBase
         return Ok(new { profile.Height, profile.Weight, profile.BirthYear, profile.Gender, profile.StudentType, profile.IsWorking });
     }
 
+    // Лише естетичні поля (зріст/вага/рік народження). Стать/статус навчання/роботи сюди НЕ входять:
+    // вони керують доступом до модулів (гейтинг), тож змінюються окремим контрольованим ендпойнтом
+    // (PUT /api/account/profile-status) — інакше через «здоровʼя» юзер сам розблоковував би модулі.
+    //
+    // Тіло читаємо як JsonElement, щоб зробити ЧАСТКОВЕ оновлення: чіпаємо лише поля, ПРИСУТНІ у запиті.
+    // Відсутнє поле лишаємо без змін (явний null — очищення). Інакше зміна одного параметра мовчки
+    // обнуляла б решту (напр. колишній перемикач статі стирав зріст/вагу/рік) — spec §3.1.
     [HttpPut]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateHealthProfileRequest request)
+    public async Task<IActionResult> UpdateProfile([FromBody] JsonElement body)
     {
         // Upsert: зазвичай профіль створюється при реєстрації, але якщо його чомусь немає —
         // заводимо, щоб збереження параметрів ніколи не падало (NotFound).
@@ -52,12 +55,27 @@ public class HealthProfileController : ControllerBase
 
         // Реалістичні межі (захист БД навіть в обхід UI): зріст 30–300 см, вага 1–500 кг, вік 1–120 років.
         var nowYear = DateTime.Now.Year;
-        profile.Height = request.Height is double h ? Math.Clamp(h, 30, 300) : null;
-        profile.Weight = request.Weight is double w ? Math.Clamp(w, 1, 500) : null;
-        profile.BirthYear = request.BirthYear is int by ? Math.Clamp(by, nowYear - 120, nowYear - 1) : null;
+        if (TryProp(body, "height", out var hEl)) profile.Height = ClampNullable(hEl, 30, 300);
+        if (TryProp(body, "weight", out var wEl)) profile.Weight = ClampNullable(wEl, 1, 500);
+        if (TryProp(body, "birthYear", out var byEl))
+            profile.BirthYear = ClampNullable(byEl, nowYear - 120, nowYear - 1) is double b ? (int)b : null;
         await _db.SaveChangesAsync();
         return Ok();
     }
+
+    // Чи є у тілі (JSON-обʼєкті) властивість із такою назвою (без урахування регістру — клієнт шле camelCase).
+    private static bool TryProp(JsonElement obj, string name, out JsonElement value)
+    {
+        value = default;
+        if (obj.ValueKind != JsonValueKind.Object) return false;
+        foreach (var p in obj.EnumerateObject())
+            if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)) { value = p.Value; return true; }
+        return false;
+    }
+
+    // Число → у межах [min,max]; явний null → null (очистити); інший тип → null (ігноруємо некоректне).
+    private static double? ClampNullable(JsonElement el, double min, double max) =>
+        el.ValueKind == JsonValueKind.Number ? Math.Clamp(el.GetDouble(), min, max) : null;
 
     [HttpGet("restrictions")]
     public async Task<IActionResult> GetRestrictions()
