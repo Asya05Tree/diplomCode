@@ -7,9 +7,9 @@ using Server.Services;
 namespace Server.Controllers;
 
 // [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
-public record AddShoppingItemRequest([property: StringLength(TextLimits.Code)] string Section,
-    [property: StringLength(TextLimits.Name)] string? Category, [property: StringLength(TextLimits.Name)] string? Text, int? ProductId, int? MedicineId);
-public record SetShoppingCategoryRequest([property: StringLength(TextLimits.Name)] string? Category);
+public record AddShoppingItemRequest([StringLength(TextLimits.Code)] string Section,
+    [StringLength(TextLimits.Name)] string? Category, [StringLength(TextLimits.Name)] string? Text, int? ProductId, int? MedicineId);
+public record SetShoppingCategoryRequest([StringLength(TextLimits.Name)] string? Category);
 public record CheckShoppingItemRequest(decimal? Price);
 public record ReceiptTotalRequest(decimal Total, List<int>? ItemIds);
 

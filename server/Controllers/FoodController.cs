@@ -8,7 +8,7 @@ namespace Server.Controllers;
 
 public record SetStockStateRequest(string State); // Available | RunningLow | OutOfStock
 // [StringLength]: назва — вільний текст, без межі приймались 8 КБ+ (ПЛАН P2-2, перенесено з P1-8). Завелике → 400.
-public record AddStockByNameRequest([property: StringLength(TextLimits.Name)] string Name);
+public record AddStockByNameRequest([StringLength(TextLimits.Name)] string Name);
 
 // planner-spec.md §3.4. Екран "Їжа": збірний /overview для початкового завантаження сторінки
 // + точкові дії над запасами/обраними стравами. Уся логіка — у RecipeService.

@@ -7,12 +7,12 @@ namespace Server.Controllers;
 
 // [StringLength] на вільнотекстових полях: [ApiController] автоматично віддає 400, якщо рядок довший
 // за межу (клієнтський maxLength обходиться прямим викликом API) — ПЛАН P2-2.
-public record CreateTaskRequest([property: StringLength(TextLimits.Title)] string Title,
-    [property: StringLength(TextLimits.Description)] string? Description,
+public record CreateTaskRequest([StringLength(TextLimits.Title)] string Title,
+    [StringLength(TextLimits.Description)] string? Description,
     DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline,
-    [property: StringLength(TextLimits.Code)] string? ModuleCode = null);
-public record UpdateTaskRequest([property: StringLength(TextLimits.Title)] string Title,
-    [property: StringLength(TextLimits.Description)] string? Description,
+    [StringLength(TextLimits.Code)] string? ModuleCode = null);
+public record UpdateTaskRequest([StringLength(TextLimits.Title)] string Title,
+    [StringLength(TextLimits.Description)] string? Description,
     DateTime? StartDateTime, int? DurationMinutes, DateTime? Deadline);
 public record ResolveTaskRequest(string Action); // Done | Skipped | Postpone (allowlist у сервісі)
 

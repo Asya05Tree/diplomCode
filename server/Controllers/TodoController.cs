@@ -9,8 +9,8 @@ using Server.Models;
 namespace Server.Controllers;
 
 // [StringLength] на тексті → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
-public record AddTodoRequest([property: StringLength(TextLimits.Title)] string Text);
-public record MoveTodoRequest([property: StringLength(TextLimits.Code)] string Status, int OrderIndex); // todo | doing | done
+public record AddTodoRequest([StringLength(TextLimits.Title)] string Text);
+public record MoveTodoRequest([StringLength(TextLimits.Code)] string Status, int OrderIndex); // todo | doing | done
 
 // Проста дошка задач (три колонки todo/doing/done). Окремо від TaskItem — канбан без дат і
 // повторень, тому це прямий CRUD без сервісу (працюємо з AppDbContext).

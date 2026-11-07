@@ -8,11 +8,11 @@ namespace Server.Controllers;
 
 // [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
 public record SetBalanceRequest(decimal Balance);
-public record SetLimitRequest([property: StringLength(TextLimits.Code)] string PeriodType, decimal Amount); // Week | Month
-public record AddTransactionRequest(decimal Amount, [property: StringLength(TextLimits.Code)] string Type,
-    [property: StringLength(TextLimits.Name)] string? Category, [property: StringLength(TextLimits.Description)] string? Description, DateTime? OccurredAt);
-public record UpdateTransactionRequest(decimal Amount, [property: StringLength(TextLimits.Code)] string Type,
-    [property: StringLength(TextLimits.Name)] string? Category, [property: StringLength(TextLimits.Description)] string? Description);
+public record SetLimitRequest([StringLength(TextLimits.Code)] string PeriodType, decimal Amount); // Week | Month
+public record AddTransactionRequest(decimal Amount, [StringLength(TextLimits.Code)] string Type,
+    [StringLength(TextLimits.Name)] string? Category, [StringLength(TextLimits.Description)] string? Description, DateTime? OccurredAt);
+public record UpdateTransactionRequest(decimal Amount, [StringLength(TextLimits.Code)] string Type,
+    [StringLength(TextLimits.Name)] string? Category, [StringLength(TextLimits.Description)] string? Description);
 public record SetCategoryHiddenRequest(bool Hidden);
 
 // planner-spec.md §3.6. Фінанси: баланс, ліміти, транзакції. Уся логіка — у FinanceService.

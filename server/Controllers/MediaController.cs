@@ -10,18 +10,18 @@ using Server.Services;
 namespace Server.Controllers;
 
 // [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
-public record AddMediaRequest([property: StringLength(TextLimits.Code)] string Kind,
-    [property: StringLength(TextLimits.Title)] string Title, [property: StringLength(TextLimits.Name)] string? Author,
-    [property: StringLength(TextLimits.Name)] string? Genre, [property: StringLength(TextLimits.Code)] string? MediaType,
+public record AddMediaRequest([StringLength(TextLimits.Code)] string Kind,
+    [StringLength(TextLimits.Title)] string Title, [StringLength(TextLimits.Name)] string? Author,
+    [StringLength(TextLimits.Name)] string? Genre, [StringLength(TextLimits.Code)] string? MediaType,
     bool IsLibrary = false, DateTime? ReturnDeadline = null);
 public record ScheduleMediaRequest(DateTime StartDateTime, int? DurationMinutes,
-    [property: StringLength(TextLimits.Name)] string? Genre, [property: StringLength(TextLimits.Code)] string? MediaType);
-public record SetMediaStatusRequest([property: StringLength(TextLimits.Code)] string Status, int? RatingStars,
-    [property: StringLength(TextLimits.Description)] string? Review);
-public record UpdateMediaRequest([property: StringLength(TextLimits.Title)] string Title,
-    [property: StringLength(TextLimits.Name)] string? Author, int? RatingStars,
-    [property: StringLength(TextLimits.Description)] string? Review, [property: StringLength(TextLimits.Name)] string? Genre,
-    [property: StringLength(TextLimits.Code)] string? MediaType,
+    [StringLength(TextLimits.Name)] string? Genre, [StringLength(TextLimits.Code)] string? MediaType);
+public record SetMediaStatusRequest([StringLength(TextLimits.Code)] string Status, int? RatingStars,
+    [StringLength(TextLimits.Description)] string? Review);
+public record UpdateMediaRequest([StringLength(TextLimits.Title)] string Title,
+    [StringLength(TextLimits.Name)] string? Author, int? RatingStars,
+    [StringLength(TextLimits.Description)] string? Review, [StringLength(TextLimits.Name)] string? Genre,
+    [StringLength(TextLimits.Code)] string? MediaType,
     bool IsLibrary = false, DateTime? ReturnDeadline = null, DateTime? StartDateTime = null);
 // Чекбокс "повернено" (true) або його зняття в налаштуваннях картки (false).
 public record ReturnMediaRequest(bool Returned);

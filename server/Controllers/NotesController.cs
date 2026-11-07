@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,9 @@ using Server.Models;
 
 namespace Server.Controllers;
 
-public record NoteRequest(string Text, string Color);
+// [StringLength] на Text → 400 на завеликому рядку (раніше текст мовчки обрізався до 280 — ПЛАН P2-2).
+public record NoteRequest([StringLength(TextLimits.Note)] string Text,
+    [StringLength(TextLimits.Color)] string Color);
 
 // Нотатки-«квадратики»: короткий текст з обмеженою довжиною. Проста CRUD прямо на DbContext
 // (coding-guide.md §3: без репозиторіїв), без синхронізації з календарем.

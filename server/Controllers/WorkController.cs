@@ -8,28 +8,28 @@ using Server.Services;
 namespace Server.Controllers;
 
 // [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
-public record WorkSettingsRequest([property: StringLength(TextLimits.Name)] string JobName,
-    [property: StringLength(TextLimits.Name)] string? Position, [property: StringLength(TextLimits.Name)] string? Employer,
-    [property: StringLength(TextLimits.Code)] string PayType, decimal? Rate,
-    [property: StringLength(TextLimits.Name)] string? Regime, [property: StringLength(TextLimits.Name)] string? Workplace,
+public record WorkSettingsRequest([StringLength(TextLimits.Name)] string JobName,
+    [StringLength(TextLimits.Name)] string? Position, [StringLength(TextLimits.Name)] string? Employer,
+    [StringLength(TextLimits.Code)] string PayType, decimal? Rate,
+    [StringLength(TextLimits.Name)] string? Regime, [StringLength(TextLimits.Name)] string? Workplace,
     decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
-public record WorkShiftTypeRequest([property: StringLength(TextLimits.Name)] string Name,
-    [property: StringLength(TextLimits.Color)] string Color, TimeOnly StartTime, TimeOnly EndTime,
-    [property: StringLength(TextLimits.Code)] string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool? IsActive);
+public record WorkShiftTypeRequest([StringLength(TextLimits.Name)] string Name,
+    [StringLength(TextLimits.Color)] string Color, TimeOnly StartTime, TimeOnly EndTime,
+    [StringLength(TextLimits.Code)] string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool? IsActive);
 public record WorkScheduleRequest(int ShiftTypeId, WorkService.Recurrence Recurrence);
-public record WorkContactRequest([property: StringLength(TextLimits.Name)] string GroupName,
-    [property: StringLength(TextLimits.Code)] string? Status, [property: StringLength(TextLimits.Name)] string FullName,
-    [property: StringLength(TextLimits.Phone)] string Phone,
-    [property: StringLength(TextLimits.Name)] string? Email, DateOnly? Birthday,
-    [property: StringLength(TextLimits.Name)] string? Socials, [property: StringLength(TextLimits.Name)] string? Telegram,
-    [property: StringLength(TextLimits.Name)] string? Viber);
-public record WorkLeaveRequest([property: StringLength(TextLimits.Code)] string Type, DateOnly StartDate, DateOnly EndDate);
-public record WorkMeetingRequest([property: StringLength(TextLimits.Name)] string WithWhom, DateTime When,
-    [property: StringLength(TextLimits.Name)] string? Place);
-public record WorkObligationRequest([property: StringLength(TextLimits.Title)] string Title,
-    [property: StringLength(TextLimits.Description)] string? Note, DateOnly? DueDate, bool IsDone);
-public record WorkProcessTaskRequest([property: StringLength(TextLimits.Title)] string Title,
-    [property: StringLength(TextLimits.Description)] string? Note, [property: StringLength(TextLimits.Code)] string? Status, DateOnly? DueDate);
+public record WorkContactRequest([StringLength(TextLimits.Name)] string GroupName,
+    [StringLength(TextLimits.Code)] string? Status, [StringLength(TextLimits.Name)] string FullName,
+    [StringLength(TextLimits.Phone)] string Phone,
+    [StringLength(TextLimits.Name)] string? Email, DateOnly? Birthday,
+    [StringLength(TextLimits.Name)] string? Socials, [StringLength(TextLimits.Name)] string? Telegram,
+    [StringLength(TextLimits.Name)] string? Viber);
+public record WorkLeaveRequest([StringLength(TextLimits.Code)] string Type, DateOnly StartDate, DateOnly EndDate);
+public record WorkMeetingRequest([StringLength(TextLimits.Name)] string WithWhom, DateTime When,
+    [StringLength(TextLimits.Name)] string? Place);
+public record WorkObligationRequest([StringLength(TextLimits.Title)] string Title,
+    [StringLength(TextLimits.Description)] string? Note, DateOnly? DueDate, bool IsDone);
+public record WorkProcessTaskRequest([StringLength(TextLimits.Title)] string Title,
+    [StringLength(TextLimits.Description)] string? Note, [StringLength(TextLimits.Code)] string? Status, DateOnly? DueDate);
 
 // Модуль "Робота": профіль/оплата, типи змін, графік (створює правила ModuleCode="work"), календар
 // змін, контакти, відсутності, зустрічі (створюють задачі ModuleCode="work") та зобов'язання.
