@@ -63,6 +63,15 @@ public class MedicineCabinetController : ControllerBase
         return ok ? Ok() : NotFound();
     }
 
+    // Взаємодії всієї аптечки одним запитом (карта medicineId -> список) — щоб сторінка не робила
+    // N окремих викликів (ПЛАН P3-1). Одиничний ендпойнт нижче лишається для сумісності.
+    [HttpGet("interactions")]
+    public async Task<IActionResult> GetAllInteractions()
+    {
+        var map = await _medicineService.GetAllInteractionsAsync(CurrentUserId);
+        return Ok(map);
+    }
+
     [HttpGet("{medicineId}/interactions")]
     public async Task<IActionResult> GetInteractions(int medicineId)
     {

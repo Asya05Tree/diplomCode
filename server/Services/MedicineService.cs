@@ -49,10 +49,15 @@ public class MedicineService
             .ToListAsync();
     }
 
+    // Мінімальна довжина запиту для пошуку в довіднику/тегах. Нижче — сканувати ~2 тис. рядків немає
+    // сенсу (видача завелика й марна), а 1-символьний запит прямим API обходив клієнтський гейт <2
+    // і давав дешеве навантаження (ПЛАН P3-2). Той самий поріг, що й у клієнті (Health.jsx).
+    private const int MinQueryLength = 2;
+
     public async Task<List<SearchResultDto>> SearchAsync(int userId, string query)
     {
         var q = (query ?? "").Trim().ToLowerInvariant();
-        if (q.Length == 0) return new List<SearchResultDto>();
+        if (q.Length < MinQueryLength) return new List<SearchResultDto>();
 
         // Мова запиту визначається за алфавітом: суто латиниця → англ. поля, суто кирилиця → укр.
         // Змішаний алфавіт або лише цифри/символи (нi укр., нi англ.) — результатів не даємо.
@@ -100,7 +105,7 @@ public class MedicineService
     public async Task<List<TagSuggestionDto>> SearchTagsAsync(string query)
     {
         var q = (query ?? "").Trim().ToLowerInvariant();
-        if (q.Length == 0) return new List<TagSuggestionDto>();
+        if (q.Length < MinQueryLength) return new List<TagSuggestionDto>();
 
         var tagIds = await _db.ProductTags.Select(pt => pt.TagId).Distinct().ToListAsync();
         var tags = await _db.Tags.Where(t => tagIds.Contains(t.Id)).ToListAsync();
@@ -249,6 +254,54 @@ public class MedicineService
                 otherMed.NameUk, otherMed.NameEn,
                 otherSubstance?.NameUk ?? "", otherSubstance?.NameEn ?? "",
                 i.Level, i.Mechanism));
+        }
+        return result;
+    }
+
+    // Взаємодії для ВСІЄЇ аптечки одним махом: карта medicineId -> список взаємодій. Раніше сторінка
+    // «Здоров'я» викликала GetInteractionsAsync по разу на кожні ліки (N HTTP + ~3N SQL, і щоразу
+    // перечитувала всю аптечку) — класичний N+1 (ПЛАН P3-1). Тут — рівно 2 запити: аптечка + усі
+    // взаємодії між її речовинами. Семантика збігається з GetInteractionsAsync.
+    public async Task<Dictionary<int, List<InteractionDto>>> GetAllInteractionsAsync(int userId)
+    {
+        var cabinet = await _db.UserMedicines
+            .Where(x => x.UserId == userId)
+            .Include(x => x.Medicine!).ThenInclude(m => m.Substance)
+            .ToListAsync();
+
+        var result = cabinet.ToDictionary(x => x.MedicineId, _ => new List<InteractionDto>());
+
+        // Речовина -> усі ліки аптечки з нею (перші — для назви у відповіді). Комбіновані ліки
+        // (SubstanceId=null) взаємодій не мають, тож у групування не потрапляють.
+        var medsBySubstance = cabinet
+            .Where(x => x.Medicine?.SubstanceId != null)
+            .GroupBy(x => x.Medicine!.SubstanceId!.Value)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        var substanceIds = medsBySubstance.Keys.ToList();
+        if (substanceIds.Count < 2) return result; // менш як дві різні речовини — пар немає
+
+        // Усі взаємодії між речовинами аптечки — одним запитом (обидва напрямки покриває умова нижче).
+        var interactions = await _db.SubstanceInteractions
+            .Include(i => i.SubstanceA)
+            .Include(i => i.SubstanceB)
+            .Where(i => substanceIds.Contains(i.SubstanceAId) && substanceIds.Contains(i.SubstanceBId))
+            .ToListAsync();
+
+        foreach (var i in interactions)
+        {
+            if (i.SubstanceAId == i.SubstanceBId) continue; // самовзаємодія не має сенсу
+            var medsA = medsBySubstance[i.SubstanceAId];
+            var medsB = medsBySubstance[i.SubstanceBId];
+            var repA = medsA[0].Medicine!; // представник речовини A для назви «інших ліків»
+            var repB = medsB[0].Medicine!;
+
+            // Ліки речовини A бачать взаємодію з речовиною B (і навпаки) — по одному запису на пару.
+            foreach (var um in medsA)
+                result[um.MedicineId].Add(new InteractionDto(repB.NameUk, repB.NameEn,
+                    i.SubstanceB?.NameUk ?? "", i.SubstanceB?.NameEn ?? "", i.Level, i.Mechanism));
+            foreach (var um in medsB)
+                result[um.MedicineId].Add(new InteractionDto(repA.NameUk, repA.NameEn,
+                    i.SubstanceA?.NameUk ?? "", i.SubstanceA?.NameEn ?? "", i.Level, i.Mechanism));
         }
         return result;
     }

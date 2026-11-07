@@ -29,6 +29,12 @@ export function getInteractions(medicineId) {
   return apiGet(`/api/medicine-cabinet/${medicineId}/interactions`)
 }
 
+// Взаємодії ВСІЄЇ аптечки одним запитом: повертає карту { medicineId: [взаємодії] }.
+// Замінює N окремих викликів getInteractions при завантаженні сторінки.
+export function getAllInteractions() {
+  return apiGet('/api/medicine-cabinet/interactions')
+}
+
 // Підказки тегів для форми захворювання — лише теги, що стоять на продуктах (запасах).
 export function searchTags(query) {
   return apiGet(`/api/medicine-cabinet/tags?q=${encodeURIComponent(query)}`)

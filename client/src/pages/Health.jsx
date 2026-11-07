@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import {
@@ -7,7 +7,7 @@ import {
   searchTags,
   addMedicine,
   setMedicineState as apiSetMedicineState,
-  getInteractions,
+  getAllInteractions,
   getConditions,
   addCondition as apiAddCondition,
   removeCondition as apiRemoveCondition,
@@ -111,16 +111,10 @@ export default function Health() {
         setConditions(conds)
         setProfile(prof)
         setInShopping(new Set((shop.items || []).filter((x) => !x.isChecked && x.medicineId != null).map((x) => x.medicineId)))
-        // Взаємодії тягнемо для кожних ліків аптечки (пари, де друга речовина теж у користувача).
-        const entries = await Promise.all(
-          meds.map((m) =>
-            getInteractions(m.medicineId)
-              .then((list) => [m.medicineId, list])
-              .catch(() => [m.medicineId, []]),
-          ),
-        )
+        // Взаємодії всієї аптечки — одним запитом (карта medicineId -> список), без N окремих викликів.
+        const map = await getAllInteractions().catch(() => ({}))
         if (cancelled) return
-        setInteractions(Object.fromEntries(entries))
+        setInteractions(map || {})
         setLoading(false)
       })
       .catch(() => {
@@ -183,14 +177,8 @@ export default function Health() {
   const reloadCabinet = async () => {
     const meds = await getCabinet()
     setMedicines(meds)
-    const entries = await Promise.all(
-      meds.map((m) =>
-        getInteractions(m.medicineId)
-          .then((list) => [m.medicineId, list])
-          .catch(() => [m.medicineId, []]),
-      ),
-    )
-    setInteractions(Object.fromEntries(entries))
+    const map = await getAllInteractions().catch(() => ({}))
+    setInteractions(map || {})
   }
 
   const handleMedState = async (m, state) => {
@@ -205,14 +193,21 @@ export default function Health() {
     }
   }
 
+  // Debounce пошуку: не б'ємо по довіднику на кожен символ (300 мс тиші після вводу) — ПЛАН P3-2.
+  const medSearchTimer = useRef(null)
+  const tagSearchTimer = useRef(null)
+
   const handleMedSearch = (q) => {
     setMedSearch(q)
     const query = q.trim()
+    if (medSearchTimer.current) clearTimeout(medSearchTimer.current)
     if (query.length < 2) {
       setSearchResults([])
       return
     }
-    searchMedicines(query).then(setSearchResults).catch(() => setSearchResults([]))
+    medSearchTimer.current = setTimeout(() => {
+      searchMedicines(query).then(setSearchResults).catch(() => setSearchResults([]))
+    }, 300)
   }
 
   const handleAddMed = async (id) => {
@@ -234,11 +229,14 @@ export default function Health() {
     const clean = filterWords(q, 40)
     setCondForm((f) => ({ ...f, tag: clean, tagKey: '' }))
     const query = clean.trim()
+    if (tagSearchTimer.current) clearTimeout(tagSearchTimer.current)
     if (query.length < 2) {
       setTagSuggestions([])
       return
     }
-    searchTags(query).then(setTagSuggestions).catch(() => setTagSuggestions([]))
+    tagSearchTimer.current = setTimeout(() => {
+      searchTags(query).then(setTagSuggestions).catch(() => setTagSuggestions([]))
+    }, 300)
   }
 
   // Обрали підказку: у полі показуємо назву мовою інтерфейсу, але зберігаємо канонічний ключ (англ.)

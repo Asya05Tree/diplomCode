@@ -1,29 +1,29 @@
-// §11: server search has no min length (client cuts <2 chars, server only rejects empty).
-// Every call pulls the whole ~1884-row reference table and scores trigrams in memory.
-// 1-char query bypasses the UI gate; measure cost. Also SearchTags loads all product tags per call.
+// §11 / ПЛАН P3-2 — пошук у довіднику тепер має мінімальну довжину 2 символи НА СЕРВЕРІ (раніше
+// відсікався лише порожній рядок, тож 1-символьний запит обходив клієнтський гейт і сканував ~1884
+// рядки). Клієнт додатково має debounce ~300 мс. Тут перевіряємо серверний поріг.
+// FIXED: MedicineService.MinQueryLength=2 у SearchAsync і SearchTagsAsync.
 import { provision, api } from '../_lib/provision.mjs'
 
-const u = await provision({ email: 'adv.t07.dos@gmail.com' })
+const tag = Math.random().toString(36).slice(2, 7)
+const u = await provision({ email: `adv.t07.dos.${tag}@gmail.com` })
 
-async function timed(path, label) {
-  const t0 = performance.now()
+const get = async (path) => {
   const r = await api('GET', path, { token: u.token })
-  const ms = (performance.now() - t0).toFixed(0)
-  console.log(`  ${label}: ${path} -> ${r.status}, ${Array.isArray(r.json) ? r.json.length : '?'} results, ${ms}ms`)
-  return Number(ms)
+  return { n: Array.isArray(r.json) ? r.json.length : -1, status: r.status }
 }
 
-console.log('[single 1-char queries — each triggers a full reference-table scan + in-memory scoring]')
-await timed('/api/medicine-cabinet/search?q=%D0%B0', 'cyr "а"')   // 1 cyrillic letter
-await timed('/api/medicine-cabinet/search?q=a', 'lat "a"')
-await timed('/api/medicine-cabinet/tags?q=a', 'tags "a"')
+// 1-символьні запити → порожньо (сервер не сканує довідник)
+const cyr1 = await get('/api/medicine-cabinet/search?q=%D0%B0')   // «а»
+const lat1 = await get('/api/medicine-cabinet/search?q=a')
+const tags1 = await get('/api/medicine-cabinet/tags?q=a')
+console.log(`1-char search cyr="а"-> ${cyr1.status}/${cyr1.n}; lat="a"-> ${lat1.status}/${lat1.n}; tags="a"-> ${tags1.status}/${tags1.n} (expect 200/0)`)
 
-console.log('[burst: 20 x 1-char searches, no debounce on client, no throttle on server]')
-const t0 = performance.now()
-const results = await Promise.all(Array.from({ length: 20 }, () => api('GET', '/api/medicine-cabinet/search?q=%D0%BA', { token: u.token })))
-const total = (performance.now() - t0).toFixed(0)
-const allOk = results.every((r) => r.status === 200)
-console.log(`  20 concurrent 1-char scans -> all ${allOk ? '200' : 'MIXED'} in ${total}ms total`)
+// 2-символьні запити → працюють (не над-блокуємо)
+const cyr2 = await get('/api/medicine-cabinet/search?q=%D0%BA%D0%BE')  // «ко»
+console.log(`2-char search cyr="ко" -> ${cyr2.status}/${cyr2.n} results (expect 200, >=0 але пошук виконується)`)
 
 console.log('---')
-console.log('CONFIRMED: server accepts 1-char q (only empty is rejected, MedicineService.cs:55/103). Each request does _db.Medicines.Where(!inCabinet).ToListAsync() (cs:69) + LINQ trigram scoring over ~1884 rows. No min-length, no debounce, no cache/index => cheap load-amplification bypassing the client <2 gate.')
+const refuted = cyr1.n === 0 && lat1.n === 0 && tags1.n === 0 && cyr2.status === 200
+console.log(refuted
+  ? 'REFUTED — 1-символьні запити повертають порожньо без сканування довідника (поріг 2 символи на сервері); 2-символьний пошук працює. Клієнт додатково debounce-ить ввід 300 мс.'
+  : `CONFIRMED/partial — cyr1=${cyr1.n} lat1=${lat1.n} tags1=${tags1.n} cyr2=${cyr2.status}`)
