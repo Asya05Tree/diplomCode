@@ -496,13 +496,14 @@ function extractStudy(piece, m) {
   return out
 }
 
-// Намір "додати до запасів": знаходимо маркер запасів і беремо ЛИШЕ сусідні з ним продукти
-// (а не весь рядок), обмежуючи клаузу сполучниками/дієсловами-діями. Так "…купити ковбаску,
-// додати молоко до запасів, а завтра пара" дає запас лише "молоко", а решта лишається задачами.
+// Витягання клаузи-переліку за маркером наміру (запаси АБО список покупок): знаходимо маркер
+// і беремо ЛИШЕ сусідні з ним предмети (а не весь рядок), обмежуючи клаузу сполучниками/
+// дієсловами-діями. Так "…купити ковбаску, додати молоко до запасів, а завтра пара" дає лише
+// "молоко", решта лишається задачами. cfg = { markers, verbs, stopWords }.
 // Повертає { items, start, end } (діапазон клаузи для вирізання) або null.
-function extractStock(sentence, m) {
-  if (!m.stockMarkers.length) return null
-  const mk = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'iu').exec(sentence)
+function extractClause(sentence, m, cfg) {
+  if (!cfg.markers.length) return null
+  const mk = new RegExp(`${BB}(?:${alt(cfg.markers)})${BE}`, 'iu').exec(sentence)
   if (!mk) return null
   const markerStart = mk.index
   const markerEnd = mk.index + mk[0].length
@@ -522,7 +523,7 @@ function extractStock(sentence, m) {
   const STOP = new Set(['а', 'але', 'потім', 'опісля', 'також', 'then', 'also', 'plus', 'but', 'after'])
   const dateWords = new Set([...Object.keys(m.relativeDates), ...Object.keys(m.weekdays), ...Object.keys(m.months)])
   const verbRe = m.verbs.length ? new RegExp(`^(?:${alt(m.verbs)})${L}*$`, 'iu') : null
-  const stockVerbRe = m.stockVerbs.length ? new RegExp(`^(?:${alt(m.stockVerbs)})${L}*$`, 'iu') : null
+  const stockVerbRe = cfg.verbs.length ? new RegExp(`^(?:${alt(cfg.verbs)})${L}*$`, 'iu') : null
   const isStockVerb = (w) => Boolean(stockVerbRe && stockVerbRe.test(w))
   const isBoundary = (w) => STOP.has(w) || dateWords.has(w) || /^\d+$/.test(w) || Boolean(verbRe && verbRe.test(w))
 
@@ -562,7 +563,7 @@ function extractStock(sentence, m) {
 
   // Назви продуктів: поділ сусіднього тексту по комі / і / та / and; зрізаємо службові слова.
   const singleFillers = m.fillerWords.filter((w) => !/\s/.test(w))
-  const stop = new Set([...m.stockStopWords, ...singleFillers, ...m.edgeWords].map((w) => w.toLowerCase()))
+  const stop = new Set([...cfg.stopWords, ...singleFillers, ...m.edgeWords].map((w) => w.toLowerCase()))
   const prodStart = picked[0].start
   const prodEnd = picked[picked.length - 1].end
   const region = sentence.slice(prodStart, prodEnd)
@@ -708,6 +709,14 @@ function assemble(piece, m, now) {
     negated = new RegExp(`^\\s*(?:${alt(m.negationWords)})${BE}`, 'iu').test(title)
   }
 
+  // Напрямок фінансової операції: income за наявності маркера доходу (зарплата/премія/…),
+  // інакше expense. Використовується у Фазі 5 для addTransaction.
+  let financeType = null
+  if (moduleFinal === 'finance') {
+    financeType = (m.incomeWords.length && new RegExp(`${BB}(?:${alt(m.incomeWords)})${L}*${BE}`, 'iu').test(piece))
+      ? 'income' : 'expense'
+  }
+
   // Рівень впевненості (порада ШІ — «три результати»): high — є дата (задача на час);
   // medium — дату не знайшли, але зрозуміли ТИП задачі (модуль); low — лише сирий текст у назві.
   let confidence = 'low'
@@ -716,7 +725,7 @@ function assemble(piece, m, now) {
 
   return {
     raw: piece.trim(), title, date, deadline, time, durationMinutes, module: moduleFinal,
-    ambiguous, study, confidence, amount, currency, extraDates, extraTimes, negated,
+    ambiguous, study, confidence, amount, currency, financeType, extraDates, extraTimes, negated,
   }
 }
 
@@ -885,7 +894,7 @@ function buildFuzzyProtect(m) {
 // Повертає { language, tasks[], notRecognized[], corrections[] }. Задачі НЕ створюються.
 export function parseInput(text, dicts, now = new Date(), extraWords = []) {
   const raw0 = normalizeApostrophes(String(text ?? '').trim())
-  if (!raw0) return { language: 'uk', tasks: [], notRecognized: [], corrections: [], stock: [] }
+  if (!raw0) return { language: 'uk', tasks: [], notRecognized: [], corrections: [], stock: [], shoppingList: [], suspectedUnsupportedLang: false }
   const m = mergeDicts(dicts)
 
   // Крок 0. Фаззі-виправлення друкарських помилок у словникових словах (субботу→суботу).
@@ -898,29 +907,33 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
     ? { text: raw0, corrections: [] }
     : fuzzyCorrect(raw0, index, buildFuzzyProtect(m))
 
-  // Крок 0.5. Речення-запаси ("додати до запасів…") виймаємо ДО поділу на задачі, щоб
-  // перелік через кому не ділився на окремі задачі. Решта тексту йде у звичайний розбір.
+  // Крок 0.5. Клаузи-переліки ("додати до запасів…", "…до списку покупок") виймаємо ДО поділу
+  // на задачі, щоб перелік через кому не ділився на окремі задачі. Решта йде у звичайний розбір.
   const stock = []
+  const shoppingList = []
   let forTasks = raw
-  if (m.stockMarkers.length) {
-    const markerRe = new RegExp(`${BB}(?:${alt(m.stockMarkers)})${BE}`, 'iu')
-    const sentences = raw.split(/(?<=[.!?;])\s+/u)
+  const pullClauses = (markers, verbs, extraStop, sink) => {
+    if (!markers.length) return
+    const markerRe = new RegExp(`${BB}(?:${alt(markers)})${BE}`, 'iu')
+    const stopWords = [...m.stockStopWords, ...extraStop]
+    const sentences = forTasks.split(/(?<=[.!?;])\s+/u)
     const kept = []
     for (let s of sentences) {
-      // У реченні може бути кілька намірів-запасів: виймаємо КЛАУЗУ запасів по черзі,
-      // лишаючи решту тексту під звичайні задачі (а не ковтаючи все речення цілком).
+      // У реченні може бути кілька намірів: виймаємо КЛАУЗУ по черзі, лишаючи решту під задачі.
       let guard = 0
       while (markerRe.test(s) && guard++ < 10) {
-        const found = extractStock(s, m)
+        const found = extractClause(s, m, { markers, verbs, stopWords })
         if (!found) break
-        stock.push({ raw: s.slice(found.start, found.end).trim(), items: found.items })
+        sink.push({ raw: s.slice(found.start, found.end).trim(), items: found.items })
         s = `${s.slice(0, found.start)} ${s.slice(found.end)}`.replace(/\s+/g, ' ').trim()
       }
       if (s.trim()) kept.push(s)
     }
-    // Крапка між колишніми реченнями — тверда межа (дата не успадковується через неї).
-    forTasks = kept.join('. ')
+    forTasks = kept.join('. ') // крапка між колишніми реченнями — тверда межа
   }
+  // Список покупок (специфічний явний намір) і запаси — обидва перед поділом на задачі.
+  pullClauses(m.shoppingListMarkers, m.shoppingListVerbs, ['список', 'покупок', 'покупки', 'list', 'shopping', 'grocery'], shoppingList)
+  pullClauses(m.stockMarkers, m.stockVerbs, [], stock)
 
   const pieces = splitTasks(forTasks, m)
   const tasks = []
@@ -950,7 +963,7 @@ export function parseInput(text, dicts, now = new Date(), extraWords = []) {
     tasks.push(task)
   }
   return {
-    language: detectLanguage(raw), tasks, notRecognized, corrections, stock,
+    language: detectLanguage(raw), tasks, notRecognized, corrections, stock, shoppingList,
     suspectedUnsupportedLang: suspected,
   }
 }

@@ -52,7 +52,15 @@ function toRow(task) {
     lessonNumber: s.lessonNumber || '',
     link: s.link || '',
     createSubject: false, // проставляємо під час розбору, якщо предмет новий
-    include: Boolean(task.title), // задачі без назви лишаємо непозначеними, доки назву не додано
+    amount: task.amount ?? '',
+    currency: task.currency || null,
+    financeType: task.financeType || 'expense',
+    negated: Boolean(task.negated),
+    extraDates: task.extraDates || [],
+    extraTimes: task.extraTimes || [],
+    // Задачі без назви — непозначені; low-confidence теж знімаємо, щоб не створити сміття
+    // одним кліком (QA-16). Користувач явно поставить галочку, якщо справді треба.
+    include: Boolean(task.title) && task.confidence !== 'low',
   }
 }
 
@@ -199,14 +207,49 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
   const patch = (i, changes) => setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...changes } : r)))
 
   // Вибір для неоднозначного числа: застосувати дату/час і прибрати цей чузер із рядка.
+  // «Пропустити» (option=null) повертає сире число В НАЗВУ, а не губить його (QA-15).
   const chooseAmbiguous = (i, ambIndex, option) => {
     setRows((rs) => rs.map((r, idx) => {
       if (idx !== i) return r
+      const amb = r.ambiguous[ambIndex]
       const next = { ...r, ambiguous: r.ambiguous.filter((_, k) => k !== ambIndex) }
       if (option && option.date) next.date = option.date
-      if (option && option.time) next.time = option.time
+      else if (option && option.time) next.time = option.time
+      else if (amb) next.title = `${r.title} ${amb.raw}`.trim() // пропущене число → у назву
       return next
     }))
+  }
+
+  // Друга дата/час в одній задачі (QA-09): створити з неї ОКРЕМУ задачу (клон рядка) і
+  // прибрати цей «зайвий» зі списку, щоб нічого не губилось тихо.
+  const spawnFromExtra = (i, kind, value) => {
+    setRows((rs) => {
+      const r = rs[i]
+      if (!r) return rs
+      const clone = {
+        ...r,
+        date: kind === 'date' ? value : r.date,
+        time: kind === 'time' ? value : r.time,
+        extraDates: [], extraTimes: [], ambiguous: [], include: true,
+        inheritedDate: false, inheritedDeadline: false,
+      }
+      const trimmed = {
+        ...r,
+        extraDates: kind === 'date' ? r.extraDates.filter((d) => d !== value) : r.extraDates,
+        extraTimes: kind === 'time' ? r.extraTimes.filter((tm) => tm !== value) : r.extraTimes,
+      }
+      const out = rs.slice()
+      out[i] = trimmed
+      out.splice(i + 1, 0, clone)
+      return out
+    })
+  }
+
+  // Прибрати «зайву» дату/час без створення задачі (користувач свідомо ігнорує).
+  const dismissExtra = (i, kind, value) => {
+    patch(i, kind === 'date'
+      ? { extraDates: rows[i].extraDates.filter((d) => d !== value) }
+      : { extraTimes: rows[i].extraTimes.filter((tm) => tm !== value) })
   }
 
   const createAll = async () => {
@@ -384,6 +427,9 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                         {r.confidence === 'low' ? t('quickAdd.conf.low') : t('quickAdd.conf.medium')}
                       </div>
                     )}
+                    {r.negated && (
+                      <div className="qa-conf qa-conf--neg">{t('quickAdd.negated')}</div>
+                    )}
                     <label className="qa-field qa-field--title">
                       <span>{t('quickAdd.field.title')}</span>
                       <input type="text" value={r.title} onChange={(e) => patch(i, { title: e.target.value, include: r.include || Boolean(e.target.value.trim()) })} />
@@ -425,6 +471,24 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                         ))}
                       </select>
                     </label>
+
+                    {/* Фінанси: сума та напрямок (дохід/витрата) → створиться операція у Фінансах */}
+                    {r.module === 'finance' && (
+                      <>
+                        <label className="qa-field qa-field--num">
+                          <span>{t('quickAdd.field.amount')}</span>
+                          <input type="number" min="0" step="0.01" value={r.amount}
+                            onChange={(e) => patch(i, { amount: e.target.value === '' ? '' : Number(e.target.value) })} />
+                        </label>
+                        <label className="qa-field">
+                          <span>{t('quickAdd.field.financeType')}</span>
+                          <select value={r.financeType} onChange={(e) => patch(i, { financeType: e.target.value })}>
+                            <option value="expense">{t('quickAdd.finance.expense')}</option>
+                            <option value="income">{t('quickAdd.finance.income')}</option>
+                          </select>
+                        </label>
+                      </>
+                    )}
                   </div>
 
                   {/* Навчання: предмет + викладач (+ пропозиція додати у Навчання, якщо новий) */}
@@ -470,6 +534,27 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                       </div>
                     </div>
                   ))}
+
+                  {/* Друга дата/час у задачі (QA-09): не губимо — пропонуємо окрему задачу або ігнор */}
+                  {(r.extraDates.length > 0 || r.extraTimes.length > 0) && (
+                    <div className="qa-extra">
+                      <span className="qa-extra-label"><Icon name="warning" /> {t('quickAdd.extraFound')}</span>
+                      {r.extraDates.map((d) => (
+                        <span className="qa-extra-item" key={`d${d}`}>
+                          {d}
+                          <button type="button" onClick={() => spawnFromExtra(i, 'date', d)}>{t('quickAdd.extraSeparate')}</button>
+                          <button type="button" className="qa-extra-x" onClick={() => dismissExtra(i, 'date', d)}>×</button>
+                        </span>
+                      ))}
+                      {r.extraTimes.map((tm) => (
+                        <span className="qa-extra-item" key={`t${tm}`}>
+                          {tm}
+                          <button type="button" onClick={() => spawnFromExtra(i, 'time', tm)}>{t('quickAdd.extraSeparate')}</button>
+                          <button type="button" className="qa-extra-x" onClick={() => dismissExtra(i, 'time', tm)}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -497,6 +582,11 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
                 <p className="qa-unrec-hint">{t('quickAdd.notRecognizedHint')}</p>
                 <ul>{result.notRecognized.map((frag, k) => <li key={k}>{frag}</li>)}</ul>
               </div>
+            )}
+
+            {/* Зведення: що саме буде створено (щоб позначене на інших вкладках не було «невидимим», QA-18) */}
+            {summary.length > 0 && (
+              <p className="quick-add-summary">{t('quickAdd.willCreate')} {summary.join(' · ')}</p>
             )}
 
             <div className="quick-add-modal-actions">
