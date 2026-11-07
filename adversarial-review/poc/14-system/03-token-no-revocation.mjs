@@ -16,8 +16,10 @@ line(`[setup] logged in userId=${u.userId}`)
 const before = await api('GET', '/api/auth/me', { token: u.token })
 line(`[1] before logout  /api/auth/me -> ${before.status}`)
 
-// --- user clicks "Вийти": App.jsx handleLogout only clears localStorage ---
-line('[2] user clicks "Вийти" (client clears localStorage only; no server call)')
+// --- user clicks "Вийти": fixed App.jsx handleLogout now calls POST /api/auth/logout
+// (server bumps TokenVersion → every token issued for this account is revoked), then clears localStorage ---
+const lo = await api('POST', '/api/auth/logout', { token: u.token })
+line(`[2] user clicks "Вийти" -> POST /api/auth/logout -> ${lo.status} (server revokes token)`)
 
 // Attacker (or anyone who copied the token) keeps using it:
 const after = await api('GET', '/api/auth/me', { token: u.token })
@@ -33,7 +35,9 @@ line(`\n[4] token exp = ${new Date(payload.exp * 1000).toISOString()}  (~${days}
 
 const confirmed = after.status === 200
 line('\n==============================================================')
-line(`VERDICT: ${confirmed ? 'CONFIRMED 🔴' : 'NOT reproduced'}`)
+line(`VERDICT: ${confirmed ? 'CONFIRMED 🔴' : 'REFUTED ✅'}`)
 line(`  expected: a logged-out / revoked token is rejected (401)`)
-line(`  observed: token still returns ${after.status} after logout; valid for ${days} days`)
-line('  -> No server-side session invalidation; a leaked token = ~3 months of access.')
+line(`  observed: token returns ${after.status} after logout; token lifetime ~${days} days`)
+line(confirmed
+  ? '  -> No server-side session invalidation; a leaked token = months of access.'
+  : '  -> Server revoked the token on logout (TokenVersion bumped); lifetime also cut to ~7 days.')

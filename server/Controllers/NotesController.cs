@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +17,12 @@ public record NoteRequest(string Text, string Color);
 public class NotesController : ControllerBase
 {
     private const int MaxTextLength = 280; // обмежена кількість тексту в одній нотатці
+    private const string DefaultColor = "#fff3b0";
+
+    // Колір зберігається лише як hex (#RGB або #RRGGBB). Інакше довільний рядок (напр.
+    // "url(https://evil/..)") доїжджав би у style={{background}} на клієнті й тягнув би зовнішній
+    // ресурс при рендері (CSS-ін'єкція/beacon). Hex-формат заразом обмежує довжину поля (ПЛАН P2-4).
+    private static readonly Regex HexColor = new("^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", RegexOptions.Compiled);
 
     private readonly AppDbContext _db;
 
@@ -47,7 +53,7 @@ public class NotesController : ControllerBase
         {
             UserId = CurrentUserId,
             Text = Clamp(r.Text),
-            Color = string.IsNullOrWhiteSpace(r.Color) ? "#fff3b0" : r.Color.Trim(),
+            Color = NormalizeColor(r.Color),
             Position = maxPos + 1,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -62,7 +68,7 @@ public class NotesController : ControllerBase
         var note = await _db.Notes.FirstOrDefaultAsync(n => n.Id == id && n.UserId == CurrentUserId);
         if (note is null) return NotFound();
         note.Text = Clamp(r.Text);
-        if (!string.IsNullOrWhiteSpace(r.Color)) note.Color = r.Color.Trim();
+        if (!string.IsNullOrWhiteSpace(r.Color)) note.Color = NormalizeColor(r.Color);
         note.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return Ok();
@@ -82,5 +88,14 @@ public class NotesController : ControllerBase
     {
         text = (text ?? "").Trim();
         return text.Length > MaxTextLength ? text[..MaxTextLength] : text;
+    }
+
+    // Порожньо → колір за замовчуванням; інакше має бути hex (#RGB/#RRGGBB), будь-що інше → 400.
+    private static string NormalizeColor(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color)) return DefaultColor;
+        var value = color.Trim();
+        if (!HexColor.IsMatch(value)) throw new BadInputException("invalid_color");
+        return value;
     }
 }
