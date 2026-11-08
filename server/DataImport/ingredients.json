@@ -1,6 +1,7 @@
 [
   { "id": "potato",   "nameUk": "Картопля",           "nameEn": "Potato",         "storageGroup": "vegetable", "tags": ["starch", "vegetable"],        "fdcQuery": "potatoes, raw, skin" },
-  { "id": "milk",      "nameUk": "Молоко",             "nameEn": "Milk",           "storageGroup": "dairy",     "tags": ["dairy", "lactose"],           "fdcQuery": "milk, whole" },
+  { "id": "milk",      "nameUk": "Молоко коров'яче",   "nameEn": "Cow's milk",     "storageGroup": "dairy",     "tags": ["dairy", "lactose"],           "fdcQuery": "milk, whole" },
+  { "id": "milk-goat", "nameUk": "Молоко козине",      "nameEn": "Goat's milk",    "storageGroup": "dairy",     "tags": ["dairy", "lactose"],           "fdcQuery": "milk, goat" },
   { "id": "bread",     "nameUk": "Хліб",               "nameEn": "Bread",          "storageGroup": "bakery",    "tags": ["gluten"],                     "fdcQuery": "bread, white wheat" },
   { "id": "eggs",      "nameUk": "Яйця",               "nameEn": "Eggs",           "storageGroup": "dairy",     "tags": ["egg"],                        "fdcQuery": "egg, whole, raw, fresh" },
   { "id": "beet",      "nameUk": "Буряк",              "nameEn": "Beetroot",       "storageGroup": "vegetable", "tags": ["vegetable", "sugar"],         "fdcQuery": "beets, raw" },
