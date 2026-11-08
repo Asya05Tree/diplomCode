@@ -305,7 +305,7 @@ export default function Food() {
   }
 
   const favoriteRecipes = recipes.filter((r) => selected.includes(r.id))
-  const menuCount = Object.values(menu).reduce((sum, ids) => sum + ids.length, 0)
+  const menuCount = Object.values(menuByDate).reduce((sum, ids) => sum + ids.length, 0)
   const stockRows = products
     .filter((p) => stock[p.id] && stock[p.id] !== 'OutOfStock')
     .map((p) => ({ product: p, state: stock[p.id] }))
