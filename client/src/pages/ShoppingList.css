@@ -367,6 +367,39 @@
 .shopping-over {
   color: var(--color-danger);
 }
+
+/* Права частина рядка ручного відбору: попередження здоров'я + ціна */
+.shopping-budget-pick-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Бейдж попередження за здоров'ям (заборонено / варто уникати) на позиції-продукті */
+.shopping-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+.shopping-health .icon { width: 13px; height: 13px; flex-shrink: 0; }
+.shopping-health--bad {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+.shopping-health--warn {
+  color: #b4791f;
+  background: color-mix(in srgb, #e5a44a 20%, var(--color-surface));
+}
+
+/* Поле дати походу у магазин */
+.shopping-trip-date { max-width: 240px; }
 .shopping-budget-list {
   list-style: none;
   margin: 6px 0 0;

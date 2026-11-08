@@ -354,25 +354,16 @@ export default function ShoppingList() {
           <p className="placeholder-text">{t('shoppingList.budgetListEmpty')}</p>
         ) : (
           <>
-            <div className="shopping-budget-tabs">
-              <button type="button" className={budgetTab === 'manual' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetTab('manual')}>
-                {t('shoppingList.budgetTabManual')}
-              </button>
-              <button type="button" className={budgetTab === 'auto' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetTab('auto')}>
-                {t('shoppingList.budgetTabAuto')}
-              </button>
-            </div>
-
-            {/* Режим ліміту: за сумою доступний лише коли відомо достатньо цін, інакше — за кількістю */}
+            {/* Крок 1: спершу ліміт — кількість позицій (або грн, якщо відомо достатньо цін) */}
             {pricesScarce ? (
               <p className="placeholder-text">{t('shoppingList.budgetCountNote')}</p>
             ) : (
               <div className="shopping-budget-modes">
-                <button type="button" className={budgetMode === 'sum' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetMode('sum')}>
-                  {t('shoppingList.budgetModeSum')}
-                </button>
                 <button type="button" className={budgetMode === 'count' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetMode('count')}>
                   {t('shoppingList.budgetModeCount')}
+                </button>
+                <button type="button" className={budgetMode === 'sum' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetMode('sum')}>
+                  {t('shoppingList.budgetModeSum')}
                 </button>
               </div>
             )}
@@ -381,6 +372,16 @@ export default function ShoppingList() {
               <span>{mode === 'count' ? t('shoppingList.budgetCountLabel') : t('shoppingList.budgetSumLabel')}</span>
               <NumberStepper min={0} max={RANGES.money.max} value={budget} onChange={(v) => setBudget(v)} />
             </label>
+
+            {/* Крок 2: після ліміту — обрати вручну чи автоматично */}
+            <div className="shopping-budget-tabs">
+              <button type="button" className={budgetTab === 'manual' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetTab('manual')}>
+                {t('shoppingList.budgetTabManual')}
+              </button>
+              <button type="button" className={budgetTab === 'auto' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetTab('auto')}>
+                {t('shoppingList.budgetTabAuto')}
+              </button>
+            </div>
 
             {budgetTab === 'manual' ? (
               <>
@@ -392,9 +393,12 @@ export default function ShoppingList() {
                         <input type="checkbox" checked={picked.has(x.id)} onChange={() => togglePick(x.id)} />
                         <span>{displayName(x)}</span>
                       </label>
-                      {x.estimatedPrice != null && (
-                        <span className="shopping-list-price">{x.estimatedPrice} {currency}</span>
-                      )}
+                      <span className="shopping-budget-pick-meta">
+                        {healthBadge(x)}
+                        {x.estimatedPrice != null && (
+                          <span className="shopping-list-price">{x.estimatedPrice} {currency}</span>
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -407,9 +411,22 @@ export default function ShoppingList() {
                   </p>
                 )}
               </>
+            ) : mode === 'sum' ? (
+              <>
+                {/* Автопідбір за сумою: ВСІ максимальні комбінації під бюджет (як у демоверсії) */}
+                {limit > 0 && (
+                  <ComboList
+                    combos={combos}
+                    t={t}
+                    nameFor={(i) => i.name}
+                    keyFor={(i) => i.id}
+                    emptyText={t('shoppingList.budgetEmpty')}
+                  />
+                )}
+              </>
             ) : (
               <>
-                {/* Автопідбір: система сама набирає під ліміт, не більше MAX_AUTO_ITEMS позицій */}
+                {/* Автопідбір за кількістю (цін нема для комбінацій): перші N позицій під ліміт */}
                 <p className="placeholder-text">{t('shoppingList.budgetAutoMax', { max: MAX_AUTO_ITEMS })}</p>
                 {limit > 0 && (
                   fitItems.length === 0 ? (
@@ -419,12 +436,7 @@ export default function ShoppingList() {
                       <p className="shopping-list-total">{t('shoppingList.budgetFitsCount', { count: fitItems.length })}</p>
                       <ul className="shopping-budget-list">
                         {fitItems.map((x) => (
-                          <li key={x.id}>
-                            <span>{displayName(x)}</span>
-                            {mode === 'sum' && x.estimatedPrice != null && (
-                              <span className="shopping-list-price">{x.estimatedPrice} {currency}</span>
-                            )}
-                          </li>
+                          <li key={x.id}><span>{displayName(x)}</span></li>
                         ))}
                       </ul>
                     </>
@@ -436,8 +448,13 @@ export default function ShoppingList() {
         )}
       </div>
 
-      {/* Запланувати похід у магазин → задача в «Нерозподілених». Порожній список не блокує, лише попереджає */}
+      {/* Запланувати похід у магазин: з датою — задача на день, без неї — у «Нерозподілених».
+          Порожній список не блокує, лише мʼяко попереджає. */}
       <div className="card shopping-trip">
+        <label className="shopping-check-field shopping-trip-date">
+          <span>{t('shoppingList.tripDateLabel')}</span>
+          <input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
+        </label>
         <button type="button" className="btn-accent" onClick={handlePlanTrip}>
           <Icon name="cart" /> {t('shoppingList.planTrip')}
         </button>
@@ -445,7 +462,9 @@ export default function ShoppingList() {
           <p className="placeholder-text">{t('shoppingList.planTripEmpty')}</p>
         )}
         {tripTaskId != null && (
-          <p className="placeholder-text">{t('shoppingList.planTripDone', { taskId: tripTaskId })}</p>
+          <p className="placeholder-text">
+            {t(tripDate ? 'shoppingList.planTripDoneDated' : 'shoppingList.planTripDone', { taskId: tripTaskId, date: tripDate })}
+          </p>
         )}
       </div>
     </div>
