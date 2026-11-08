@@ -23,14 +23,9 @@ export function removeMedicine(medicineId) {
   return apiSend('DELETE', `/api/medicine-cabinet/${medicineId}`)
 }
 
-// Взаємодії картки: пари DDInter, де друга речовина теж є в аптечці користувача.
-// Порожньо → UI пише "у базі не знайдено взаємодій" (ніколи "конфліктів немає").
-export function getInteractions(medicineId) {
-  return apiGet(`/api/medicine-cabinet/${medicineId}/interactions`)
-}
-
 // Взаємодії ВСІЄЇ аптечки одним запитом: повертає карту { medicineId: [взаємодії] }.
-// Замінює N окремих викликів getInteractions при завантаженні сторінки.
+// Пари DDInter, де друга речовина теж є в аптечці користувача. Порожньо для картки →
+// UI пише "у базі не знайдено взаємодій" (ніколи "конфліктів немає").
 export function getAllInteractions() {
   return apiGet('/api/medicine-cabinet/interactions')
 }

@@ -15,15 +15,3 @@ export function setHealthProfile({ height, weight, birthYear }) {
 export function setProfileStatus({ gender, studentType, isWorking }) {
   return apiSend('PUT', '/api/account/profile-status', { gender, studentType, isWorking })
 }
-
-export function getRestrictions() {
-  return apiGet('/api/health-profile/restrictions')
-}
-
-export function setRestriction({ tagKey, relation, weight }) {
-  return apiSend('PUT', '/api/health-profile/restrictions', { tagKey, relation, weight: weight ?? null })
-}
-
-export function removeRestriction(tagKey) {
-  return apiSend('DELETE', `/api/health-profile/restrictions/${encodeURIComponent(tagKey)}`)
-}
