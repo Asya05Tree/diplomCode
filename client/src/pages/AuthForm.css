@@ -194,25 +194,29 @@
 
 /* Ліворуч — лише декоративна картинка (прозорий PNG), окремо від форми */
 .register-decor {
-  flex: 0 1 380px;
+  flex: 0 1 340px;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+/* Біле сяйво навколо єнота — однакове для світлої й темної теми (кілька drop-shadow дають ореол) */
 .register-decor-img {
   width: 100%;
-  max-width: 380px;
+  max-width: 340px;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.18));
+  filter:
+    drop-shadow(0 0 10px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 24px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 48px rgba(255, 255, 255, 0.5));
 }
 
-/* Праворуч — окрема форма-картка, обмежена за шириною (не виходить за межі) */
+/* Праворуч — окрема широка форма-картка (дві колонки поруч, компактна по висоті) */
 .auth-form--wide {
-  flex: 0 1 600px;
+  flex: 0 1 720px;
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
 }
 .register-head {
   display: flex;
