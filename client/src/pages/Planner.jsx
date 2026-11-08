@@ -14,7 +14,7 @@ import { getFreeDays, getPeriodTasks, getUnassignedCount } from '../api/tasks'
 import { getCycle } from '../api/cycle'
 import { loadDebts } from '../utils/debts'
 import { buildHeavyDays } from '../utils/cycle'
-import { addDays, getMonthGridCells, fromApiDate, startOfDay, toApiDate, todayApiDate } from '../utils/date'
+import { addDays, addMonths, getMonthGridCells, fromApiDate, startOfDay, toApiDate, todayApiDate } from '../utils/date'
 import './Planner.css'
 
 const AUTH_TOKEN_KEY = 'authToken'
@@ -24,8 +24,20 @@ const AUTH_TOKEN_KEY = 'authToken'
 // запасом вільного часу підсвічені кольором, порожні дні без заливки; працює завжди, без перемикача.
 export default function Planner() {
   const { t, weekStart } = useI18n()
-  const { gender, studentType } = useOutletContext() ?? {}
+  const { gender, studentType, isWorking } = useOutletContext() ?? {}
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
+
+  // Контекст боргів: навчання — для школяра/студента, робота — для працюючих. Хто не навчається
+  // й не працює — боргів не має (вкладку ховаємо). Назва вкладки залежить від комбінації.
+  const isStudying = studentType === 'pupil' || studentType === 'student'
+  const showDebts = isStudying || Boolean(isWorking)
+  const debtsLabel = t(
+    isStudying && isWorking
+      ? 'planner.modeDebtsStudyWork'
+      : isStudying
+      ? 'planner.modeDebtsStudy'
+      : 'planner.modeDebtsWork',
+  )
 
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const d = new Date()
@@ -124,11 +136,11 @@ export default function Planner() {
   // Важливі борги оновлюємо на старті й після будь-якої зміни задач
   useEffect(() => {
     let cancelled = false
-    loadDebts(studentType)
+    loadDebts(studentType, isWorking)
       .then((list) => { if (!cancelled) setDebts(list) })
       .catch(() => { if (!cancelled) setDebts([]) })
     return () => { cancelled = true }
-  }, [studentType, tasksVersion])
+  }, [studentType, isWorking, tasksVersion])
 
   // Дні місячних для сітки: лише для жіночих профілів; будуємо Set 'YYYY-MM-DD' із записів циклу
   useEffect(() => {
@@ -185,6 +197,20 @@ export default function Planner() {
   const showCareToday = reduceLoad && heavyDays.has(todayApiDate())
   const careForSelectedDay = heavyDays.has(toApiDate(selectedDate))
 
+  // Поле «перейти до дати» під календарем: відкриває обрану дату (День), підпорядковуючись тим
+  // самим межам, що й Період — рік у минуле/майбутнє від сьогодні.
+  const jumpMin = addMonths(startOfDay(new Date()), -12)
+  const jumpMax = addMonths(startOfDay(new Date()), 12)
+  const handleJumpDate = (e) => {
+    if (!e.target.value) return
+    const picked = fromApiDate(e.target.value)
+    const d = picked < jumpMin ? jumpMin : picked > jumpMax ? jumpMax : picked
+    setVisibleMonth(new Date(d.getFullYear(), d.getMonth(), 1))
+    setSelectedDate(d)
+    setActiveTab('dayPeriod')
+    setMode('day')
+  }
+
   const handleSelectDate = (date) => {
     // Якщо саме триває вибір ручних дат повторення — лишаємо цю поведінку (вставка/зняття дати)
     if (activeTab === 'recurring' && manualDateHandler) {
@@ -226,6 +252,19 @@ export default function Planner() {
             </label>
           </div>
         )}
+
+        <div className="planner-jump">
+          <label>
+            {t('planner.jumpToDate')}
+            <input
+              type="date"
+              value={toApiDate(selectedDate)}
+              min={toApiDate(jumpMin)}
+              max={toApiDate(jumpMax)}
+              onChange={handleJumpDate}
+            />
+          </label>
+        </div>
       </section>
 
       <section className="planner-work-panel">
@@ -237,11 +276,13 @@ export default function Planner() {
             onModeChange={setMode}
             unassignedCount={unassignedCount}
             debtsCount={debts.length}
+            showDebts={showDebts}
+            debtsLabel={debtsLabel}
           />
         </div>
 
         <div className="card planner-content-card">
-          {activeTab === 'debts' ? (
+          {activeTab === 'debts' && showDebts ? (
             <DebtsView items={debts} />
           ) : activeTab === 'recurring' ? (
             <RecurringView

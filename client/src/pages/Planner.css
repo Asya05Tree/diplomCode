@@ -46,6 +46,24 @@
   font-size: 0.9rem;
 }
 
+/* Поле «перейти до дати» під календарем */
+.planner-jump {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+.planner-jump label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+.planner-jump input {
+  font-size: 0.9rem;
+}
+
 .planner-work-panel {
   display: flex;
   flex-direction: column;

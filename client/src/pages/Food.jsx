@@ -503,7 +503,7 @@ export default function Food() {
               <ul className="food-excluded-list">
                 {excludedRecipes.map(({ recipe, reason }) => (
                   <li key={recipe.id} className="food-excluded-row">
-                    <span className="food-excluded-name">{recipe.emoji} {recipeName(recipe, language)}</span>
+                    <span className="food-excluded-name">{recipeName(recipe, language)}</span>
                     <span className={`food-excluded-reason food-excluded-reason--${reason.kind}`}>
                       {reason.kind === 'health'
                         ? t('food.excluded.health', { tag: tagLabel(reason.tag) })
@@ -609,9 +609,7 @@ export default function Food() {
             <ul className="dish-list">
               {favoriteRecipes.map((recipe) => (
                 <li key={recipe.id} className="dish-row">
-                  <span className="dish-name">
-                    {recipe.emoji} {recipeName(recipe, language)}
-                  </span>
+                  <span className="dish-name">{recipeName(recipe, language)}</span>
                   <button
                     type="button"
                     className="pill"
@@ -635,25 +633,20 @@ export default function Food() {
             <ul className="dish-list">
               {favoriteRecipes.map((recipe) => (
                 <li key={recipe.id} className="dish-row">
-                  <span className="dish-name">
-                    {recipe.emoji} {recipeName(recipe, language)}
-                  </span>
+                  <span className="dish-name">{recipeName(recipe, language)}</span>
                   <button
                     type="button"
                     className="btn-outline"
-                    onClick={() => {
-                      setFavoritesOpen(false)
-                      openCooking(recipe)
-                    }}
+                    onClick={() => handleToggleFavorite(recipe)}
                   >
-                    {t('food.cooked')}
+                    {t('food.removeFavorite')}
                   </button>
                 </li>
               ))}
             </ul>
           )}
           <button type="button" className="btn-accent" onClick={() => setFavoritesOpen(false)}>
-            {t('food.planCook')}
+            {t('common.close')}
           </button>
         </Drawer>
       )}
@@ -681,89 +674,6 @@ export default function Food() {
         </Drawer>
       )}
 
-      {/* Спливне вікно готовки з картинкою страви (над усім екраном, §4.6) */}
-      {cooking && (
-        <div className="cook-overlay" onClick={() => setCooking(null)}>
-          <div className="cook-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="cook-photo">{cooking.recipe.emoji}</div>
-            <button
-              type="button"
-              className="cook-close"
-              onClick={() => setCooking(null)}
-              aria-label={t('food.cookClose') || t('common.close')}
-              data-tooltip={t('common.close')}
-            >
-              <Icon name="close" />
-            </button>
-
-            {cooking.step === 'confirm' ? (
-              <>
-                <h3>{t('food.cookTitle', { name: recipeName(cooking.recipe, language) })}</h3>
-                <p className="placeholder-text">{t('food.cookQuestion')}</p>
-                <ul className="cook-ingredients">
-                  {cooking.recipe.ingredients.map((ing) => {
-                    const product = getProduct(ing.productId)
-                    return (
-                      <li key={ing.productId}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={!!cooking.have[ing.productId]}
-                            onChange={() => toggleHave(ing.productId)}
-                          />
-                          <span>{productName(product, language)}</span>
-                        </label>
-                        <span className="cook-amount">{ingredientAmount(ing, language)}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-                <div className="cook-actions">
-                  <button type="button" className="btn-accent" onClick={() => setCooking((p) => ({ ...p, step: 'result' }))}>
-                    {t('food.cookConfirm')}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3>{t('food.resultTitle')}</h3>
-                <ul className="cook-result">
-                  {cooking.recipe.ingredients.map((ing) => {
-                    const product = getProduct(ing.productId)
-                    return (
-                      <li key={ing.productId}>
-                        <span>{productName(product, language)}</span>
-                        <div className="stock-toggle" role="radiogroup" aria-label={t('food.col.state')}>
-                          {STOCK_TOGGLE.map(({ state: s, cls }) => (
-                            <button
-                              key={s}
-                              type="button"
-                              role="radio"
-                              aria-checked={cooking.states[ing.productId] === s}
-                              aria-label={t(`food.state.${s}`)}
-                              title={t(`food.state.${s}`)}
-                              className={`stock-circle stock-circle--${cls}${cooking.states[ing.productId] === s ? ' stock-circle--on' : ''}`}
-                              onClick={() => setResultState(ing.productId, s)}
-                            />
-                          ))}
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-                <div className="cook-actions">
-                  <button type="button" className="btn-outline" onClick={() => finishCooking(true)}>
-                    {t('food.keepAll')}
-                  </button>
-                  <button type="button" className="btn-accent" onClick={() => finishCooking(false)}>
-                    {t('food.resultConfirm')}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

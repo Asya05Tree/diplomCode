@@ -6,7 +6,9 @@ import { getProcessTasks } from '../api/work'
 import { todayApiDate } from './date'
 
 // studentType — 'pupil' | 'student' | інше (навчання тягнемо лише для школяра/студента).
-export async function loadDebts(studentType) {
+// isWorking — чи працює користувач (робочі борги тягнемо лише для працюючих). Той, хто не
+// навчається й не працює, боргів не має взагалі.
+export async function loadDebts(studentType, isWorking) {
   const today = todayApiDate()
   const out = []
 
@@ -25,7 +27,7 @@ export async function loadDebts(studentType) {
     }
   }
 
-  const processTasks = await getProcessTasks().catch(() => [])
+  const processTasks = isWorking ? await getProcessTasks().catch(() => []) : []
   for (const p of processTasks || []) {
     if (p.status !== 'done' && p.dueDate && p.dueDate < today) {
       out.push({

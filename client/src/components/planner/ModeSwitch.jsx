@@ -4,7 +4,7 @@ import './ModeSwitch.css'
 // planner-spec.md §4.2: три рівноправні вкладки робочої області, активна лише одна —
 // "День/Період" (із внутрішнім перемикачем дня/періоду), "Повторювані", "Нерозподілені".
 // Раніше "Нерозподілені" була окремою сторінкою в сайдбарі — тепер це третя вкладка тут.
-export default function ModeSwitch({ activeTab, onTabChange, mode, onModeChange, unassignedCount, debtsCount = 0 }) {
+export default function ModeSwitch({ activeTab, onTabChange, mode, onModeChange, unassignedCount, debtsCount = 0, showDebts = true, debtsLabel: debtsLabelProp }) {
   const { t } = useI18n()
   const isPeriod = mode === 'period'
   const isDayPeriodActive = activeTab === 'dayPeriod'
@@ -29,7 +29,8 @@ export default function ModeSwitch({ activeTab, onTabChange, mode, onModeChange,
 
   const unassignedLabel =
     unassignedCount > 0 ? `${t('nav.unassigned')} (${unassignedCount})` : t('nav.unassigned')
-  const debtsLabel = debtsCount > 0 ? `${t('planner.modeDebts')} (${debtsCount})` : t('planner.modeDebts')
+  const debtsBase = debtsLabelProp ?? t('planner.modeDebts')
+  const debtsLabel = debtsCount > 0 ? `${debtsBase} (${debtsCount})` : debtsBase
 
   return (
     <div className="mode-switch">
@@ -61,16 +62,18 @@ export default function ModeSwitch({ activeTab, onTabChange, mode, onModeChange,
         </span>
       </div>
 
-      <button
-        type="button"
-        className={
-          (activeTab === 'debts' ? 'tab-pill tab-pill--active' : 'tab-pill') +
-          (debtsCount > 0 ? ' tab-pill--debts' : '')
-        }
-        onClick={() => onTabChange('debts')}
-      >
-        {debtsLabel}
-      </button>
+      {showDebts && (
+        <button
+          type="button"
+          className={
+            (activeTab === 'debts' ? 'tab-pill tab-pill--active' : 'tab-pill') +
+            (debtsCount > 0 ? ' tab-pill--debts' : '')
+          }
+          onClick={() => onTabChange('debts')}
+        >
+          {debtsLabel}
+        </button>
+      )}
 
       <button
         type="button"

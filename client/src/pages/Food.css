@@ -308,6 +308,23 @@
   word-break: break-word;
   color: var(--color-heading);
 }
+/* Позначка обмеження здоров'я на страві в меню (не можна / небажано) */
+.food-menu-chip-health {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.food-menu-chip-health--bad {
+  background: var(--st-bad-soft);
+  color: var(--st-bad);
+}
+.food-menu-chip-health--warn {
+  background: var(--st-warn-soft);
+  color: var(--st-warn);
+}
 .food-menu-chip-x {
   display: inline-flex;
   align-items: center;
@@ -531,13 +548,17 @@
   transform: scale(1.12) rotate(-4deg);
 }
 
-/* Чекбокс "обране" */
+/* Голова картки страви: чекбокс "обране" + назва в один рядок (без картинки) */
+.recipe-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Чекбокс "обране" (тепер інлайн у голові картки, а не поверх картинки) */
 .recipe-check {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   cursor: pointer;
-  z-index: 2;
+  flex-shrink: 0;
 }
 
 .recipe-check input {
@@ -591,15 +612,8 @@
 }
 
 .recipe-card-time {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1f2937;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 9px;
-  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
 }
 
 .recipe-card-body {
@@ -875,7 +889,6 @@
 .cook-close:hover {
   background: var(--pill-bg-hover);
   color: var(--color-heading);
-  transform: rotate(90deg);
 }
 .drawer-close .icon,
 .cook-close .icon {
