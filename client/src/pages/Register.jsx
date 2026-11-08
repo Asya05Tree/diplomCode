@@ -99,24 +99,22 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
 
   return (
     <div className="register-page">
-      {/* Ліворуч — ілюстрація; праворуч — широка форма у дві колонки */}
-      <aside className="register-hero" aria-hidden="true">
-        <img src="/images/hero-image.png" alt="" className="register-hero-img" />
-      </aside>
+      <div className="auth-floating">
+        <AuthControls
+          themeMode={themeMode}
+          onSetThemeMode={onSetThemeMode}
+          palette={palette}
+          onSetPalette={onSetPalette}
+        />
+      </div>
 
-      <div className="register-formside">
-        <div className="register-topbar">
-          <span className="register-brand">Всетута</span>
-          <AuthControls
-            themeMode={themeMode}
-            onSetThemeMode={onSetThemeMode}
-            palette={palette}
-            onSetPalette={onSetPalette}
-          />
-        </div>
-
-        <form className="card auth-form auth-form--wide" onSubmit={handleSubmit}>
-          <h2>{t('register.title')}</h2>
+      {/* Обмежена картка по центру: форма ліворуч, ілюстрація праворуч */}
+      <div className="register-card">
+        <form className="auth-form auth-form--wide register-main" onSubmit={handleSubmit}>
+          <div className="register-head">
+            <span className="register-brand">Всетута</span>
+            <h2>{t('register.title')}</h2>
+          </div>
 
           <div className="auth-form-cols">
             {/* Колонка 1 — про користувача */}
@@ -243,6 +241,10 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
             <Link to="/" className="auth-link">{t('auth.back')}</Link>
           </div>
         </form>
+
+        <aside className="register-illus" aria-hidden="true">
+          <img src="/images/hero-image.png" alt="" className="register-illus-img" />
+        </aside>
       </div>
     </div>
   )
