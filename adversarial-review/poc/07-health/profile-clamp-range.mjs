@@ -17,11 +17,14 @@ const under = await put({ weight: -50, height: 0, birthYear: 3000, gender: 'fema
 console.log(`sent weight=-50 height=0 birthYear=3000 -> stored weight=${under.weight} height=${under.height} birthYear=${under.birthYear}`)
 
 const nowYear = new Date().getFullYear()
-console.log(`server birthYear clamp window = [${nowYear-120}, ${nowYear-1}] => min age 1 (age 0 / newborn impossible)`)
+console.log(`server birthYear clamp window = [${nowYear-120}, ${nowYear-6}] => min age 6 (сервіс для осіб від 6 років)`)
 
 console.log('---')
-const clamped = over.weight === 500 && over.height === 300 && under.weight === 1 && under.height === 30
+// Реалістичні межі (узгоджено з utils/validation.js RANGES та Умовами користування): вага 10–400 кг,
+// зріст 90–250 см, вік 6–120 років (birthYear ∈ [nowY-120, nowY-6]).
+const clamped = over.weight === 400 && over.height === 250 && over.birthYear === nowYear - 120
+  && under.weight === 10 && under.height === 90 && under.birthYear === nowYear - 6
 if (clamped)
-  console.log('CONFIRMED: server Math.Clamp enforces weight[1,500] height[30,300] birthYear[nowY-120,nowY-1] (HealthProfileController.cs:53-55). Good defense-in-depth, BUT clamp is silent — API returns 200 with a different value than sent, no error/explanation (matches client silent clamp, Health.jsx:147-152).')
+  console.log('CONFIRMED: server Math.Clamp enforces weight[10,400] height[90,250] birthYear[nowY-120,nowY-6] (HealthProfileController.cs). Good defense-in-depth, BUT clamp is silent — API returns 200 with a different value than sent, no error/explanation (matches client silent clamp, Health.jsx).')
 else
   console.log(`values: over=${JSON.stringify(over)} under=${JSON.stringify(under)}`)
