@@ -1055,3 +1055,41 @@
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
+
+/* Підказки в пікері страви меню: «найчастіше в цей день» / «найчастіше у вас» — клік додає страву */
+.food-menu-hints {
+  margin-bottom: 12px;
+}
+.food-menu-hints-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.food-menu-hints-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.food-menu-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.food-menu-hint .icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* Рядок пошуку продукту + підказка «(!)» в панелі «Додати запаси» */
+.drawer-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.drawer-search-row .drawer-search {
+  flex: 1;
+  min-width: 0;
+}

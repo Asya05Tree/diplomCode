@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import FieldHelp from '../components/FieldHelp'
 import { getFinance } from '../api/finance'
 import { addShoppingItem, getShoppingList } from '../api/shopping'
 import {
@@ -16,6 +17,7 @@ import {
   tagLabelFrom,
 } from '../api/food'
 import { addDays, toApiDate, fromApiDate, todayApiDate } from '../utils/date'
+import { buildFuzzyIndex, bestMatch } from '../utils/nlp/fuzzy'
 import './Food.css'
 
 // Перший день (за налаштуванням weekStart: 1=Пн..7=Нд) тижня, що містить дату refApi ('YYYY-MM-DD').
@@ -309,9 +311,30 @@ export default function Food() {
     }
     return 0
   })
-  const addable = products
-    .filter((p) => !stock[p.id] || stock[p.id] === 'OutOfStock')
-    .filter((p) => productName(p, language).toLowerCase().includes(stockSearch.trim().toLowerCase()))
+  // Пошук продукту для «Додати запаси»: спершу підрядок (працює для uk та en назв з каталогу),
+  // а якщо нічого не знайшлося — нечіткий (триграмний) фолбек на друкарські помилки, тим самим
+  // матчером, що й у швидкому вводі / списку покупок (для обох мов).
+  const eligibleStock = products.filter((p) => !stock[p.id] || stock[p.id] === 'OutOfStock')
+  const stockQuery = stockSearch.trim().toLowerCase()
+  const substrMatches = eligibleStock.filter((p) => productName(p, language).toLowerCase().includes(stockQuery))
+  let addable = substrMatches
+  // Нечіткий фолбек лише коли підрядок нічого не дав (рідко) — тож індекс будуємо тут, без хука.
+  if (stockQuery.length >= 3 && substrMatches.length === 0) {
+    const byToken = new Map()
+    for (const p of eligibleStock) {
+      for (const tok of productName(p, language).toLowerCase().split(/[^\p{L}']+/u).filter(Boolean)) {
+        if (tok.length >= 3 && !byToken.has(tok)) byToken.set(tok, p.id)
+      }
+    }
+    const index = buildFuzzyIndex([...byToken.keys()])
+    const ids = new Set()
+    for (const tok of stockQuery.split(/[^\p{L}']+/u).filter(Boolean)) {
+      const m = bestMatch(tok, index)
+      const pid = m ? byToken.get(m.word) : null
+      if (pid != null) ids.add(pid)
+    }
+    addable = eligibleStock.filter((p) => ids.has(p.id))
+  }
 
   return (
     <div className="food-page">
@@ -730,13 +753,16 @@ export default function Food() {
       {/* Панель "Додати запаси" — продукти, яких ще немає в наявності */}
       {addStockOpen && (
         <Drawer title={t('food.addStockTitle')} onClose={() => setAddStockOpen(false)}>
-          <input
-            type="text"
-            className="drawer-search"
-            placeholder={t('food.searchProduct')}
-            value={stockSearch}
-            onChange={(e) => setStockSearch(e.target.value)}
-          />
+          <div className="drawer-search-row">
+            <input
+              type="text"
+              className="drawer-search"
+              placeholder={t('food.searchProduct')}
+              value={stockSearch}
+              onChange={(e) => setStockSearch(e.target.value)}
+            />
+            <FieldHelp text={t('food.searchProductHelp')} label={t('fieldHelp.label')} />
+          </div>
           <ul className="drawer-product-list">
             {addable.map((product) => (
               <li key={product.id}>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import FieldHelp from '../components/FieldHelp'
 import NumberStepper from '../components/NumberStepper'
 import { RANGES } from '../utils/validation'
 import {
@@ -277,6 +278,7 @@ export default function ShoppingList() {
           placeholder={t('shoppingList.addPlaceholder')}
         />
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
+        <FieldHelp text={t('shoppingList.addHelp')} label={t('fieldHelp.label')} />
         {hasNonUkrainianCyrillic(name) && (
           <p className="shopping-lang-hint">{t('shoppingList.enterUkrainian')}</p>
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import FieldHelp from '../components/FieldHelp'
 import {
   getCabinet,
   searchMedicines,
@@ -604,6 +605,7 @@ export default function Health() {
                       value={condForm.tag}
                       onChange={(e) => handleTagSearch(e.target.value)}
                     />
+                    <FieldHelp text={t('health.condTagHelp')} label={t('fieldHelp.label')} />
                     {tagSuggestions.length > 0 && (
                       <ul className="cond-tag-suggestions">
                         {tagSuggestions.map((s) => (
