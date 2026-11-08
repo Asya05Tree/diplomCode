@@ -306,7 +306,7 @@
   "taskForm.preset.readMedia": "Read something",
   "taskForm.mediaTitle.video": "Video title",
   "taskForm.mediaTitle.book": "Book title",
-  "taskForm.mediaTitlePlaceholder.video": "e.g. Interstellar",
+  "taskForm.mediaTitlePlaceholder.video": "e.g. How the Cossacks Played Football",
   "taskForm.mediaTitlePlaceholder.book": "e.g. Kobzar",
   "taskForm.mediaAuthor": "Author (optional)",
   "taskForm.mediaAuthorPlaceholder": "e.g. Taras Shevchenko",

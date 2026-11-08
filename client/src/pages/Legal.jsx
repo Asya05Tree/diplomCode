@@ -17,7 +17,7 @@ const CONTENT = {
       title: 'Політика конфіденційності',
       intro: 'Всетута — навчальний дипломний проєкт (планувальник для студентів). Нижче пояснено, які саме дані обробляються, з якою метою та які у вас права.',
       sections: [
-        { h: 'Володілець даних', p: ['Сервіс «Всетута» розроблено як навчальний проєкт. Контакт для питань щодо даних — через електронну пошту, вказану в закладі, де демонструється проєкт. У реальному запуску тут була б повна назва суб’єкта господарювання та його контакти.'] },
+        { h: 'Володілець даних', p: ['У реальному запуску тут була б повна назва суб’єкта господарювання та його контакти.'] },
         { h: 'Які дані обробляються', p: ['Обліковий запис: нікнейм, email, пароль (у вигляді незворотного хешу).', 'Профіль: стать, статус навчання (школяр/студент), факт роботи, за бажанням — зріст, вага, рік народження.', 'Дані ваших модулів: задачі, нотатки, список покупок, фінанси, аптечка та здоров’я, менструальний цикл.', 'Дані оплати платної функції обробляє платіжний провайдер — реквізити картки в застосунку не зберігаються.'] },
         { h: 'Мета та правова підстава', p: ['Дані обробляються, щоб надавати функції планувальника саме вам. Правова підстава — ваша згода, яку ви надаєте під час реєстрації (ЗУ «Про захист персональних даних» №2297-VI, ст. 6, 11).'] },
         { h: 'Особлива категорія: здоров’я та цикл', p: ['Дані аптечки, здоров’я та менструального циклу належать до особливої категорії (ст. 7 №2297-VI). Вони обробляються лише після вашої окремої явної згоди, яку запитують перед першим відкриттям цих модулів. Ви можете не давати цю згоду — тоді відповідні модулі залишаться закритими.'] },
@@ -32,7 +32,7 @@ const CONTENT = {
       title: 'Privacy Policy',
       intro: 'Всетута is an educational diploma project (a planner for students). The text below explains what data is processed, why, and what rights you have.',
       sections: [
-        { h: 'Data controller', p: ['The “Всетута” service was built as an educational project. For data questions, use the email provided at the institution where the project is presented. In a real launch this would list the full legal entity and its contacts.'] },
+        { h: 'Data controller', p: ['In a real launch this would list the full legal entity and its contacts.'] },
         { h: 'What data is processed', p: ['Account: nickname, email, password (stored only as an irreversible hash).', 'Profile: gender, study status (pupil/student), employment flag, optionally height, weight, birth year.', 'Your module data: tasks, notes, shopping list, finances, medicine cabinet and health, menstrual cycle.', 'Payment data for the paid feature is handled by the payment provider — card details are not stored in the app.'] },
         { h: 'Purpose and legal basis', p: ['Data is processed to provide the planner features to you personally. The legal basis is your consent, given during registration (Law of Ukraine “On Personal Data Protection” No. 2297-VI, Art. 6, 11).'] },
         { h: 'Special category: health and cycle', p: ['Medicine cabinet, health and menstrual-cycle data are a special category (Art. 7 of No. 2297-VI). They are processed only after your separate explicit consent, which is requested before you first open these modules. You may withhold this consent — the modules then stay closed.'] },
@@ -49,7 +49,7 @@ const CONTENT = {
       title: 'Умови користування та публічна оферта',
       intro: 'Користуючись Всетутою, ви погоджуєтесь із цими умовами. Це навчальний дипломний проєкт.',
       sections: [
-        { h: 'Про сервіс', p: ['Всетута — планувальник для студентів: календар, навчання, робота, їжа, покупки, фінанси, здоров’я, цикл і нотатки. Сервіс надається «як є» в межах дипломної демонстрації.'] },
+        { h: 'Про сервіс', p: ['Всетута — планувальник для студентів: календар, навчання, робота, їжа, покупки, фінанси, здоров’я, цикл і нотатки. Сервіс надається в межах дипломної демонстрації.'] },
         { h: 'Мінімальний вік', p: ['Сервіс призначений для осіб віком від 6 років. Реєструючись, ви підтверджуєте, що вам виповнилося щонайменше 6 років. Якщо вам менше 18 років, користуйтеся сервісом за згодою та під наглядом батьків або законних представників.'] },
         { h: 'Платна функція «Швидке додавання»', p: ['Більшість функцій безкоштовні. Функція «Швидке додавання» (розпізнавання задач природною мовою) після кількох безкоштовних використань потребує одноразової оплати 100 грн — це покупка назавжди, без підписки й автопродовження.'] },
         { h: 'Продавець та оплата', p: ['У реальному запуску тут вказувались би повні реквізити продавця (найменування ФОП/ТОВ, ЄДРПОУ/РНОКПП, адреса, контакти) згідно із ЗУ «Про електронну комерцію» №675-VII. Оплата проходить через платіжний сервіс WayForPay; картку ви вводите на його захищеній сторінці.'] },
@@ -62,7 +62,7 @@ const CONTENT = {
       title: 'Terms of Use and Public Offer',
       intro: 'By using Всетута you agree to these terms. This is an educational diploma project.',
       sections: [
-        { h: 'About the service', p: ['Всетута is a student planner: calendar, study, work, food, shopping, finances, health, cycle and notes. The service is provided “as is” within a diploma demonstration.'] },
+        { h: 'About the service', p: ['Всетута is a student planner: calendar, study, work, food, shopping, finances, health, cycle and notes. The service is provided within a diploma demonstration.'] },
         { h: 'Minimum age', p: ['The service is intended for people aged 6 and older. By registering, you confirm that you are at least 6 years old. If you are under 18, use the service with the consent and supervision of a parent or legal guardian.'] },
         { h: 'Paid “Quick add” feature', p: ['Most features are free. The “Quick add” feature (natural-language task parsing) requires a one-time payment of UAH 100 after a few free uses — a permanent purchase, with no subscription or auto-renewal.'] },
         { h: 'Seller and payment', p: ['In a real launch this would list the seller’s full details (sole-proprietor/company name, tax codes, address, contacts) per the Law “On Electronic Commerce” No. 675-VII. Payment goes through the WayForPay service; you enter your card on its secure page.'] },

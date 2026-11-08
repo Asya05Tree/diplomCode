@@ -108,17 +108,16 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
         />
       </div>
 
-      {/* Декоративна картинка ліворуч і окрема форма праворуч — два незалежні елементи */}
-      <aside className="register-decor" aria-hidden="true">
-        <img src="/images/hero-image.png" alt="" className="register-decor-img" />
-      </aside>
-
-      <form className="card auth-form auth-form--wide" onSubmit={handleSubmit}>
+      {/* Ліворуч — бренд і заголовок НАД декоративною картинкою; форма праворуч окремо */}
+      <div className="register-left">
         <div className="register-head">
           <span className="register-brand">Всетута</span>
           <h2>{t('register.title')}</h2>
         </div>
+        <img src="/images/hero-image.png" alt="" className="register-decor-img" aria-hidden="true" />
+      </div>
 
+      <form className="card auth-form auth-form--wide" onSubmit={handleSubmit}>
         <div className="auth-form-cols">
             {/* Колонка 1 — про користувача */}
             <fieldset className="auth-col">
