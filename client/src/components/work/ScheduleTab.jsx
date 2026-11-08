@@ -20,7 +20,7 @@ const LOCALE = { uk: 'uk-UA', en: 'en-US' }
 // Округлення годин до 0.5 для показу
 const round1 = (h) => Math.round(h * 2) / 2
 
-export default function ScheduleTab({ settings, onScheduleChange }) {
+export default function ScheduleTab({ onScheduleChange }) {
   const { t, language, weekStart, weekdays, weekdaysIso, formatClock, formatDate } = useI18n()
 
   // --- Типи змін, записи графіка, календар ---
@@ -208,14 +208,8 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
     const m = visibleMonth.getMonth()
     const inMonth = calendar.filter((s) => fromApiDate(s.date).getMonth() === m)
     const hours = inMonth.reduce((sum, s) => sum + shiftTotalHours(s), 0)
-    // Оплачувані години: зміни-чергування тарифікуються з коефіцієнтом (окрема тарифікація on-call)
-    const paidHours = inMonth.reduce((sum, s) => sum + shiftTotalHours(s) * (s.kind === 'oncall' && s.onCallMultiplier ? Number(s.onCallMultiplier) : 1), 0)
-    return { shifts: inMonth.length, hours: Math.round(hours), paidHours }
+    return { shifts: inMonth.length, hours: Math.round(hours) }
   }, [calendar, visibleMonth])
-
-  const earnings = settings?.payType === 'hourly' && settings?.rate
-    ? Math.round(monthStats.paidHours * Number(settings.rate))
-    : null
 
   const today = new Date()
   const monthLabel = visibleMonth.toLocaleDateString(LOCALE[language] ?? 'uk-UA', { month: 'long', year: 'numeric' })
@@ -244,7 +238,6 @@ export default function ScheduleTab({ settings, onScheduleChange }) {
         </div>
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.hoursThisMonth')}</span><span className="work-kpi-value">{monthStats.hours} {t('work.hoursShort')}</span></div>
         <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.shiftsThisMonth')}</span><span className="work-kpi-value">{monthStats.shifts}</span></div>
-        {earnings != null && <div className="work-kpi-tile"><span className="work-kpi-label">{t('work.earningsApprox')}</span><span className="work-kpi-value">≈ {earnings} {t('landing.moneyCurrency')}</span></div>}
       </div>
 
       <div className="card">

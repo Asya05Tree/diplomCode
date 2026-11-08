@@ -9,10 +9,7 @@ namespace Server.Controllers;
 
 // [StringLength] на текстових полях → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
 public record WorkSettingsRequest([StringLength(TextLimits.Name)] string JobName,
-    [StringLength(TextLimits.Name)] string? Position, [StringLength(TextLimits.Name)] string? Employer,
-    [StringLength(TextLimits.Code)] string PayType, decimal? Rate,
-    [StringLength(TextLimits.Name)] string? Regime, [StringLength(TextLimits.Name)] string? Workplace,
-    decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
+    [StringLength(TextLimits.Name)] string? Position, [StringLength(TextLimits.Name)] string? Employer);
 public record WorkShiftTypeRequest([StringLength(TextLimits.Name)] string Name,
     [StringLength(TextLimits.Color)] string Color, TimeOnly StartTime, TimeOnly EndTime,
     [StringLength(TextLimits.Code)] string? Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool? IsActive);
@@ -60,8 +57,7 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> UpdateSettings([FromBody] WorkSettingsRequest r)
     {
         await _work.UpdateSettingsAsync(CurrentUserId,
-            new WorkService.SettingsDto(r.JobName ?? "", r.Position, r.Employer, r.PayType, r.Rate,
-                r.Regime ?? "standard", r.Workplace ?? "onsite", r.NormHours, r.FullRateRetained, r.ExtraVacationDays));
+            new WorkService.SettingsDto(r.JobName ?? "", r.Position, r.Employer));
         return Ok();
     }
 
@@ -153,10 +149,8 @@ public class WorkController : ControllerBase
     public async Task<IActionResult> DeleteContact(int id) =>
         await _work.DeleteContactAsync(CurrentUserId, id) ? Ok() : NotFound();
 
-    // Мертві поля (група/статус/соцмережі/Viber) жорстко фіксуємо — клієнт їх не задає, і прямий API
-    // більше не може їх підмінити.
     private static WorkService.ContactDto ToContactDto(int id, WorkContactRequest r) =>
-        new(id, "", "online", r.FullName, r.Phone ?? "", r.Email, r.Birthday, null, r.Telegram, null);
+        new(id, r.FullName, r.Phone ?? "", r.Email, r.Birthday, r.Telegram);
 
     // ---- Відсутності ----------------------------------------------------------
 

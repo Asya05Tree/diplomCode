@@ -9,7 +9,7 @@ const LOCALE_BY_LANGUAGE = { uk: 'uk-UA', en: 'en-US' }
 // прокидається ззовні через markings, сітка сама знає лише про today/selected (§4.4: заливка
 // поточного режиму ніколи не змішується з іншою).
 export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays, workDays }) {
-  const { language, weekStart, weekdays } = useI18n()
+  const { t, language, weekStart, weekdays } = useI18n()
   const today = new Date()
   const year = visibleMonth.getFullYear()
   const month = visibleMonth.getMonth()
@@ -35,7 +35,7 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
           className="month-grid-nav"
           onClick={() => onMonthChange(new Date(year, month - 1, 1))}
           aria-label="prev-month"
-          data-tooltip="Попередній місяць"
+          data-tooltip={t('planner.prevMonth')}
         >
           <Icon name="chevron-left" />
         </button>
@@ -45,7 +45,7 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
           className="month-grid-nav"
           onClick={() => onMonthChange(new Date(year, month + 1, 1))}
           aria-label="next-month"
-          data-tooltip="Наступний місяць"
+          data-tooltip={t('planner.nextMonth')}
         >
           <Icon name="chevron-right" />
         </button>

@@ -657,8 +657,8 @@ export default function Food() {
               type="button"
               className="cook-close"
               onClick={() => setCooking(null)}
-              aria-label={t('food.cookClose') || 'Закрити'}
-              data-tooltip="Закрити"
+              aria-label={t('food.cookClose') || t('common.close')}
+              data-tooltip={t('common.close')}
             >
               <Icon name="close" />
             </button>
@@ -736,13 +736,14 @@ export default function Food() {
 }
 
 function Drawer({ title, onClose, children }) {
+  const { t } = useI18n()
   return (
     <div className="drawer-overlay drawer-overlay--open">
       <div className="drawer-backdrop" onClick={onClose} />
       <aside className="drawer-panel">
         <div className="drawer-head">
           <h3>{title}</h3>
-          <button type="button" className="drawer-close" onClick={onClose} aria-label="Закрити" data-tooltip="Закрити">
+          <button type="button" className="drawer-close" onClick={onClose} aria-label={t('common.close')} data-tooltip={t('common.close')}>
             <Icon name="close" />
           </button>
         </div>

@@ -11,8 +11,8 @@ import ObligationsTab from '../components/work/ObligationsTab'
 import ProcessTab from '../components/work/ProcessTab'
 import './Work.css'
 
-// Розділ "Робота". Зверху — заголовок роботи (назва + посада + роботодавець + тип оплати), далі
-// п'ять вкладок: Графік та оплата / Контакти / Відпустки й лікарняні / Зустрічі / Зобов'язання.
+// Розділ "Робота". Зверху — заголовок роботи (назва + посада + роботодавець), далі
+// шість вкладок: Графік / Контакти / Відпустки й лікарняні / Зустрічі / Зобов'язання / Планування.
 // Графік створює правила повторення, зустрічі — задачі (обидва moduleCode="work"), тож робочі дні
 // й зустрічі видно і в спільному календарі.
 export default function Work() {
@@ -52,19 +52,12 @@ export default function Work() {
     setEmployer(settings?.employer ?? '')
   }, [settings])
 
-  // Зберегти профіль: решту полів settings (тип оплати тощо) лишаємо незмінними.
+  // Зберегти профіль роботи (назва/посада/роботодавець) на blur.
   const saveWorkProfile = async () => {
     const payload = {
       jobName: jobName.trim(),
       position: position.trim() || null,
       employer: employer.trim() || null,
-      payType: settings?.payType ?? 'hourly',
-      rate: settings?.rate ?? null,
-      regime: settings?.regime ?? 'standard',
-      workplace: settings?.workplace ?? 'onsite',
-      normHours: settings?.normHours ?? null,
-      fullRateRetained: settings?.fullRateRetained ?? false,
-      extraVacationDays: settings?.extraVacationDays ?? null,
     }
     setSettings((s) => ({ ...(s || {}), ...payload }))
     await setWorkSettings(payload).catch(() => {})
@@ -130,7 +123,7 @@ export default function Work() {
       </div>
 
       {tab === 'schedule' && (
-        <ScheduleTab settings={settings} onScheduleChange={reloadHeader} />
+        <ScheduleTab onScheduleChange={reloadHeader} />
       )}
       {tab === 'contacts' && <ContactsTab />}
       {tab === 'leave' && <LeaveTab />}

@@ -51,7 +51,7 @@ export default function Sidebar({ studentType, isWorking, gender }) {
                 key={item.key}
                 className="sidebar-item sidebar-item--disabled"
                 style={{ '--item-color': item.color }}
-                data-tooltip="Скоро"
+                data-tooltip={t('common.soon')}
                 data-tooltip-pos="right"
               >
                 <Icon name={item.icon} className="sidebar-icon" />

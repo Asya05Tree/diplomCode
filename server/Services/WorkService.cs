@@ -21,8 +21,7 @@ public class WorkService
 
     // ---- DTO ------------------------------------------------------------------
 
-    public record SettingsDto(string JobName, string? Position, string? Employer, string PayType, decimal? Rate,
-        string Regime, string Workplace, decimal? NormHours, bool FullRateRetained, int? ExtraVacationDays);
+    public record SettingsDto(string JobName, string? Position, string? Employer);
 
     public record ShiftTypeDto(int Id, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
         string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2, decimal? OnCallMultiplier, bool IsActive);
@@ -39,14 +38,14 @@ public class WorkService
     public record NextShiftDto(DateOnly Date, string Name, string Color, TimeOnly StartTime, TimeOnly EndTime,
         string Kind, TimeOnly? StartTime2, TimeOnly? EndTime2);
 
-    public record ContactDto(int Id, string GroupName, string Status, string FullName, string Phone,
-        string? Email, DateOnly? Birthday, string? Socials, string? Telegram, string? Viber);
+    public record ContactDto(int Id, string FullName, string Phone,
+        string? Email, DateOnly? Birthday, string? Telegram);
 
     public record LeaveDto(int Id, string Type, DateOnly StartDate, DateOnly EndDate);
 
     public record MeetingDto(int Id, string WithWhom, DateTime When, string? Place);
 
-    public record ObligationDto(int Id, string Title, string? Note, DateOnly? DueDate, bool IsDone);
+    public record ObligationDto(int Id, string Title, string? Note);
 
     public record ProcessTaskDto(int Id, string Title, string? Note, string Status, DateOnly? DueDate);
 
@@ -84,16 +83,10 @@ public class WorkService
         return string.Join(", ", parts);
     }
 
-    // Допустимі значення режимів/видів (решта зводиться до безпечного дефолту)
-    private static readonly string[] PayTypes = { "hourly", "monthly", "project" };
-    private static readonly string[] Regimes =
-        { "standard", "flexible", "irregular", "split", "rotational", "parttime", "reduced", "project", "oncall" };
-    private static readonly string[] Workplaces = { "onsite", "remote", "home" };
+    // Допустимі види змін (решта зводиться до безпечного дефолту)
     private static readonly string[] ShiftKinds = { "normal", "flexible", "split", "oncall" };
 
     // Серверні стелі сум/лімітів (інваріанти досі жили лише на клієнті — ПЛАН P2-10). Понад — 400.
-    private const decimal RateMax = 10_000_000m;      // ставка (грн/год або /міс): понад — зловживання/помилка
-    private const decimal NormHoursMax = 1000m;       // норма годин на місяць
     private const decimal MultiplierMax = 100m;       // коефіцієнт чергування (реально ≤ кілька)
     private const int MaxEntriesPerShiftType = 5;     // максимум записів графіка на один тип зміни
 
@@ -104,8 +97,7 @@ public class WorkService
         // GET не повинен писати в БД (ПЛАН P2-3): якщо профілю ще нема — віддаємо дефолти з
         // тимчасового об'єкта, не зберігаючи його. Рядок створиться при першому збереженні.
         var s = await _db.WorkSettings.FindAsync(userId) ?? new WorkSettings { UserId = userId };
-        return new SettingsDto(s.JobName, s.Position, s.Employer, s.PayType, s.Rate,
-            s.Regime, s.Workplace, s.NormHours, s.FullRateRetained, s.ExtraVacationDays);
+        return new SettingsDto(s.JobName, s.Position, s.Employer);
     }
 
     public async Task UpdateSettingsAsync(int userId, SettingsDto dto)
@@ -119,16 +111,6 @@ public class WorkService
         s.JobName = (dto.JobName ?? "").Trim();
         s.Position = Trim(dto.Position);
         s.Employer = Trim(dto.Employer);
-        s.PayType = Normalize(dto.PayType, PayTypes, "hourly");
-        // Стеля ставки/норми годин: захист від абсурдних сум (дохід рахується з них) — ПЛАН P2-10.
-        if (dto.Rate is > RateMax) throw new BadInputException("invalid_rate");
-        if (dto.NormHours is > NormHoursMax) throw new BadInputException("invalid_norm_hours");
-        s.Rate = dto.Rate is > 0 ? dto.Rate : null;
-        s.Regime = Normalize(dto.Regime, Regimes, "standard");
-        s.Workplace = Normalize(dto.Workplace, Workplaces, "onsite");
-        s.NormHours = dto.NormHours is > 0 ? dto.NormHours : null;
-        s.FullRateRetained = dto.FullRateRetained;
-        s.ExtraVacationDays = dto.ExtraVacationDays is > 0 ? dto.ExtraVacationDays : null;
         await _db.SaveChangesAsync();
     }
 
@@ -373,7 +355,7 @@ public class WorkService
         await _db.WorkContacts
             .Where(x => x.UserId == userId)
             .OrderBy(x => x.FullName)
-            .Select(x => new ContactDto(x.Id, x.GroupName, x.Status, x.FullName, x.Phone, x.Email, x.Birthday, x.Socials, x.Telegram, x.Viber))
+            .Select(x => new ContactDto(x.Id, x.FullName, x.Phone, x.Email, x.Birthday, x.Telegram))
             .ToListAsync();
 
     public async Task<int> AddContactAsync(int userId, ContactDto dto)
@@ -382,15 +364,11 @@ public class WorkService
         var c = new WorkContact
         {
             UserId = userId,
-            GroupName = (dto.GroupName ?? "").Trim(),
-            Status = Normalize(dto.Status, new[] { "online", "busy", "offline", "vacation" }, "online"),
             FullName = dto.FullName.Trim(),
             Phone = NormalizePhones(dto.Phone),
             Email = ValidatedEmail(dto.Email),
             Birthday = dto.Birthday,
-            Socials = Trim(dto.Socials),
             Telegram = Trim(dto.Telegram),
-            Viber = Trim(dto.Viber),
         };
         _db.WorkContacts.Add(c);
         await _db.SaveChangesAsync();
@@ -401,15 +379,11 @@ public class WorkService
     {
         var c = await _db.WorkContacts.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (c is null) return false;
-        c.GroupName = (dto.GroupName ?? "").Trim();
-        c.Status = Normalize(dto.Status, new[] { "online", "busy", "offline", "vacation" }, "online");
         c.FullName = dto.FullName.Trim();
         c.Phone = NormalizePhones(dto.Phone);
         c.Email = ValidatedEmail(dto.Email);
         c.Birthday = dto.Birthday;
-        c.Socials = Trim(dto.Socials);
         c.Telegram = Trim(dto.Telegram);
-        c.Viber = Trim(dto.Viber);
         await _db.SaveChangesAsync();
         return true;
     }
@@ -534,13 +508,12 @@ public class WorkService
 
     // ---- Зобов'язання / планування --------------------------------------------
 
+    // Зобов'язання — статичний перелік (назва + опис), порядок додавання.
     public async Task<List<ObligationDto>> GetObligationsAsync(int userId) =>
         await _db.WorkObligations
             .Where(x => x.UserId == userId)
-            .OrderBy(x => x.IsDone)
-            .ThenBy(x => x.DueDate == null)
-            .ThenBy(x => x.DueDate)
-            .Select(x => new ObligationDto(x.Id, x.Title, x.Note, x.DueDate, x.IsDone))
+            .OrderBy(x => x.Id)
+            .Select(x => new ObligationDto(x.Id, x.Title, x.Note))
             .ToListAsync();
 
     // Зобов'язання — лише назва + опис (дедлайн/статус переїхали у «Планування процесу»).

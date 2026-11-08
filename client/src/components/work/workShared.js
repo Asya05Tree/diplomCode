@@ -1,21 +1,10 @@
 // Спільні константи й хелпери модуля "Робота".
 
-export const PAY_TYPES = ['hourly', 'monthly', 'project'] // погодинна / за місяць / за проєкт
-export const CONTACT_STATUSES = ['online', 'busy', 'offline', 'vacation']
 export const LEAVE_TYPES = ['vacation', 'sick'] // відпустка / лікарняний
 export const PROCESS_STATUSES = ['planned', 'doing', 'done'] // планую / роблю / зроблено
 
-// Режими (формати організації праці) — профіль роботи
-export const WORK_REGIMES = [
-  'standard', 'flexible', 'irregular', 'split', 'rotational', 'parttime', 'reduced', 'project', 'oncall',
-]
-// Місце роботи
-export const WORKPLACES = ['onsite', 'remote', 'home']
-// Види зміни — впливають на час/опис/оплату
+// Види зміни — впливають на час/опис
 export const SHIFT_KINDS = ['normal', 'flexible', 'split', 'oncall']
-
-// Режими, для яких має сенс норма годин на тиждень
-export const REGIMES_WITH_NORM = ['flexible', 'parttime', 'reduced']
 
 // Пастельна палітра для типів змін (узгоджена з темою; користувач обирає свій колір на тип).
 export const SHIFT_COLORS = [

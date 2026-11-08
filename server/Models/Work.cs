@@ -5,7 +5,7 @@ namespace Server.Models;
 // Записи графіка й зустрічі створюють події в спільному календарі (ModuleCode="work") через
 // TaskService — так робочі дні видно і в розділі "Робота", і в головному календарі без дублювання.
 
-// Профіль роботи: показується зверху розділу (назва + посада + роботодавець) і задає тип оплати.
+// Профіль роботи: показується зверху розділу (назва + посада + роботодавець).
 public class WorkSettings
 {
     public int UserId { get; set; }
@@ -14,19 +14,6 @@ public class WorkSettings
     public string JobName { get; set; } = "";       // назва роботи (заголовок зверху)
     public string? Position { get; set; }            // посада
     public string? Employer { get; set; }            // роботодавець
-    public string PayType { get; set; } = "hourly";  // hourly | monthly | project
-    public decimal? Rate { get; set; }               // ставка: грн/год, грн/міс або за проєкт
-
-    // Режим (формат організації праці), ст. 50–60 КЗпП та трудова практика:
-    // standard — звичайний | flexible — гнучкий (ГРРЧ) | irregular — ненормований |
-    // split — розділений робочий день | rotational — вахтовий метод | parttime — неповний час |
-    // reduced — скорочена тривалість | project — проєктна/фріланс | oncall — чергування.
-    public string Regime { get; set; } = "standard";
-    // Місце роботи: onsite — в офісі/на об'єкті | remote — дистанційна | home — надомна.
-    public string Workplace { get; set; } = "onsite";
-    public decimal? NormHours { get; set; }          // норма годин на тиждень (неповний/скорочений/гнучкий)
-    public bool FullRateRetained { get; set; }        // скорочений час зі збереженням повної ставки
-    public int? ExtraVacationDays { get; set; }       // додаткова відпустка (ненормований робочий день)
 }
 
 // Тип зміни — свій колір і довільний проміжок часу (не лише день/ніч). Аналог "предмета" в навчанні.
@@ -65,22 +52,18 @@ public class WorkShiftEntry
     public int RecurrenceRuleId { get; set; } // згенероване правило повторення (ModuleCode="work")
 }
 
-// Робочий контакт. Групується за GroupName і статусом; пошта, день народження й соцмережі — за бажанням.
+// Робочий контакт: ПІБ, телефон, пошта, день народження й Telegram — за бажанням.
 public class WorkContact
 {
     public int Id { get; set; }
     public int UserId { get; set; }
     public User? User { get; set; }
 
-    public string GroupName { get; set; } = "";    // група (керівництво / команда / суміжні…)
-    public string Status { get; set; } = "online"; // (застаріле поле, в UI не показується)
     public string FullName { get; set; } = "";      // ПІБ (складається на клієнті з прізвища/імені/по батькові)
     public string Phone { get; set; } = "";         // номер телефону
     public string? Email { get; set; }              // за бажанням
     public DateOnly? Birthday { get; set; }         // за бажанням (рік ігнорується — показуємо лише число й місяць)
-    public string? Socials { get; set; }            // (застаріле поле; замість нього Telegram/Viber)
     public string? Telegram { get; set; }           // за бажанням
-    public string? Viber { get; set; }              // за бажанням
 }
 
 // Відсутність: тип + дата початку й кінця (таблиця, як просив користувач). У календар не виноситься.
@@ -109,8 +92,7 @@ public class WorkMeeting
 }
 
 // Зобов'язання: статичний перелік того, що людина робить на посаді (назва + опис). Без дедлайнів
-// і статусу — це опис ролі, а не задачі. (Поля DueDate/IsDone лишилися з попередньої версії, але
-// більше не використовуються в інтерфейсі; планування задач винесено у WorkProcessTask нижче.)
+// і статусу — це опис ролі, а не задачі. Планування задач винесено у WorkProcessTask нижче.
 public class WorkObligation
 {
     public int Id { get; set; }
@@ -119,8 +101,6 @@ public class WorkObligation
 
     public string Title { get; set; } = "";
     public string? Note { get; set; }
-    public DateOnly? DueDate { get; set; }
-    public bool IsDone { get; set; }
 }
 
 // Планування процесу: to-do з колонками (планую / роблю / зроблено) і опційним дедлайном. Дедлайн
