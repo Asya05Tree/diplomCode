@@ -38,6 +38,26 @@ export async function register({ nickname, gender, email, code, password, studen
   return response.json()
 }
 
+// Відновлення пароля — крок 1: надіслати код на пошту акаунта (сервер завжди 200, анти-енумерація).
+export async function forgotPassword(email) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!response.ok) await throwApiError(response)
+}
+
+// Відновлення пароля — крок 2: код + новий пароль.
+export async function resetPassword(email, code, password) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code, password }),
+  })
+  if (!response.ok) await throwApiError(response)
+}
+
 export async function login(email, password) {
   const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',

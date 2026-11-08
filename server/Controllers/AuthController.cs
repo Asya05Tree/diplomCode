@@ -16,6 +16,9 @@ public record RegisterRequest([StringLength(TextLimits.Name)] string Nickname, [
     [StringLength(254)] string Email, [StringLength(TextLimits.Code)] string Code, [StringLength(TextLimits.Description)] string Password,
     [StringLength(TextLimits.Code)] string? StudentType, bool IsWorking, bool ConsentAccepted);
 public record LoginRequest([StringLength(254)] string Email, [StringLength(TextLimits.Description)] string Password);
+public record ForgotPasswordRequest([StringLength(254)] string Email);
+public record ResetPasswordRequest([StringLength(254)] string Email, [StringLength(TextLimits.Code)] string Code,
+    [StringLength(TextLimits.Description)] string Password);
 
 // Реєстрація email+код підтвердження та вхід email+пароль (coding-guide.md §4).
 [ApiController]
@@ -182,6 +185,77 @@ public class AuthController : ControllerBase
 
         var token = _jwtService.CreateToken(user.Id, user.Email, user.TokenVersion);
         return Ok(new { token, nickname = user.Nickname, email = user.Email });
+    }
+
+    // Відновлення пароля (бо «згадати» його інакше не можна, а скидати через БД — не варіант для
+    // користувача). Той самий механізм email-коду, що й при реєстрації (EmailVerificationCode).
+    // Крок 1: надіслати код на пошту акаунта. Анти-енумерація: завжди 200; код шлемо лише якщо
+    // акаунт існує і не було коду за останні 60 с (кулдаун проти спаму).
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var email = NormalizeEmail(request.Email);
+        if (string.IsNullOrWhiteSpace(email) || !IsGmailAddress(email) || email.StartsWith('@'))
+            return BadRequest(new { error = "invalid_email" });
+
+        var now = DateTime.UtcNow;
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var recent = await _db.EmailVerificationCodes.AnyAsync(c => c.Email == email && c.CreatedAt > now.AddSeconds(-60));
+        if (user is not null && !recent)
+        {
+            // Один чинний код на email: гасимо попередні невикористані.
+            await _db.EmailVerificationCodes
+                .Where(c => c.Email == email && !c.IsUsed)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsUsed, true));
+
+            var code = Random.Shared.Next(0, 1_000_000).ToString("D6");
+            _db.EmailVerificationCodes.Add(new EmailVerificationCode
+            {
+                Email = email,
+                Code = code,
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(CodeLifetimeMinutes),
+            });
+            await _db.SaveChangesAsync();
+
+            await _emailService.SendVerificationCodeAsync(email, code, user.Nickname, CodeLifetimeMinutes);
+        }
+        return Ok();
+    }
+
+    // Крок 2: перевірити код і встановити новий пароль. Та сама перевірка коду з lockout після 5 спроб,
+    // що й у реєстрації. Після зміни пароля інкрементуємо TokenVersion — усі старі сесії відкликаються.
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Password)
+            || request.Password.Length < 6
+            || System.Text.Encoding.UTF8.GetByteCount(request.Password) > 72)
+            return BadRequest(new { error = "invalid_password_length" });
+
+        var email = NormalizeEmail(request.Email);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        var codeEntry = await _db.EmailVerificationCodes
+            .Where(c => c.Email == email && !c.IsUsed && c.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(c => c.Id)
+            .FirstOrDefaultAsync();
+        // Не розкриваємо, існує акаунт чи ні: і неіснуючий акаунт, і відсутній код → той самий invalid_code.
+        if (user is null || codeEntry is null)
+            return BadRequest(new { error = "invalid_code" });
+        if (codeEntry.Code != request.Code)
+        {
+            codeEntry.Attempts++;
+            if (codeEntry.Attempts >= 5) codeEntry.IsUsed = true;
+            await _db.SaveChangesAsync();
+            return BadRequest(new { error = "invalid_code" });
+        }
+        codeEntry.IsUsed = true;
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        user.TokenVersion++; // відкликати всі старі сесії після зміни пароля
+        await _db.SaveChangesAsync();
+        return Ok();
     }
 
     // Вийти: інкрементуємо версію токена в БД — усі раніше видані токени цього акаунта миттєво
