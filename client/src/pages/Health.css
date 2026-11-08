@@ -767,6 +767,33 @@
   .condition-row {
     flex-wrap: wrap;
   }
+  .profile-kv > .profile-field {
+    padding: 10px 12px;
+  }
+  /* Редагований рядок власного щеплення: дата й лічильник не мусять виштовхувати верстку */
+  .vacc-custom-date-input {
+    flex: 1 1 130px;
+  }
+}
+
+/* Дуже вузькі екрани: параметри людини стають стовпчиком, поля щеплень тягнуться на всю ширину */
+@media (max-width: 460px) {
+  .profile-kv {
+    flex-direction: column;
+  }
+  .profile-kv > .profile-field {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .profile-kv > .profile-field:last-child {
+    border-bottom: none;
+  }
+  .vacc-custom-name-input {
+    flex: 1 1 100%;
+  }
+  .vacc-date {
+    width: 100%;
+  }
 }
 
 /* ===== Вкладка "Щеплення" ===== */
