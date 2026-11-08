@@ -296,7 +296,6 @@
 /* «Часто купуєте» */
 .shopping-suggestions h3,
 .shopping-budget h3,
-.shopping-receipt h3,
 .shopping-trip h3 {
   margin: 0 0 10px;
   font-size: 0.95rem;
@@ -314,19 +313,59 @@
   height: 14px;
 }
 
-/* Докупити в межах бюджету + розподіл чека */
+/* Докупити в межах бюджету */
 .shopping-budget,
-.shopping-receipt,
 .shopping-trip {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.shopping-receipt-form {
+/* Вкладки «вручну / автопідбір» і перемикач режиму «сума / позиції» */
+.shopping-budget-tabs,
+.shopping-budget-modes {
   display: flex;
-  gap: 10px;
-  align-items: center;
   flex-wrap: wrap;
+  gap: 8px;
+}
+.shopping-budget-tabs .pill,
+.shopping-budget-modes .pill {
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+/* Ручний відбір: прокручуваний список-чеклист серед наявних позицій */
+.shopping-budget-pick {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.shopping-budget-pick li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+.shopping-budget-pick li:last-child {
+  border-bottom: none;
+}
+.shopping-budget-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Підсумок обраного, що вийшов за ліміт — попереджувальним кольором */
+.shopping-over {
+  color: var(--color-danger);
 }
 .shopping-budget-list {
   list-style: none;
@@ -343,6 +382,7 @@
   padding: 6px 4px;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.88rem;
+  overflow-wrap: anywhere; /* довга назва-ввід не розпирає картку на вузькому екрані */
 }
 .shopping-budget-list li:last-child {
   border-bottom: none;

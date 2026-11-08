@@ -322,80 +322,104 @@ export default function ShoppingList() {
         </div>
       )}
 
-      {/* Докупити в межах бюджету: за сумою (грн) або за кількістю — залежно від покриття цінами */}
+      {/* Докупити в межах бюджету: вкладки «вручну / автопідбір» + режим ліміту (сума / позиції) */}
       <div className="card shopping-budget">
         <h3>{t('shoppingList.budgetTitle')}</h3>
-        <label className="shopping-check-field">
-          <span>{byCount ? t('shoppingList.budgetCountLabel') : t('shoppingList.budgetSumLabel')}</span>
-          <NumberStepper min={0} max={RANGES.money.max} value={budget} onChange={(v) => setBudget(v)} />
-        </label>
-        {byCount && priceCoverage.total > 0 && (
-          <p className="placeholder-text">{t('shoppingList.budgetCountNote')}</p>
-        )}
-        {budget !== '' && Number(budget) > 0 && (
-          fitItems.length === 0 ? (
-            <p className="placeholder-text">{t('shoppingList.budgetEmpty')}</p>
-          ) : (
-            <>
-              <p className="shopping-list-total">{t('shoppingList.budgetFitsCount', { count: fitItems.length })}</p>
-              <ul className="shopping-budget-list">
-                {fitItems.map((x) => (
-                  <li key={x.id}>
-                    <span>{displayName(x)}</span>
-                    {!byCount && x.estimatedPrice != null && (
-                      <span className="shopping-list-price">{x.estimatedPrice} {currency}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )
-        )}
-      </div>
+        {toBuy.length === 0 ? (
+          // Порожній список: докуповувати нема чого — мʼяко повідомляємо, нічого не забороняємо
+          <p className="placeholder-text">{t('shoppingList.budgetListEmpty')}</p>
+        ) : (
+          <>
+            <div className="shopping-budget-tabs">
+              <button type="button" className={budgetTab === 'manual' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetTab('manual')}>
+                {t('shoppingList.budgetTabManual')}
+              </button>
+              <button type="button" className={budgetTab === 'auto' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetTab('auto')}>
+                {t('shoppingList.budgetTabAuto')}
+              </button>
+            </div>
 
-      {/* Сума чека: розкладаємо залишок по відмічених позиціях без ціни (spisok-pokupok.md §2) */}
-      <div className="card shopping-receipt">
-        <h3>{t('shoppingList.receiptTitle')}</h3>
-        <p className="placeholder-text">{t('shoppingList.receiptHint')}</p>
-        <div className="shopping-receipt-form">
-          <NumberStepper min={0} max={RANGES.money.max} allowDecimal value={receiptTotal} onChange={(v) => setReceiptTotal(v)} />
-          <button type="button" className="btn-accent" onClick={handleReceipt}>
-            {t('shoppingList.receiptButton')}
-          </button>
-        </div>
-        {receiptResult && (
-          <div className="shopping-receipt-result">
-            <p className="shopping-list-total">
-              {t('shoppingList.receiptResult', {
-                total: receiptResult.total,
-                known: receiptResult.knownSum,
-                remainder: receiptResult.remainder,
-              })}
-            </p>
-            {receiptResult.split.length > 0 && (
+            {/* Режим ліміту: за сумою доступний лише коли відомо достатньо цін, інакше — за кількістю */}
+            {pricesScarce ? (
+              <p className="placeholder-text">{t('shoppingList.budgetCountNote')}</p>
+            ) : (
+              <div className="shopping-budget-modes">
+                <button type="button" className={budgetMode === 'sum' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetMode('sum')}>
+                  {t('shoppingList.budgetModeSum')}
+                </button>
+                <button type="button" className={budgetMode === 'count' ? 'pill pill--active' : 'pill'} onClick={() => setBudgetMode('count')}>
+                  {t('shoppingList.budgetModeCount')}
+                </button>
+              </div>
+            )}
+
+            <label className="shopping-check-field">
+              <span>{mode === 'count' ? t('shoppingList.budgetCountLabel') : t('shoppingList.budgetSumLabel')}</span>
+              <NumberStepper min={0} max={RANGES.money.max} value={budget} onChange={(v) => setBudget(v)} />
+            </label>
+
+            {budgetTab === 'manual' ? (
               <>
-                <p className="placeholder-text">
-                  {t('shoppingList.receiptPerItem', { perItem: receiptResult.perItem })}
-                </p>
-                <ul className="shopping-budget-list">
-                  {receiptResult.split.map((s) => (
-                    <li key={s.itemId}>
-                      <span>{language === 'en' ? s.displayNameEn : s.displayNameUk}</span>
-                      <span className="shopping-list-price">{s.price} {currency}</span>
+                {/* Ручний відбір: користувач сам ставить галочки серед наявного, бачить підсумок */}
+                <ul className="shopping-budget-pick">
+                  {toBuy.map((x) => (
+                    <li key={x.id}>
+                      <label className="shopping-budget-pick-item">
+                        <input type="checkbox" checked={picked.has(x.id)} onChange={() => togglePick(x.id)} />
+                        <span>{displayName(x)}</span>
+                      </label>
+                      {x.estimatedPrice != null && (
+                        <span className="shopping-list-price">{x.estimatedPrice} {currency}</span>
+                      )}
                     </li>
                   ))}
                 </ul>
+                {picked.size > 0 && (
+                  <p className={overLimit ? 'shopping-list-total shopping-over' : 'shopping-list-total'}>
+                    {mode === 'count'
+                      ? t('shoppingList.budgetPickedCount', { count: pickedItems.length })
+                      : t('shoppingList.budgetPickedSum', { sum: pickedSum })}
+                    {overLimit && <span> · {t('shoppingList.budgetOverLimit')}</span>}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Автопідбір: система сама набирає під ліміт, не більше MAX_AUTO_ITEMS позицій */}
+                <p className="placeholder-text">{t('shoppingList.budgetAutoMax', { max: MAX_AUTO_ITEMS })}</p>
+                {limit > 0 && (
+                  fitItems.length === 0 ? (
+                    <p className="placeholder-text">{t('shoppingList.budgetEmpty')}</p>
+                  ) : (
+                    <>
+                      <p className="shopping-list-total">{t('shoppingList.budgetFitsCount', { count: fitItems.length })}</p>
+                      <ul className="shopping-budget-list">
+                        {fitItems.map((x) => (
+                          <li key={x.id}>
+                            <span>{displayName(x)}</span>
+                            {mode === 'sum' && x.estimatedPrice != null && (
+                              <span className="shopping-list-price">{x.estimatedPrice} {currency}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )
+                )}
               </>
             )}
-          </div>
+          </>
         )}
       </div>
 
-      {/* Запланувати похід у магазин → задача в «Нерозподілених» */}
+      {/* Запланувати похід у магазин → задача в «Нерозподілених». Порожній список не блокує, лише попереджає */}
       <div className="card shopping-trip">
         <button type="button" className="btn-accent" onClick={handlePlanTrip}>
           <Icon name="cart" /> {t('shoppingList.planTrip')}
         </button>
+        {items.length === 0 && (
+          <p className="placeholder-text">{t('shoppingList.planTripEmpty')}</p>
+        )}
         {tripTaskId != null && (
           <p className="placeholder-text">{t('shoppingList.planTripDone', { taskId: tripTaskId })}</p>
         )}
