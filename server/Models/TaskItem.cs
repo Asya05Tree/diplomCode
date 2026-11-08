@@ -22,7 +22,6 @@ public class TaskItem
     public DateTime? Deadline { get; set; }
 
     public string Status { get; set; } = "Planned"; // Planned | Done | Skipped | Unknown | Unassigned
-    public bool IsPinned { get; set; }
 
     public int? RecurrenceRuleId { get; set; }
     public RecurrenceRule? RecurrenceRule { get; set; }

@@ -9,7 +9,6 @@ public class FinanceAccount
     public int UserId { get; set; }
     public User? User { get; set; }
     public decimal Balance { get; set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
 // Ліміт витрат за період (PK = {UserId, PeriodType}).

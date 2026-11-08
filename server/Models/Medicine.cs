@@ -38,7 +38,6 @@ public class MedicineForm
 }
 
 // Торгова назва ліків (ДРЛЗ). З реєстру беремо лише назву, діючу речовину й форму.
-// IsOtc — лише безрецептурні потрапляють у довідник.
 public class Medicine
 {
     public int Id { get; set; }
@@ -48,9 +47,7 @@ public class Medicine
     public Substance? Substance { get; set; }
     public int FormId { get; set; }
     public MedicineForm? Form { get; set; }
-    public bool IsOtc { get; set; } = true;
     public bool IsSystem { get; set; } = true;
-    public int? CreatedByUserId { get; set; }
 }
 
 // Ліки в аптечці користувача. ExpiresAt необов'язкове й ненав'язливе в UI (без окремої колонки "Термін").
@@ -62,7 +59,6 @@ public class UserMedicine
     public Medicine? Medicine { get; set; }
     public string State { get; set; } = "Available"; // Available | RunningLow | OutOfStock
     public DateTime? ExpiresAt { get; set; }
-    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
 }
 
 // Хвороба користувача. Якщо AffectsFood — заводимо UserTagPreference із тим самим TagId/Relation,

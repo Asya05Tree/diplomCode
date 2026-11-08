@@ -58,7 +58,6 @@ public class NotesController : ControllerBase
             Text = Clamp(r.Text),
             Color = NormalizeColor(r.Color),
             Position = maxPos + 1,
-            UpdatedAt = DateTime.UtcNow,
         };
         _db.Notes.Add(note);
         await _db.SaveChangesAsync();
@@ -72,7 +71,6 @@ public class NotesController : ControllerBase
         if (note is null) return NotFound();
         note.Text = Clamp(r.Text);
         if (!string.IsNullOrWhiteSpace(r.Color)) note.Color = NormalizeColor(r.Color);
-        note.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return Ok();
     }

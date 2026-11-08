@@ -144,7 +144,6 @@ public class RecipeService
             _db.StockItems.Add(item);
         }
         item.State = state;
-        item.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return true;
     }
@@ -187,7 +186,6 @@ public class RecipeService
             _db.StockItems.Add(item);
         }
         item.State = "Available";
-        item.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
         return new AddStockByNameResult(product.Id, product.NameUk, product.NameEn, created, alreadyInStock);

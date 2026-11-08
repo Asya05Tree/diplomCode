@@ -11,5 +11,4 @@ public class Note
     public string Text { get; set; } = "";
     public string Color { get; set; } = "#fff3b0"; // HEX, колір картки
     public int Position { get; set; }               // порядок (менше = раніше)
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

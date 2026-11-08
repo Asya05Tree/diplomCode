@@ -104,7 +104,6 @@ public static class MedicinesImporter
                     NameEn = name, // ДРЛЗ не містить англійської торгової назви — зберігаємо реєстрову
                     Substance = sub,
                     FormId = formId[formKey],
-                    IsOtc = true,
                     IsSystem = true,
                 });
             }

@@ -58,7 +58,6 @@ public class AccountService
         await _db.UserProductPrices.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await _db.PurchaseHistories.Where(x => x.UserId == userId).ExecuteDeleteAsync();
 
-        await _db.TodoItems.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await _db.MediaItems.Where(x => x.UserId == userId).ExecuteDeleteAsync();
 
         await _db.WorkContacts.Where(x => x.UserId == userId).ExecuteDeleteAsync();
@@ -151,7 +150,6 @@ public class AccountService
                 prices = await _db.UserProductPrices.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
                 history = await _db.PurchaseHistories.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
             },
-            todo = await _db.TodoItems.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
             media = await _db.MediaItems.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
             study = new
             {

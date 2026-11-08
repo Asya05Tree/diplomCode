@@ -54,9 +54,6 @@ public class AppDbContext : DbContext
     public DbSet<UserProductPrice> UserProductPrices => Set<UserProductPrice>();
     public DbSet<PurchaseHistory> PurchaseHistories => Set<PurchaseHistory>();
 
-    // ToDo
-    public DbSet<TodoItem> TodoItems => Set<TodoItem>();
-
     // Перегляд і читання (відео / книги)
     public DbSet<MediaItem> MediaItems => Set<MediaItem>();
 
@@ -162,10 +159,6 @@ public class AppDbContext : DbContext
         // HealthVisit.TaskId — логічне посилання без FK (подію видаляє CheckupService через TaskService).
         modelBuilder.Entity<Note>().HasIndex(x => new { x.UserId, x.Position });
         modelBuilder.Entity<HealthVisit>().HasIndex(x => new { x.UserId, x.When });
-
-        // ToDo — проста таблиця, впорядкована за статусом+позицією
-        modelBuilder.Entity<TodoItem>()
-            .HasIndex(x => new { x.UserId, x.Status, x.OrderIndex });
 
         // Перегляд і читання — фільтр за типом+статусом; FK на користувача каскадний (видалили
         // акаунт — пішли записи). TaskId лишаємо простим int? без навігації (логічне посилання).
@@ -337,7 +330,7 @@ public class AppDbContext : DbContext
             .HasOne(x => x.ShiftType).WithMany()
             .HasForeignKey(x => x.ShiftTypeId).OnDelete(DeleteBehavior.Restrict);
 
-        b.Entity<WorkContact>().HasIndex(x => new { x.UserId, x.GroupName });
+        b.Entity<WorkContact>().HasIndex(x => new { x.UserId, x.FullName });
         b.Entity<WorkLeave>().HasIndex(x => new { x.UserId, x.StartDate });
         b.Entity<WorkMeeting>().HasIndex(x => new { x.UserId, x.When });
 

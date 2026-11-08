@@ -21,9 +21,15 @@ public class TaskService
 
     public record TaskItemDto(
         int Id, string Title, string? Description, DateTime? StartDateTime,
-        int? DurationMinutes, DateTime? Deadline, string Status, bool IsPinned,
+        int? DurationMinutes, DateTime? Deadline, string Status,
         bool IsVirtual, int? RecurrenceRuleId, bool Overlaps,
         string ModuleCode, string? SourceModule, int? SourceEntityId);
+
+    // Спільний хвіст трьох проекцій: проста подія з реального рядка задачі (невіртуальна,
+    // неповторювана). Віртуальні входження повторень будуються окремо (IsVirtual=true).
+    private static TaskItemDto FromEntity(TaskItem t) => new(
+        t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
+        t.Status, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId);
 
     public record FreeDayDto(DateOnly Date, bool IsFreeEnough);
 
@@ -280,9 +286,7 @@ public class TaskService
                 && t.StartDateTime != null && t.StartDateTime >= fromDt && t.StartDateTime <= toDt)
             .ToListAsync();
 
-        var dtos = oneTime.Select(t => new TaskItemDto(
-            t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
-            t.Status, t.IsPinned, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId)).ToList();
+        var dtos = oneTime.Select(FromEntity).ToList();
 
         var rules = await _db.RecurrenceRules
             .Include(r => r.Exceptions)
@@ -312,7 +316,7 @@ public class TaskService
                 {
                     dtos.Add(new TaskItemDto(
                         template.Id, template.Title, template.Description, dt, template.DurationMinutes,
-                        template.Deadline, "Planned", false, true, rule.Id, false,
+                        template.Deadline, "Planned", true, rule.Id, false,
                         template.ModuleCode, template.SourceModule, template.SourceEntityId));
                 }
             }
@@ -424,9 +428,7 @@ public class TaskService
             .ThenBy(t => t.StartDateTime)
             .ToListAsync();
 
-        return tasks.Select(t => new TaskItemDto(
-            t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
-            t.Status, t.IsPinned, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId)).ToList();
+        return tasks.Select(FromEntity).ToList();
     }
 
     public async Task<int> GetUnassignedCountAsync(int userId)
@@ -445,9 +447,7 @@ public class TaskService
             .OrderBy(t => t.StartDateTime)
             .ToListAsync();
 
-        return tasks.Select(t => new TaskItemDto(
-            t.Id, t.Title, t.Description, t.StartDateTime, t.DurationMinutes, t.Deadline,
-            t.Status, t.IsPinned, false, null, false, t.ModuleCode, t.SourceModule, t.SourceEntityId)).ToList();
+        return tasks.Select(FromEntity).ToList();
     }
 
     public async Task<bool> ResolveTaskAsync(int userId, int taskId, string action)

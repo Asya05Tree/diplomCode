@@ -21,7 +21,6 @@ public class ShoppingItem
     public string Source { get; set; } = "Manual"; // Manual | Food | Stock | Cycle
     public int? SourceEntityId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? CheckedAt { get; set; }
 }
 
 // Особиста ціна продукту (PK = {UserId, ProductId}). Дата — день відмітки покупки, не дата задачі.

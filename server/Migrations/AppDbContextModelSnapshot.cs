@@ -133,9 +133,6 @@ namespace Server.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.HasKey("UserId");
 
                     b.ToTable("FinanceAccounts");
@@ -380,14 +377,8 @@ namespace Server.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CreatedByUserId")
-                        .HasColumnType("int");
-
                     b.Property<int>("FormId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsOtc")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsSystem")
                         .HasColumnType("tinyint(1)");
@@ -455,9 +446,6 @@ namespace Server.Migrations
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -835,9 +823,6 @@ namespace Server.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<bool>("IsCooked")
                         .HasColumnType("tinyint(1)");
 
@@ -866,9 +851,6 @@ namespace Server.Migrations
 
                     b.Property<string>("Category")
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("CheckedAt")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -928,9 +910,6 @@ namespace Server.Migrations
                     b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
 
                     b.HasKey("UserId", "ProductId");
 
@@ -1285,9 +1264,6 @@ namespace Server.Migrations
                     b.Property<int?>("DurationMinutes")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsPinned")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("ModuleCode")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -1322,38 +1298,6 @@ namespace Server.Migrations
                     b.HasIndex("UserId", "StartDateTime");
 
                     b.ToTable("Tasks");
-                });
-
-            modelBuilder.Entity("Server.Models.TodoItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("OrderIndex")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "Status", "OrderIndex");
-
-                    b.ToTable("TodoItems");
                 });
 
             modelBuilder.Entity("Server.Models.User", b =>
@@ -1447,9 +1391,6 @@ namespace Server.Migrations
                     b.Property<int>("MedicineId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime(6)");
 
@@ -1525,9 +1466,6 @@ namespace Server.Migrations
 
                     b.Property<double?>("Height")
                         .HasColumnType("double");
-
-                    b.Property<int>("HistoryRetentionDays")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsWorking")
                         .HasColumnType("tinyint(1)");
@@ -1607,20 +1545,9 @@ namespace Server.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("GroupName")
-                        .IsRequired()
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Socials")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -1630,12 +1557,9 @@ namespace Server.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Viber")
-                        .HasColumnType("longtext");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "GroupName");
+                    b.HasIndex("UserId", "FullName");
 
                     b.ToTable("WorkContacts");
                 });
@@ -1707,12 +1631,6 @@ namespace Server.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly?>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("IsDone")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("Note")
                         .HasColumnType("longtext");
 
@@ -1773,37 +1691,11 @@ namespace Server.Migrations
                     b.Property<string>("Employer")
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("ExtraVacationDays")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("FullRateRetained")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("JobName")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal?>("NormHours")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PayType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Position")
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal?>("Rate")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Regime")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Workplace")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("UserId");
@@ -2349,17 +2241,6 @@ namespace Server.Migrations
                         .IsRequired();
 
                     b.Navigation("RecurrenceRule");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Server.Models.TodoItem", b =>
-                {
-                    b.HasOne("Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });

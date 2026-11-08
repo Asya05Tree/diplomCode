@@ -141,7 +141,6 @@ public class FinanceService
             _db.FinanceAccounts.Add(account);
         }
         account.Balance = ClampMoney(balance);
-        account.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync();
     }
 

@@ -206,12 +206,11 @@ public class ShoppingService
 
         var now = DateTime.Now;
         item.IsChecked = true;
-        item.CheckedAt = now;
         if (price.HasValue) item.EstimatedPrice = price;
 
         if (item.ProductId is int productId)
         {
-            await ReplenishStockAsync(userId, productId, now);
+            await ReplenishStockAsync(userId, productId);
             if (price.HasValue) await UpsertPriceAsync(userId, productId, price.Value, now);
             _db.PurchaseHistories.Add(new PurchaseHistory { UserId = userId, ProductId = productId, PurchasedAt = now });
         }
@@ -244,11 +243,11 @@ public class ShoppingService
         return true;
     }
 
-    private async Task ReplenishStockAsync(int userId, int productId, DateTime now)
+    private async Task ReplenishStockAsync(int userId, int productId)
     {
         var stock = await _db.StockItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId);
-        if (stock is null) _db.StockItems.Add(new StockItem { UserId = userId, ProductId = productId, State = "Available", UpdatedAt = now });
-        else { stock.State = "Available"; stock.UpdatedAt = now; }
+        if (stock is null) _db.StockItems.Add(new StockItem { UserId = userId, ProductId = productId, State = "Available" });
+        else stock.State = "Available";
     }
 
     private async Task UpsertPriceAsync(int userId, int productId, decimal price, DateTime now)

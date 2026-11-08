@@ -80,7 +80,6 @@ public class StockItem
     public Product? Product { get; set; }
     public string State { get; set; } = "Available"; // Available | RunningLow | OutOfStock
     public DateTime? ExpiresAt { get; set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
 // Обрана страва користувача. Не прив'язана до дати — людина готує коли хоче (planner-spec.md §3.4).
@@ -91,7 +90,6 @@ public class SelectedDish
     public User? User { get; set; }
     public int RecipeId { get; set; }
     public Recipe? Recipe { get; set; }
-    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
     public bool IsCooked { get; set; }
 }
 
