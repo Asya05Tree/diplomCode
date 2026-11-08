@@ -59,6 +59,7 @@ export default function Food() {
   const [balance, setBalance] = useState(0)
   const [range, setRange] = useState({ from: 0, to: 0 })
   const [mode, setMode] = useState('all') // 'all' | 'available'
+  const [showExcluded, setShowExcluded] = useState(false) // перемикач «Показати виключені» страви
 
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [addStockOpen, setAddStockOpen] = useState(false)
@@ -149,6 +150,24 @@ export default function Food() {
       return av.missingCost >= range.from && av.missingCost <= range.to
     })
   }, [recipes, availability, mode, range])
+
+  const visibleIds = useMemo(() => new Set(visibleRecipes.map((r) => r.id)), [visibleRecipes])
+
+  // Виключені страви (для перемикача «Показати виключені», problems.md #6): кожна з короткою
+  // причиною, що РЕАЛЬНО спрацювала. Пріоритет: жорстке обмеження здоров'я → бюджет → наявність.
+  const excludedRecipes = useMemo(() => {
+    return recipes
+      .filter((r) => !visibleIds.has(r.id))
+      .map((r) => {
+        const hs = r.health || {}
+        const av = availability[r.id] || {}
+        let reason
+        if (hs.forbidden) reason = { kind: 'health', tag: hs.forbidden }
+        else if (mode === 'available' && !av.isAvailable) reason = { kind: 'stock', n: av.missingCount }
+        else reason = { kind: 'budget' }
+        return { recipe: r, reason }
+      })
+  }, [recipes, visibleIds, availability, mode])
 
   const clamp = (value) => Math.min(Math.max(0, Math.round(Number(value) || 0)), balance)
 
@@ -460,6 +479,15 @@ export default function Food() {
             <button type="button" className="pill" onClick={() => setFavoritesOpen(true)}>
               <Icon name="cake" /> {t('food.myFavorites', { count: selected.length })}
             </button>
+            {excludedRecipes.length > 0 && (
+              <button
+                type="button"
+                className={showExcluded ? 'pill pill--active' : 'pill'}
+                onClick={() => setShowExcluded((v) => !v)}
+              >
+                <Icon name="info" /> {t('food.showExcluded', { count: excludedRecipes.length })}
+              </button>
+            )}
           </div>
 
           {visibleRecipes.length === 0 ? (
@@ -508,6 +536,26 @@ export default function Food() {
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {showExcluded && excludedRecipes.length > 0 && (
+            <div className="food-excluded">
+              <div className="food-excluded-head">{t('food.excludedTitle', { count: excludedRecipes.length })}</div>
+              <ul className="food-excluded-list">
+                {excludedRecipes.map(({ recipe, reason }) => (
+                  <li key={recipe.id} className="food-excluded-row">
+                    <span className="food-excluded-name">{recipe.emoji} {recipeName(recipe, language)}</span>
+                    <span className={`food-excluded-reason food-excluded-reason--${reason.kind}`}>
+                      {reason.kind === 'health'
+                        ? t('food.excluded.health', { tag: tagLabel(reason.tag) })
+                        : reason.kind === 'stock'
+                          ? t('food.excluded.stock', { n: reason.n })
+                          : t('food.excluded.budget')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

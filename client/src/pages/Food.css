@@ -208,6 +208,55 @@
   opacity: 0.55;
   pointer-events: none;
 }
+
+/* Виключені страви (перемикач «Показати виключені») — приглушений список із причинами */
+.food-excluded {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-border-strong);
+}
+.food-excluded-head {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+.food-excluded-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.food-excluded-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  opacity: 0.8;
+}
+.food-excluded-name {
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.food-excluded-reason {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  text-align: right;
+  color: var(--color-text-muted);
+}
+.food-excluded-reason--health {
+  color: var(--color-danger);
+  font-weight: 500;
+}
 .food-menu-clear {
   display: inline-flex;
   align-items: center;

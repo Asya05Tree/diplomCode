@@ -274,6 +274,12 @@ export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalet
         <h2 className="landing-demo-heading">{t('landing.heroHeading')}</h2>
         <p className="landing-demo-text">{t('landing.heroText')}</p>
 
+        {/* Чесна примітка: у застосунку ціни вводить користувач у момент «куплено»; тут суми —
+            приблизні для демонстрації (problems.md #5). */}
+        <p className="landing-demo-pricenote">
+          <Icon name="info" /> {t('landing.demoPriceNote')}
+        </p>
+
         <div className="landing-demo-switch">
           <TabBar tabs={DEMO_TABS} activeKey={activeDemo} onSelect={setActiveDemo} t={t} />
         </div>
@@ -322,14 +328,25 @@ export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalet
               <div className="card landing-panel">
                 <p className="landing-panel-title">{t('landing.foodLabel')}</p>
                 <ul className="landing-price-list">
-                  {DISHES.map((dish) => (
-                    <li key={dish.key} className={allowedDishes.includes(dish) ? '' : 'is-disabled'}>
-                      <span>{t(`landing.dish.${dish.key}`)}</span>
-                      <span className="landing-price-amount">
-                        {dish.price} {t('landing.moneyCurrency')}
-                      </span>
-                    </li>
-                  ))}
+                  {DISHES.map((dish) => {
+                    const blockedTag = dish.tags.find((tag) => activeDietRestrictions.includes(tag))
+                    const blockedBy = blockedTag && FOOD_RESTRICTIONS.find((r) => r.tag === blockedTag)
+                    return (
+                      <li key={dish.key} className={blockedTag ? 'is-disabled' : ''}>
+                        <span className="landing-dish-main">
+                          {t(`landing.dish.${dish.key}`)}
+                          {blockedBy && (
+                            <span className="landing-dish-reason">
+                              {t('landing.dishExcluded', { tag: t(`landing.restriction.${blockedBy.key}`) })}
+                            </span>
+                          )}
+                        </span>
+                        <span className="landing-price-amount">
+                          {dish.price} {t('landing.moneyCurrency')}
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             </div>
