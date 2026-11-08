@@ -1552,6 +1552,9 @@ namespace Server.Migrations
                     b.Property<DateTime>("DoneDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("DoseCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Note")
                         .HasColumnType("longtext");
 

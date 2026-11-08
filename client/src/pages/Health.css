@@ -945,11 +945,77 @@
 }
 
 .vacc-disclaimer {
-  margin: 16px 0 0;
+  margin: 10px 0 14px;
   font-size: 0.8rem;
   line-height: 1.5;
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+/* "!" — кнопка-перемикач джерела/застереження (щеплення й аптечка) */
+.vacc-info-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.vacc-info-btn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.vacc-info-btn--on {
+  background: var(--color-accent);
+  color: var(--color-on-accent, #fff);
+  border-color: var(--color-accent);
+}
+.vacc-info-btn .icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* Вкладки щеплень (Всі / по інфекції / Інше) */
+.vacc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 14px;
+}
+
+/* Редагований рядок власного щеплення: назва | кількість доз | дата | видалити */
+.vacc-custom-row--edit {
+  flex-wrap: wrap;
+}
+.vacc-custom-name-input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.vacc-custom-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+.vacc-custom-count-input {
+  width: 64px;
+  min-width: 0;
+}
+.vacc-custom-count-unit {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.vacc-custom-date-input {
+  flex: 0 0 auto;
+}
+.vacc-custom-form input[type='number'].vacc-custom-count-input {
+  flex: 0 0 auto;
 }
 
 /* ===== Рекомендована аптечка (блок у вкладці "Аптечка") ===== */
@@ -968,6 +1034,15 @@
   padding: 4px 0;
   cursor: pointer;
   color: var(--color-heading);
+}
+.kit-head-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kit-head-row .kit-head {
+  width: auto;
+  flex: 1 1 auto;
 }
 .kit-caret {
   width: 16px;

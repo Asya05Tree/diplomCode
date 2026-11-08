@@ -12,6 +12,7 @@ import { addShoppingItem } from '../../api/shopping'
 export default function RecommendedKit({ medicines, language }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const [showNote, setShowNote] = useState(false) // "!" — звідки перелік (застереження)
   const [added, setAdded] = useState(() => new Set())
 
   // Текст для зіставлення: назва + діюча речовина кожного препарату аптечки (нижній регістр).
@@ -41,11 +42,25 @@ export default function RecommendedKit({ medicines, language }) {
 
   return (
     <div className="kit-block">
-      <button type="button" className="kit-head" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        <Icon name="chevron-left" className="kit-caret" />
-        <span className="kit-title">{t('firstaid.title')}</span>
-        <span className="kit-progress">{t('firstaid.progress', { n: presentCount, total: FIRST_AID_KIT.length })}</span>
-      </button>
+      <div className="kit-head-row">
+        <button type="button" className="kit-head" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+          <Icon name="chevron-left" className="kit-caret" />
+          <span className="kit-title">{t('firstaid.title')}</span>
+          <span className="kit-progress">{t('firstaid.progress', { n: presentCount, total: FIRST_AID_KIT.length })}</span>
+        </button>
+        <button
+          type="button"
+          className={showNote ? 'vacc-info-btn vacc-info-btn--on' : 'vacc-info-btn'}
+          onClick={() => setShowNote((v) => !v)}
+          aria-expanded={showNote}
+          aria-label={t('firstaid.noteToggle')}
+          title={t('firstaid.noteToggle')}
+        >
+          <Icon name="info" />
+        </button>
+      </div>
+
+      {showNote && <p className="kit-note">{t('firstaid.note')}</p>}
 
       {open && (
         <>
@@ -71,7 +86,6 @@ export default function RecommendedKit({ medicines, language }) {
               </li>
             ))}
           </ul>
-          <p className="kit-note">{t('firstaid.note')}</p>
         </>
       )}
     </div>

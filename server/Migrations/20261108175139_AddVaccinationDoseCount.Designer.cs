@@ -12,7 +12,7 @@ using Server.Data;
 namespace Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261108174811_AddVaccinationDoseCount")]
+    [Migration("20261108175139_AddVaccinationDoseCount")]
     partial class AddVaccinationDoseCount
     {
         /// <inheritdoc />
@@ -1554,6 +1554,9 @@ namespace Server.Migrations
 
                     b.Property<DateTime>("DoneDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("DoseCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("Note")
                         .HasColumnType("longtext");
