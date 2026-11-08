@@ -38,6 +38,8 @@ public class AppDbContext : DbContext
     public DbSet<Medicine> Medicines => Set<Medicine>();
     public DbSet<UserMedicine> UserMedicines => Set<UserMedicine>();
     public DbSet<UserCondition> UserConditions => Set<UserCondition>();
+    public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
+    public DbSet<UserVaccination> UserVaccinations => Set<UserVaccination>();
 
     // Фінанси
     public DbSet<FinanceAccount> FinanceAccounts => Set<FinanceAccount>();
@@ -159,6 +161,16 @@ public class AppDbContext : DbContext
         // HealthVisit.TaskId — логічне посилання без FK (подію видаляє CheckupService через TaskService).
         modelBuilder.Entity<Note>().HasIndex(x => new { x.UserId, x.Position });
         modelBuilder.Entity<HealthVisit>().HasIndex(x => new { x.UserId, x.When });
+
+        // Щеплення: VaccineDose — системний довідник (унікальний ключ інфекція+№ дози для ідемпотентного
+        // імпорту). UserVaccination — запис користувача (каскад на User; доза — Restrict, як решта
+        // довідкових FK). Один запис на дозу для користувача (крім власних щеплень, де DoseId=null).
+        modelBuilder.Entity<VaccineDose>().HasIndex(x => new { x.InfectionKey, x.DoseNumber }).IsUnique();
+        modelBuilder.Entity<UserVaccination>()
+            .HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<UserVaccination>()
+            .HasOne(x => x.VaccineDose).WithMany().HasForeignKey(x => x.VaccineDoseId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<UserVaccination>().HasIndex(x => new { x.UserId, x.VaccineDoseId });
 
         // Перегляд і читання — фільтр за типом+статусом; FK на користувача каскадний (видалили
         // акаунт — пішли записи). TaskId лишаємо простим int? без навігації (логічне посилання).
