@@ -19,6 +19,7 @@ import {
 import { getHealthProfile, setHealthProfile } from '../api/healthProfile'
 import { getVisits, addVisit, removeVisit } from '../api/checkup'
 import VaccinationsTab from '../components/health/VaccinationsTab'
+import RecommendedKit from '../components/health/RecommendedKit'
 import { addShoppingItem, getShoppingList } from '../api/shopping'
 import { RANGES, MAX_LEN, clampNumber, filterWords, limitText } from '../utils/validation'
 import { todayApiDate } from '../utils/date'
@@ -542,6 +543,8 @@ export default function Health() {
               <p className="health-disclaimer">{t('health.interactionsDisclaimer')}</p>
             </>
           )}
+
+          <RecommendedKit medicines={medicines} language={language} />
         </div>
       ) : tab === 'cond' ? (
         <div className="card">
