@@ -18,12 +18,24 @@ public class EmailService
         _logger = logger;
     }
 
-    public async Task SendVerificationCodeAsync(string email, string code, string nickname, int expiresInMinutes)
+    public Task SendVerificationCodeAsync(string email, string code, string nickname, int expiresInMinutes) =>
+        SendAsync(email, "Код автентифікації для Всетута", BuildHtmlBody(nickname, code, expiresInMinutes),
+            devLog: $"Код підтвердження для {email}: {code}");
+
+    // Попередження про майбутнє автовидалення неактивного акаунта (ЗУ №2297-VI ст.8/12 — суб'єкт має
+    // бути поінформований перед безповоротним видаленням). Надсилається за кілька тижнів до видалення.
+    public Task SendAccountDeletionWarningAsync(string email, string nickname, int daysLeft) =>
+        SendAsync(email, "Ваш акаунт у Всетуті скоро буде видалено", BuildDeletionWarningBody(nickname, daysLeft),
+            devLog: $"Попередження про видалення акаунта {email}: лишилось ~{daysLeft} дн.");
+
+    // Єдина точка відправки. Якщо Smtp:Host не заповнений — лист лише пишеться в лог сервера,
+    // щоб усе працювало без реального поштового акаунта (dev).
+    private async Task SendAsync(string email, string subject, string htmlBody, string devLog)
     {
         var host = _config["Smtp:Host"];
         if (string.IsNullOrWhiteSpace(host))
         {
-            _logger.LogInformation("[DEV] Smtp:Host не налаштовано. Код підтвердження для {Email}: {Code}", email, code);
+            _logger.LogInformation("[DEV] Smtp:Host не налаштовано. {DevLog}", devLog);
             return;
         }
 
@@ -40,12 +52,32 @@ public class EmailService
 
         using var message = new MailMessage(from!, email)
         {
-            Subject = "Код автентифікації для Всетута",
-            Body = BuildHtmlBody(nickname, code, expiresInMinutes),
+            Subject = subject,
+            Body = htmlBody,
             IsBodyHtml = true,
         };
 
         await client.SendMailAsync(message);
+    }
+
+    private static string BuildDeletionWarningBody(string nickname, int daysLeft)
+    {
+        var greetingName = string.IsNullOrWhiteSpace(nickname) ? "користувачу" : nickname;
+        return $"""
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #2b2b2b; line-height: 1.5;">
+                <p style="font-size: 16px;">Дорогий {greetingName},</p>
+                <p style="font-size: 15px;">
+                    ваш акаунт у <strong>Всетуті</strong> неактивний уже майже рік. Згідно з політикою зберігання
+                    даних, неактивні акаунти видаляються разом з усіма даними. До видалення лишилось
+                    приблизно <strong>{daysLeft} днів</strong>.
+                </p>
+                <p style="font-size: 15px;">
+                    Щоб зберегти акаунт — просто зайдіть у застосунок. Якщо не бажаєте його зберігати,
+                    нічого робити не потрібно.
+                </p>
+                <p style="font-size: 14px; margin-top: 24px;">Команда Всетута</p>
+            </div>
+            """;
     }
 
     // Код виводиться звичайним текстом (не картинкою) — тільки так його можна виділити

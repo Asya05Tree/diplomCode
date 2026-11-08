@@ -14,7 +14,7 @@ namespace Server.Controllers;
 public record SendCodeRequest([StringLength(254)] string Email, [StringLength(TextLimits.Name)] string Nickname);
 public record RegisterRequest([StringLength(TextLimits.Name)] string Nickname, [StringLength(TextLimits.Code)] string Gender,
     [StringLength(254)] string Email, [StringLength(TextLimits.Code)] string Code, [StringLength(TextLimits.Description)] string Password,
-    [StringLength(TextLimits.Code)] string? StudentType, bool IsWorking);
+    [StringLength(TextLimits.Code)] string? StudentType, bool IsWorking, bool ConsentAccepted);
 public record LoginRequest([StringLength(254)] string Email, [StringLength(TextLimits.Description)] string Password);
 
 // Реєстрація email+код підтвердження та вхід email+пароль (coding-guide.md §4).
@@ -112,6 +112,11 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "missing_fields" });
 
+        // Згода на обробку персональних даних — обов'язкова правова підстава (ЗУ №2297-VI ст.6,11).
+        // Клієнт не дає натиснути «Зареєструватися» без галочки; сервер підстраховує прямий POST.
+        if (!request.ConsentAccepted)
+            return BadRequest(new { error = "consent_required" });
+
         // Стать — лише з відомого набору (як studentType), щоб не зберігати сирий довільний рядок (ПЛАН P2-6).
         if (request.Gender is not ("female" or "male" or "other"))
             return BadRequest(new { error = "invalid_gender" });
@@ -147,6 +152,7 @@ public class AuthController : ControllerBase
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             IsEmailConfirmed = true,
+            PolicyAcceptedAt = DateTime.UtcNow, // зафіксувати факт і час згоди
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync();

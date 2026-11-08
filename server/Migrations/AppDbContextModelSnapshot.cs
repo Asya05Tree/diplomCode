@@ -1311,6 +1311,9 @@ namespace Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("DeletionWarnedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -1328,6 +1331,9 @@ namespace Server.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("PolicyAcceptedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("QuickAddUnlocked")
                         .HasColumnType("tinyint(1)");
@@ -1463,6 +1469,9 @@ namespace Server.Migrations
 
                     b.Property<string>("Gender")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("HealthConsentAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<double?>("Height")
                         .HasColumnType("double");

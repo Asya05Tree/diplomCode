@@ -33,7 +33,9 @@ public class HealthProfileController : ControllerBase
     {
         var profile = await _db.UserProfiles.FindAsync(CurrentUserId);
         if (profile is null) return NotFound();
-        return Ok(new { profile.Height, profile.Weight, profile.BirthYear, profile.Gender, profile.StudentType, profile.IsWorking });
+        // healthConsentAt — чи дав користувач окрему явну згоду на дані здоров'я/циклу (ст.7); клієнт
+        // за цим показує екран згоди замість вмісту цих модулів, доки згоди немає.
+        return Ok(new { profile.Height, profile.Weight, profile.BirthYear, profile.Gender, profile.StudentType, profile.IsWorking, profile.HealthConsentAt });
     }
 
     // Лише естетичні поля (зріст/вага/рік народження). Стать/статус навчання/роботи сюди НЕ входять:

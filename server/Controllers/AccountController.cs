@@ -59,6 +59,23 @@ public class AccountController : ControllerBase
         return Ok();
     }
 
+    // Окрема явна згода на обробку особливої категорії даних — здоров'я/цикл (ЗУ №2297-VI ст.7).
+    // Викликається з екрана згоди перед першим відкриттям цих модулів. Ідемпотентна: повторний виклик
+    // лишає найпершу дату згоди. Скасувати згоду користувач може, видаливши дані цих модулів.
+    [HttpPost("health-consent")]
+    public async Task<IActionResult> GiveHealthConsent()
+    {
+        var profile = await _db.UserProfiles.FindAsync(CurrentUserId);
+        if (profile is null)
+        {
+            profile = new UserProfile { UserId = CurrentUserId };
+            _db.UserProfiles.Add(profile);
+        }
+        profile.HealthConsentAt ??= DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
+
     // Експорт усіх даних користувача — файл JSON на пристрій
     [HttpGet("export")]
     public async Task<IActionResult> Export()

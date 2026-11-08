@@ -22,4 +22,9 @@ public class UserProfile
     // розділу "Навчання": school/university-режим, а "none" ховає розділ із меню взагалі.
     public string? StudentType { get; set; } // pupil | student | none
     public bool IsWorking { get; set; }
+
+    // Окрема явна згода на обробку особливої категорії даних — здоров'я та менструальний цикл
+    // (ЗУ №2297-VI ст.7, аналог GDPR ст.9). Доки null — модулі «Здоров'я»/«Цикл» показують екран
+    // згоди замість вмісту. Загальної галочки при реєстрації для цих даних недостатньо.
+    public DateTime? HealthConsentAt { get; set; }
 }

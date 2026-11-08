@@ -28,11 +28,11 @@ export async function sendCode(email, nickname) {
   if (!response.ok) await throwApiError(response)
 }
 
-export async function register({ nickname, gender, email, code, password, studentType, isWorking }) {
+export async function register({ nickname, gender, email, code, password, studentType, isWorking, consentAccepted }) {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nickname, gender, email, code, password, studentType, isWorking }),
+    body: JSON.stringify({ nickname, gender, email, code, password, studentType, isWorking, consentAccepted }),
   })
   if (!response.ok) await throwApiError(response)
   return response.json()

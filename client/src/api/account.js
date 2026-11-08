@@ -30,3 +30,8 @@ export function wipeData(password) {
 export function deleteAccount(password) {
   return apiSend('POST', '/api/account/delete', { password })
 }
+
+// Окрема явна згода на обробку даних здоров'я/циклу (особлива категорія, ЗУ №2297-VI ст.7).
+export function giveHealthConsent() {
+  return apiSend('POST', '/api/account/health-consent')
+}
