@@ -8,7 +8,7 @@ const LOCALE_BY_LANGUAGE = { uk: 'uk-UA', en: 'en-US' }
 // Ліва частина планувальника (planner-spec.md §4.2). Заливка клітинок залежить від режиму —
 // прокидається ззовні через markings, сітка сама знає лише про today/selected (§4.4: заливка
 // поточного режиму ніколи не змішується з іншою).
-export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays, workDays }) {
+export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, onSelectDate, markings, periodDays, predictedDays, workDays }) {
   const { t, language, weekStart, weekdays } = useI18n()
   const today = new Date()
   const year = visibleMonth.getFullYear()
@@ -18,6 +18,8 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
   const marks = markings ?? new Map()
   // Дні місячних — факт дня (не подія), показуємо краплею біля цифри
   const periods = periodDays ?? new Set()
+  // Прогнозовані дні менструації — світла (порожня) крапля, щоб було видно наперед
+  const predicted = predictedDays ?? new Set()
   // Робочі дні (задачі/зміни з moduleCode="work") — позначаємо іконкою роботи
   const works = workDays ?? new Set()
 
@@ -62,6 +64,7 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
           const key = toApiDate(date)
           const mark = marks.get(key)
           const isPeriod = periods.has(key)
+          const isPredicted = !isPeriod && predicted.has(key)
           const isWork = works.has(key)
           const classNames = ['month-grid-cell']
           if (!inCurrentMonth) classNames.push('month-grid-cell--outside')
@@ -69,12 +72,20 @@ export default function MonthGrid({ visibleMonth, onMonthChange, selectedDate, o
           if (selectedDate && isSameDate(date, selectedDate)) classNames.push('month-grid-cell--selected')
           if (mark) classNames.push(`month-grid-cell--${mark}`)
           if (isPeriod) classNames.push('month-grid-cell--period')
+          if (isPredicted) classNames.push('month-grid-cell--period-predicted')
 
           return (
-            <button key={key} type="button" className={classNames.join(' ')} onClick={() => onSelectDate(date)}>
+            <button
+              key={key}
+              type="button"
+              className={classNames.join(' ')}
+              onClick={() => onSelectDate(date)}
+              title={isPeriod ? t('cycle.legend.period') : isPredicted ? t('cycle.legend.predicted') : undefined}
+            >
               <span className="month-grid-cell-num">{date.getDate()}</span>
               {isWork && <Icon name="work" className="month-grid-cell-work" />}
               {isPeriod && <Icon name="drop" className="month-grid-cell-blood" />}
+              {isPredicted && <Icon name="drop" className="month-grid-cell-blood month-grid-cell-blood--predicted" />}
             </button>
           )
         })}

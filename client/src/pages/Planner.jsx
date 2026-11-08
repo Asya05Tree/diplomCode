@@ -171,10 +171,19 @@ export default function Planner() {
 
   const markings = activeTab === 'recurring' ? recurringMarkings : busyMarkings
 
-  // Турбота у "важкі дні": банер на головному екрані, якщо важкий день — сьогодні; у вкладці
-  // "День" — якщо важким є саме обраний день (тоді натяк "запланувати менше" влучає в контекст).
+  // Прогнозовані дні менструації (важкі дні, яких ще немає у фактичних записах) — позначаємо
+  // на спільному календарі окремо (світла крапля), щоб наперед не планувати на них забагато.
+  const predictedDays = useMemo(() => {
+    const s = new Set()
+    for (const d of heavyDays) if (!periodDays.has(d)) s.add(d)
+    return s
+  }, [heavyDays, periodDays])
+
+  // Турбота у "важкі дні": банер на головному екрані показуємо, лише коли увімкнено відповідне
+  // налаштування (щоб не нав'язувати). А ось у вкладці "День" мʼяке попередження показуємо завжди,
+  // коли обраний день — менструації чи прогнозований: саме щоб було видно «не планувати багато в ці дні».
   const showCareToday = reduceLoad && heavyDays.has(todayApiDate())
-  const careForSelectedDay = reduceLoad && heavyDays.has(toApiDate(selectedDate))
+  const careForSelectedDay = heavyDays.has(toApiDate(selectedDate))
 
   const handleSelectDate = (date) => {
     // Якщо саме триває вибір ручних дат повторення — лишаємо цю поведінку (вставка/зняття дати)
@@ -200,6 +209,7 @@ export default function Planner() {
           onSelectDate={handleSelectDate}
           markings={markings}
           periodDays={periodDays}
+          predictedDays={predictedDays}
           workDays={workDays}
         />
 

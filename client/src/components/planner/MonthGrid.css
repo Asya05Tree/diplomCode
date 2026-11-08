@@ -177,6 +177,18 @@
 .month-grid-cell--period:hover {
   background: color-mix(in srgb, var(--color-danger) 24%, transparent);
 }
+/* Прогнозовані дні менструації — світліша заливка й порожниста (напівпрозора) крапля:
+   видно наперед, щоб не планувати забагато, але візуально слабше за фактичні дні. */
+.month-grid-cell--period-predicted {
+  background: color-mix(in srgb, var(--color-danger) 7%, transparent);
+}
+.month-grid-cell--period-predicted:hover {
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+}
+.month-grid-cell-blood--predicted {
+  color: color-mix(in srgb, var(--color-danger) 55%, var(--color-surface));
+  opacity: 0.85;
+}
 
 /* Робочий день — іконка роботи ліворуч зверху (не конфліктує з краплею праворуч).
    Колір підмішуємо з кольором заголовка — блідий --color-work сам по собі нечитаємий. */
