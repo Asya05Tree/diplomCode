@@ -23,12 +23,15 @@ public static class ImportRunner
                 Console.WriteLine("[interactions]"); InteractionsImporter.Run(db); break;
             case "dedup-medicines":
                 Console.WriteLine("[dedup-medicines]"); MedicinesImporter.Dedupe(db); break;
+            case "import-vaccines":
+                Console.WriteLine("[vaccines]"); VaccinesImporter.Run(db); break;
             case "import-all":
                 Console.WriteLine("[forms]"); FormsImporter.Run(db);
                 Console.WriteLine("[ingredients]"); var m = IngredientsImporter.Run(db);
                 Console.WriteLine("[recipes]"); RecipesImporter.Run(db, m);
                 Console.WriteLine("[medicines]"); MedicinesImporter.Run(db);
                 Console.WriteLine("[interactions]"); InteractionsImporter.Run(db);
+                Console.WriteLine("[vaccines]"); VaccinesImporter.Run(db);
                 break;
             default:
                 Console.WriteLine($"Unknown import command: {command}");
@@ -50,5 +53,6 @@ public static class ImportRunner
         Console.WriteLine($"  Substances:           {db.Substances.Count()}");
         Console.WriteLine($"  Medicines:            {db.Medicines.Count()}");
         Console.WriteLine($"  SubstanceInteractions:{db.SubstanceInteractions.Count()}");
+        Console.WriteLine($"  VaccineDoses:         {db.VaccineDoses.Count()}");
     }
 }

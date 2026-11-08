@@ -118,7 +118,7 @@ var app = builder.Build();
 // CLI-режим імпорту довідкових даних (Phase 2). Запуск: dotnet run -- import-all
 // (також import-forms|import-ingredients|import-medicines|import-interactions|dedup-medicines).
 // Виконуємо імпортери в одному scope і виходимо БЕЗ старту веб-хоста.
-var importCommands = new[] { "import-all", "import-forms", "import-ingredients", "import-medicines", "import-interactions", "dedup-medicines" };
+var importCommands = new[] { "import-all", "import-forms", "import-ingredients", "import-medicines", "import-interactions", "dedup-medicines", "import-vaccines" };
 var importArg = args.FirstOrDefault(a => importCommands.Contains(a));
 if (importArg != null)
 {

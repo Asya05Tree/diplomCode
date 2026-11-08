@@ -68,6 +68,7 @@ public class AccountService
 
         await _db.Notes.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await _db.HealthVisits.Where(x => x.UserId == userId).ExecuteDeleteAsync();
+        await _db.UserVaccinations.Where(x => x.UserId == userId).ExecuteDeleteAsync();
 
         // Персоналізація їжі/здоров'я, похідна від контенту
         await _db.Rules.Where(x => x.UserId == userId).ExecuteDeleteAsync();
@@ -131,6 +132,7 @@ public class AccountService
                 medicines = await _db.UserMedicines.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
                 conditions = await _db.UserConditions.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
                 visits = await _db.HealthVisits.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
+                vaccinations = await _db.UserVaccinations.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
             },
             finance = new
             {

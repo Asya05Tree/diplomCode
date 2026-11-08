@@ -48,6 +48,7 @@ public static class Limits
     public const int HealthVisits = 2000;
     public const int UserMedicines = 500;
     public const int ChronicConditions = 200;
+    public const int Vaccinations = 1000;
 
     // Навчання
     public const int StudySubjects = 200;
