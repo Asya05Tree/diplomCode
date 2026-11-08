@@ -11,9 +11,10 @@ export function db(sql) {
 
 // Convenience: read the single UserProfile row for a userId as an object.
 export function profileOf(userId) {
-  const rows = db(`SELECT Height, Weight, BirthYear, Gender, StudentType, IsWorking, Language, Theme, AccentColor, HistoryRetentionDays
+  // HistoryRetentionDays прибрано з моделі в сесії 13 (мертва колонка) — більше не читаємо.
+  const rows = db(`SELECT Height, Weight, BirthYear, Gender, StudentType, IsWorking, Language, Theme, AccentColor
                    FROM UserProfiles WHERE UserId=${userId};`)
   if (!rows.length) return null
-  const [Height, Weight, BirthYear, Gender, StudentType, IsWorking, Language, Theme, AccentColor, HistoryRetentionDays] = rows[0]
-  return { Height, Weight, BirthYear, Gender, StudentType, IsWorking, Language, Theme, AccentColor, HistoryRetentionDays }
+  const [Height, Weight, BirthYear, Gender, StudentType, IsWorking, Language, Theme, AccentColor] = rows[0]
+  return { Height, Weight, BirthYear, Gender, StudentType, IsWorking, Language, Theme, AccentColor }
 }

@@ -41,14 +41,13 @@ const rd = await api('PUT', '/api/health-profile', {
     language: 'HACKED', Language: 'HACKED',
     theme: 'HACKED', Theme: 'HACKED',
     accentColor: '#000000', AccentColor: '#000000',
-    historyRetentionDays: 99999, HistoryRetentionDays: 99999,
     dayStart: '00:00', DayStart: '00:00',
   },
 })
 const afterD = profileOf(u.userId)
-const massAssigned = afterD.Language === 'HACKED' || afterD.Theme === 'HACKED' || afterD.HistoryRetentionDays === '99999' || afterD.AccentColor === '#000000'
-console.log(`D) PUT privileged fields status=${rd.status} → Language=${afterD.Language} Theme=${afterD.Theme} HistoryRetentionDays=${afterD.HistoryRetentionDays} AccentColor=${afterD.AccentColor}`)
-console.log(`   (before: Language=${beforeD.Language} Theme=${beforeD.Theme} HRD=${beforeD.HistoryRetentionDays} Accent=${beforeD.AccentColor})`)
+const massAssigned = afterD.Language === 'HACKED' || afterD.Theme === 'HACKED' || afterD.AccentColor === '#000000'
+console.log(`D) PUT privileged fields status=${rd.status} → Language=${afterD.Language} Theme=${afterD.Theme} AccentColor=${afterD.AccentColor}`)
+console.log(`   (before: Language=${beforeD.Language} Theme=${beforeD.Theme} Accent=${beforeD.AccentColor})`)
 
 console.log('\n==== RESULT ====')
 console.log(`A) Gender accepts arbitrary string (§6 🟠): ${genderStored ? 'CONFIRMED (BROKEN)' : 'REFUTED'}`)
