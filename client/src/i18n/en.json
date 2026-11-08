@@ -814,6 +814,7 @@
   "notes.board.eraser": "Eraser",
   "notes.board.clear": "Clear",
   "notes.board.saveJpeg": "Save JPEG",
+  "notes.board.deviceOnly": "The drawing is saved on this device only and is not synced. To keep it — save a JPEG.",
   "health.tab.checkup": "Check-up",
   "health.tab.checkupMeta": "visits: {count}",
   "checkup.hint": "Pick a doctor and schedule a visit — it appears in the shared calendar.",

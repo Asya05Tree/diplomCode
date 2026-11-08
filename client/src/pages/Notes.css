@@ -201,3 +201,18 @@
   touch-action: none; /* щоб малювання пальцем не скролило сторінку */
   cursor: crosshair;
 }
+/* Чесне попередження: полотно живе лише в localStorage цього браузера (не синхронізується) */
+.board-device-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+.board-device-note .icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}

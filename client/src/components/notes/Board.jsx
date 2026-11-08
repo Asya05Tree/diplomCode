@@ -161,6 +161,11 @@ export default function Board() {
           onPointerLeave={end}
         />
       </div>
+
+      {/* Полотно зберігається лише в цьому браузері (localStorage) і не синхронізується між пристроями. */}
+      <p className="board-device-note">
+        <Icon name="info" /> {t('notes.board.deviceOnly')}
+      </p>
     </div>
   )
 }

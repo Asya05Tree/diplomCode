@@ -814,6 +814,7 @@
   "notes.board.eraser": "Гумка",
   "notes.board.clear": "Очистити",
   "notes.board.saveJpeg": "Зберегти JPEG",
+  "notes.board.deviceOnly": "Малюнок зберігається лише на цьому пристрої й не синхронізується. Щоб не втратити — збережіть JPEG.",
   "health.tab.checkup": "Чекап",
   "health.tab.checkupMeta": "візитів: {count}",
   "checkup.hint": "Оберіть лікаря й заплануйте візит — він з'явиться в загальному календарі.",
