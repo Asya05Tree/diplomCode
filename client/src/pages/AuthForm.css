@@ -49,14 +49,16 @@
 .auth-inline {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;            /* на вузьких екранах/зумі кнопка переходить під поле, а не тисне його */
 }
 
 .auth-inline input {
-  flex: 1;
+  flex: 1 1 180px;           /* поле не стискається нижче ~180px — не стає крихітним */
   min-width: 0;
 }
 
 .auth-inline button {
+  flex: 0 0 auto;
   white-space: nowrap;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
