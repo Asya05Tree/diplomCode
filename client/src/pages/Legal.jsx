@@ -49,6 +49,7 @@ const CONTENT = {
       intro: 'Користуючись Всетутою, ви погоджуєтесь із цими умовами. Це навчальний дипломний проєкт.',
       sections: [
         { h: 'Про сервіс', p: ['Всетута — планувальник для студентів: календар, навчання, робота, їжа, покупки, фінанси, здоров’я, цикл і нотатки. Сервіс надається «як є» в межах дипломної демонстрації.'] },
+        { h: 'Мінімальний вік', p: ['Сервіс призначений для осіб віком від 6 років. Реєструючись, ви підтверджуєте, що вам виповнилося щонайменше 6 років. Якщо вам менше 18 років, користуйтеся сервісом за згодою та під наглядом батьків або законних представників.'] },
         { h: 'Платна функція «Швидке додавання»', p: ['Більшість функцій безкоштовні. Функція «Швидке додавання» (розпізнавання задач природною мовою) після кількох безкоштовних використань потребує одноразової оплати 100 грн — це покупка назавжди, без підписки й автопродовження.'] },
         { h: 'Продавець та оплата', p: ['У реальному запуску тут вказувались би повні реквізити продавця (найменування ФОП/ТОВ, ЄДРПОУ/РНОКПП, адреса, контакти) згідно із ЗУ «Про електронну комерцію» №675-VII. Оплата проходить через платіжний сервіс WayForPay; картку ви вводите на його захищеній сторінці.'] },
         { h: 'Повернення коштів', p: ['Оскільки це цифрова послуга, яка відкривається одразу після оплати, ви можете звернутися за поверненням коштів, якщо функція не працює належним чином. Запит на повернення — через контакт сервісу.'] },
@@ -61,6 +62,7 @@ const CONTENT = {
       intro: 'By using Всетута you agree to these terms. This is an educational diploma project.',
       sections: [
         { h: 'About the service', p: ['Всетута is a student planner: calendar, study, work, food, shopping, finances, health, cycle and notes. The service is provided “as is” within a diploma demonstration.'] },
+        { h: 'Minimum age', p: ['The service is intended for people aged 6 and older. By registering, you confirm that you are at least 6 years old. If you are under 18, use the service with the consent and supervision of a parent or legal guardian.'] },
         { h: 'Paid “Quick add” feature', p: ['Most features are free. The “Quick add” feature (natural-language task parsing) requires a one-time payment of UAH 100 after a few free uses — a permanent purchase, with no subscription or auto-renewal.'] },
         { h: 'Seller and payment', p: ['In a real launch this would list the seller’s full details (sole-proprietor/company name, tax codes, address, contacts) per the Law “On Electronic Commerce” No. 675-VII. Payment goes through the WayForPay service; you enter your card on its secure page.'] },
         { h: 'Refunds', p: ['As this is a digital service unlocked immediately after payment, you may request a refund if the feature does not work properly. Submit refund requests via the service contact.'] },

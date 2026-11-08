@@ -21,7 +21,7 @@ public class VaccinationService
     public record DoseDto(int Id, string InfectionKey, string InfectionUk, string InfectionEn,
         int DoseNumber, string RuleType, int RuleValueMonths, string Source);
 
-    public record RecordDto(int Id, int? VaccineDoseId, string? CustomName, DateTime DoneDate, string? Note);
+    public record RecordDto(int Id, int? VaccineDoseId, string? CustomName, int? DoseCount, DateTime DoneDate, string? Note);
 
     public record VaccinationDataDto(List<DoseDto> Doses, List<RecordDto> Records);
 
@@ -36,14 +36,14 @@ public class VaccinationService
         var records = await _db.UserVaccinations
             .Where(x => x.UserId == userId)
             .OrderBy(x => x.DoneDate)
-            .Select(x => new RecordDto(x.Id, x.VaccineDoseId, x.CustomName, x.DoneDate, x.Note))
+            .Select(x => new RecordDto(x.Id, x.VaccineDoseId, x.CustomName, x.DoseCount, x.DoneDate, x.Note))
             .ToListAsync();
         return new VaccinationDataDto(doses, records);
     }
 
     // Відмітити дозу як виконану (або додати власне щеплення). Для дози довідника запис унікальний:
     // якщо вже є — оновлюємо дату/примітку (ідемпотентний «галочка» в чеклісті).
-    public async Task<int> AddRecordAsync(int userId, int? doseId, string? customName, DateTime doneDate, string? note)
+    public async Task<int> AddRecordAsync(int userId, int? doseId, string? customName, int? doseCount, DateTime doneDate, string? note)
     {
         var name = Trim(customName);
         if (doseId is null && name is null)
@@ -70,6 +70,7 @@ public class VaccinationService
             UserId = userId,
             VaccineDoseId = doseId,
             CustomName = doseId is null ? Clamp(name, TextLimits.Name) : null,
+            DoseCount = doseId is null ? ClampCount(doseCount) : null,
             DoneDate = doneDate,
             Note = Clamp(note, TextLimits.Note),
         };
@@ -78,12 +79,21 @@ public class VaccinationService
         return rec.Id;
     }
 
-    public async Task<bool> UpdateRecordAsync(int userId, int id, DateTime doneDate, string? note)
+    // Оновлення запису. Для власного щеплення (VaccineDoseId == null) дозволяємо міняти назву й
+    // кількість доз (якщо передані); дату/примітку міняємо завжди. Для дози довідника назва/
+    // кількість фіксовані (вони з наказу) — ігноруємо ці поля.
+    public async Task<bool> UpdateRecordAsync(int userId, int id, DateTime doneDate, string? note, string? customName, int? doseCount)
     {
         var rec = await _db.UserVaccinations.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         if (rec is null) return false;
         rec.DoneDate = doneDate;
         rec.Note = Clamp(note, TextLimits.Note);
+        if (rec.VaccineDoseId is null)
+        {
+            var name = Clamp(customName, TextLimits.Name);
+            if (name is not null) rec.CustomName = name;
+            if (doseCount is not null) rec.DoseCount = ClampCount(doseCount);
+        }
         await _db.SaveChangesAsync();
         return true;
     }
@@ -96,6 +106,9 @@ public class VaccinationService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    // Кількість доз власного щеплення — у розумних межах [1,20]; null/нечисло → null.
+    private static int? ClampCount(int? n) => n is int v ? Math.Clamp(v, 1, 20) : null;
 
     private static string? Trim(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
     private static string? Clamp(string? s, int max)

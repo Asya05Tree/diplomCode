@@ -203,6 +203,7 @@ export default function Register({ onRegistered }) {
             <Link to="/terms" target="_blank" rel="noreferrer">{t('legal.termsTitle')}</Link>
           </span>
         </label>
+        <p className="auth-note">{t('register.ageNote')}</p>
 
         {error && <p className="auth-error">{error}</p>}
 

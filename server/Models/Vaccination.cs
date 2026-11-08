@@ -31,6 +31,7 @@ public class UserVaccination
     public int? VaccineDoseId { get; set; }        // null → власне щеплення поза календарем
     public VaccineDose? VaccineDose { get; set; }
     public string? CustomName { get; set; }        // назва для щеплення поза довідником
+    public int? DoseCount { get; set; }            // кількість доз (лише для власного щеплення; редаговане)
     public DateTime DoneDate { get; set; }         // дата проведення
     public string? Note { get; set; }
 }

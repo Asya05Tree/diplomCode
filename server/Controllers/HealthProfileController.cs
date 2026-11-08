@@ -57,12 +57,13 @@ public class HealthProfileController : ControllerBase
             _db.UserProfiles.Add(profile);
         }
 
-        // Реалістичні межі (захист БД навіть в обхід UI): зріст 30–300 см, вага 1–500 кг, вік 1–120 років.
+        // Реалістичні межі (захист БД навіть в обхід UI): зріст 90–250 см, вага 10–400 кг, вік 6–120 років.
+        // Мінімальний вік користувача — 6 (узгоджено з Умовами користування та utils/validation.js).
         var nowYear = DateTime.Now.Year;
-        if (TryProp(body, "height", out var hEl)) profile.Height = ClampNullable(hEl, 30, 300);
-        if (TryProp(body, "weight", out var wEl)) profile.Weight = ClampNullable(wEl, 1, 500);
+        if (TryProp(body, "height", out var hEl)) profile.Height = ClampNullable(hEl, 90, 250);
+        if (TryProp(body, "weight", out var wEl)) profile.Weight = ClampNullable(wEl, 10, 400);
         if (TryProp(body, "birthYear", out var byEl))
-            profile.BirthYear = ClampNullable(byEl, nowYear - 120, nowYear - 1) is double b ? (int)b : null;
+            profile.BirthYear = ClampNullable(byEl, nowYear - 120, nowYear - 6) is double b ? (int)b : null;
         await _db.SaveChangesAsync();
         return Ok();
     }

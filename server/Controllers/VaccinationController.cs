@@ -7,10 +7,13 @@ namespace Server.Controllers;
 
 // [StringLength] → 400 на завеликому рядку (обхід клієнтського maxLength) — ПЛАН P2-2.
 public record VaccinationRecordRequest(int? DoseId,
-    [StringLength(TextLimits.Name)] string? CustomName, DateTime DoneDate,
+    [StringLength(TextLimits.Name)] string? CustomName, int? DoseCount, DateTime DoneDate,
     [StringLength(TextLimits.Note)] string? Note);
 
-public record VaccinationUpdateRequest(DateTime DoneDate, [StringLength(TextLimits.Note)] string? Note);
+// Для власного щеплення дозволяємо редагувати назву й кількість доз (CustomName/DoseCount);
+// для дози довідника ці поля сервіс ігнорує.
+public record VaccinationUpdateRequest(DateTime DoneDate, [StringLength(TextLimits.Note)] string? Note,
+    [StringLength(TextLimits.Name)] string? CustomName, int? DoseCount);
 
 // Щеплення (вкладка "Здоров'я"): системний довідник доз + відмітки користувача. Планування візиту
 // для майбутньої дози переюзає чекап (api/checkup). Логіка — у VaccinationService.
@@ -39,7 +42,7 @@ public class VaccinationController : ControllerBase
             return BadRequest(new { error = "missing_dose_or_name" });
         try
         {
-            var id = await _vacc.AddRecordAsync(CurrentUserId, r.DoseId, r.CustomName, r.DoneDate, r.Note);
+            var id = await _vacc.AddRecordAsync(CurrentUserId, r.DoseId, r.CustomName, r.DoseCount, r.DoneDate, r.Note);
             return Ok(new { id });
         }
         catch (ArgumentException)
@@ -50,7 +53,7 @@ public class VaccinationController : ControllerBase
 
     [HttpPut("records/{id}")]
     public async Task<IActionResult> UpdateRecord(int id, [FromBody] VaccinationUpdateRequest r) =>
-        await _vacc.UpdateRecordAsync(CurrentUserId, id, r.DoneDate, r.Note) ? Ok() : NotFound();
+        await _vacc.UpdateRecordAsync(CurrentUserId, id, r.DoneDate, r.Note, r.CustomName, r.DoseCount) ? Ok() : NotFound();
 
     [HttpDelete("records/{id}")]
     public async Task<IActionResult> DeleteRecord(int id) =>
