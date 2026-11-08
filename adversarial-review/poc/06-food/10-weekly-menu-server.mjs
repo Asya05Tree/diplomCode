@@ -1,54 +1,61 @@
-// ПЛАН P3-3 — тижневе меню «Їжі» тепер зберігається НА СЕРВЕРІ (було лише в localStorage браузера,
-// губилося при зміні пристрою). Перевіряємо: GET/PUT round-trip, фільтрацію неіснуючих рецептів,
-// межі днів, і що збережене видно «з іншого пристрою» (інший токен того самого акаунта).
+// ПЛАН P3-3 + problems.md #4 — тижневе меню «Їжі» зберігається НА СЕРВЕРІ за КОНКРЕТНОЮ ДАТОЮ
+// (було за індексом дня тижня → зсувалося щотижня й не мало історії). Перевіряємо: GET діапазону,
+// PUT одного дня (add/clear), фільтрацію неіснуючих рецептів, межу MaxMenuItemsPerDay, ІСТОРІЮ
+// (минула дата лишається й не впливає на поточний тиждень), крос-пристрій (інший токен) і валідацію.
 import { provision, api } from '../_lib/provision.mjs'
 
 const tag = Math.random().toString(36).slice(2, 7)
 const u = await provision({ email: `adv.t06.menu.${tag}@gmail.com` })
 
-// Беремо кілька справжніх recipeId з overview.
 const ov = await api('GET', '/api/food/overview', { token: u.token })
 const recipeIds = (ov.json?.recipes || []).map((r) => r.id).slice(0, 3)
 console.log('recipeIds for test =', JSON.stringify(recipeIds))
 
-// 1) Початково меню порожнє (усі 7 днів).
-const empty = await api('GET', '/api/food/menu', { token: u.token })
-const allEmpty = [1,2,3,4,5,6,7].every((d) => Array.isArray(empty.json?.[d]) && empty.json[d].length === 0)
-console.log('initial GET /menu ->', empty.status, 'allEmpty=', allEmpty)
+const WK = 'from=2026-11-09&to=2026-11-15'
 
-// 2) PUT меню: день 1 — два рецепти (з повтором), день 3 — один; + сміття (неіснуючий id, день 9).
-const put = await api('PUT', '/api/food/menu', { token: u.token, body: { menu: {
-  1: [recipeIds[0], recipeIds[1], recipeIds[0]],
-  3: [recipeIds[2]],
-  9: [recipeIds[0]],           // поза 1..7 — має бути відкинуто
-  2: [99999999],               // неіснуючий рецепт — має бути відфільтровано
-} } })
-console.log('PUT /menu ->', put.status)
+// 1) Початково діапазон порожній.
+const empty = await api('GET', `/api/food/menu?${WK}`, { token: u.token })
+const emptyOk = empty.status === 200 && Object.keys(empty.json || {}).length === 0
 
-// 3) GET назад: збереглося рівно те, що валідне.
-const back = await api('GET', '/api/food/menu', { token: u.token })
-const day1 = back.json?.[1] || []
-const day2 = back.json?.[2] || []
-const day3 = back.json?.[3] || []
-console.log('after PUT: day1=', JSON.stringify(day1), 'day2=', JSON.stringify(day2), 'day3=', JSON.stringify(day3))
+// 2) PUT день 2026-11-10: два рецепти з повтором + сміття (неіснуючий id відфільтрується).
+const put = await api('PUT', '/api/food/menu/2026-11-10', { token: u.token, body: {
+  recipeIds: [recipeIds[0], recipeIds[1], recipeIds[0], 99999999] } })
 
-// 4) «Інший пристрій»: повторний вхід у той самий акаунт (новий токен, той самий userId) бачить меню.
+// 3) GET назад: збереглося рівно валідне (порядок і повтори — так, неіснуючий — ні).
+const back = await api('GET', `/api/food/menu?${WK}`, { token: u.token })
+const day = back.json?.['2026-11-10'] || []
+console.log('after PUT day 2026-11-10 =', JSON.stringify(day))
+
+// 4) Історія: минула дата лишається й НЕ впливає на поточний тиждень.
+await api('PUT', '/api/food/menu/2026-01-05', { token: u.token, body: { recipeIds: [recipeIds[0]] } })
+const hist = await api('GET', 'from=2026-01-01&to=2026-01-07'.replace(/^/, '/api/food/menu?'), { token: u.token })
+const histOk = JSON.stringify(hist.json?.['2026-01-05'] || []) === JSON.stringify([recipeIds[0]])
+const curAfterHist = await api('GET', `/api/food/menu?${WK}`, { token: u.token })
+const noShift = !(curAfterHist.json?.['2026-01-05'])
+
+// 5) Очищення дня.
+await api('PUT', '/api/food/menu/2026-11-10', { token: u.token, body: { recipeIds: [] } })
+const cleared = await api('GET', `/api/food/menu?${WK}`, { token: u.token })
+const clearOk = !(cleared.json?.['2026-11-10'])
+
+// 6) «Інший пристрій»: повторний вхід (новий токен, той самий userId) бачить історію.
 const u2 = await provision({ email: `adv.t06.menu.${tag}@gmail.com` })
-const other = await api('GET', '/api/food/menu', { token: u2.token })
-const sameOnOtherDevice = u2.userId === u.userId && JSON.stringify(other.json?.[1] || []) === JSON.stringify(day1)
-console.log('other-device (re-login) userId match=', u2.userId === u.userId, 'day1=', JSON.stringify(other.json?.[1] || []), 'same=', sameOnOtherDevice)
+const other = await api('GET', '/api/food/menu?from=2026-01-01&to=2026-01-07', { token: u2.token })
+const crossDevice = u2.userId === u.userId && JSON.stringify(other.json?.['2026-01-05'] || []) === JSON.stringify([recipeIds[0]])
+
+// 7) Валідація поганих параметрів.
+const badRange = await api('GET', '/api/food/menu?from=xxx&to=2026-11-15', { token: u.token })
+const badDate = await api('PUT', '/api/food/menu/not-a-date', { token: u.token, body: { recipeIds: [] } })
 
 const refuted =
-  empty.status === 200 && allEmpty &&
-  put.status === 200 &&
-  JSON.stringify(day1) === JSON.stringify([recipeIds[0], recipeIds[1], recipeIds[0]]) &&
-  day2.length === 0 &&                                   // неіснуючий відфільтровано
-  JSON.stringify(day3) === JSON.stringify([recipeIds[2]]) &&
-  !(back.json?.[9]) &&                                   // день поза межами не збережено
-  sameOnOtherDevice
+  emptyOk && put.status === 200 &&
+  JSON.stringify(day) === JSON.stringify([recipeIds[0], recipeIds[1], recipeIds[0]]) &&
+  histOk && noShift && clearOk && crossDevice &&
+  badRange.status === 400 && badDate.status === 400
 
 console.log('\n' + (refuted
-  ? 'REFUTED — меню зберігається на сервері: round-trip точний (порядок і повтори збережено), неіснуючі ' +
-    'рецепти й дні поза 1..7 відкинуто, і воно видно з іншого пристрою (інший токен). localStorage більше не єдине джерело.'
-  : 'CONFIRMED/partial — empty=' + allEmpty + ' put=' + put.status + ' day1=' + JSON.stringify(day1) +
-    ' day2=' + JSON.stringify(day2) + ' day3=' + JSON.stringify(day3) + ' other=' + sameOnOtherDevice))
+  ? 'REFUTED — меню зберігається на сервері ЗА ДАТОЮ: round-trip точний, неіснуючі рецепти відкинуто, ' +
+    'є ІСТОРІЯ (минула дата лишається й не зсуває поточний тиждень), очищення/крос-пристрій працюють, ' +
+    'погані параметри → 400. localStorage більше не джерело.'
+  : `CONFIRMED/partial — empty=${emptyOk} put=${put.status} day=${JSON.stringify(day)} hist=${histOk} ` +
+    `noShift=${noShift} clear=${clearOk} cross=${crossDevice} badRange=${badRange.status} badDate=${badDate.status}`))
