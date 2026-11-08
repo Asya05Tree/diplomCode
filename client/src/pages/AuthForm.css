@@ -176,3 +176,150 @@
   margin: 0;
 }
 .auth-checkbox span a { color: var(--color-accent, var(--color-tasks)); }
+
+/* ===== Реєстрація: ілюстрація ліворуч + широка форма праворуч ===== */
+.register-page {
+  flex: 1;
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+.register-hero {
+  flex: 1 1 42%;
+  max-width: 560px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 25%, var(--color-accent-soft), transparent 60%),
+    var(--color-surface-2);
+}
+.register-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.register-formside {
+  flex: 1 1 58%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(16px, 3vw, 28px);
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 85% 8%, var(--color-accent-soft), transparent 45%),
+    var(--color-bg);
+}
+.register-topbar {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.register-brand {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--color-heading);
+}
+
+/* Широка форма: поля у дві колонки (не висока, а широка) */
+.auth-form--wide {
+  max-width: 760px;
+}
+.auth-form-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+.auth-col {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-col-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-heading);
+  padding: 0;
+  margin-bottom: 2px;
+}
+.auth-links-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+/* ===== Елементи керування виглядом на auth-сторінках (колір + мова + тема) ===== */
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.auth-palette {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.auth-palette-label { white-space: nowrap; }
+.auth-palette-select {
+  min-height: 34px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+.auth-lang-btn {
+  min-width: 36px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.auth-lang-btn:hover { background: var(--color-accent-soft); border-color: var(--color-accent); }
+.auth-theme-icon { width: 18px; height: 18px; color: var(--color-text-muted); }
+
+/* Плаваючі елементи керування (Вхід / Відновлення пароля) — зверху праворуч */
+.auth-floating {
+  position: fixed;
+  top: 16px;
+  right: 18px;
+  z-index: 20;
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 860px) {
+  .register-page { flex-direction: column; }
+  .register-hero { flex: 0 0 170px; max-width: none; width: 100%; }
+  .auth-form-cols { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  /* Плаваючі контролі лишаються fixed (login-page — нерозривний flex-рядок), але компактніші */
+  .auth-floating { top: 10px; right: 10px; padding: 5px 8px; }
+  .auth-controls { gap: 8px; }
+  .auth-palette-label { display: none; }
+  .register-topbar { justify-content: center; }
+}

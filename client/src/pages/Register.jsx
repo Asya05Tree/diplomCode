@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { sendCode, register } from '../api/client'
 import CodeInput from '../components/CodeInput'
+import AuthControls from '../components/AuthControls'
 import {
   filterNickname,
   filterEmailChars,
@@ -30,7 +31,7 @@ function errorKeyToMessage(t, error, fallbackKey) {
   return t(map[error.message] ?? fallbackKey)
 }
 
-export default function Register({ onRegistered }) {
+export default function Register({ onRegistered, themeMode, onSetThemeMode, palette, onSetPalette }) {
   const { t } = useI18n()
   const [nickname, setNickname] = useState('')
   const [gender, setGender] = useState('female')
@@ -97,120 +98,152 @@ export default function Register({ onRegistered }) {
   }
 
   return (
-    <div className="auth-page">
-      <form className="card auth-form" onSubmit={handleSubmit}>
-        <h2>{t('register.title')}</h2>
+    <div className="register-page">
+      {/* Ліворуч — ілюстрація; праворуч — широка форма у дві колонки */}
+      <aside className="register-hero" aria-hidden="true">
+        <img src="/images/hero-image.png" alt="" className="register-hero-img" />
+      </aside>
 
-        <label>
-          {t('register.nickname')}
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(filterNickname(e.target.value))}
-            minLength={2}
-            required
+      <div className="register-formside">
+        <div className="register-topbar">
+          <span className="register-brand">Всетута</span>
+          <AuthControls
+            themeMode={themeMode}
+            onSetThemeMode={onSetThemeMode}
+            palette={palette}
+            onSetPalette={onSetPalette}
           />
-        </label>
+        </div>
 
-        <label>
-          {t('register.gender')}
-          <select value={gender} onChange={(e) => setGender(e.target.value)}>
-            {GENDER_OPTIONS.map((g) => (
-              <option key={g} value={g}>{t(`register.gender.${g}`)}</option>
-            ))}
-          </select>
-        </label>
+        <form className="card auth-form auth-form--wide" onSubmit={handleSubmit}>
+          <h2>{t('register.title')}</h2>
 
-        <fieldset className="auth-choice">
-          <legend>{t('register.studentType')}</legend>
-          <div className="auth-choice-row">
-            {STUDENT_TYPES.map((type) => (
-              <label key={type} className="auth-radio">
+          <div className="auth-form-cols">
+            {/* Колонка 1 — про користувача */}
+            <fieldset className="auth-col">
+              <legend className="auth-col-title">{t('register.sectionAbout')}</legend>
+
+              <label>
+                {t('register.nickname')}
                 <input
-                  type="radio"
-                  name="studentType"
-                  value={type}
-                  checked={studentType === type}
-                  onChange={() => setStudentType(type)}
+                  value={nickname}
+                  onChange={(e) => setNickname(filterNickname(e.target.value))}
+                  minLength={2}
+                  required
                 />
-                {t(`register.studentType.${type}`)}
               </label>
-            ))}
+
+              <label>
+                {t('register.gender')}
+                <select value={gender} onChange={(e) => setGender(e.target.value)}>
+                  {GENDER_OPTIONS.map((g) => (
+                    <option key={g} value={g}>{t(`register.gender.${g}`)}</option>
+                  ))}
+                </select>
+              </label>
+
+              <fieldset className="auth-choice">
+                <legend>{t('register.studentType')}</legend>
+                <div className="auth-choice-row">
+                  {STUDENT_TYPES.map((type) => (
+                    <label key={type} className="auth-radio">
+                      <input
+                        type="radio"
+                        name="studentType"
+                        value={type}
+                        checked={studentType === type}
+                        onChange={() => setStudentType(type)}
+                      />
+                      {t(`register.studentType.${type}`)}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              {studentType === 'pupil' && (
+                <p className="auth-note">{t('register.pupilNote')}</p>
+              )}
+
+              <label className="auth-checkbox">
+                <input type="checkbox" checked={isWorking} onChange={(e) => setIsWorking(e.target.checked)} />
+                {t('register.working')}
+              </label>
+            </fieldset>
+
+            {/* Колонка 2 — обліковий запис */}
+            <fieldset className="auth-col">
+              <legend className="auth-col-title">{t('register.sectionAccount')}</legend>
+
+              <label>
+                {t('register.email')}
+                <div className="auth-inline">
+                  <input
+                    type="text"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(filterEmailChars(e.target.value))}
+                    maxLength={EMAIL_MAX_LENGTH}
+                    required
+                  />
+                  <button type="button" onClick={handleSendCode} disabled={busy || !email}>
+                    {codeSent ? t('register.codeResend') : t('register.sendCode')}
+                  </button>
+                </div>
+              </label>
+
+              <label>
+                {t('register.code')}
+                <CodeInput value={code} onChange={setCode} length={6} />
+              </label>
+
+              <label>
+                {t('register.password')}
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value.slice(0, PASSWORD_MAX_LENGTH))}
+                  minLength={PASSWORD_MIN_LENGTH}
+                  maxLength={PASSWORD_MAX_LENGTH}
+                  required
+                />
+              </label>
+
+              <label>
+                {t('register.confirmPassword')}
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value.slice(0, PASSWORD_MAX_LENGTH))}
+                  minLength={PASSWORD_MIN_LENGTH}
+                  maxLength={PASSWORD_MAX_LENGTH}
+                  required
+                />
+              </label>
+            </fieldset>
           </div>
-        </fieldset>
 
-        {studentType === 'pupil' && (
-          <p className="auth-note">{t('register.pupilNote')}</p>
-        )}
+          {/* На всю ширину — згода, вікова примітка, помилка, кнопка та посилання */}
+          <label className="auth-checkbox">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+            <span>
+              {t('register.consentPre')}{' '}
+              <Link to="/privacy" target="_blank" rel="noreferrer">{t('legal.privacyTitle')}</Link>
+              {' '}{t('register.consentAnd')}{' '}
+              <Link to="/terms" target="_blank" rel="noreferrer">{t('legal.termsTitle')}</Link>
+            </span>
+          </label>
+          <p className="auth-note">{t('register.ageNote')}</p>
 
-        <label className="auth-checkbox">
-          <input type="checkbox" checked={isWorking} onChange={(e) => setIsWorking(e.target.checked)} />
-          {t('register.working')}
-        </label>
+          {error && <p className="auth-error">{error}</p>}
 
-        <label>
-          {t('register.email')}
-          <div className="auth-inline">
-            <input
-              type="text"
-              inputMode="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(filterEmailChars(e.target.value))}
-              maxLength={EMAIL_MAX_LENGTH}
-              required
-            />
-            <button type="button" onClick={handleSendCode} disabled={busy || !email}>
-              {codeSent ? t('register.codeResend') : t('register.sendCode')}
-            </button>
+          <button type="submit" className="auth-submit" disabled={busy}>{t('register.submit')}</button>
+          <div className="auth-links-row">
+            <Link to="/login" className="auth-link">{t('auth.haveAccount')}</Link>
+            <Link to="/" className="auth-link">{t('auth.back')}</Link>
           </div>
-        </label>
-
-        <label>
-          {t('register.code')}
-          <CodeInput value={code} onChange={setCode} length={6} />
-        </label>
-
-        <label>
-          {t('register.password')}
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value.slice(0, PASSWORD_MAX_LENGTH))}
-            minLength={PASSWORD_MIN_LENGTH}
-            maxLength={PASSWORD_MAX_LENGTH}
-            required
-          />
-        </label>
-
-        <label>
-          {t('register.confirmPassword')}
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value.slice(0, PASSWORD_MAX_LENGTH))}
-            minLength={PASSWORD_MIN_LENGTH}
-            maxLength={PASSWORD_MAX_LENGTH}
-            required
-          />
-        </label>
-
-        <label className="auth-checkbox">
-          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-          <span>
-            {t('register.consentPre')}{' '}
-            <Link to="/privacy" target="_blank" rel="noreferrer">{t('legal.privacyTitle')}</Link>
-            {' '}{t('register.consentAnd')}{' '}
-            <Link to="/terms" target="_blank" rel="noreferrer">{t('legal.termsTitle')}</Link>
-          </span>
-        </label>
-        <p className="auth-note">{t('register.ageNote')}</p>
-
-        {error && <p className="auth-error">{error}</p>}
-
-        <button type="submit" className="auth-submit" disabled={busy}>{t('register.submit')}</button>
-        <Link to="/login" className="auth-link">{t('auth.haveAccount')}</Link>
-        <Link to="/" className="auth-link">{t('auth.back')}</Link>
-      </form>
+        </form>
+      </div>
     </div>
   )
 }

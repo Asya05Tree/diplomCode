@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import { PALETTES } from '../utils/settings'
 import './Legal.css'
 
 // Юридично-інформаційні сторінки (Політика конфіденційності / Умови й оферта). Довгий текст тримаємо
@@ -73,8 +74,8 @@ const CONTENT = {
   },
 }
 
-export default function Legal({ doc, themeMode, onSetThemeMode }) {
-  const { language, setLanguage } = useI18n()
+export default function Legal({ doc, themeMode, onSetThemeMode, palette, onSetPalette }) {
+  const { t, language, setLanguage } = useI18n()
   const lang = language === 'en' ? 'en' : 'uk'
   const data = CONTENT[doc][lang]
   const otherDoc = doc === 'privacy' ? 'terms' : 'privacy'
@@ -84,6 +85,20 @@ export default function Legal({ doc, themeMode, onSetThemeMode }) {
       <header className="legal-top">
         <Link to="/" className="legal-brand">Всетута</Link>
         <div className="legal-top-actions">
+          {onSetPalette && (
+            <label className="auth-palette">
+              <span className="auth-palette-label">{t('landing.colorLabel')}</span>
+              <select
+                className="auth-palette-select"
+                value={palette}
+                onChange={(e) => onSetPalette(e.target.value)}
+              >
+                {PALETTES.map((name) => (
+                  <option key={name} value={name}>{t(`settings.palette.${name}`)}</option>
+                ))}
+              </select>
+            </label>
+          )}
           {onSetThemeMode && (
             <button
               type="button"

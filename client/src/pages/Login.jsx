@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { login } from '../api/client'
+import AuthControls from '../components/AuthControls'
 import { filterEmailChars, isValidEmailFormat, EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH } from '../utils/authValidation'
 import './AuthForm.css'
 import './Login.css'
 
-export default function Login({ onLoggedIn }) {
+export default function Login({ onLoggedIn, themeMode, onSetThemeMode, palette, onSetPalette }) {
   const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -36,6 +37,14 @@ export default function Login({ onLoggedIn }) {
 
   return (
     <div className="login-page">
+      <div className="auth-floating">
+        <AuthControls
+          themeMode={themeMode}
+          onSetThemeMode={onSetThemeMode}
+          palette={palette}
+          onSetPalette={onSetPalette}
+        />
+      </div>
       <div className="login-side">
         <form className="card auth-form" onSubmit={handleSubmit}>
           <h2>{t('login.title')}</h2>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { forgotPassword, resetPassword } from '../api/client'
 import CodeInput from '../components/CodeInput'
+import AuthControls from '../components/AuthControls'
 import {
   filterEmailChars, isValidEmailFormat, isGmailAddress, EMAIL_MAX_LENGTH,
   PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH,
@@ -19,8 +20,18 @@ function errorKeyToMessage(t, error, fallbackKey) {
   return t(map[error.message] ?? fallbackKey)
 }
 
-export default function ResetPassword() {
+export default function ResetPassword({ themeMode, onSetThemeMode, palette, onSetPalette }) {
   const { t } = useI18n()
+  const controls = (
+    <div className="auth-floating">
+      <AuthControls
+        themeMode={themeMode}
+        onSetThemeMode={onSetThemeMode}
+        palette={palette}
+        onSetPalette={onSetPalette}
+      />
+    </div>
+  )
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
@@ -64,6 +75,7 @@ export default function ResetPassword() {
   if (done) {
     return (
       <div className="auth-page">
+        {controls}
         <div className="card auth-form">
           <h2>{t('reset.title')}</h2>
           <p className="auth-note">{t('reset.done')}</p>
@@ -77,6 +89,7 @@ export default function ResetPassword() {
 
   return (
     <div className="auth-page">
+      {controls}
       <form className="card auth-form" onSubmit={handleSubmit}>
         <h2>{t('reset.title')}</h2>
         <p className="auth-note">{t('reset.subtitle')}</p>

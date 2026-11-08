@@ -231,8 +231,8 @@ function AppContent() {
           )}
         />
         {/* Юридичні сторінки — публічні (доступні й до входу, і з футера застосунку) */}
-        <Route path="/privacy" element={<Legal doc="privacy" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} />} />
-        <Route path="/terms" element={<Legal doc="terms" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} />} />
+        <Route path="/privacy" element={<Legal doc="privacy" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} palette={palette} onSetPalette={handleSetPalette} />} />
+        <Route path="/terms" element={<Legal doc="terms" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} palette={palette} onSetPalette={handleSetPalette} />} />
         <Route
           path="/app"
           element={
