@@ -17,10 +17,13 @@ import {
   removeShoppingItem,
   setItemCategory,
   checkItem,
-  submitReceiptTotal,
   planTrip,
 } from '../api/shopping'
 import './ShoppingList.css'
+
+// Запобіжник: автопідбір докупівлі ніколи не бере більше стількох позицій за один раз
+// (щоб підбір «під бюджет» не перетворювався на весь список).
+const MAX_AUTO_ITEMS = 20
 
 // planner-spec.md §3.8 + spisok-pokupok.md — список покупок на бекенді. Позиції показуються
 // картками з фільтром за розділом; розділ і категорія визначаються автоматично за назвою (можна
@@ -46,16 +49,12 @@ export default function ShoppingList() {
   const [checkingId, setCheckingId] = useState(null)
   const [checkPrice, setCheckPrice] = useState('')
 
-  // Позиції, відмічені САМЕ в цьому поході (цьому сеансі). Чек списує лише їх, а не всі колись
-  // відмічені — інакше давні позиції з минулих походів потрапляли б у новий чек.
-  const [tripItemIds, setTripItemIds] = useState([])
-
-  // Сума чека та її розподіл по позиціях без ціни.
-  const [receiptTotal, setReceiptTotal] = useState('')
-  const [receiptResult, setReceiptResult] = useState(null)
-
-  // Докупити в межах бюджету: сума (грн) або кількість позицій — залежно від покриття цінами.
+  // Докупити в межах бюджету: вкладка (вручну / автопідбір), режим ліміту (сума грн / кількість),
+  // саме значення ліміту та позиції, обрані вручну.
+  const [budgetTab, setBudgetTab] = useState('manual')
+  const [budgetMode, setBudgetMode] = useState('sum')
   const [budget, setBudget] = useState('')
+  const [picked, setPicked] = useState(() => new Set())
 
   const [tripTaskId, setTripTaskId] = useState(null)
 
@@ -121,8 +120,6 @@ export default function ShoppingList() {
     setCheckingId(null)
     setCheckPrice('')
     await checkItem(id, price)
-    // Запамʼятовуємо позицію як відмічену в цьому поході — щоб чек списав саме її.
-    setTripItemIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
     await reload()
   }
 
@@ -131,40 +128,45 @@ export default function ShoppingList() {
     await reload()
   }
 
-  const handleReceipt = async () => {
-    if (receiptTotal === '') return
-    const result = await submitReceiptTotal(Number(receiptTotal), tripItemIds)
-    setReceiptResult(result)
-    // Похід завершено чеком — наступний чек починає новий сеанс з чистого аркуша.
-    setTripItemIds([])
-    setReceiptTotal('')
-    await reload()
-  }
-
   const handlePlanTrip = async () => {
     const { taskId } = await planTrip()
     setTripTaskId(taskId)
   }
 
-  // Режим докупівлі: якщо відомо менше половини цін — чесно фільтруємо за КІЛЬКІСТЮ позицій,
-  // інакше — за СУМОЮ в грн (spisok-pokupok.md). Рахуємо тільки невідмічені позиції.
-  const byCount = priceCoverage.known < priceCoverage.total / 2
+  // Докупівля рахує лише невідмічені позиції. Якщо відомо менше половини цін — підбір за сумою
+  // недоступний (нема з чого рахувати), лишається лише за кількістю позицій.
   const toBuy = useMemo(() => items.filter((x) => !x.isChecked), [items])
+  const pricesScarce = priceCoverage.known < priceCoverage.total / 2
+  // Ефективний режим ліміту: за браку цін завжди за кількістю, інакше — обраний користувачем.
+  const mode = pricesScarce ? 'count' : budgetMode
+  const limit = budget === '' ? 0 : Number(budget)
 
+  // Автопідбір під ліміт (сума грн або кількість), але не більше MAX_AUTO_ITEMS позицій за раз.
   const fitItems = useMemo(() => {
-    const limit = budget === '' ? 0 : Number(budget)
     if (limit <= 0) return []
-    if (byCount) return toBuy.slice(0, limit)
+    if (mode === 'count') return toBuy.slice(0, Math.min(limit, MAX_AUTO_ITEMS))
     const fit = []
     let sum = 0
     for (const x of toBuy) {
+      if (fit.length >= MAX_AUTO_ITEMS) break
       const price = x.estimatedPrice ?? 0
       if (sum + price > limit) continue
       sum += price
       fit.push(x)
     }
     return fit
-  }, [toBuy, budget, byCount])
+  }, [toBuy, limit, mode])
+
+  // Ручний відбір: що обрано серед наявного + чи не вийшли за ліміт (суму або кількість).
+  const pickedItems = useMemo(() => toBuy.filter((x) => picked.has(x.id)), [toBuy, picked])
+  const pickedSum = pickedItems.reduce((s, x) => s + (x.estimatedPrice ?? 0), 0)
+  const overLimit = limit > 0 && (mode === 'count' ? pickedItems.length > limit : pickedSum > limit)
+  const togglePick = (id) => setPicked((prev) => {
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  })
 
   if (loading) {
     return (

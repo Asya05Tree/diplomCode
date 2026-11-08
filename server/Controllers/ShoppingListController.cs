@@ -11,10 +11,9 @@ public record AddShoppingItemRequest([StringLength(TextLimits.Code)] string Sect
     [StringLength(TextLimits.Name)] string? Category, [StringLength(TextLimits.Name)] string? Text, int? ProductId, int? MedicineId);
 public record SetShoppingCategoryRequest([StringLength(TextLimits.Name)] string? Category);
 public record CheckShoppingItemRequest(decimal? Price);
-public record ReceiptTotalRequest(decimal Total, List<int>? ItemIds);
 
 // planner-spec.md §3.8, spisok-pokupok.md. Список покупок (розділи, підказки, особисті ціни) та
-// дії над ним: додати/видалити/відмітити покупку, сума чека, запланувати похід у магазин.
+// дії над ним: додати/видалити/відмітити покупку, запланувати похід у магазин.
 [ApiController]
 [Route("api/shopping-list")]
 [Authorize]
@@ -63,15 +62,6 @@ public class ShoppingListController : ControllerBase
     {
         var ok = await _shoppingService.CheckItemAsync(CurrentUserId, id, request.Price);
         return ok ? Ok() : NotFound();
-    }
-
-    [HttpPost("receipt-total")]
-    public async Task<IActionResult> ReceiptTotal([FromBody] ReceiptTotalRequest request)
-    {
-        // Валідація суми й облік залишку — у сервісі (єдина межа безпеки). Чек стосується лише позицій
-        // цього походу: їх id клієнт бере зі свого сеансу відмітки й передає в ItemIds.
-        var split = await _shoppingService.ApplyReceiptTotalAsync(CurrentUserId, request.Total, request.ItemIds);
-        return Ok(split);
     }
 
     [HttpPost("plan-trip")]
