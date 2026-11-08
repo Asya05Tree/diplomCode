@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { PALETTES, PALETTE_COLORS, DATE_FORMATS, TIME_FORMATS } from '../utils/settings'
 import { formatDateFor, clockFor } from '../utils/date'
@@ -359,6 +359,15 @@ export default function Settings() {
                 </button>
               </div>
               <p className="settings-hint">{t('settings.account.wipeHint')}</p>
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <h3>{t('settings.legal.title')}</h3>
+            <p className="settings-hint">{t('settings.legal.hint')}</p>
+            <div className="settings-legal-links">
+              <Link to="/privacy">{t('legal.privacyTitle')}</Link>
+              <Link to="/terms">{t('legal.termsTitle')}</Link>
             </div>
           </section>
         </>

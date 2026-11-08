@@ -25,6 +25,7 @@ function errorKeyToMessage(t, error, fallbackKey) {
     email_taken: 'register.errorEmailTaken',
     invalid_code: 'register.errorInvalidCode',
     invalid_password_length: 'register.errorPasswordTooShort',
+    consent_required: 'register.errorConsentRequired',
   }
   return t(map[error.message] ?? fallbackKey)
 }
@@ -40,6 +41,7 @@ export default function Register({ onRegistered }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [codeSent, setCodeSent] = useState(false)
+  const [consent, setConsent] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -79,9 +81,13 @@ export default function Register({ onRegistered }) {
       setError(t('register.errorPasswordMismatch'))
       return
     }
+    if (!consent) {
+      setError(t('register.errorConsentRequired'))
+      return
+    }
     setBusy(true)
     try {
-      const result = await register({ nickname, gender, email, code, password, studentType, isWorking })
+      const result = await register({ nickname, gender, email, code, password, studentType, isWorking, consentAccepted: consent })
       onRegistered(result)
     } catch (err) {
       setError(errorKeyToMessage(t, err, 'register.errorFailed'))
@@ -131,6 +137,10 @@ export default function Register({ onRegistered }) {
             ))}
           </div>
         </fieldset>
+
+        {studentType === 'pupil' && (
+          <p className="auth-note">{t('register.pupilNote')}</p>
+        )}
 
         <label className="auth-checkbox">
           <input type="checkbox" checked={isWorking} onChange={(e) => setIsWorking(e.target.checked)} />
@@ -182,6 +192,16 @@ export default function Register({ onRegistered }) {
             maxLength={PASSWORD_MAX_LENGTH}
             required
           />
+        </label>
+
+        <label className="auth-checkbox">
+          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+          <span>
+            {t('register.consentPre')}{' '}
+            <Link to="/privacy" target="_blank" rel="noreferrer">{t('legal.privacyTitle')}</Link>
+            {' '}{t('register.consentAnd')}{' '}
+            <Link to="/terms" target="_blank" rel="noreferrer">{t('legal.termsTitle')}</Link>
+          </span>
         </label>
 
         {error && <p className="auth-error">{error}</p>}

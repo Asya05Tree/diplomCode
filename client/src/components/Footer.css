@@ -1,0 +1,33 @@
+/* Підвал застосунку: тихі юридичні посилання під вмістом сторінки. Не прилипає — просто завершує потік. */
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 20px;
+  padding: 20px 16px 28px;
+  margin-top: 24px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.app-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.app-footer-links a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.app-footer-links a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.app-footer-note {
+  opacity: 0.85;
+}

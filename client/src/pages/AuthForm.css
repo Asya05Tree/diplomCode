@@ -162,3 +162,15 @@
   margin: 0;
   animation: fade-in 0.2s ease both;
 }
+
+/* Пояснювальна нотатка у формі реєстрації (напр. для школярів) */
+.auth-note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0;
+}
+.auth-checkbox span a { color: var(--color-accent, var(--color-tasks)); }

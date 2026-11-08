@@ -18,8 +18,12 @@ import Settings from './pages/Settings'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
+import Legal from './pages/Legal'
+import Footer from './components/Footer'
+import HealthConsentGate from './components/HealthConsentGate'
 import { getMe, logout } from './api/client'
 import { getHealthProfile, setProfileStatus } from './api/healthProfile'
+import { giveHealthConsent } from './api/account'
 import {
   getPalette,
   getPaletteStyle,
@@ -40,6 +44,7 @@ function Layout({ studentType, isWorking, gender, outletContext }) {
         <div className="app-content" key={location.pathname}>
           <Outlet context={outletContext} />
         </div>
+        <Footer />
       </main>
     </div>
   )
@@ -59,6 +64,8 @@ function AppContent() {
   const [isWorking, setIsWorking] = useState(false)
   // Стать з профілю: керує видимістю розділу "Менструальний цикл" (лише жіноча)
   const [gender, setGender] = useState(null)
+  // Окрема явна згода на дані здоров'я/циклу (null — ще не давав; тоді модулі показують екран згоди)
+  const [healthConsentAt, setHealthConsentAt] = useState(null)
   const navigate = useNavigate()
 
   // Довантажуємо статус навчання й стать з профілю (тихо — помилка не має ламати вхід)
@@ -68,8 +75,15 @@ function AppContent() {
         setStudentType(p?.studentType ?? null)
         setIsWorking(Boolean(p?.isWorking))
         setGender(p?.gender ?? null)
+        setHealthConsentAt(p?.healthConsentAt ?? null)
       })
       .catch(() => {})
+
+  // Дав згоду на здоров'я/цикл: зберігаємо на сервері й одразу відкриваємо модулі
+  const handleHealthConsent = async () => {
+    await giveHealthConsent()
+    setHealthConsentAt(new Date().toISOString())
+  }
 
   useEffect(() => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY)
@@ -188,6 +202,9 @@ function AppContent() {
           path="/login"
           element={user ? <Navigate to="/app" replace /> : <Login onLoggedIn={handleAuthed} />}
         />
+        {/* Юридичні сторінки — публічні (доступні й до входу, і з футера застосунку) */}
+        <Route path="/privacy" element={<Legal doc="privacy" />} />
+        <Route path="/terms" element={<Legal doc="terms" />} />
         <Route
           path="/app"
           element={
@@ -201,13 +218,13 @@ function AppContent() {
           <Route index element={<Planner />} />
           <Route path="quick-add" element={<QuickAddPage />} />
           <Route path="food" element={<Food />} />
-          <Route path="health" element={<Health />} />
+          <Route path="health" element={<HealthConsentGate consented={!!healthConsentAt} onConsent={handleHealthConsent}><Health /></HealthConsentGate>} />
           <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="finance" element={<Finance />} />
           <Route path="study" element={<Study />} />
           <Route path="work" element={isWorking ? <Work /> : <Navigate to="/app" replace />} />
           <Route path="watchlist" element={<Watchlist />} />
-          <Route path="cycle" element={gender === 'female' ? <Cycle /> : <Navigate to="/app" replace />} />
+          <Route path="cycle" element={gender === 'female' ? <HealthConsentGate consented={!!healthConsentAt} onConsent={handleHealthConsent}><Cycle /></HealthConsentGate> : <Navigate to="/app" replace />} />
           <Route path="notes" element={<Notes />} />
           <Route path="settings" element={<Settings />} />
         </Route>

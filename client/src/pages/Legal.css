@@ -1,0 +1,103 @@
+/* Юридично-інформаційні сторінки: вузька читабельна колонка (~65–70 символів), спокійна типографіка,
+   однаково коректна у світлій і темній темах. Серверного рендеру немає — лише клієнт. */
+
+.legal-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.legal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 16px 20px;
+}
+
+.legal-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.legal-lang {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 36px;
+}
+
+.legal-lang:hover {
+  background: var(--color-surface-2);
+}
+
+.legal-doc {
+  max-width: 44rem;          /* обмежена довжина рядка для читабельності (D2) */
+  margin: 0 auto;
+  padding: 8px 20px 64px;
+}
+
+.legal-doc h1 {
+  font-size: clamp(22px, 4vw, 28px);
+  color: var(--color-heading);
+  margin: 12px 0 8px;
+}
+
+.legal-intro {
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.legal-section {
+  margin-top: 24px;
+}
+
+.legal-section h2 {
+  font-size: 17px;
+  color: var(--color-heading);
+  margin-bottom: 8px;
+}
+
+.legal-section p {
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0 0 10px;
+}
+
+.legal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.legal-nav a {
+  color: var(--color-accent, var(--color-tasks));
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.legal-nav a:hover {
+  text-decoration: underline;
+}
+
+/* Телефон: ще трохи повітря по боках і менші відступи зверху */
+@media (max-width: 480px) {
+  .legal-top,
+  .legal-doc {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
