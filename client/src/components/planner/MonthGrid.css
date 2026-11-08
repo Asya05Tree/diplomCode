@@ -152,12 +152,23 @@
 .month-grid-cell-num {
   line-height: 1;
 }
+/* Іконки-мітки (робота/менструація) мусять читатись на БУДЬ-ЯКІЙ заливці клітинки
+   (прозора, busy-акцент, обрана): контрастна підкладка-диск + щільніший колір. Раніше
+   11px без підкладки й блідий --color-work зливались із заливкою (скарга на читабельність). */
+.month-grid-cell-work,
 .month-grid-cell-blood {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 11px;
-  height: 11px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  padding: 1.5px;
+  box-sizing: content-box;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+.month-grid-cell-blood {
+  right: 2px;
   color: var(--color-danger);
 }
 .month-grid-cell--period {
@@ -166,20 +177,18 @@
 .month-grid-cell--period:hover {
   background: color-mix(in srgb, var(--color-danger) 24%, transparent);
 }
-/* На обраному (акцентна заливка) та сьогоднішньому дні крапля лишається помітною */
-.month-grid-cell--selected .month-grid-cell-blood {
-  color: var(--color-on-accent);
-}
 
-/* Робочий день — іконка роботи ліворуч зверху (не конфліктує з краплею праворуч) */
+/* Робочий день — іконка роботи ліворуч зверху (не конфліктує з краплею праворуч).
+   Колір підмішуємо з кольором заголовка — блідий --color-work сам по собі нечитаємий. */
 .month-grid-cell-work {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 11px;
-  height: 11px;
-  color: var(--color-work);
+  left: 2px;
+  color: color-mix(in srgb, var(--color-work) 50%, var(--color-heading));
 }
-.month-grid-cell--selected .month-grid-cell-work {
+/* На обраній (акцентна заливка) клітинці — диск прозорий, а іконки беруть колір "на акценті",
+   щоб не було білих кружечків поверх градієнта. */
+.month-grid-cell--selected .month-grid-cell-work,
+.month-grid-cell--selected .month-grid-cell-blood {
+  background: transparent;
+  box-shadow: none;
   color: var(--color-on-accent);
 }

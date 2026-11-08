@@ -247,8 +247,13 @@
 .cycle-settings-row--select { margin-top: 14px; }
 .cycle-settings-row--select select { min-height: 38px; padding: 6px 10px; }
 
-@media (max-width: 760px) {
+/* Дві панелі (календар + статистика) поруч: згортаємо раніше з урахуванням сайдбара (232px),
+   інакше на планшеті/зумі колонки ставали надто вузькими. */
+@media (max-width: 980px) {
   .cyc-spread { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
   .cyc-hero { gap: 16px; padding: 16px; }
   .cyc-hero-day { font-size: 2.6rem; }
 }
