@@ -9,8 +9,8 @@ namespace Server.Controllers;
 public record SetStockStateRequest(string State); // Available | RunningLow | OutOfStock
 // [StringLength]: назва — вільний текст, без межі приймались 8 КБ+ (ПЛАН P2-2, перенесено з P1-8). Завелике → 400.
 public record AddStockByNameRequest([StringLength(TextLimits.Name)] string Name);
-// Тижневе меню: карта «день тижня (1..7) -> список recipeId» (ПЛАН P3-3).
-public record PutMenuRequest(Dictionary<int, List<int>>? Menu);
+// Тижневе меню: заміна списку страв одного дня (за датою). add/remove/clear — усе через новий список.
+public record PutMenuDayRequest(List<int>? RecipeIds);
 
 // planner-spec.md §3.4. Екран "Їжа": збірний /overview для початкового завантаження сторінки
 // + точкові дії над запасами/обраними стравами. Уся логіка — у RecipeService.
@@ -79,14 +79,21 @@ public class FoodController : ControllerBase
         return ok ? Ok() : NotFound();
     }
 
-    // Тижневе меню: читання всієї сітки та заміна її цілком (зберігається на сервері — ПЛАН P3-3).
+    // Тижневе меню (за датою): читання діапазону (видимий тиждень) + заміна одного дня.
     [HttpGet("menu")]
-    public async Task<IActionResult> GetMenu() => Ok(await _recipeService.GetMenuAsync(CurrentUserId));
-
-    [HttpPut("menu")]
-    public async Task<IActionResult> PutMenu([FromBody] PutMenuRequest r)
+    public async Task<IActionResult> GetMenu([FromQuery] string from, [FromQuery] string to)
     {
-        await _recipeService.ReplaceMenuAsync(CurrentUserId, r.Menu ?? new Dictionary<int, List<int>>());
+        if (!DateOnly.TryParse(from, out var f) || !DateOnly.TryParse(to, out var t))
+            return BadRequest(new { error = "bad_range" });
+        if (f > t || t.DayNumber - f.DayNumber > 370) return BadRequest(new { error = "bad_range" });
+        return Ok(await _recipeService.GetMenuRangeAsync(CurrentUserId, f, t));
+    }
+
+    [HttpPut("menu/{date}")]
+    public async Task<IActionResult> PutMenuDay(string date, [FromBody] PutMenuDayRequest r)
+    {
+        if (!DateOnly.TryParse(date, out var d)) return BadRequest(new { error = "bad_date" });
+        await _recipeService.ReplaceMenuDayAsync(CurrentUserId, d, r.RecipeIds ?? new List<int>());
         return Ok();
     }
 }

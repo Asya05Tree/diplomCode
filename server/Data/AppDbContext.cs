@@ -220,7 +220,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(x => x.RecipeId).OnDelete(DeleteBehavior.Restrict);
 
         // Тижневе меню: FK на користувача каскадний (за конвенцією), на рецепт — Restrict (довідник).
-        b.Entity<FoodMenuItem>().HasIndex(x => new { x.UserId, x.DayOfWeek, x.Position });
+        b.Entity<FoodMenuItem>().HasIndex(x => new { x.UserId, x.MenuDate, x.Position });
         b.Entity<FoodMenuItem>()
             .HasOne(x => x.Recipe).WithMany()
             .HasForeignKey(x => x.RecipeId).OnDelete(DeleteBehavior.Restrict);

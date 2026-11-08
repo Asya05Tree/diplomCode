@@ -42,6 +42,7 @@ public class AccountService
         await _db.StockItems.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await _db.SelectedDishes.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await _db.UserRecipeStates.Where(x => x.UserId == userId).ExecuteDeleteAsync();
+        await _db.FoodMenuItems.Where(x => x.UserId == userId).ExecuteDeleteAsync();
 
         await _db.UserMedicines.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await _db.UserConditions.Where(x => x.UserId == userId).ExecuteDeleteAsync();
@@ -126,6 +127,7 @@ public class AccountService
                 stock = await _db.StockItems.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
                 selectedDishes = await _db.SelectedDishes.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
                 recipeStates = await _db.UserRecipeStates.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
+                weeklyMenu = await _db.FoodMenuItems.AsNoTracking().Where(x => x.UserId == userId).ToListAsync(),
             },
             health = new
             {
