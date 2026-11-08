@@ -18,6 +18,7 @@ import {
 } from '../api/medicineCabinet'
 import { getHealthProfile, setHealthProfile } from '../api/healthProfile'
 import { getVisits, addVisit, removeVisit } from '../api/checkup'
+import VaccinationsTab from '../components/health/VaccinationsTab'
 import { addShoppingItem, getShoppingList } from '../api/shopping'
 import { RANGES, MAX_LEN, clampNumber, filterWords, limitText } from '../utils/validation'
 import { todayApiDate } from '../utils/date'
@@ -81,6 +82,13 @@ export default function Health() {
   const openSchedule = (key) => {
     setSchedKey(key)
     setSchedForm({ date: todayApiDate(), time: '09:00', place: '', note: '' })
+  }
+
+  // Планування візиту з вкладки "Щеплення": та сама модалка, але з підставленою датою й назвою
+  // щеплення в примітці. Візит іде у спільний календар (moduleCode="health"), як чекап.
+  const openVaccineVisit = (date, label) => {
+    setSchedKey('vaccine')
+    setSchedForm({ date: date || todayApiDate(), time: '09:00', place: '', note: label || '' })
   }
 
   const submitVisit = async () => {
@@ -374,6 +382,15 @@ export default function Health() {
           <span className="health-tab-title">{t('health.tab.checkup')}</span>
           <span className="health-tab-meta">{t('health.tab.checkupMeta', { count: visits.length })}</span>
         </button>
+        <button
+          type="button"
+          className={tab === 'vacc' ? 'health-tab health-tab--active' : 'health-tab'}
+          onClick={() => setTab('vacc')}
+        >
+          <span className="health-tab-icon"><Icon name="health" /></span>
+          <span className="health-tab-title">{t('health.tab.vacc')}</span>
+          <span className="health-tab-meta">{t('health.tab.vaccMeta')}</span>
+        </button>
       </div>
 
       {tab === 'meds' ? (
@@ -660,7 +677,7 @@ export default function Health() {
             ))}
           </ul>
         </div>
-      ) : (
+      ) : tab === 'checkup' ? (
         <div className="card">
           <div className="section-title">
             <h3>{t('health.tab.checkup')}</h3>
@@ -707,6 +724,8 @@ export default function Health() {
             })}
           </ul>
         </div>
+      ) : (
+        <VaccinationsTab profile={profile} onPlanVisit={openVaccineVisit} />
       )}
 
       {schedKey && (
