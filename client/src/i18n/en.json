@@ -300,6 +300,8 @@
   "planner.actionEdit": "Edit",
   "planner.actionMove": "Move",
   "planner.actionDelete": "Delete",
+  "planner.actionEditSeries": "Edit series",
+  "planner.actionCancelDay": "Cancel this day",
   "taskForm.titleLabel": "Task title",
   "taskForm.titlePlaceholder": "e.g. Workout",
   "taskForm.presetLabel": "Preset names",

@@ -5,7 +5,7 @@ import TaskItem from './TaskItem'
 import EditTaskForm from './EditTaskForm'
 import MoveTaskForm from './MoveTaskForm'
 import OverlapGroup from './OverlapGroup'
-import { getPeriodTasks, resolveTask, deleteTask, updateTask, addException } from '../../api/tasks'
+import { getPeriodTasks, deleteTask, updateTask, addException } from '../../api/tasks'
 import { addMonths, fromApiDateTime, startOfDay, toApiDate, timeStatusOf, dayStatusOf, groupOverlapping } from '../../utils/date'
 import './PeriodView.css'
 import './TimeStatus.css'
@@ -37,7 +37,7 @@ function clampToWindow(from, to) {
 
 // planner-spec.md §4.3 "Період" — довільний діапазон дат. Заливка "де є задачі" тепер —
 // базове відображення календаря (Planner.jsx), тут лишається тільки сам перелік завдань.
-export default function PeriodView({ token, range, onRangeChange, onTasksChanged }) {
+export default function PeriodView({ token, range, onRangeChange, onTasksChanged, onEditSeries }) {
   const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
   const [movingTaskId, setMovingTaskId] = useState(null)
@@ -58,12 +58,6 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
   useEffect(() => {
     reload()
   }, [reload])
-
-  const handleResolve = async (id, action) => {
-    await resolveTask(token, id, action)
-    reload()
-    onTasksChanged?.()
-  }
 
   const handleDelete = async (id) => {
     await deleteTask(token, id)
@@ -146,26 +140,22 @@ export default function PeriodView({ token, range, onRangeChange, onTasksChanged
       )
     }
 
-    // Події з вкладки «Перегляд і читання»: поки не завершені — редагувати/перенести/видалити;
-    // завершені — лише видалити (прибирає й запис у вкладці).
+    // Повторюваний інстанс: перенести/скасувати лише цей день + «Редагувати серію» (відкриває
+    // правило у вкладці «Повторювані»). Дії задачі — Редагувати / Перенести / Видалити (без
+    // «готово/пропущено»). Завершені медіа-події — лише видалити.
     const actions = task.isVirtual
       ? [
+          ...(onEditSeries && task.recurrenceRuleId
+            ? [{ label: t('planner.actionEditSeries'), onClick: () => onEditSeries(task.recurrenceRuleId) }]
+            : []),
           { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
-          { label: t('planner.actionDelete'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
+          { label: t('planner.actionCancelDay'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
         ]
-      : task.sourceModule === 'media'
-      ? task.status === 'Done'
-        ? [
-            { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
-          ]
-        : [
-            { label: t('planner.actionEdit'), onClick: () => setEditingTaskId(itemKey) },
-            { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
-            { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
-          ]
+      : task.sourceModule === 'media' && task.status === 'Done'
+      ? [
+          { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
+        ]
       : [
-          { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },
-          { label: t('planner.actionSkipped'), onClick: () => handleResolve(task.id, 'Skipped') },
           { label: t('planner.actionEdit'), onClick: () => setEditingTaskId(itemKey) },
           { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
           { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },

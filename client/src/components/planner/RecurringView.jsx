@@ -50,7 +50,7 @@ function summarizeRule(rule, t, fmtClock = (s) => (s || '').slice(0, 5)) {
 // planner-spec.md §3.3, §4.3 "Повторювані" — список правил + форма редагування обраного.
 // Прев'ю обраного правила прокидається наверх у ліву сітку (§4.4); для типу Manual та сама
 // сітка стає засобом введення — клік по дню передається наверх через onManualHandlerChange.
-export default function RecurringView({ token, visibleRange, onPreviewChange, onManualHandlerChange }) {
+export default function RecurringView({ token, visibleRange, onPreviewChange, onManualHandlerChange, preselectRuleId, onPreselectConsumed }) {
   const { t, formatDate, formatClock } = useI18n()
 
   const [rules, setRules] = useState([])
@@ -119,6 +119,17 @@ export default function RecurringView({ token, visibleRange, onPreviewChange, on
     setEditDuration(rule.durationMinutes ?? '')
     setEditRecurrence(ruleToRecurrenceValue(rule))
   }
+
+  // Відкриття правила ззовні («Редагувати серію» з Дня/Періоду): коли список правил завантажено
+  // й надійшов preselectRuleId — обираємо це правило й повідомляємо батьку, що запит спожито.
+  useEffect(() => {
+    if (!preselectRuleId) return
+    const rule = rules.find((r) => r.id === preselectRuleId)
+    if (!rule) return
+    selectRule(rule)
+    onPreselectConsumed?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectRuleId, rules])
 
   const handleSaveEdit = async () => {
     if (!editTitle.trim()) {

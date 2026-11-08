@@ -47,6 +47,12 @@ export default function Planner() {
   const [mode, setMode] = useState('day')
   // Три рівноправні вкладки робочої області (planner-spec.md §4.2): 'dayPeriod' | 'recurring' | 'unassigned'
   const [activeTab, setActiveTab] = useState('dayPeriod')
+  // «Редагувати серію» з інстансу в Дні/Періоді → відкриваємо вкладку «Повторювані» з обраним правилом
+  const [recurringRuleId, setRecurringRuleId] = useState(null)
+  const openRecurringRule = (ruleId) => {
+    setRecurringRuleId(ruleId)
+    setActiveTab('recurring')
+  }
   const [periodRange, setPeriodRange] = useState(() => {
     const from = new Date()
     return { from, to: addDays(from, 6) }
@@ -290,6 +296,8 @@ export default function Planner() {
               visibleRange={visibleGridRange}
               onPreviewChange={setRecurringMarkings}
               onManualHandlerChange={setManualDateHandler}
+              preselectRuleId={recurringRuleId}
+              onPreselectConsumed={() => setRecurringRuleId(null)}
             />
           ) : activeTab === 'unassigned' ? (
             <UnassignedView token={token} onTasksChanged={notifyTasksChanged} />
@@ -301,6 +309,7 @@ export default function Planner() {
               gender={gender}
               onCycleChanged={notifyCycleChanged}
               showCare={careForSelectedDay}
+              onEditSeries={openRecurringRule}
             />
           ) : (
             <PeriodView
@@ -308,6 +317,7 @@ export default function Planner() {
               range={periodRange}
               onRangeChange={setPeriodRange}
               onTasksChanged={notifyTasksChanged}
+              onEditSeries={openRecurringRule}
             />
           )}
         </div>

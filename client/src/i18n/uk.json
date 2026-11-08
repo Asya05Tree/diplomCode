@@ -300,6 +300,8 @@
   "planner.actionEdit": "Редагувати",
   "planner.actionMove": "Перенести",
   "planner.actionDelete": "Видалити",
+  "planner.actionEditSeries": "Редагувати серію",
+  "planner.actionCancelDay": "Скасувати цей день",
   "taskForm.titleLabel": "Назва задачі",
   "taskForm.titlePlaceholder": "Наприклад, Зарядка",
   "taskForm.presetLabel": "Готові назви",

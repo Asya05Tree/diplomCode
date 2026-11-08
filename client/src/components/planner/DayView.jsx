@@ -15,7 +15,7 @@ import './TimeStatus.css'
 
 // planner-spec.md §4.3 "День" — розклад обраної дати. Ранковий банер (§4.5) показується тільки
 // коли обрано "сьогодні" — саме тоді нагадувати про вчора має сенс.
-export default function DayView({ token, date, onTasksChanged, gender, onCycleChanged, showCare }) {
+export default function DayView({ token, date, onTasksChanged, gender, onCycleChanged, showCare, onEditSeries }) {
   const { t, language } = useI18n()
   const [tasks, setTasks] = useState([])
   const [reminderTasks, setReminderTasks] = useState([])
@@ -53,12 +53,6 @@ export default function DayView({ token, date, onTasksChanged, gender, onCycleCh
   const handleReminderResolve = async (id, action) => {
     await resolveTask(token, id, action)
     setReminderTasks((prev) => prev.filter((task) => task.id !== id))
-    reload()
-    onTasksChanged?.()
-  }
-
-  const handleResolve = async (id, action) => {
-    await resolveTask(token, id, action)
     reload()
     onTasksChanged?.()
   }
@@ -145,29 +139,23 @@ export default function DayView({ token, date, onTasksChanged, gender, onCycleCh
       )
     }
 
-    // Назву/опис повторюваної задачі можна змінити лише для правила цілком (RecurringView),
-    // тому тут для віртуальних інстансів лише перенесення/скасування цього дня (§3.3)
-    // Події з вкладки «Перегляд і читання»: поки не завершені — можна редагувати/перенести/видалити
-    // (без «готово/пропущено» — завершення робиться у вкладці). Завершені — лише видалити
-    // (видалення прибирає й запис у вкладці).
+    // Повторюваний інстанс: перенести/скасувати лише цей день + «Редагувати серію» (відкриває
+    // правило у вкладці «Повторювані»), бо назву/час серії змінюють там цілком (§3.3).
+    // Дії задачі — лише Редагувати / Перенести / Видалити (без «готово/пропущено»: статус
+    // виконання тепер не ведеться через календар). Завершені медіа-події — лише видалити.
     const actions = task.isVirtual
       ? [
+          ...(onEditSeries && task.recurrenceRuleId
+            ? [{ label: t('planner.actionEditSeries'), onClick: () => onEditSeries(task.recurrenceRuleId) }]
+            : []),
           { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
-          { label: t('planner.actionDelete'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
+          { label: t('planner.actionCancelDay'), onClick: () => handleCancelOccurrence(task), variant: 'danger' },
         ]
-      : task.sourceModule === 'media'
-      ? task.status === 'Done'
-        ? [
-            { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
-          ]
-        : [
-            { label: t('planner.actionEdit'), onClick: () => setEditingTaskId(itemKey) },
-            { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
-            { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
-          ]
+      : task.sourceModule === 'media' && task.status === 'Done'
+      ? [
+          { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
+        ]
       : [
-          { label: t('planner.actionDone'), onClick: () => handleResolve(task.id, 'Done') },
-          { label: t('planner.actionSkipped'), onClick: () => handleResolve(task.id, 'Skipped') },
           { label: t('planner.actionEdit'), onClick: () => setEditingTaskId(itemKey) },
           { label: t('planner.actionMove'), onClick: () => setMovingTaskId(itemKey) },
           { label: t('planner.actionDelete'), onClick: () => handleDelete(task.id), variant: 'danger' },
