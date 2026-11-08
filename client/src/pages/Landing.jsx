@@ -332,9 +332,9 @@ export default function Landing({ themeMode, onSetThemeMode, palette, onSetPalet
                     const blockedTag = dish.tags.find((tag) => activeDietRestrictions.includes(tag))
                     const blockedBy = blockedTag && FOOD_RESTRICTIONS.find((r) => r.tag === blockedTag)
                     return (
-                      <li key={dish.key} className={blockedTag ? 'is-disabled' : ''}>
+                      <li key={dish.key} className={blockedTag ? 'landing-dish--blocked' : ''}>
                         <span className="landing-dish-main">
-                          {t(`landing.dish.${dish.key}`)}
+                          <span className="landing-dish-name">{t(`landing.dish.${dish.key}`)}</span>
                           {blockedBy && (
                             <span className="landing-dish-reason">
                               {t('landing.dishExcluded', { tag: t(`landing.restriction.${blockedBy.key}`) })}
