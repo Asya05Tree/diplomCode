@@ -11,7 +11,9 @@ import {
   sectionForCategory,
   guessShoppingCategory,
   hasNonUkrainianCyrillic,
+  canonicalizeShoppingName,
 } from '../utils/shoppingCategories'
+import { addMonths, toApiDate } from '../utils/date'
 import {
   getShoppingList,
   addShoppingItem,
@@ -46,8 +48,15 @@ export default function ShoppingList() {
 
   // Форма додавання: лише назва — розділ і категорію визначаємо автоматично.
   const [name, setName] = useState('')
+  const [addNotice, setAddNotice] = useState('') // мʼяке повідомлення (напр. «вже є у списку»)
   // Фільтр за розділом ('all' = усі розділи).
   const [sectionFilter, setSectionFilter] = useState('all')
+
+  // Ручний відбір: фільтр за розділом і підкатегорією серед наявних позицій.
+  const [manualSection, setManualSection] = useState('all')
+  const [manualCategory, setManualCategory] = useState('all')
+  // Автопідбір: обраний (активний) варіант-комбінація — піднімається нагору й підсвічується.
+  const [selectedComboKey, setSelectedComboKey] = useState(null)
 
   // Відмітка покупки: активна позиція + введена (необов'язкова) ціна.
   const [checkingId, setCheckingId] = useState(null)
@@ -60,9 +69,11 @@ export default function ShoppingList() {
   const [budget, setBudget] = useState('')
   const [picked, setPicked] = useState(() => new Set())
 
-  // Похід у магазин: необов'язкова дата (з нею — задача на день, без неї — у «Нерозподілених»).
+  // Похід у магазин: дата-час (обовʼязкові), прапорець «заплановано» та причина, чому дата не
+  // підходить (порожня / в минулому / надто далеко) — щоб користувач бачив саме що не так.
   const [tripDate, setTripDate] = useState('')
-  const [tripTaskId, setTripTaskId] = useState(null)
+  const [tripPlanned, setTripPlanned] = useState(false)
+  const [tripError, setTripError] = useState('')
 
   const reload = async () => {
     const data = await getShoppingList()
@@ -92,15 +103,41 @@ export default function ShoppingList() {
     }
   }, [])
 
-  const displayName = (x) => (language === 'en' ? x.displayNameEn : x.displayNameUk)
+  // Назва позиції. Продукт/ліки з каталогу вже мають готовий переклад — беремо як є. Для
+  // довільного тексту (customText) перекладу в БД немає, тож якщо впізнаємо річ — показуємо
+  // локалізовану канонічну назву (англійською для en). Невпізнане («щось незрозуміле») лишаємо
+  // як увів користувач.
+  const displayName = (x) => {
+    if (x.productId != null || x.medicineId != null) {
+      return language === 'en' ? x.displayNameEn : x.displayNameUk
+    }
+    const canon = canonicalizeShoppingName(x.customText || x.displayNameUk || x.displayNameEn)
+    if (canon) return language === 'en' ? canon.en : canon.uk
+    return x.displayNameUk || x.displayNameEn
+  }
 
   const handleAdd = async (e) => {
     e.preventDefault()
     const text = name.trim()
     if (!text) return
-    // Автовизначення категорії за назвою → звідси й розділ.
-    const cat = guessShoppingCategory(text)
-    await addShoppingItem({ section: sectionForCategory(cat), text, category: cat })
+    setAddNotice('')
+    // Нормальна форма: «тампончик/тампони» → «Тампони». Зберігаємо канонічну назву, а не ввід.
+    const canon = canonicalizeShoppingName(text)
+    const finalName = canon ? (language === 'en' ? canon.en : canon.uk) : text
+    // Дедуплікація: якщо незакуплена позиція вже зводиться до тієї самої речі — не додаємо дубль.
+    if (canon) {
+      const dup = items.find(
+        (x) => !x.isChecked && canonicalizeShoppingName(x.displayNameUk)?.key === canon.key,
+      )
+      if (dup) {
+        setName('')
+        setAddNotice(t('shoppingList.alreadyInList', { name: finalName }))
+        return
+      }
+    }
+    // Автовизначення категорії за (канонічною) назвою → звідси й розділ.
+    const cat = guessShoppingCategory(finalName)
+    await addShoppingItem({ section: sectionForCategory(cat), text: finalName, category: cat })
     setName('')
     await reload()
   }
@@ -134,12 +171,20 @@ export default function ShoppingList() {
     await reload()
   }
 
+  // Межі дати походу: від сьогодні до +12 місяців (щоб не можна було запланувати на 5200-й рік).
+  const tripMin = `${toApiDate(new Date())}T00:00`
+  const tripMax = `${toApiDate(addMonths(new Date(), 12))}T23:59`
+
   // Дата й час походу обовʼязкові — задача одразу стає на конкретний день і час (без
   // «Нерозподілених»): плануємо подію, а не безтерміновий нагад.
   const handlePlanTrip = async () => {
-    if (!tripDate) return
-    const { taskId } = await planTrip(tripDate)
-    setTripTaskId(taskId)
+    setTripError('')
+    // Пояснюємо саме причину, а не просто мовчки нічого не робимо.
+    if (!tripDate) { setTripError(t('shoppingList.tripErrEmpty')); return }
+    if (tripDate < tripMin) { setTripError(t('shoppingList.tripErrPast')); return }
+    if (tripDate > tripMax) { setTripError(t('shoppingList.tripErrTooFar', { date: tripMax.slice(0, 10) })); return }
+    await planTrip(tripDate)
+    setTripPlanned(true)
   }
 
   // Докупівля рахує лише невідмічені позиції. Якщо відомо менше половини цін — підбір за сумою
@@ -209,18 +254,33 @@ export default function ShoppingList() {
   const presentSections = SHOPPING_SECTIONS.filter((s) => items.some((x) => x.section === s.key))
   const visibleItems = sectionFilter === 'all' ? items : items.filter((x) => x.section === sectionFilter)
 
+  // Ручний відбір: фільтр за розділом (широка група) і підкатегорією (напр. овочі) серед позицій
+  // до купівлі. Показуємо лише ті розділи/підкатегорії, що реально присутні.
+  const manualSections = SHOPPING_SECTIONS.filter((s) => toBuy.some((x) => x.section === s.key))
+  const manualCategories = SHOPPING_CATEGORIES.filter(
+    (c) =>
+      (manualSection === 'all' || c.section === manualSection) &&
+      toBuy.some((x) => x.category === c.key && (manualSection === 'all' || x.section === manualSection)),
+  )
+  const manualItems = toBuy.filter(
+    (x) =>
+      (manualSection === 'all' || x.section === manualSection) &&
+      (manualCategory === 'all' || x.category === manualCategory),
+  )
+
   return (
     <div className="shopping-list-page">
       <form className="shopping-list-add card" onSubmit={handleAdd}>
         <input
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => { setName(e.target.value); setAddNotice('') }}
           placeholder={t('shoppingList.addPlaceholder')}
         />
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
         {hasNonUkrainianCyrillic(name) && (
           <p className="shopping-lang-hint">{t('shoppingList.enterUkrainian')}</p>
         )}
+        {addNotice && <p className="shopping-lang-hint shopping-add-notice">{addNotice}</p>}
       </form>
 
       {/* Фільтр за розділом: усі / наявні розділи */}
@@ -386,9 +446,44 @@ export default function ShoppingList() {
 
             {budgetTab === 'manual' ? (
               <>
+                {/* Фільтр за розділом + підкатегорією (напр. їжа → овочі) */}
+                <div className="shopping-manual-filter">
+                  <div className="shopping-budget-tabs">
+                    <button type="button" className={manualSection === 'all' ? 'pill pill--active' : 'pill'} onClick={() => { setManualSection('all'); setManualCategory('all') }}>
+                      {t('shoppingList.manualFilterAll')}
+                    </button>
+                    {manualSections.map((s) => (
+                      <button
+                        key={s.key}
+                        type="button"
+                        className={manualSection === s.key ? 'pill pill--active' : 'pill'}
+                        onClick={() => { setManualSection(s.key); setManualCategory('all') }}
+                      >
+                        {sectionName(s.key, language)}
+                      </button>
+                    ))}
+                  </div>
+                  {manualCategories.length > 1 && (
+                    <div className="shopping-budget-tabs shopping-manual-subfilter">
+                      <button type="button" className={manualCategory === 'all' ? 'pill pill--active' : 'pill'} onClick={() => setManualCategory('all')}>
+                        {t('shoppingList.manualFilterAll')}
+                      </button>
+                      {manualCategories.map((c) => (
+                        <button
+                          key={c.key}
+                          type="button"
+                          className={manualCategory === c.key ? 'pill pill--active' : 'pill'}
+                          onClick={() => setManualCategory(c.key)}
+                        >
+                          {language === 'en' ? c.en : c.uk}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {/* Ручний відбір: користувач сам ставить галочки серед наявного, бачить підсумок */}
                 <ul className="shopping-budget-pick">
-                  {toBuy.map((x) => (
+                  {manualItems.map((x) => (
                     <li key={x.id}>
                       <label className="shopping-budget-pick-item">
                         <input type="checkbox" checked={picked.has(x.id)} onChange={() => togglePick(x.id)} />
@@ -414,15 +509,21 @@ export default function ShoppingList() {
               </>
             ) : mode === 'sum' ? (
               <>
-                {/* Автопідбір за сумою: ВСІ максимальні комбінації під бюджет (як у демоверсії) */}
+                {/* Автопідбір за сумою: ВСІ максимальні комбінації під бюджет (як у демоверсії).
+                    Клік обирає бажаний варіант — він піднімається нагору й підсвічується; перші ~5
+                    видно, решту гортаємо. */}
                 {limit > 0 && (
-                  <ComboList
-                    combos={combos}
-                    t={t}
-                    nameFor={(i) => i.name}
-                    keyFor={(i) => i.id}
-                    emptyText={t('shoppingList.budgetEmpty')}
-                  />
+                  <div className="shopping-combos-scroll">
+                    <ComboList
+                      combos={combos}
+                      t={t}
+                      nameFor={(i) => i.name}
+                      keyFor={(i) => i.id}
+                      emptyText={t('shoppingList.budgetEmpty')}
+                      selectedKey={selectedComboKey}
+                      onSelect={setSelectedComboKey}
+                    />
+                  </div>
                 )}
               </>
             ) : (
@@ -431,13 +532,17 @@ export default function ShoppingList() {
                     а не перші N зі списку. Кількість варіантів обмежена, щоб не підвісити вкладку. */}
                 <p className="placeholder-text">{t('shoppingList.budgetAutoMax', { max: MAX_AUTO_ITEMS })}</p>
                 {limit > 0 && (
-                  <ComboList
-                    combos={countCombos}
-                    t={t}
-                    nameFor={(i) => i.name}
-                    keyFor={(i) => i.id}
-                    emptyText={t('shoppingList.budgetEmpty')}
-                  />
+                  <div className="shopping-combos-scroll">
+                    <ComboList
+                      combos={countCombos}
+                      t={t}
+                      nameFor={(i) => i.name}
+                      keyFor={(i) => i.id}
+                      emptyText={t('shoppingList.budgetEmpty')}
+                      selectedKey={selectedComboKey}
+                      onSelect={setSelectedComboKey}
+                    />
+                  </div>
                 )}
               </>
             )}
@@ -452,18 +557,25 @@ export default function ShoppingList() {
         <div className="shopping-trip-row">
           <label className="shopping-check-field shopping-trip-date">
             <span>{t('shoppingList.tripDateLabel')}</span>
-            <input type="datetime-local" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
+            <input
+              type="datetime-local"
+              value={tripDate}
+              min={tripMin}
+              max={tripMax}
+              onChange={(e) => { setTripDate(e.target.value); setTripPlanned(false); setTripError('') }}
+            />
           </label>
-          <button type="button" className="btn-accent" onClick={handlePlanTrip} disabled={!tripDate}>
+          <button type="button" className="btn-accent" onClick={handlePlanTrip}>
             <Icon name="cart" /> {t('shoppingList.planTrip')}
           </button>
         </div>
+        {tripError && <p className="shopping-lang-hint">{tripError}</p>}
         {items.length === 0 && (
           <p className="placeholder-text">{t('shoppingList.planTripEmpty')}</p>
         )}
-        {tripTaskId != null && (
+        {tripPlanned && (
           <p className="placeholder-text">
-            {t('shoppingList.planTripDoneDated', { taskId: tripTaskId, date: tripDate.replace('T', ', ') })}
+            {t('shoppingList.planTripDoneDated', { date: tripDate.replace('T', ', ') })}
           </p>
         )}
       </div>

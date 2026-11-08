@@ -4,6 +4,7 @@ import { useI18n } from '../i18n'
 import { forgotPassword, resetPassword } from '../api/client'
 import CodeInput from '../components/CodeInput'
 import AuthControls from '../components/AuthControls'
+import FieldHelp from '../components/FieldHelp'
 import {
   filterEmailChars, isValidEmailFormat, isGmailAddress, EMAIL_MAX_LENGTH,
   PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH,
@@ -95,7 +96,10 @@ export default function ResetPassword({ themeMode, onSetThemeMode, palette, onSe
         <p className="auth-note">{t('reset.subtitle')}</p>
 
         <label>
-          {t('register.email')}
+          <span className="field-label">
+            {t('register.email')}
+            <FieldHelp text={t('reset.emailHelp')} label={t('fieldHelp.label')} />
+          </span>
           <div className="auth-inline">
             <input
               type="text"
@@ -115,12 +119,18 @@ export default function ResetPassword({ themeMode, onSetThemeMode, palette, onSe
         {codeSent && (
           <>
             <label>
-              {t('register.code')}
+              <span className="field-label">
+                {t('register.code')}
+                <FieldHelp text={t('register.codeHelp')} label={t('fieldHelp.label')} />
+              </span>
               <CodeInput value={code} onChange={setCode} length={6} />
             </label>
 
             <label>
-              {t('reset.newPassword')}
+              <span className="field-label">
+                {t('reset.newPassword')}
+                <FieldHelp text={t('register.passwordHelp')} label={t('fieldHelp.label')} />
+              </span>
               <input
                 type="password"
                 value={password}
@@ -132,7 +142,10 @@ export default function ResetPassword({ themeMode, onSetThemeMode, palette, onSe
             </label>
 
             <label>
-              {t('register.confirmPassword')}
+              <span className="field-label">
+                {t('register.confirmPassword')}
+                <FieldHelp text={t('register.confirmPasswordHelp')} label={t('fieldHelp.label')} />
+              </span>
               <input
                 type="password"
                 value={confirmPassword}

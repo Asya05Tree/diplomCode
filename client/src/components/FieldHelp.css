@@ -1,0 +1,53 @@
+/* Підказка «(!)» біля поля форми: кнопка-перемикач + текст, що розкривається під назвою поля.
+   Використовується всюди, де є поля вводу (реєстрація, вхід, вкладки користувача). */
+.field-help {
+  display: inline;
+}
+
+/* Рядок «назва поля + (!)» — один елемент колонкового label, щоб підказка не ламала розмітку */
+.field-label {
+  display: block;
+}
+
+/* Кругла кнопка «!» — ненав'язлива, стає акцентною на hover/коли відкрита */
+.field-help-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  margin-left: 6px;
+  padding: 0;
+  vertical-align: middle;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-heading, inherit);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.field-help-toggle:hover,
+.field-help-toggle[aria-expanded='true'] {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-ink, var(--color-accent));
+}
+
+/* Текст підказки — блок під назвою поля, м'якого вигляду, не плутається з помилкою */
+.field-help-text {
+  display: block;
+  margin: 4px 0 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.45;
+  animation: fade-in 0.15s ease both;
+}

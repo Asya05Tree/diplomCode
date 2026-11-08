@@ -5,6 +5,8 @@ import { PALETTES, PALETTE_COLORS, DATE_FORMATS, TIME_FORMATS } from '../utils/s
 import { formatDateFor, clockFor } from '../utils/date'
 import { exportData, wipeData, deleteAccount } from '../api/account'
 import Icon from '../components/Icon'
+import FieldHelp from '../components/FieldHelp'
+import { OCCUPATIONS, occupationKey, occupationValue } from '../utils/occupation'
 import './Settings.css'
 
 // Зразкова дата для прев'ю формату — день (9) і місяць (3) різні, рік окремий, тож порядок
@@ -23,7 +25,6 @@ export default function Settings() {
     studentType, isWorking, onSetStudyStatus, gender, onSetGender,
   } = useOutletContext()
 
-  const STUDENT_TYPES = ['pupil', 'student', 'none']
   const GENDER_OPTIONS = ['female', 'male']
 
   const [tab, setTab] = useState('appearance')
@@ -278,36 +279,35 @@ export default function Settings() {
       {/* === Користувач: навчання/робота, стать === */}
       {tab === 'user' && (
         <>
+          {/* Одна комбінація «навчання + робота» (6 варіантів) — так само, як у реєстрації. */}
           <section className="settings-section">
-            <h3>{t('settings.studyStatusLabel')}</h3>
+            <h3>
+              {t('register.occupation')}
+              <FieldHelp text={t('register.occupationHelp')} label={t('fieldHelp.label')} />
+            </h3>
             <div className="settings-options">
-              {STUDENT_TYPES.map((type) => (
+              {OCCUPATIONS.map(([key]) => (
                 <button
-                  key={type}
+                  key={key}
                   type="button"
-                  className={studentType === type ? 'settings-option settings-option--active' : 'settings-option'}
-                  onClick={() => onSetStudyStatus({ studentType: type })}
+                  className={
+                    occupationKey(studentType, isWorking) === key
+                      ? 'settings-option settings-option--active'
+                      : 'settings-option'
+                  }
+                  onClick={() => onSetStudyStatus(occupationValue(key))}
                 >
-                  {t(`register.studentType.${type}`)}
+                  {t(`register.occupation.${key}`)}
                 </button>
               ))}
             </div>
           </section>
 
           <section className="settings-section">
-            <h3>{t('settings.workLabel')}</h3>
-            <label className="settings-check">
-              <input
-                type="checkbox"
-                checked={Boolean(isWorking)}
-                onChange={(e) => onSetStudyStatus({ isWorking: e.target.checked })}
-              />
-              {t('register.working')}
-            </label>
-          </section>
-
-          <section className="settings-section">
-            <h3>{t('settings.genderLabel')}</h3>
+            <h3>
+              {t('settings.genderLabel')}
+              <FieldHelp text={t('register.genderHelp')} label={t('fieldHelp.label')} />
+            </h3>
             <div className="settings-options">
               {GENDER_OPTIONS.map((g) => (
                 <button

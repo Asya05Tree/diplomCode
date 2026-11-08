@@ -4,6 +4,8 @@ import { useI18n } from '../i18n'
 import { sendCode, register } from '../api/client'
 import CodeInput from '../components/CodeInput'
 import AuthControls from '../components/AuthControls'
+import FieldHelp from '../components/FieldHelp'
+import { OCCUPATIONS, occupationKey, occupationValue } from '../utils/occupation'
 import {
   filterNickname,
   filterEmailChars,
@@ -17,7 +19,6 @@ import {
 import './AuthForm.css'
 
 const GENDER_OPTIONS = ['female', 'male', 'other']
-const STUDENT_TYPES = ['pupil', 'student', 'none']
 
 function errorKeyToMessage(t, error, fallbackKey) {
   const map = {
@@ -124,7 +125,10 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
               <legend className="auth-col-title">{t('register.sectionAbout')}</legend>
 
               <label>
-                {t('register.nickname')}
+                <span className="field-label">
+                  {t('register.nickname')}
+                  <FieldHelp text={t('register.nicknameHelp')} label={t('fieldHelp.label')} />
+                </span>
                 <input
                   value={nickname}
                   onChange={(e) => setNickname(filterNickname(e.target.value))}
@@ -134,7 +138,10 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
               </label>
 
               <label>
-                {t('register.gender')}
+                <span className="field-label">
+                  {t('register.gender')}
+                  <FieldHelp text={t('register.genderHelp')} label={t('fieldHelp.label')} />
+                </span>
                 <select value={gender} onChange={(e) => setGender(e.target.value)}>
                   {GENDER_OPTIONS.map((g) => (
                     <option key={g} value={g}>{t(`register.gender.${g}`)}</option>
@@ -142,32 +149,31 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
                 </select>
               </label>
 
-              <fieldset className="auth-choice">
-                <legend>{t('register.studentType')}</legend>
-                <div className="auth-choice-row">
-                  {STUDENT_TYPES.map((type) => (
-                    <label key={type} className="auth-radio">
-                      <input
-                        type="radio"
-                        name="studentType"
-                        value={type}
-                        checked={studentType === type}
-                        onChange={() => setStudentType(type)}
-                      />
-                      {t(`register.studentType.${type}`)}
-                    </label>
+              {/* Одна зрозуміла комбінація «навчання + робота» (6 варіантів) замість окремих
+                  перемикачів типу навчання та чекбокса «працюю» — так користувач точно бачить,
+                  що можна обрати і «школяр + працюю», і «тільки працюю», і «нічого з цього». */}
+              <label>
+                <span className="field-label">
+                  {t('register.occupation')}
+                  <FieldHelp text={t('register.occupationHelp')} label={t('fieldHelp.label')} />
+                </span>
+                <select
+                  value={occupationKey(studentType, isWorking)}
+                  onChange={(e) => {
+                    const v = occupationValue(e.target.value)
+                    setStudentType(v.studentType)
+                    setIsWorking(v.isWorking)
+                  }}
+                >
+                  {OCCUPATIONS.map(([key]) => (
+                    <option key={key} value={key}>{t(`register.occupation.${key}`)}</option>
                   ))}
-                </div>
-              </fieldset>
+                </select>
+              </label>
 
               {studentType === 'pupil' && (
                 <p className="auth-note">{t('register.pupilNote')}</p>
               )}
-
-              <label className="auth-checkbox">
-                <input type="checkbox" checked={isWorking} onChange={(e) => setIsWorking(e.target.checked)} />
-                {t('register.working')}
-              </label>
             </fieldset>
 
             {/* Колонка 2 — обліковий запис */}
@@ -175,7 +181,10 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
               <legend className="auth-col-title">{t('register.sectionAccount')}</legend>
 
               <label>
-                {t('register.email')}
+                <span className="field-label">
+                  {t('register.email')}
+                  <FieldHelp text={t('register.emailHelp')} label={t('fieldHelp.label')} />
+                </span>
                 <div className="auth-inline">
                   <input
                     type="text"
@@ -193,12 +202,18 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
               </label>
 
               <label>
-                {t('register.code')}
+                <span className="field-label">
+                  {t('register.code')}
+                  <FieldHelp text={t('register.codeHelp')} label={t('fieldHelp.label')} />
+                </span>
                 <CodeInput value={code} onChange={setCode} length={6} />
               </label>
 
               <label>
-                {t('register.password')}
+                <span className="field-label">
+                  {t('register.password')}
+                  <FieldHelp text={t('register.passwordHelp')} label={t('fieldHelp.label')} />
+                </span>
                 <input
                   type="password"
                   value={password}
@@ -210,7 +225,10 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
               </label>
 
               <label>
-                {t('register.confirmPassword')}
+                <span className="field-label">
+                  {t('register.confirmPassword')}
+                  <FieldHelp text={t('register.confirmPasswordHelp')} label={t('fieldHelp.label')} />
+                </span>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -231,6 +249,7 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
               <Link to="/privacy" target="_blank" rel="noreferrer">{t('legal.privacyTitle')}</Link>
               {' '}{t('register.consentAnd')}{' '}
               <Link to="/terms" target="_blank" rel="noreferrer">{t('legal.termsTitle')}</Link>
+              <FieldHelp text={t('register.consentHelp')} label={t('fieldHelp.label')} />
             </span>
           </label>
           <p className="auth-note">{t('register.ageNote')}</p>

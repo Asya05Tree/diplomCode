@@ -408,8 +408,10 @@
 }
 
 .cond-add-tag {
-  flex: 0 1 220px;
-  min-width: 140px;
+  flex: 0 1 320px;
+  min-width: 200px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
 }
 
 .cond-add-hint {
@@ -492,8 +494,8 @@
 /* --- Пошукові підказки тега захворювання --- */
 .cond-tag-field {
   position: relative;
-  flex: 0 1 220px;
-  min-width: 140px;
+  flex: 0 1 320px;
+  min-width: 200px;
 }
 
 .cond-tag-field .cond-add-tag {

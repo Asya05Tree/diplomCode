@@ -68,6 +68,8 @@ export default function Food() {
   // перша дата видимого тижня (можна гортати тижні → історія). menuPickDate — дата для пікера страви.
   const [menuByDate, setMenuByDate] = useState({})
   const [weekStart, setWeekStart] = useState(() => startOfWeek(weekStartSetting, todayApiDate()))
+  // Режим меню: 'plan' — цей і наступний тиждень (планування); 'history' — минулі тижні (лише перегляд).
+  const [menuMode, setMenuMode] = useState('plan')
   const [menuPickDate, setMenuPickDate] = useState(null)
   const [menuLoading, setMenuLoading] = useState(false)
   const [stockCat, setStockCat] = useState('all')
@@ -216,13 +218,18 @@ export default function Food() {
     return () => { cancelled = true }
   }, [weekDates])
 
+  // Ліміт страв на один день меню (щоб день не роздувався). Історія не редагується.
+  const MAX_MENU_PER_DAY = 6
+
   // Зберегти день одразу (add/remove/clear — через новий список рецептів дня).
   const saveDay = (date, ids) => {
     setMenuByDate((prev) => ({ ...prev, [date]: ids }))
     saveMenuDay(date, ids).catch(() => {})
   }
   const addToMenu = (date, recipeId) => {
-    saveDay(date, [...(menuByDate[date] || []), recipeId])
+    const cur = menuByDate[date] || []
+    if (cur.length >= MAX_MENU_PER_DAY) { setMenuPickDate(null); return }
+    saveDay(date, [...cur, recipeId])
     setMenuPickDate(null)
   }
   const removeFromMenu = (date, index) => {
@@ -230,9 +237,25 @@ export default function Food() {
   }
   const clearMenuDay = (date) => saveDay(date, [])
 
-  // Навігація по тижнях (гортання → перегляд минулого/майбутнього).
-  const goWeek = (deltaWeeks) => setWeekStart(toApiDate(addDays(fromApiDate(weekStart), deltaWeeks * 7)))
-  const goThisWeek = () => setWeekStart(startOfWeek(weekStartSetting, todayApiDate()))
+  // Межі тижнів: у плануванні доступні лише цей і наступний тиждень; в історії — минулі (до 52 тижнів).
+  const thisWeekStart = startOfWeek(weekStartSetting, todayApiDate())
+  const nextWeekStart = toApiDate(addDays(fromApiDate(thisWeekStart), 7))
+  const prevWeekStart = toApiDate(addDays(fromApiDate(thisWeekStart), -7))
+  const historyFloor = toApiDate(addDays(fromApiDate(thisWeekStart), -52 * 7))
+  const isHistory = menuMode === 'history'
+  const canPrevWeek = isHistory ? weekStart > historyFloor : weekStart > thisWeekStart
+  const canNextWeek = isHistory ? weekStart < prevWeekStart : weekStart < nextWeekStart
+  const goWeek = (deltaWeeks) => {
+    const cand = toApiDate(addDays(fromApiDate(weekStart), deltaWeeks * 7))
+    const lo = isHistory ? historyFloor : thisWeekStart
+    const hi = isHistory ? prevWeekStart : nextWeekStart
+    setWeekStart(cand < lo ? lo : cand > hi ? hi : cand)
+  }
+  // Перемикання планування ↔ історія: ставимо відповідний стартовий тиждень.
+  const switchMenuMode = (toHistory) => {
+    setMenuMode(toHistory ? 'history' : 'plan')
+    setWeekStart(toHistory ? prevWeekStart : thisWeekStart)
+  }
 
   // Страву можна лише додати/прибрати з обраних (готувати її не можна — §4.6 спрощено).
   const handleToggleFavorite = async (recipe) => {
@@ -317,17 +340,20 @@ export default function Food() {
             <p className="food-health-note food-menu-note">{t('food.menuNoFavorites')}</p>
           )}
 
-          {/* Навігатор тижнів: кожна колонка сітки — конкретна дата, тижні гортаються (історія). */}
+          {/* Навігатор тижнів: планування — цей+наступний тиждень; історія — минулі (лише перегляд). */}
           <div className="food-menu-weeknav">
-            <button type="button" className="btn-ghost food-menu-navbtn" onClick={() => goWeek(-1)} aria-label={t('food.menuPrevWeek')}>
+            <button type="button" className="btn-ghost food-menu-navbtn" onClick={() => goWeek(-1)} disabled={!canPrevWeek} aria-label={t('food.menuPrevWeek')}>
               <Icon name="chevron-left" />
             </button>
             <span className="food-menu-weeklabel">{ddmm(weekDates[0])} – {ddmm(weekDates[6])}</span>
-            <button type="button" className="btn-ghost food-menu-navbtn" onClick={() => goWeek(1)} aria-label={t('food.menuNextWeek')}>
+            <button type="button" className="btn-ghost food-menu-navbtn" onClick={() => goWeek(1)} disabled={!canNextWeek} aria-label={t('food.menuNextWeek')}>
               <Icon name="chevron-left" className="food-menu-next" />
             </button>
-            <button type="button" className="btn-ghost food-menu-today" onClick={goThisWeek}>{t('food.menuThisWeek')}</button>
+            <button type="button" className="btn-ghost food-menu-today" onClick={() => switchMenuMode(!isHistory)}>
+              {isHistory ? t('food.menuHistoryBack') : t('food.menuHistoryOpen')}
+            </button>
           </div>
+          {isHistory && <p className="food-menu-note food-menu-history-note">{t('food.menuHistoryNote')}</p>}
 
           <div className={menuLoading ? 'food-menu-grid food-menu-grid--loading' : 'food-menu-grid'}>
             {weekDates.map((date, i) => {
@@ -339,7 +365,7 @@ export default function Food() {
                     <span className="food-menu-day-name">
                       {weekdays[i]} <span className="food-menu-day-date">{ddmm(date)}</span>
                     </span>
-                    {dayIds.length > 0 && (
+                    {!isHistory && dayIds.length > 0 && (
                       <button
                         type="button"
                         className="food-menu-clear"
@@ -370,27 +396,32 @@ export default function Food() {
                                 {t('food.health.avoid')}
                               </span>
                             ) : null}
-                            <button
-                              type="button"
-                              className="food-menu-chip-x"
-                              onClick={() => removeFromMenu(date, idx)}
-                              aria-label={t('common.delete')}
-                            >
-                              <Icon name="close" />
-                            </button>
+                            {!isHistory && (
+                              <button
+                                type="button"
+                                className="food-menu-chip-x"
+                                onClick={() => removeFromMenu(date, idx)}
+                                aria-label={t('common.delete')}
+                              >
+                                <Icon name="close" />
+                              </button>
+                            )}
                           </span>
                         )
                       })
                     )}
                   </div>
-                  <button
-                    type="button"
-                    className="food-menu-add"
-                    onClick={() => setMenuPickDate(date)}
-                    disabled={favoriteRecipes.length === 0}
-                  >
-                    <Icon name="plus" /> {t('food.menuAddDish')}
-                  </button>
+                  {!isHistory && (
+                    <button
+                      type="button"
+                      className="food-menu-add"
+                      onClick={() => setMenuPickDate(date)}
+                      disabled={favoriteRecipes.length === 0 || dayIds.length >= MAX_MENU_PER_DAY}
+                      title={dayIds.length >= MAX_MENU_PER_DAY ? t('food.menuDayFull') : undefined}
+                    >
+                      <Icon name="plus" /> {t('food.menuAddDish')}
+                    </button>
+                  )}
                 </div>
               )
             })}

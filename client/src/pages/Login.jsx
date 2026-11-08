@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { login } from '../api/client'
 import AuthControls from '../components/AuthControls'
+import FieldHelp from '../components/FieldHelp'
 import { filterEmailChars, isValidEmailFormat, EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH } from '../utils/authValidation'
 import './AuthForm.css'
 import './Login.css'
@@ -50,7 +51,10 @@ export default function Login({ onLoggedIn, themeMode, onSetThemeMode, palette, 
           <h2>{t('login.title')}</h2>
 
           <label>
-            {t('login.email')}
+            <span className="field-label">
+              {t('login.email')}
+              <FieldHelp text={t('login.emailHelp')} label={t('fieldHelp.label')} />
+            </span>
             <input
               type="text"
               inputMode="email"
@@ -63,7 +67,10 @@ export default function Login({ onLoggedIn, themeMode, onSetThemeMode, palette, 
           </label>
 
           <label>
-            {t('login.password')}
+            <span className="field-label">
+              {t('login.password')}
+              <FieldHelp text={t('login.passwordHelp')} label={t('fieldHelp.label')} />
+            </span>
             <input
               type="password"
               value={password}

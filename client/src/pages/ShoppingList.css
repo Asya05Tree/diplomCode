@@ -420,6 +420,28 @@
   font-size: 0.82rem;
   color: var(--color-danger);
 }
+/* Повідомлення «вже є у списку» — нейтральне, не помилка */
+.shopping-add-notice {
+  color: var(--color-text-muted);
+}
+
+/* Автопідбір: перші ~5 варіантів видно, решту гортаємо */
+.shopping-combos-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Ручний відбір: фільтр за розділом + підкатегорією */
+.shopping-manual-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0;
+}
+.shopping-manual-subfilter {
+  padding-left: 4px;
+}
 .shopping-budget-list {
   list-style: none;
   margin: 6px 0 0;

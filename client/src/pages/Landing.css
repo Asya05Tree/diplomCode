@@ -430,6 +430,33 @@
   flex-direction: column;
 }
 
+/* Клікабельні варіанти (ShoppingList: обрати бажаний набір) — обраний підсвічується */
+.landing-results-item {
+  list-style: none;
+}
+.landing-results-select {
+  display: block;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  padding: 6px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.landing-results-select:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+}
+.landing-results-item--active .landing-results-select,
+.landing-results-select--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.landing-results-item--active .landing-results-combo-item {
+  border-color: var(--color-accent);
+}
+
 .landing-results-combo {
   display: flex;
   flex-wrap: wrap;

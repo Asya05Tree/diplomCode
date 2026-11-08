@@ -111,14 +111,19 @@ public class MedicineService
         var tags = await _db.Tags.Where(t => tagIds.Contains(t.Id)).ToListAsync();
 
         var grams = Trigrams(q);
+        // Двонапрямний збіг-підрядок: не лише «тег містить запит» (банан→банан), а й «запит містить
+        // тег» (банани/бананчик → банан) — щоб словоформи/зменшувальні теж розпізнавались. Кандидат
+        // має бути ≥3 літер, щоб короткий тег не чіплявся до будь-якого слова.
+        static bool SubMatch(string candidate, string query) =>
+            candidate.Length >= 3 && (candidate.Contains(query, StringComparison.Ordinal) || query.Contains(candidate, StringComparison.Ordinal));
         return tags
             .Select(t =>
             {
                 var key = t.Key.ToLowerInvariant();
                 var name = t.DisplayName.ToLowerInvariant();
                 var score = Math.Max(
-                    key.Contains(q) ? 1.0 : TrigramScore(grams, key),
-                    name.Contains(q) ? 1.0 : TrigramScore(grams, name));
+                    SubMatch(key, q) ? 1.0 : TrigramScore(grams, key),
+                    SubMatch(name, q) ? 1.0 : TrigramScore(grams, name));
                 return (t, score);
             })
             .Where(x => x.score > 0)

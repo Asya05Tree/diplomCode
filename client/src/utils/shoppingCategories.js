@@ -1,6 +1,7 @@
 // Категорії та розділи списку покупок (двомовні). Розділ (section) — широка група «де купувати»
 // (Продукти/Аптека/…); категорія (category) — точніше (овочі, молочне…). Обидва визначаються
 // автоматично за назвою позиції (rule-based, без ШІ), але категорію можна змінити в картці.
+import { buildFuzzyIndex, bestMatch } from './nlp/fuzzy'
 
 // Розділи (широкі групи). Ключ зберігається у ShoppingItem.Section (валідований на бекенді).
 const SECTION_DEFS = [
@@ -82,10 +83,22 @@ function normalizeName(name) {
   return (name || '').toLowerCase().replace(/[’ʼ′`´]/g, "'")
 }
 
+// Триграмний індекс основ-слів для нечіткого зіставлення (друкарські помилки): основа → категорія.
+// Той самий матчер, що й у NLP-парсері швидкого вводу (nlp/fuzzy.js) — триграми + Дайс + Левенштейн.
+const KEYWORD_TO_CAT = new Map()
+for (const [cat, words] of KEYWORDS) for (const w of words) if (!KEYWORD_TO_CAT.has(w)) KEYWORD_TO_CAT.set(w, cat)
+const KEYWORD_INDEX = buildFuzzyIndex([...KEYWORD_TO_CAT.keys()])
+
+// Розбити назву на слова (для нечіткого зіставлення по токенах).
+function wordsOf(n) {
+  return n.split(/[^\p{L}']+/u).filter(Boolean)
+}
+
 // Вгадати категорію за назвою; якщо нічого не знайдено — 'other'. Виграє НАЙДОВШИЙ збіг-підрядок
 // (специфічніший), а не просто перша категорія за порядком: інакше коротке 'чай' у «чайник»
 // перемагало б точніше 'чайник', а 'паст' у «паста» — 'макарон'. При рівній довжині виграє та
-// категорія, що вище в списку (ПЛАН P2-9).
+// категорія, що вище в списку (ПЛАН P2-9). Якщо підрядок нічого не дав — нечіткий фолбек за
+// триграмами (напр. «молоко» з друкарською помилкою все одно впізнається).
 export function guessShoppingCategory(name) {
   const n = normalizeName(name)
   if (!n.trim()) return 'other'
@@ -99,7 +112,95 @@ export function guessShoppingCategory(name) {
       }
     }
   }
-  return best
+  if (best !== 'other') return best
+  for (const token of wordsOf(n)) {
+    const m = bestMatch(token, KEYWORD_INDEX)
+    if (m) {
+      const cat = KEYWORD_TO_CAT.get(m.word)
+      if (cat) return cat
+    }
+  }
+  return 'other'
+}
+
+// Канонічні («нормальні») назви типових позицій: будь-яка словоформа/зменшувальне зводиться до
+// однієї форми. Використовується і для показу нормальної назви при додаванні, і для дедуплікації
+// (той самий key = та сама річ, щоб «тампончик» і «тампони» не плодили дублі). Основи ≥3 літер,
+// виграє найдовша (специфічніша) — щоб «яблучний сік» не збігався з «яблука».
+// Основи (stems) включають і українські, і англійські варіанти — щоб і підрядковий збіг, і
+// нечіткий (триграмний) фолбек однаково працювали для вводу обома мовами (ПЛАН: англ. паритет).
+const CANON = [
+  // Гігієна
+  ['tampon', 'Тампони', 'Tampons', ['тампон', 'tampon']],
+  ['pad', 'Прокладки', 'Pads', ['прокладк', 'pad', 'sanitary']],
+  ['diaper', 'Підгузки', 'Diapers', ['підгузк', 'памперс', 'diaper', 'nappy', 'pamper']],
+  ['shampoo', 'Шампунь', 'Shampoo', ['шампун', 'shampoo']],
+  ['toothpaste', 'Зубна паста', 'Toothpaste', ['зубна паст', 'зубну паст', 'toothpaste']],
+  ['napkin', 'Серветки', 'Napkins', ['серветк', 'napkin', 'wipe']],
+  ['deodorant', 'Дезодорант', 'Deodorant', ['дезодорант', 'deodorant']],
+  // Овочі та фрукти
+  ['banana', 'Банани', 'Bananas', ['банан', 'banana']],
+  ['apple', 'Яблука', 'Apples', ['яблук', 'яблучк', 'apple']],
+  ['tomato', 'Помідори', 'Tomatoes', ['помідор', 'томат', 'tomato']],
+  ['cucumber', 'Огірки', 'Cucumbers', ['огірк', 'cucumber']],
+  ['potato', 'Картопля', 'Potatoes', ['картопл', 'бульб', 'potato']],
+  ['onion', 'Цибуля', 'Onions', ['цибул', 'onion']],
+  ['carrot', 'Морква', 'Carrots', ['моркв', 'carrot']],
+  ['cabbage', 'Капуста', 'Cabbage', ['капуст', 'cabbage']],
+  ['lemon', 'Лимони', 'Lemons', ['лимон', 'lemon']],
+  ['orange', 'Апельсини', 'Oranges', ['апельсин', 'orange']],
+  ['grape', 'Виноград', 'Grapes', ['виноград', 'grape']],
+  ['pear', 'Груші', 'Pears', ['груш', 'pear']],
+  ['banana2', 'Полуниці', 'Strawberries', ['полуниц', 'суниц', 'strawberr']],
+  // Молочне
+  ['milk', 'Молоко', 'Milk', ['молок', 'milk']],
+  ['egg', 'Яйця', 'Eggs', ['яйц', 'egg']],
+  ['butter', 'Масло', 'Butter', ['масло', 'butter']],
+  ['yogurt', 'Йогурт', 'Yogurt', ['йогурт', 'yogurt', 'yoghurt']],
+  ['sourcream', 'Сметана', 'Sour cream', ['сметан', 'sour cream']],
+  ['kefir', 'Кефір', 'Kefir', ['кефір', 'kefir']],
+  // М'ясо
+  ['chicken', 'Курка', 'Chicken', ['куряч', 'курк', 'chicken']],
+  ['sausage', 'Ковбаса', 'Sausage', ['ковбас', 'sausage']],
+  ['mince', 'Фарш', 'Minced meat', ['фарш', 'mince']],
+  // Бакалія / хліб
+  ['bread', 'Хліб', 'Bread', ['хліб', 'bread']],
+  ['buckwheat', 'Гречка', 'Buckwheat', ['гречк', 'buckwheat']],
+  ['pasta', 'Макарони', 'Pasta', ['макарон', 'pasta', 'spaghetti']],
+  ['sugar', 'Цукор', 'Sugar', ['цукор', 'sugar']],
+  ['oil', 'Олія', 'Oil', ['олія', 'олію', 'олії', 'oil']],
+  ['coffee', 'Кава', 'Coffee', ['кава', 'кави', 'каву', 'coffee']],
+]
+
+// Триграмний індекс основ канону для нечіткого зіставлення: основа → канонічна позиція.
+const CANON_BY_STEM = new Map()
+for (const [key, uk, en, stems] of CANON) for (const s of stems) if (s.length >= 3 && !CANON_BY_STEM.has(s)) CANON_BY_STEM.set(s, { key, uk, en })
+const CANON_INDEX = buildFuzzyIndex([...CANON_BY_STEM.keys()])
+
+// Звести назву до канонічної позиції (або null). Виграє найдовша основа-підрядок; якщо підрядок
+// нічого не дав — нечіткий фолбек за триграмами (друкарські помилки, напр. «тампрни» → «Тампони»).
+export function canonicalizeShoppingName(name) {
+  const n = normalizeName(name)
+  if (!n.trim()) return null
+  let best = null
+  let bestLen = 0
+  for (const [key, uk, en, stems] of CANON) {
+    for (const s of stems) {
+      if (s.length >= 3 && s.length > bestLen && n.includes(s)) {
+        best = { key, uk, en }
+        bestLen = s.length
+      }
+    }
+  }
+  if (best) return best
+  for (const token of wordsOf(n)) {
+    const m = bestMatch(token, CANON_INDEX)
+    if (m) {
+      const c = CANON_BY_STEM.get(m.word)
+      if (c) return c
+    }
+  }
+  return null
 }
 
 // Українська абетка (малі літери) + апостроф. Словники й ввід мають бути українською або
