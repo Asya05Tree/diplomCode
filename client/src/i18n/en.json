@@ -1001,6 +1001,7 @@
   "quickAdd.pay.failed": "Could not confirm the payment. Please try again.",
   "quickAdd.pay.mockTitle": "Card payment",
   "quickAdd.pay.mockHint": "Demo mode — no real money is charged.",
+  "quickAdd.pay.demoBanner": "Demonstration mode: payment is a test, no real funds are charged. Going live only requires swapping the access keys.",
   "quickAdd.pay.cardNumber": "Card number",
   "quickAdd.pay.expiry": "Expiry",
   "quickAdd.pay.cvv": "CVV",

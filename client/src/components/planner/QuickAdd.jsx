@@ -779,6 +779,10 @@ export default function QuickAdd({ token, onCreated, subjects = [], canAddSubjec
       {paywall && (
         <div className="quick-add-modal-backdrop" onClick={() => !payBusy && setPaywall(false)}>
           <div className="quick-add-modal qa-pay" onClick={(e) => e.stopPropagation()}>
+            {/* Явний банер демо-режиму над кнопкою оплати (problems.md #7) — не лише в документації. */}
+            <div className="qa-pay-demo">
+              <Icon name="info" /> {t('quickAdd.pay.demoBanner')}
+            </div>
             {!checkout ? (
               <>
                 <div className="qa-pay-badge"><Icon name="sparkles" /></div>

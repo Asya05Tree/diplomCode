@@ -1001,6 +1001,7 @@
   "quickAdd.pay.failed": "Не вдалося підтвердити оплату. Спробуйте ще раз.",
   "quickAdd.pay.mockTitle": "Оплата карткою",
   "quickAdd.pay.mockHint": "Демонстраційний режим — реальні гроші не списуються.",
+  "quickAdd.pay.demoBanner": "Демонстраційний режим: оплата тестова, реальні кошти не списуються. Перехід на робочий режим потребує лише заміни ключів доступу.",
   "quickAdd.pay.cardNumber": "Номер картки",
   "quickAdd.pay.expiry": "Термін",
   "quickAdd.pay.cvv": "CVV",
