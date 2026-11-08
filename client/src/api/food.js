@@ -34,13 +34,15 @@ export function markCooked(recipeId) {
   return apiSend('POST', `/api/food/recipes/${recipeId}/cooked`)
 }
 
-// Тижневе меню (зберігається на сервері): карта { день 1..7: [recipeId...] }.
-export function getWeeklyMenu() {
-  return apiGet('/api/food/menu')
+// Тижневе меню (на сервері, за КОНКРЕТНОЮ ДАТОЮ): читаємо діапазоном (видимий тиждень),
+// повертається карта { 'YYYY-MM-DD': [recipeId...] } лише для днів, де щось є.
+export function getWeeklyMenu(from, to) {
+  return apiGet(`/api/food/menu?from=${from}&to=${to}`)
 }
 
-export function saveWeeklyMenu(menu) {
-  return apiSend('PUT', '/api/food/menu', { menu })
+// Замінити список страв одного дня (add/remove/clear — через новий список рецептів).
+export function saveMenuDay(date, recipeIds) {
+  return apiSend('PUT', `/api/food/menu/${date}`, { recipeIds })
 }
 
 // Двомовні назви — мову обирає компонент (як було в псевдо-БД).

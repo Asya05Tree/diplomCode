@@ -129,6 +129,38 @@
   color: var(--color-text-muted);
   background: var(--pill-bg);
 }
+
+/* Навігатор тижнів над сіткою меню */
+.food-menu-weeknav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.food-menu-navbtn {
+  padding: 7px 10px;
+}
+.food-menu-navbtn .icon {
+  width: 16px;
+  height: 16px;
+}
+.food-menu-next {
+  transform: rotate(180deg);
+}
+.food-menu-weeklabel {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-heading);
+  min-width: 120px;
+  text-align: center;
+}
+.food-menu-today {
+  margin-left: auto;
+  padding: 7px 14px;
+  font-size: 0.86rem;
+}
+
 .food-menu-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -158,6 +190,23 @@
   letter-spacing: 0.02em;
   color: var(--color-heading);
   text-transform: capitalize;
+}
+.food-menu-day-date {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* Сьогоднішній день у видимому тижні — акцентна рамка */
+.food-menu-day--today {
+  border-color: var(--color-accent-strong);
+  box-shadow: 0 0 0 1px var(--color-accent-strong), var(--shadow-sm);
+}
+.food-menu-grid--loading {
+  opacity: 0.55;
+  pointer-events: none;
 }
 .food-menu-clear {
   display: inline-flex;

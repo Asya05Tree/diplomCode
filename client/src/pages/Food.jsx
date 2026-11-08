@@ -10,13 +10,28 @@ import {
   toggleSelected as apiToggleSelected,
   markCooked as apiMarkCooked,
   getWeeklyMenu,
-  saveWeeklyMenu,
+  saveMenuDay,
   productName,
   recipeName,
   ingredientAmount,
   tagLabelFrom,
 } from '../api/food'
+import { addDays, toApiDate, fromApiDate, todayApiDate } from '../utils/date'
 import './Food.css'
+
+// Перший день (за налаштуванням weekStart: 1=Пн..7=Нд) тижня, що містить дату refApi ('YYYY-MM-DD').
+function startOfWeek(weekStartIso, refApi) {
+  const d = fromApiDate(refApi)
+  const iso = d.getDay() === 0 ? 7 : d.getDay()
+  let diff = iso - weekStartIso
+  if (diff < 0) diff += 7
+  return toApiDate(addDays(d, -diff))
+}
+
+// Коротка мітка дати 'YYYY-MM-DD' → 'DD.MM'.
+function ddmm(apiDate) {
+  return `${apiDate.slice(8, 10)}.${apiDate.slice(5, 7)}`
+}
 
 const STOCK_TOGGLE = [
   { state: 'Available', cls: 'ok' },
@@ -24,19 +39,11 @@ const STOCK_TOGGLE = [
   { state: 'OutOfStock', cls: 'bad' },
 ]
 
-// Тижневе меню зберігається на сервері (ПЛАН P3-3) — особистий план поверх серверних довідників.
-// Структура: { ISO-день 1..7: [recipeId] }. Нормалізуємо відповідь сервера до всіх семи днів.
-function normalizeMenu(raw) {
-  const menu = {}
-  for (let d = 1; d <= 7; d++) menu[d] = Array.isArray(raw?.[d]) ? raw[d] : []
-  return menu
-}
-
 // Модуль "Їжа" (planner-spec.md §4.6): лента рецептів з фільтрами, запаси з триступеневим
 // станом "є / закінчується / немає", обрані страви та підтвердження готовки. Дані тепер із
 // бекенда (/api/food/overview): довідники продуктів/рецептів системні, стан — користувацький.
 export default function Food() {
-  const { t, language, weekdays, orderedWeekDays } = useI18n()
+  const { t, language, weekdays, weekStart: weekStartSetting } = useI18n()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -58,12 +65,12 @@ export default function Food() {
   const [stockSearch, setStockSearch] = useState('')
   // Три вкладки розділу: "Меню" (план на тиждень), "Страви" і "Запаси".
   const [tab, setTab] = useState('menu') // 'menu' | 'dishes' | 'stock'
-  // Тижневе меню: { ISO-день: [recipeId] }. Завантажується з сервера нижче; день-пікер — через menuPickDay.
-  const [menu, setMenu] = useState(() => normalizeMenu(null))
-  const [menuPickDay, setMenuPickDay] = useState(null) // ISO-день для вибору страви або null
-  const menuHydrated = useRef(false)   // true після першого завантаження меню з сервера
-  const lastSavedMenu = useRef('')     // JSON останнього збереженого меню (щоб не слати зайвих PUT)
-  const menuSaveTimer = useRef(null)   // debounce збереження
+  // Тижневе меню за КОНКРЕТНОЮ ДАТОЮ: { 'YYYY-MM-DD': [recipeId] } для видимого тижня. weekStart —
+  // перша дата видимого тижня (можна гортати тижні → історія). menuPickDate — дата для пікера страви.
+  const [menuByDate, setMenuByDate] = useState({})
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(weekStartSetting, todayApiDate()))
+  const [menuPickDate, setMenuPickDate] = useState(null)
+  const [menuLoading, setMenuLoading] = useState(false)
   const [stockCat, setStockCat] = useState('all')
   const [stockSort, setStockSort] = useState('default') // 'default' | 'alpha' | 'availability'
   // Id продуктів, що вже є у списку покупок (невідмічені) — щоб не пропонувати додати двічі.
@@ -78,9 +85,8 @@ export default function Food() {
       getFoodOverview(),
       getFinance().catch(() => ({ balance: 0 })),
       getShoppingList().catch(() => ({ items: [] })),
-      getWeeklyMenu().catch(() => ({})),
     ])
-      .then(([ov, fin, shop, menuData]) => {
+      .then(([ov, fin, shop]) => {
         if (cancelled) return
         setProducts(ov.products)
         setRecipes(ov.recipes)
@@ -93,11 +99,6 @@ export default function Food() {
         setBalance(bal)
         setRange({ from: 0, to: bal })
         setInShopping(new Set((shop.items || []).filter((x) => !x.isChecked && x.productId != null).map((x) => x.productId)))
-        // Меню з сервера: фіксуємо як «збережене», щоб перший рендер не ганяв зайвий PUT.
-        const loadedMenu = normalizeMenu(menuData)
-        setMenu(loadedMenu)
-        lastSavedMenu.current = JSON.stringify(loadedMenu)
-        menuHydrated.current = true
         setLoading(false)
       })
       .catch(() => {
@@ -185,30 +186,40 @@ export default function Food() {
     await apiAddStockProduct(productId)
   }
 
-  // Меню зберігаємо на сервері: лише реальні зміни, з debounce 600 мс (ПЛАН P3-3).
+  // Сім дат видимого тижня (перша = weekStart, далі +1 день).
+  const weekDates = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => toApiDate(addDays(fromApiDate(weekStart), i))),
+    [weekStart],
+  )
+
+  // Завантаження меню видимого тижня (і при зміні тижня). Кожна колонка — конкретна дата → історія.
   useEffect(() => {
-    if (!menuHydrated.current) return
-    const json = JSON.stringify(menu)
-    if (json === lastSavedMenu.current) return
-    if (menuSaveTimer.current) clearTimeout(menuSaveTimer.current)
-    menuSaveTimer.current = setTimeout(() => {
-      lastSavedMenu.current = json
-      saveWeeklyMenu(menu).catch(() => {})
-    }, 600)
-  }, [menu])
+    let cancelled = false
+    setMenuLoading(true)
+    getWeeklyMenu(weekDates[0], weekDates[6])
+      .then((data) => { if (!cancelled) setMenuByDate(data || {}) })
+      .catch(() => { if (!cancelled) setMenuByDate({}) })
+      .finally(() => { if (!cancelled) setMenuLoading(false) })
+    return () => { cancelled = true }
+  }, [weekDates])
 
-  const addToMenu = (day, recipeId) => {
-    setMenu((prev) => ({ ...prev, [day]: [...prev[day], recipeId] }))
-    setMenuPickDay(null)
+  // Зберегти день одразу (add/remove/clear — через новий список рецептів дня).
+  const saveDay = (date, ids) => {
+    setMenuByDate((prev) => ({ ...prev, [date]: ids }))
+    saveMenuDay(date, ids).catch(() => {})
   }
+  const addToMenu = (date, recipeId) => {
+    saveDay(date, [...(menuByDate[date] || []), recipeId])
+    setMenuPickDate(null)
+  }
+  const removeFromMenu = (date, index) => {
+    saveDay(date, (menuByDate[date] || []).filter((_, i) => i !== index))
+  }
+  const clearMenuDay = (date) => saveDay(date, [])
 
-  const removeFromMenu = (day, index) => {
-    setMenu((prev) => ({ ...prev, [day]: prev[day].filter((_, i) => i !== index) }))
-  }
-
-  const clearMenuDay = (day) => {
-    setMenu((prev) => ({ ...prev, [day]: [] }))
-  }
+  // Навігація по тижнях (гортання → перегляд минулого/майбутнього).
+  const goWeek = (deltaWeeks) => setWeekStart(toApiDate(addDays(fromApiDate(weekStart), deltaWeeks * 7)))
+  const goThisWeek = () => setWeekStart(startOfWeek(weekStartSetting, todayApiDate()))
 
   const handleToggleFavorite = async (recipe) => {
     const willSelect = !selected.includes(recipe.id)
@@ -334,18 +345,34 @@ export default function Food() {
           {favoriteRecipes.length === 0 && (
             <p className="food-health-note food-menu-note">{t('food.menuNoFavorites')}</p>
           )}
-          <div className="food-menu-grid">
-            {orderedWeekDays.map((day, i) => {
-              const dayIds = menu[day] || []
+
+          {/* Навігатор тижнів: кожна колонка сітки — конкретна дата, тижні гортаються (історія). */}
+          <div className="food-menu-weeknav">
+            <button type="button" className="btn-ghost food-menu-navbtn" onClick={() => goWeek(-1)} aria-label={t('food.menuPrevWeek')}>
+              <Icon name="chevron-left" />
+            </button>
+            <span className="food-menu-weeklabel">{ddmm(weekDates[0])} – {ddmm(weekDates[6])}</span>
+            <button type="button" className="btn-ghost food-menu-navbtn" onClick={() => goWeek(1)} aria-label={t('food.menuNextWeek')}>
+              <Icon name="chevron-left" className="food-menu-next" />
+            </button>
+            <button type="button" className="btn-ghost food-menu-today" onClick={goThisWeek}>{t('food.menuThisWeek')}</button>
+          </div>
+
+          <div className={menuLoading ? 'food-menu-grid food-menu-grid--loading' : 'food-menu-grid'}>
+            {weekDates.map((date, i) => {
+              const dayIds = menuByDate[date] || []
+              const isToday = date === todayApiDate()
               return (
-                <div key={day} className="food-menu-day">
+                <div key={date} className={isToday ? 'food-menu-day food-menu-day--today' : 'food-menu-day'}>
                   <div className="food-menu-day-head">
-                    <span className="food-menu-day-name">{weekdays[i]}</span>
+                    <span className="food-menu-day-name">
+                      {weekdays[i]} <span className="food-menu-day-date">{ddmm(date)}</span>
+                    </span>
                     {dayIds.length > 0 && (
                       <button
                         type="button"
                         className="food-menu-clear"
-                        onClick={() => clearMenuDay(day)}
+                        onClick={() => clearMenuDay(date)}
                         title={t('food.menuClearDay')}
                         aria-label={t('food.menuClearDay')}
                       >
@@ -367,7 +394,7 @@ export default function Food() {
                             <button
                               type="button"
                               className="food-menu-chip-x"
-                              onClick={() => removeFromMenu(day, idx)}
+                              onClick={() => removeFromMenu(date, idx)}
                               aria-label={t('common.delete')}
                             >
                               <Icon name="close" />
@@ -380,7 +407,7 @@ export default function Food() {
                   <button
                     type="button"
                     className="food-menu-add"
-                    onClick={() => setMenuPickDay(day)}
+                    onClick={() => setMenuPickDate(date)}
                     disabled={favoriteRecipes.length === 0}
                   >
                     <Icon name="plus" /> {t('food.menuAddDish')}
@@ -564,11 +591,11 @@ export default function Food() {
         </div>
       )}
 
-      {/* Пікер страви для дня тижневого меню — зі списку обраних страв */}
-      {menuPickDay != null && (
+      {/* Пікер страви для конкретної дати тижневого меню — зі списку обраних страв */}
+      {menuPickDate != null && (
         <Drawer
-          title={t('food.menuPickTitle', { day: weekdays[orderedWeekDays.indexOf(menuPickDay)] })}
-          onClose={() => setMenuPickDay(null)}
+          title={t('food.menuPickTitle', { day: ddmm(menuPickDate) })}
+          onClose={() => setMenuPickDate(null)}
         >
           {favoriteRecipes.length === 0 ? (
             <p className="placeholder-text">{t('food.favoritesEmpty')}</p>
@@ -582,7 +609,7 @@ export default function Food() {
                   <button
                     type="button"
                     className="pill"
-                    onClick={() => addToMenu(menuPickDay, recipe.id)}
+                    onClick={() => addToMenu(menuPickDate, recipe.id)}
                   >
                     {t('food.add')}
                   </button>

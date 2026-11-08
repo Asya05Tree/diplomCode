@@ -224,8 +224,8 @@ namespace Server.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("int");
+                    b.Property<DateOnly>("MenuDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("Position")
                         .HasColumnType("int");
@@ -240,7 +240,7 @@ namespace Server.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.HasIndex("UserId", "DayOfWeek", "Position");
+                    b.HasIndex("UserId", "MenuDate", "Position");
 
                     b.ToTable("FoodMenuItems");
                 });
