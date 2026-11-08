@@ -11,6 +11,7 @@ public record AddShoppingItemRequest([StringLength(TextLimits.Code)] string Sect
     [StringLength(TextLimits.Name)] string? Category, [StringLength(TextLimits.Name)] string? Text, int? ProductId, int? MedicineId);
 public record SetShoppingCategoryRequest([StringLength(TextLimits.Name)] string? Category);
 public record CheckShoppingItemRequest(decimal? Price);
+public record PlanTripRequest(DateTime? Date);
 
 // planner-spec.md §3.8, spisok-pokupok.md. Список покупок (розділи, підказки, особисті ціни) та
 // дії над ним: додати/видалити/відмітити покупку, запланувати похід у магазин.
@@ -65,9 +66,9 @@ public class ShoppingListController : ControllerBase
     }
 
     [HttpPost("plan-trip")]
-    public async Task<IActionResult> PlanTrip()
+    public async Task<IActionResult> PlanTrip([FromBody] PlanTripRequest? request)
     {
-        var taskId = await _shoppingService.PlanTripAsync(CurrentUserId);
+        var taskId = await _shoppingService.PlanTripAsync(CurrentUserId, request?.Date);
         return Ok(new { taskId });
     }
 }

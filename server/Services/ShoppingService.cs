@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
+using Server.RuleEngine;
 
 namespace Server.Services;
 
@@ -22,7 +23,7 @@ public class ShoppingService
     public record ShoppingItemDto(
         int Id, string Section, string? Category, int? ProductId, int? MedicineId, string? CustomText,
         string DisplayNameUk, string DisplayNameEn, bool IsChecked, decimal? EstimatedPrice,
-        int? PriceAgeMonths, string Source);
+        int? PriceAgeMonths, string Source, string? HealthWarning);
 
     public record SuggestionDto(int ProductId, string DisplayNameUk, string DisplayNameEn);
     public record PriceCoverageDto(int Known, int Total);
@@ -55,6 +56,10 @@ public class ShoppingService
             .Where(x => x.UserId == userId)
             .ToDictionaryAsync(x => x.ProductId, x => x);
 
+        // Попередження за здоров'ям: чи не заборонений/небажаний продукт за жорсткими правилами
+        // користувача (ті самі теги/обмеження, що й у «Їжі»). null — обмежень нема або продукт ок.
+        var healthByProduct = await BuildHealthWarningsAsync(userId, items);
+
         var dtos = items.Select(x =>
         {
             var (nameUk, nameEn) = DisplayName(x);
@@ -68,8 +73,10 @@ public class ShoppingService
                 ageMonths = MonthsSince(pp.UpdatedAt);
             }
 
+            string? health = x.ProductId is int hpid && healthByProduct.TryGetValue(hpid, out var hw) ? hw : null;
+
             return new ShoppingItemDto(x.Id, x.Section, x.Category, x.ProductId, x.MedicineId, x.CustomText,
-                nameUk, nameEn, x.IsChecked, estimated, ageMonths, x.Source);
+                nameUk, nameEn, x.IsChecked, estimated, ageMonths, x.Source, health);
         }).ToList();
 
         // Покриття цінами рахуємо по ПОТОЧНОМУ списку (невідмічені позиції) — звідси режим фільтра докупівлі
@@ -115,6 +122,42 @@ public class ShoppingService
             .Where(x => x.Product != null)
             .Select(x => new SuggestionDto(x.ProductId, x.Product!.NameUk, x.Product.NameEn))
             .ToList();
+    }
+
+    // Попередження за здоров'ям для позицій-продуктів: evaluate теги продукту проти жорстких
+    // обмежень користувача (Forbidden/Avoid) тим самим RuleEngine, що й «Їжа». Повертає productId →
+    // "Forbidden" | "Avoid" | null. Якщо обмежень нема — порожній словник (жодних попереджень).
+    private async Task<Dictionary<int, string?>> BuildHealthWarningsAsync(int userId, List<ShoppingItem> items)
+    {
+        var result = new Dictionary<int, string?>();
+
+        var prefs = await _db.UserTagPreferences
+            .Include(p => p.Tag)
+            .Where(p => p.UserId == userId && (p.Relation == "Forbidden" || p.Relation == "Avoid"))
+            .ToListAsync();
+        if (prefs.Count == 0) return result;
+
+        var productIds = items.Where(x => x.ProductId != null).Select(x => x.ProductId!.Value).Distinct().ToList();
+        if (productIds.Count == 0) return result;
+
+        var restrictions = prefs
+            .Where(p => p.Tag != null)
+            .Select(p => new RuleEvaluator.Restriction(p.TagId, p.Tag!.Key, p.Relation))
+            .ToList();
+        var parentById = (await _db.Tags.ToListAsync()).ToDictionary(t => t.Id, t => t.ParentId);
+
+        var productTags = await _db.Products
+            .Where(p => productIds.Contains(p.Id))
+            .Select(p => new { p.Id, TagIds = p.Tags.Where(t => t.Value != "No").Select(t => t.TagId).ToList() })
+            .ToListAsync();
+
+        foreach (var pt in productTags)
+        {
+            var expanded = TagMatcher.ExpandWithAncestors(pt.TagIds, parentById);
+            var ev = RuleEvaluator.Evaluate(expanded, restrictions);
+            result[pt.Id] = ev.Forbidden != null ? "Forbidden" : (ev.Avoid != null ? "Avoid" : null);
+        }
+        return result;
     }
 
     // source/sourceEntityId — за замовчуванням ручне додавання; інші модулі (напр. "Cycle")
@@ -254,19 +297,30 @@ public class ShoppingService
         else { pp.LastPrice = price; pp.UpdatedAt = now; }
     }
 
-    // Задача-нагадування про похід у магазин (spisok-pokupok.md): без дати (Нерозподілені), із
-    // посиланням на модуль списку, щоб із картки задачі відкрити екран списку з чекбоксами.
-    public async Task<int> PlanTripAsync(int userId)
+    // Задача-нагадування про похід у магазин (spisok-pokupok.md): якщо вказано дату — задача на той
+    // день (Planned), інакше без дати (Нерозподілені). Посилання на модуль списку, щоб із картки
+    // задачі відкрити екран списку з чекбоксами.
+    public async Task<int> PlanTripAsync(int userId, DateTime? date)
     {
         // Ідемпотентно: якщо вже є відкрита (не завершена) задача-похід у магазин — повертаємо її,
         // а не плодимо дублі при кожному повторному кліку (ПЛАН P2-9). Похід у магазин по суті один:
-        // той самий список, та сама задача, доки її не завершили/видалили.
+        // той самий список, та сама задача, доки її не завершили/видалили. Якщо передали дату —
+        // просто оновлюємо день наявної задачі (переносимо похід), а не створюємо другу.
         var existing = await _db.Tasks.FirstOrDefaultAsync(t =>
             t.UserId == userId && t.SourceModule == "shopping" && t.RecurrenceRuleId == null && t.Status != "Done");
-        if (existing is not null) return existing.Id;
+        if (existing is not null)
+        {
+            if (date is not null)
+            {
+                existing.StartDateTime = date;
+                existing.Status = "Planned";
+                await _db.SaveChangesAsync();
+            }
+            return existing.Id;
+        }
 
         var task = await _taskService.CreateTaskAsync(
-            userId, "Купити за списком", null, null, null, null,
+            userId, "Купити за списком", null, date, null, null,
             moduleCode: "shopping", sourceModule: "shopping", sourceEntityId: 0);
         return task.Id;
     }

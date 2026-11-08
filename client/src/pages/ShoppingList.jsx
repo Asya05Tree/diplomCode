@@ -19,7 +19,10 @@ import {
   checkItem,
   planTrip,
 } from '../api/shopping'
+import ComboList from '../components/common/ComboList'
+import { findMaximalCombos } from '../utils/combos'
 import './ShoppingList.css'
+import './Landing.css' // стилі списку комбінацій (.landing-results-*) для автопідбору
 
 // Запобіжник: автопідбір докупівлі ніколи не бере більше стількох позицій за один раз
 // (щоб підбір «під бюджет» не перетворювався на весь список).
@@ -56,6 +59,8 @@ export default function ShoppingList() {
   const [budget, setBudget] = useState('')
   const [picked, setPicked] = useState(() => new Set())
 
+  // Похід у магазин: необов'язкова дата (з нею — задача на день, без неї — у «Нерозподілених»).
+  const [tripDate, setTripDate] = useState('')
   const [tripTaskId, setTripTaskId] = useState(null)
 
   const reload = async () => {
@@ -129,7 +134,7 @@ export default function ShoppingList() {
   }
 
   const handlePlanTrip = async () => {
-    const { taskId } = await planTrip()
+    const { taskId } = await planTrip(tripDate || null)
     setTripTaskId(taskId)
   }
 
@@ -167,6 +172,24 @@ export default function ShoppingList() {
     else next.add(id)
     return next
   })
+
+  // Автопідбір «за сумою» показує ВСІ максимальні комбінації під бюджет (той самий алгоритм, що й
+  // демо на Landing / у формі задачі «Піти в магазин»), а не один довільний набір.
+  const pricedToBuy = useMemo(
+    () => toBuy.filter((x) => (x.estimatedPrice ?? 0) > 0).map((x) => ({ id: x.id, name: displayName(x), price: x.estimatedPrice })),
+    [toBuy, language],
+  )
+  const combos = useMemo(
+    () => (mode === 'sum' && limit > 0 ? findMaximalCombos(pricedToBuy, limit) : []),
+    [pricedToBuy, mode, limit],
+  )
+
+  // Попередження за здоров'ям на позиції-продукті (обчислює бекенд за тегами/обмеженнями «Їжі»).
+  const healthBadge = (item) => item.healthWarning && (
+    <span className={item.healthWarning === 'Forbidden' ? 'shopping-health shopping-health--bad' : 'shopping-health shopping-health--warn'}>
+      <Icon name="warning" /> {t(item.healthWarning === 'Forbidden' ? 'shoppingList.healthForbidden' : 'shoppingList.healthAvoid')}
+    </span>
+  )
 
   if (loading) {
     return (
@@ -235,6 +258,7 @@ export default function ShoppingList() {
                     )}
                   </span>
                 )}
+                {healthBadge(item)}
                 <select
                   className="shopping-card-cat"
                   value={SHOPPING_CATEGORIES.some((c) => c.key === item.category) ? item.category : ''}

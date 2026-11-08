@@ -30,7 +30,8 @@ export function checkItem(id, price) {
   return apiSend('POST', `/api/shopping-list/${id}/check`, { price: price ?? null })
 }
 
-// Створити задачу-нагадування "похід у магазин" (повертає { taskId }).
-export function planTrip() {
-  return apiSend('POST', '/api/shopping-list/plan-trip')
+// Створити задачу-нагадування "похід у магазин" (повертає { taskId }). Дата необов'язкова:
+// з датою — задача на той день у календарі, без неї — у «Нерозподілених».
+export function planTrip(date) {
+  return apiSend('POST', '/api/shopping-list/plan-trip', { date: date || null })
 }
