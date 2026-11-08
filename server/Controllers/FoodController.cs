@@ -96,4 +96,13 @@ public class FoodController : ControllerBase
         await _recipeService.ReplaceMenuDayAsync(CurrentUserId, d, r.RecipeIds ?? new List<int>());
         return Ok();
     }
+
+    // Підказки для планування меню на конкретну дату: найчастіші страви саме в цей день тижня +
+    // найчастіші взагалі (за історією користувача). { byWeekday: [recipeId…], overall: [recipeId…] }.
+    [HttpGet("menu/hints")]
+    public async Task<IActionResult> GetMenuHints([FromQuery] string date)
+    {
+        if (!DateOnly.TryParse(date, out var d)) return BadRequest(new { error = "bad_date" });
+        return Ok(await _recipeService.GetMenuHintsAsync(CurrentUserId, d));
+    }
 }

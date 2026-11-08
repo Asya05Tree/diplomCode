@@ -45,6 +45,12 @@ export function saveMenuDay(date, recipeIds) {
   return apiSend('PUT', `/api/food/menu/${date}`, { recipeIds })
 }
 
+// Підказки для планування меню на дату: { byWeekday: [recipeId...], overall: [recipeId...] } —
+// найчастіші страви саме в цей день тижня та найчастіші взагалі (за історією користувача).
+export function getMenuHints(date) {
+  return apiGet(`/api/food/menu/hints?date=${date}`)
+}
+
 // Двомовні назви — мову обирає компонент (як було в псевдо-БД).
 export function productName(product, language) {
   if (!product) return ''

@@ -273,6 +273,27 @@ public class RecipeService
     // одному дню (replace-day: add/remove/clear — усе через заміну списку рецептів дня).
 
     private const int MaxMenuItemsPerDay = 20;
+    // Скільки тижнів історії меню зберігаємо. Старіше авто-чиститься (щоб історія не росла вічно);
+    // збігається з нижньою межею перегляду історії на клієнті (52 тижні).
+    private const int MenuHistoryWeeks = 52;
+
+    // Нижня межа збереження історії меню (сьогодні − 52 тижні).
+    private static DateOnly MenuHistoryFloor() =>
+        DateOnly.FromDateTime(DateTime.Now.Date).AddDays(-MenuHistoryWeeks * 7);
+
+    // Авто-чистка: прибрати пункти меню, старіші за межу збереження історії.
+    private async Task PruneMenuHistoryAsync(int userId)
+    {
+        var floor = MenuHistoryFloor();
+        var stale = await _db.FoodMenuItems
+            .Where(x => x.UserId == userId && x.MenuDate < floor)
+            .ToListAsync();
+        if (stale.Count > 0)
+        {
+            _db.FoodMenuItems.RemoveRange(stale);
+            await _db.SaveChangesAsync();
+        }
+    }
 
     // Меню за діапазоном дат: { "yyyy-MM-dd": [recipeId, …] } лише для днів, де щось є.
     public async Task<Dictionary<string, List<int>>> GetMenuRangeAsync(int userId, DateOnly from, DateOnly to)
@@ -289,6 +310,34 @@ public class RecipeService
             list.Add(it.RecipeId);
         }
         return menu;
+    }
+
+    public record MenuHintsDto(List<int> ByWeekday, List<int> Overall);
+
+    // Підказки для планування меню на конкретну дату: рецепти, які користувач найчастіше ставив
+    // САМЕ в цей день тижня (byWeekday), і найчастіші взагалі (overall). Рахуємо за останні 52 тижні
+    // (історія мала — беремо в пам'ять і групуємо в C#, бо DateOnly.DayOfWeek не транслюється в SQL).
+    public async Task<MenuHintsDto> GetMenuHintsAsync(int userId, DateOnly date)
+    {
+        var floor = MenuHistoryFloor();
+        var history = await _db.FoodMenuItems
+            .Where(x => x.UserId == userId && x.MenuDate >= floor)
+            .Select(x => new { x.MenuDate, x.RecipeId })
+            .ToListAsync();
+
+        List<int> Top(IEnumerable<(DateOnly Date, int RecipeId)> rows) => rows
+            .GroupBy(h => h.RecipeId)
+            .OrderByDescending(g => g.Count())
+            .ThenByDescending(g => g.Max(h => h.Date))
+            .Select(g => g.Key)
+            .Take(5)
+            .ToList();
+
+        var rows = history.Select(h => (Date: h.MenuDate, RecipeId: h.RecipeId)).ToList();
+        var weekday = date.DayOfWeek;
+        var byWeekday = Top(rows.Where(r => r.Date.DayOfWeek == weekday));
+        var overall = Top(rows);
+        return new MenuHintsDto(byWeekday, overall);
     }
 
     // Замінити весь список страв одного дня (add/remove/clear — через новий список рецептів).
@@ -308,5 +357,7 @@ public class RecipeService
             pos++;
         }
         await _db.SaveChangesAsync();
+        // Нагода прибрати застарілу історію меню (старішу за 52 тижні), не ганяючи окремий фоновий job.
+        await PruneMenuHistoryAsync(userId);
     }
 }

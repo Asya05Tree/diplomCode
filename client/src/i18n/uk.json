@@ -623,6 +623,8 @@
   "food.tabStockMeta": "{count} у запасі",
   "food.menuAddDish": "Додати страву",
   "food.menuPickTitle": "Додати страву — {day}",
+  "food.menuHintWeekday": "Найчастіше в цей день",
+  "food.menuHintOverall": "Найчастіше у вас",
   "food.menuPrevWeek": "Попередній тиждень",
   "food.menuNextWeek": "Наступний тиждень",
   "food.menuThisWeek": "Цей тиждень",

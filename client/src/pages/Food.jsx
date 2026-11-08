@@ -10,6 +10,7 @@ import {
   toggleSelected as apiToggleSelected,
   getWeeklyMenu,
   saveMenuDay,
+  getMenuHints,
   productName,
   recipeName,
   tagLabelFrom,
@@ -67,6 +68,8 @@ export default function Food() {
   // Тижневе меню за КОНКРЕТНОЮ ДАТОЮ: { 'YYYY-MM-DD': [recipeId] } для видимого тижня. weekStart —
   // перша дата видимого тижня (можна гортати тижні → історія). menuPickDate — дата для пікера страви.
   const [menuByDate, setMenuByDate] = useState({})
+  // Підказки для пікера меню: найчастіші страви в цей день тижня + найчастіші взагалі.
+  const [menuHints, setMenuHints] = useState({ byWeekday: [], overall: [] })
   const [weekStart, setWeekStart] = useState(() => startOfWeek(weekStartSetting, todayApiDate()))
   // Режим меню: 'plan' — цей і наступний тиждень (планування); 'history' — минулі тижні (лише перегляд).
   const [menuMode, setMenuMode] = useState('plan')
@@ -217,6 +220,16 @@ export default function Food() {
       .finally(() => { if (!cancelled) setMenuLoading(false) })
     return () => { cancelled = true }
   }, [weekDates])
+
+  // При відкритті пікера страви на конкретну дату — підтягуємо підказки (що найчастіше в цей день/взагалі).
+  useEffect(() => {
+    if (menuPickDate == null) return undefined
+    let cancelled = false
+    getMenuHints(menuPickDate)
+      .then((d) => { if (!cancelled) setMenuHints({ byWeekday: d?.byWeekday || [], overall: d?.overall || [] }) })
+      .catch(() => { if (!cancelled) setMenuHints({ byWeekday: [], overall: [] }) })
+    return () => { cancelled = true }
+  }, [menuPickDate])
 
   // Ліміт страв на один день меню (щоб день не роздувався). Історія не редагується.
   const MAX_MENU_PER_DAY = 6
@@ -634,6 +647,38 @@ export default function Food() {
           title={t('food.menuPickTitle', { day: ddmm(menuPickDate) })}
           onClose={() => setMenuPickDate(null)}
         >
+          {(() => {
+            const dayIds = menuByDate[menuPickDate] || []
+            const wk = menuHints.byWeekday.filter((id) => recipeMap[id] && !dayIds.includes(id))
+            const ov = menuHints.overall.filter(
+              (id) => recipeMap[id] && !dayIds.includes(id) && !wk.includes(id),
+            )
+            const renderHints = (ids, labelKey) =>
+              ids.length > 0 && (
+                <div className="food-menu-hints">
+                  <span className="food-menu-hints-label">{t(labelKey)}</span>
+                  <div className="food-menu-hints-chips">
+                    {ids.map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        className="pill food-menu-hint"
+                        onClick={() => addToMenu(menuPickDate, id)}
+                      >
+                        <Icon name="plus" /> {recipeName(recipeMap[id], language)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            return (
+              <>
+                {renderHints(wk, 'food.menuHintWeekday')}
+                {renderHints(ov, 'food.menuHintOverall')}
+              </>
+            )
+          })()}
+
           {favoriteRecipes.length === 0 ? (
             <p className="placeholder-text">{t('food.favoritesEmpty')}</p>
           ) : (

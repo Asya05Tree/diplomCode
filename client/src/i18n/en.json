@@ -623,6 +623,8 @@
   "food.tabStockMeta": "{count} in stock",
   "food.menuAddDish": "Add dish",
   "food.menuPickTitle": "Add dish — {day}",
+  "food.menuHintWeekday": "Most often on this day",
+  "food.menuHintOverall": "Your most frequent",
   "food.menuPrevWeek": "Previous week",
   "food.menuNextWeek": "Next week",
   "food.menuThisWeek": "This week",
