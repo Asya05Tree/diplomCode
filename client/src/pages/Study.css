@@ -807,3 +807,16 @@
   font-size: 0.74rem;
   color: var(--color-text-muted);
 }
+
+/* Поле вводу + підказка «(!)» в один рядок (форми навчання: предмет, завдання, проєкт тощо) */
+.study-field-with-help {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.study-field-with-help > input,
+.study-field-with-help > select,
+.study-field-with-help > textarea {
+  flex: 1;
+  min-width: 0;
+}

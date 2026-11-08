@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
+import FieldHelp from '../components/FieldHelp'
 import { getWorkSettings, setWorkSettings, getNextShift } from '../api/work'
 import { shiftRangeOf } from '../components/work/workShared'
 import ScheduleTab from '../components/work/ScheduleTab'
@@ -96,6 +97,7 @@ export default function Work() {
           <div className="work-role-inputs">
             <input className="work-role-input" value={position} maxLength={40} placeholder={t('work.position')} onChange={(e) => setPosition(e.target.value)} onBlur={saveWorkProfile} />
             <input className="work-role-input" value={employer} maxLength={60} placeholder={t('work.employer')} onChange={(e) => setEmployer(e.target.value)} onBlur={saveWorkProfile} />
+            <FieldHelp text={t('work.profileHelp')} label={t('fieldHelp.label')} />
           </div>
         </div>
         <div className="work-top-meta">
