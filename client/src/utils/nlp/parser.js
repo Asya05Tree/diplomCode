@@ -142,6 +142,22 @@ function resolveWeekdayInWeek(anchorDays, iso, now) {
   return toApiDate(d)
 }
 
+// День тижня, що припадає на конкретне ЧИСЛО місяця ("четвер 4 числа"): шукаємо найближчу
+// майбутню (або сьогоднішню) дату, у якої і день місяця = day, і день тижня = iso. Так "четвер
+// 4 числа" дає саме той місяць, де 4-те — четвер, а не просто найближчий четвер. Якщо збігу
+// немає в межах ~2 років — відкочуємось на просто число місяця (день тижня був зайвим).
+function resolveWeekdayOnDayOfMonth(day, iso, now) {
+  const d = startOfToday(now)
+  for (let i = 0; i < 800; i++) {
+    if (d.getDate() === day) {
+      const wd = d.getDay() === 0 ? 7 : d.getDay()
+      if (wd === iso) return toApiDate(d)
+    }
+    d.setDate(d.getDate() + 1)
+  }
+  return resolveDayOfMonth(day, now)
+}
+
 // --- Крок 2. Матчери: від найконкретніших до найкоротших. Вищий priority перемагає. ---
 
 function buildMatchers(m, now) {
@@ -229,7 +245,7 @@ function buildMatchers(m, now) {
       read: (mm) => {
         const day = Number(mm[1] || mm[2])
         if (day < 1 || day > 31) return null
-        return { dateStr: resolveDayOfMonth(day, now) }
+        return { dateStr: resolveDayOfMonth(day, now), dayOfMonth: day }
       },
     },
     // 4б) Число місяця словом ("п'ятого", "twenty-first", "the fifth"). Форми — лише ті,
@@ -240,7 +256,7 @@ function buildMatchers(m, now) {
       read: (mm) => {
         const day = m.ordinalWords[mm[1].toLowerCase()]
         if (!day) return null
-        return { dateStr: resolveDayOfMonth(day, now) }
+        return { dateStr: resolveDayOfMonth(day, now), dayOfMonth: day }
       },
     },
     // 4в) "через N одиниць" ("через два тижні", "in 3 days") та "через тиждень"/"next week"
@@ -607,6 +623,13 @@ function assemble(piece, m, now) {
   const weekdaySeg = dates.find((s) => s.data.iso != null)
   if (weekAnchor && weekdaySeg && weekAnchor !== weekdaySeg) {
     weekAnchor.data = { ...weekAnchor.data, dateStr: resolveWeekdayInWeek(weekAnchor.data.anchorDays, weekdaySeg.data.iso, now) }
+    consumed.add(weekdaySeg)
+  }
+  // "день_тижня + N числа" ("в четвер 4 числа") → той місяць, де N-те припадає на цей день тижня,
+  // а не просто найближчий такий день тижня. Число місяця лишаємо датою, день тижня поглинаємо.
+  const domSeg = dates.find((s) => s.data.dayOfMonth != null)
+  if (domSeg && weekdaySeg && domSeg !== weekdaySeg && !consumed.has(domSeg) && !consumed.has(weekdaySeg)) {
+    domSeg.data = { ...domSeg.data, dateStr: resolveWeekdayOnDayOfMonth(domSeg.data.dayOfMonth, weekdaySeg.data.iso, now) }
     consumed.add(weekdaySeg)
   }
 
