@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import uk from './uk.json'
 import en from './en.json'
 import {
@@ -38,6 +38,12 @@ export function I18nProvider({ children }) {
     setLanguageState(lang)
     localStorage.setItem(LANGUAGE_KEY, lang)
   }
+
+  // Відображаємо обрану мову на <html lang> — для CSS :lang()/[lang] (напр. жирніший латинський
+  // шрифт сайдбару, бо декоративний Karpaty має лише кирилицю) і для доступності/скрінрідерів.
+  useEffect(() => {
+    document.documentElement.lang = language
+  }, [language])
 
   const setWeekStart = (n) => {
     setWeekStartState(n)

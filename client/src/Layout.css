@@ -16,6 +16,11 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* Великі екрани: контент не розтягується на всю ширину ультраширокого монітора, а має стелю
+     й центрується — інакше рядки/картки ставали надмірно широкими й «порожніми». */
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
   /* backwards (а не both): застосовує стартовий кадр до запуску, але НЕ лишає transform після
      завершення. Інакше retained transform: translateY(0) робив .app-content containing-block для
      position:fixed, і модалки (напр. "Запланувати візит") центрувалися відносно контенту, а не

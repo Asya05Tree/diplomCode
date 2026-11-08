@@ -111,6 +111,19 @@
   color: var(--color-on-accent);
 }
 
+/* Декоративний Karpaty має лише кирилицю — англійські підписи падали на Montserrat 400 й виглядали
+   тонко/блякло поряд із «жирним» українським. Для англійської беремо Montserrat явно й щільніше,
+   щоб сайдбар однаково читався обома мовами (html[lang] ставить i18n-провайдер). */
+html[lang='en'] .sidebar-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+html[lang='en'] .sidebar-brand-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
 /* Модулі-заглушки (ще без сторінки) — приглушені, курсор-замок */
 .sidebar-item--disabled {
   opacity: 0.5;
