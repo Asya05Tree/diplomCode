@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-11-08 (сесія 13) — Виконання `ПЛАН-НАСТУПНОЇ-СЕСІЇ.md`: чистка, спрощення, юр-відповідність, стилі
+
+**Контекст:** користувач попросив виконати план наступної сесії. Три рішення користувача: (1) кластер «оплата/режим» у Роботі — **прибрати все**; (2) решта мертвого коду — **лише беззаперечно неактивне** (теми/мова/`Rule`/робочі контакти лишити); (3) юр-відповідність — **код-гейти + юр-сторінки в UI, без формальних документів**.
+
+**Зроблено (усе з зеленими білдами: `dotnet build` 0/0, `vite build` ок; i18n-паритет 994=994, нуль розбіжностей):**
+
+- **A3 — мертві клієнт-функції (0-імпортів):** видалено `getHealth`, `addCycleRecord`, `endCycleRecord`, `getRestrictions/setRestriction/removeRestriction`, `getInteractions`.
+- **A6 — легасі-PoC:** видалено всю `adversarial-review/poc/security/` (дублікати актуальних `.mjs` у `01-auth/`).
+- **D3 — i18n-залишок:** 5 захардкоджених рядків → `t()` (нові `common.close/soon`, `planner.prevMonth/nextMonth`); у `Food.Drawer` додано `useI18n`, у `MonthGrid` — `t` у деструктуризацію.
+- **A1 — кластер «оплата/режим» у Роботі (ПРИБРАНО ВСЕ):** `WorkSettings.PayType/Rate/Regime/Workplace/NormHours/FullRateRetained/ExtraVacationDays` (модель+DTO+`SettingsRequest`+валідаційні масиви `PayTypes/Regimes/Workplaces`+`RateMax/NormHoursMax`), клієнтський passthrough у `Work.jsx`, мертві константи `workShared` (`PAY_TYPES/CONTACT_STATUSES/WORK_REGIMES/WORKPLACES/REGIMES_WITH_NORM`), плитка заробітку в `ScheduleTab` (+`paidHours`, проп `settings`), ~40 i18n-ключів оплати/режиму/місця. Вкладку «Графік та оплата»→«Графік».
+- **A2/A5 — беззаперечно мертве (підтверджено 0-читань + 0 клієнт-вжитку):** write-only колонки `Note/FinanceAccount/StockItem.UpdatedAt`, `ShoppingItem.CheckedAt`, `UserMedicine/SelectedDish.AddedAt`, `Medicine.CreatedByUserId/IsOtc`; модуль `Todo` (controller+model+DbSet+index+`AccountService` каскад/експорт+9 `todo.*` ключів); `TaskItem.IsPinned`; `WorkContact.GroupName/Status/Socials/Viber` (індекс по GroupName→FullName); `WorkObligation.DueDate/IsDone`; `UserProfile.HistoryRetentionDays`. Прибрано відповідні write-сайти (`NotesController`, `FinanceService`, `ShoppingService`, `RecipeService`, `MedicinesImporter`).
+- **ЛИШЕНО за рішенням користувача:** `UserProfile.Theme/AccentColor/Language` (перевірено: серверний код їх 0 разів читає — write-only дубль, але користувач просив лишити); сутність `Rule`+`Rules` DbSet (посилається в `AccountService` — каскад видалення + експорт даних); робочі контакти (прибрано лише мертві під-поля). Тобто **B2 і B4 свідомо пропущено**.
+- **B1 — мапер:** витягнуто `static TaskItemDto FromEntity(TaskItem t)` — три ідентичні проекції (`oneTime`/unassigned/reminder) зведено до `.Select(FromEntity)`; `IsPinned` прибрано з DTO й віртуальної проекції.
+- **B3 — сортування:** `GetObligationsAsync` спрощено до `OrderBy(Id)` (прибрано мертві `IsDone`/`DueDate`).
+- **Міграція №1 `RemoveDeadColumnsWorkPayTodo`** — згенерована, збирається (дропає рівно заплановане: таблиця `TodoItems`, ~23 колонки, індекс).
+
+- **Блок C — юр-відповідність (код-гейти + юр-сторінки, без формальних документів):**
+  - **C1 (згода при реєстрації):** `RegisterRequest.ConsentAccepted`; сервер відхиляє без згоди (`consent_required`) і фіксує `User.PolicyAcceptedAt`. Клієнт: чекбокс згоди з лінками на `/privacy` та `/terms`, валідація перед сабмітом.
+  - **C3/L3 (явна згода на особливу категорію):** нова колонка `UserProfile.HealthConsentAt`, endpoint `POST /api/account/health-consent`, віддача `healthConsentAt` у `GET /api/health-profile`. Клієнт: `HealthConsentGate` обгортає маршрути `health` і `cycle` — доки згоди немає, показує екран пояснення+згоди замість вмісту.
+  - **C2/L6 (попередження перед авто-видаленням):** `EmailService.SendAccountDeletionWarningAsync` (+рефактор спільного `SendAsync`), `User.DeletionWarnedAt`; `InactiveAccountCleanupService` тепер двоетапний — попереджає листом за ~30 днів до видалення, потім видаляє. Політику розкрито на сторінці privacy.
+  - **C3/L9 (неповнолітні):** дисклеймер у реєстрації при виборі «школяр» + пункт у privacy.
+  - **Юр-сторінки (uk/en):** `Legal.jsx`+`Legal.css` — Політика конфіденційності (володілець, склад даних, мета+підстава, особлива категорія, строк+автовидалення, права суб'єкта, localStorage, треті сторони WayForPay+DDInter/USDA/ДРЛЗ, неповнолітні) і Умови+оферта (сервіс, платна фіча, продавець, повернення, мед-дисклеймер, відповідальність). Публічні маршрути `/privacy`,`/terms`; `Footer` під вмістом усіх `/app`-сторінок; секція в Налаштуваннях→Акаунт. Довгий текст тримається в компоненті двома мовами (не роздуваємо i18n.json).
+  - **Міграція №2 `AddConsentAndDeletionWarning`** — згенерована, збирається (адитивні колонки, без втрати даних).
+
+- **Блок D — стилі (ЧАСТКОВО):** D3 (i18n) — зроблено (вище). D1/D2: ревізовано адаптивну основу — вона **солідніша, ніж боявся план**: при ≤760px шелл стає колонкою й сайдбар — горизонтальною смугою (`Layout.css`/`Sidebar.css`), Planner-грід згортається в 1 колонку при ≤900px, таблиці Циклу мають `cyc-table-scroll`. Додано безпечний глобальний запобіжник `img/video/canvas { max-width:100% }` (D1 — проти горизонт. скролу). Нові юр-сторінки/гейт одразу зроблено адаптивними, читабельними (колонка ~44rem) і тач-дружніми (кнопки ≥44px), з коректним контрастом в обох темах.
+
+**Перевірка:** `dotnet build` 0/0 (кілька ітерацій — ловив пропущені write-сайти `StockItem.UpdatedAt` у `RecipeService` та індекс `WorkContact.GroupName`); `vite build` ок; i18n-паритет 994=994; обидві міграції збираються.
+
+**⚠️ Стоп / не завершено (блоковано середовищем):**
+- **Міграції НЕ застосовані до БД:** MySQL не запущений — Docker Desktop daemon не активний (`docker compose up` падає на `dockerDesktopLinuxEngine`), порт 3306 закритий. Обидві міграції застосуються автоматично/через `dotnet ef database update` при піднятому стеку. Файли згенеровані й компілюються.
+- **Повний регрес PoC НЕ прогнано:** потребує запущеного сервера+MySQL (та сама причина). Жодних логічних регресів не очікую — зміни або видаляють мертвий код, або додають нові гейти; наявні шляхи (календар/планувальник через `FromEntity`, їжа-фільтрація через `UserTagPreference`, цикл) не змінені по суті.
+- **Блок D D1/D2 — лишився вичерпний попіксельний прохід** по кожній сторінці на 360/768/1280px у devtools + аудит контрасту WCAG AA (світла+темна) + тач-цілі календарних клітинок/tri-state. Метод плану вимагає **запущеного застосунку**, тож це для сесії з піднятим стеком. Основа робоча; критичних зламів layout не виявлено статично.
+
+**Наступний крок:** підняти Docker Desktop → `docker compose up -d mysql` → `dotnet ef database update` (застосує обидві міграції) → прогнати `poc/**/*.mjs` → завершити D1/D2 попіксельно.
+
+---
+
 ## 2026-11-08 (сесія 12) — Пост-рев'ю аудит (покриття знахідок + мертвий код) + план наступної сесії
 
 **Контекст:** користувач спитав, чи все реалізовано поза планом безпеки — перевірити `adversarial-review/findings/`+`sections/`, що ще треба зробити, і чи є зайвий/дубльований код.
