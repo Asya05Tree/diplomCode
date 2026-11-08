@@ -34,6 +34,7 @@ builder.Services.AddScoped<StudyService>();
 builder.Services.AddScoped<WorkService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<CheckupService>();
+builder.Services.AddScoped<VaccinationService>();
 builder.Services.AddScoped<BillingService>();
 
 // Вихідні запити до платіжки WayForPay (перевірка статусу замовлення)
