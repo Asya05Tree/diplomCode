@@ -10,6 +10,7 @@ import {
   sectionName,
   sectionForCategory,
   guessShoppingCategory,
+  hasNonUkrainianCyrillic,
 } from '../utils/shoppingCategories'
 import {
   getShoppingList,
@@ -20,7 +21,7 @@ import {
   planTrip,
 } from '../api/shopping'
 import ComboList from '../components/common/ComboList'
-import { findMaximalCombos } from '../utils/combos'
+import { findMaximalCombos, findCountCombos } from '../utils/combos'
 import './ShoppingList.css'
 import './Landing.css' // стилі списку комбінацій (.landing-results-*) для автопідбору
 
@@ -133,8 +134,11 @@ export default function ShoppingList() {
     await reload()
   }
 
+  // Дата й час походу обовʼязкові — задача одразу стає на конкретний день і час (без
+  // «Нерозподілених»): плануємо подію, а не безтерміновий нагад.
   const handlePlanTrip = async () => {
-    const { taskId } = await planTrip(tripDate || null)
+    if (!tripDate) return
+    const { taskId } = await planTrip(tripDate)
     setTripTaskId(taskId)
   }
 
@@ -145,22 +149,6 @@ export default function ShoppingList() {
   // Ефективний режим ліміту: за браку цін завжди за кількістю, інакше — обраний користувачем.
   const mode = pricesScarce ? 'count' : budgetMode
   const limit = budget === '' ? 0 : Number(budget)
-
-  // Автопідбір під ліміт (сума грн або кількість), але не більше MAX_AUTO_ITEMS позицій за раз.
-  const fitItems = useMemo(() => {
-    if (limit <= 0) return []
-    if (mode === 'count') return toBuy.slice(0, Math.min(limit, MAX_AUTO_ITEMS))
-    const fit = []
-    let sum = 0
-    for (const x of toBuy) {
-      if (fit.length >= MAX_AUTO_ITEMS) break
-      const price = x.estimatedPrice ?? 0
-      if (sum + price > limit) continue
-      sum += price
-      fit.push(x)
-    }
-    return fit
-  }, [toBuy, limit, mode])
 
   // Ручний відбір: що обрано серед наявного + чи не вийшли за ліміт (суму або кількість).
   const pickedItems = useMemo(() => toBuy.filter((x) => picked.has(x.id)), [toBuy, picked])
@@ -182,6 +170,16 @@ export default function ShoppingList() {
   const combos = useMemo(
     () => (mode === 'sum' && limit > 0 ? findMaximalCombos(pricedToBuy, limit) : []),
     [pricedToBuy, mode, limit],
+  )
+  // Автопідбір «за кількістю»: усі комбінації рівно з N позицій (а не перші N зі списку).
+  const namedToBuy = useMemo(
+    () => toBuy.map((x) => ({ id: x.id, name: displayName(x) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [toBuy, language],
+  )
+  const countCombos = useMemo(
+    () => (mode === 'count' && limit > 0 ? findCountCombos(namedToBuy, limit) : []),
+    [namedToBuy, mode, limit],
   )
 
   // Попередження за здоров'ям на позиції-продукті (обчислює бекенд за тегами/обмеженнями «Їжі»).
@@ -220,6 +218,9 @@ export default function ShoppingList() {
           placeholder={t('shoppingList.addPlaceholder')}
         />
         <button type="submit"><Icon name="plus" /> {t('shoppingList.addButton')}</button>
+        {hasNonUkrainianCyrillic(name) && (
+          <p className="shopping-lang-hint">{t('shoppingList.enterUkrainian')}</p>
+        )}
       </form>
 
       {/* Фільтр за розділом: усі / наявні розділи */}
@@ -426,21 +427,17 @@ export default function ShoppingList() {
               </>
             ) : (
               <>
-                {/* Автопідбір за кількістю (цін нема для комбінацій): перші N позицій під ліміт */}
+                {/* Автопідбір за кількістю: усі комбінації рівно з N позицій (як у демоверсії),
+                    а не перші N зі списку. Кількість варіантів обмежена, щоб не підвісити вкладку. */}
                 <p className="placeholder-text">{t('shoppingList.budgetAutoMax', { max: MAX_AUTO_ITEMS })}</p>
                 {limit > 0 && (
-                  fitItems.length === 0 ? (
-                    <p className="placeholder-text">{t('shoppingList.budgetEmpty')}</p>
-                  ) : (
-                    <>
-                      <p className="shopping-list-total">{t('shoppingList.budgetFitsCount', { count: fitItems.length })}</p>
-                      <ul className="shopping-budget-list">
-                        {fitItems.map((x) => (
-                          <li key={x.id}><span>{displayName(x)}</span></li>
-                        ))}
-                      </ul>
-                    </>
-                  )
+                  <ComboList
+                    combos={countCombos}
+                    t={t}
+                    nameFor={(i) => i.name}
+                    keyFor={(i) => i.id}
+                    emptyText={t('shoppingList.budgetEmpty')}
+                  />
                 )}
               </>
             )}
@@ -448,22 +445,25 @@ export default function ShoppingList() {
         )}
       </div>
 
-      {/* Запланувати похід у магазин: з датою — задача на день, без неї — у «Нерозподілених».
-          Порожній список не блокує, лише мʼяко попереджає. */}
+      {/* Запланувати похід у магазин: дата й час обовʼязкові → задача одразу на конкретний день
+          і час. Поле й кнопка — горизонтально в один рівень. Порожній список не блокує, лише
+          мʼяко попереджає. */}
       <div className="card shopping-trip">
-        <label className="shopping-check-field shopping-trip-date">
-          <span>{t('shoppingList.tripDateLabel')}</span>
-          <input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
-        </label>
-        <button type="button" className="btn-accent" onClick={handlePlanTrip}>
-          <Icon name="cart" /> {t('shoppingList.planTrip')}
-        </button>
+        <div className="shopping-trip-row">
+          <label className="shopping-check-field shopping-trip-date">
+            <span>{t('shoppingList.tripDateLabel')}</span>
+            <input type="datetime-local" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
+          </label>
+          <button type="button" className="btn-accent" onClick={handlePlanTrip} disabled={!tripDate}>
+            <Icon name="cart" /> {t('shoppingList.planTrip')}
+          </button>
+        </div>
         {items.length === 0 && (
           <p className="placeholder-text">{t('shoppingList.planTripEmpty')}</p>
         )}
         {tripTaskId != null && (
           <p className="placeholder-text">
-            {t(tripDate ? 'shoppingList.planTripDoneDated' : 'shoppingList.planTripDone', { taskId: tripTaskId, date: tripDate })}
+            {t('shoppingList.planTripDoneDated', { taskId: tripTaskId, date: tripDate.replace('T', ', ') })}
           </p>
         )}
       </div>

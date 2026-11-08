@@ -398,8 +398,28 @@
   background: color-mix(in srgb, #e5a44a 20%, var(--color-surface));
 }
 
-/* Поле дати походу у магазин */
+/* Поле дати-часу походу + кнопка — горизонтально в один рівень (вирівняні по низу) */
+.shopping-trip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
 .shopping-trip-date { max-width: 240px; }
+.shopping-trip-row .btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Мʼяка підказка «введіть українською» під формою додавання (повна ширина рядка-форми) */
+.shopping-lang-hint {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-danger);
+}
 .shopping-budget-list {
   list-style: none;
   margin: 6px 0 0;
