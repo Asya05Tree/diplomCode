@@ -197,15 +197,38 @@ function AppContent() {
         />
         <Route
           path="/reg"
-          element={user ? <Navigate to="/app" replace /> : <Register onRegistered={handleAuthed} />}
+          element={user ? <Navigate to="/app" replace /> : (
+            <Register
+              onRegistered={handleAuthed}
+              themeMode={themeMode}
+              onSetThemeMode={handleSetThemeMode}
+              palette={palette}
+              onSetPalette={handleSetPalette}
+            />
+          )}
         />
         <Route
           path="/login"
-          element={user ? <Navigate to="/app" replace /> : <Login onLoggedIn={handleAuthed} />}
+          element={user ? <Navigate to="/app" replace /> : (
+            <Login
+              onLoggedIn={handleAuthed}
+              themeMode={themeMode}
+              onSetThemeMode={handleSetThemeMode}
+              palette={palette}
+              onSetPalette={handleSetPalette}
+            />
+          )}
         />
         <Route
           path="/forgot"
-          element={user ? <Navigate to="/app" replace /> : <ResetPassword />}
+          element={user ? <Navigate to="/app" replace /> : (
+            <ResetPassword
+              themeMode={themeMode}
+              onSetThemeMode={handleSetThemeMode}
+              palette={palette}
+              onSetPalette={handleSetPalette}
+            />
+          )}
         />
         {/* Юридичні сторінки — публічні (доступні й до входу, і з футера застосунку) */}
         <Route path="/privacy" element={<Legal doc="privacy" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} />} />
