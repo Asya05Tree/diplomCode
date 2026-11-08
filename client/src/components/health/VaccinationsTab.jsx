@@ -71,8 +71,8 @@ export default function VaccinationsTab({ profile, onPlanVisit }) {
     const y = Math.floor(months / 12)
     const mo = months % 12
     const parts = []
-    if (y > 0) parts.push(t('vaccination.yShort', { n: y }))
-    if (mo > 0) parts.push(t('vaccination.moShort', { n: mo }))
+    if (y > 0) parts.push(t(y === 1 ? 'vaccination.yearOne' : 'vaccination.yearMany', { n: y }))
+    if (mo > 0) parts.push(t(mo === 1 ? 'vaccination.monthOne' : 'vaccination.monthMany', { n: mo }))
     return parts.join(' ')
   }
 

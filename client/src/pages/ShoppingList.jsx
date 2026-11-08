@@ -231,7 +231,7 @@ export default function ShoppingList() {
                   <span className="shopping-list-price">
                     {item.estimatedPrice} {currency}
                     {item.priceAgeMonths != null && item.priceAgeMonths > 0 && (
-                      <span className="shopping-list-price-age"> · {t('shoppingList.priceAge', { n: item.priceAgeMonths })}</span>
+                      <span className="shopping-list-price-age"> · {t(item.priceAgeMonths === 1 ? 'shoppingList.priceAgeOne' : 'shoppingList.priceAgeMany', { n: item.priceAgeMonths })}</span>
                     )}
                   </span>
                 )}
