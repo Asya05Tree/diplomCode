@@ -48,6 +48,8 @@
   border-radius: var(--radius-lg);
   padding: 12px;
   box-shadow: var(--shadow-sm);
+  /* Тонка рамка відділяє пастельні картки одна від одної й від тла — у темній темі тінь не видно */
+  border: 1px solid color-mix(in srgb, #000 10%, transparent);
   color: #33312b; /* темний текст — пастельні картки лишаються світлими в обох темах */
 }
 .note-text {

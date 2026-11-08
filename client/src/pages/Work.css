@@ -16,8 +16,11 @@
 }
 .theme-dark .work-page {
   --status-ok-bg: #1f3a2b;
+  --status-ok-text: #6fd99a;
   --status-warn-bg: #3f3320;
+  --status-warn-text: #e5b567;
   --status-bad-bg: #4a2320;
+  --status-bad-text: #f0918a;
 }
 
 .work-page h2, .work-page h3, .work-page h4 { margin: 0; }
@@ -300,9 +303,10 @@
 .work-cal-day--today { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 .work-cal-day--next { box-shadow: 0 0 0 2px var(--color-accent) inset; }
 .work-cal-num { font-size: 0.76rem; font-weight: 600; color: var(--color-heading); }
-.work-cal-chip { max-width: 100%; min-width: 0; font-size: 0.66rem; font-weight: 700; padding: 1px 5px; border-radius: 6px; color: #243; text-align: center; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.work-cal-more { font-size: 0.64rem; color: var(--color-text-muted); }
-.work-cal-toomany { font-size: 0.62rem; font-weight: 700; color: var(--status-bad-text); background: var(--status-bad-bg); border-radius: 6px; padding: 1px 5px; text-align: center; line-height: 1.3; }
+/* Колір тексту чипа задається інлайн (readableTextOn) під яскравість обраного кольору зміни */
+.work-cal-chip { max-width: 100%; min-width: 0; font-size: 0.72rem; font-weight: 700; padding: 1px 5px; border-radius: 6px; text-align: center; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.work-cal-more { font-size: 0.7rem; color: var(--color-text-muted); }
+.work-cal-toomany { font-size: 0.7rem; font-weight: 700; color: var(--status-bad-text); background: var(--status-bad-bg); border-radius: 6px; padding: 1px 5px; text-align: center; line-height: 1.3; }
 
 /* Неактивний тип зміни: приглушений рядок + кнопка-перемикач активності */
 .work-type-row--inactive td:not(.work-row-actions) { opacity: 0.45; }

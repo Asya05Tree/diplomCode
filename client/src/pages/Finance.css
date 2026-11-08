@@ -529,7 +529,7 @@
 }
 
 .week-chart-amount--pos {
-  color: #2e7d32;
+  color: var(--color-success); /* має dark-переопределення — #2e7d32 зливався з тлом у темній темі */
   font-weight: 600;
 }
 

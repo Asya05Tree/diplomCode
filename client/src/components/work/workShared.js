@@ -12,6 +12,20 @@ export const SHIFT_COLORS = [
   '#c8e6c9', '#f8bbd0', '#b2dfdb', '#ffab91',
 ]
 
+// Контрастний колір тексту (темний/світлий) для ДОВІЛЬНОГО фону-hex за його яскравістю.
+// Раніше текст чипа зміни був жорстко #243 — на темному/насиченому кольорі він ставав нечитаемим.
+export function readableTextOn(hex) {
+  const h = (hex ?? '').replace('#', '')
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  if ([r, g, b].some((v) => Number.isNaN(v))) return '#20262f'
+  // Відносна яскравість sRGB; світлий фон (>0.55) → темний текст, інакше світлий.
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return lum > 0.55 ? '#20262f' : '#f8fafc'
+}
+
 // "HH:MM:SS" або "HH:MM" -> "HH:MM". fmt — опційний форматувач 12/24 з useI18n.
 export function hhmm(time, fmt) {
   const base = (time ?? '').slice(0, 5)

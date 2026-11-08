@@ -177,10 +177,11 @@
 }
 .auth-checkbox span a { color: var(--color-accent, var(--color-tasks)); }
 
-/* ===== Реєстрація: декоративна картинка ліворуч + окрема форма праворуч ===== */
+/* ===== Реєстрація: бренд+заголовок над картинкою ліворуч + окрема форма праворуч ===== */
 .register-page {
   flex: 1;
   display: flex;
+  flex-wrap: wrap;             /* на вузькому екрані ліва колонка переходить над формою, а не тисне її */
   align-items: center;
   justify-content: center;
   gap: clamp(20px, 4vw, 56px);
@@ -192,13 +193,14 @@
     var(--color-bg);
 }
 
-/* Ліворуч — лише декоративна картинка (прозорий PNG), окремо від форми */
-.register-decor {
+/* Ліворуч — заголовок НАД декоративною картинкою (прозорий PNG), окремо від форми */
+.register-left {
   flex: 0 1 340px;
   min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: clamp(14px, 2vw, 24px);
 }
 /* Біле сяйво навколо єнота — однакове для світлої й темної теми (кілька drop-shadow дають ореол) */
 .register-decor-img {
@@ -221,21 +223,23 @@
 .register-head {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: 4px;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  text-align: center;
 }
 .register-head h2 {
   margin: 0;
-  text-align: left;
-  font-size: 1.5rem;
+  text-align: center;
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
 }
 .register-brand {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-accent);
+  font-size: clamp(1.4rem, 1rem + 1.8vw, 2.1rem);
+  letter-spacing: 0.04em;
+  /* accent-ink читабельний на тлі в обох темах; чистий --color-accent на пастелі зливався б */
+  color: var(--color-accent-ink);
 }
 
 .auth-form-cols {
@@ -321,9 +325,10 @@
   backdrop-filter: blur(4px);
 }
 
-/* Планшет: декоративну картинку ховаємо, форма лишається по центру у дві колонки */
+/* Планшет: ховаємо лише картинку, бренд+заголовок лишаються над формою по центру */
 @media (max-width: 860px) {
-  .register-decor { display: none; }
+  .register-decor-img { display: none; }
+  .register-left { flex-basis: auto; }
 }
 /* Телефон: колонки форми складаються в одну */
 @media (max-width: 560px) {

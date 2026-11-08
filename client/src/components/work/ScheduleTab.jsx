@@ -12,7 +12,7 @@ import {
 } from '../../api/work'
 import {
   SHIFT_COLORS, SHIFT_KINDS,
-  hhmm, shiftRangeOf, shiftTotalHours,
+  hhmm, shiftRangeOf, shiftTotalHours, readableTextOn,
 } from './workShared'
 
 const LOCALE = { uk: 'uk-UA', en: 'en-US' }
@@ -276,7 +276,7 @@ export default function ScheduleTab({ onScheduleChange }) {
                   <span className="work-cal-toomany">{t('work.tooManyShifts')}</span>
                 ) : (
                   shifts.map((s, i) => (
-                    <span key={i} className="work-cal-chip" style={{ background: s.color }} title={`${s.name} ${shiftRangeOf(s, formatClock)}`}>
+                    <span key={i} className="work-cal-chip" style={{ background: s.color, color: readableTextOn(s.color) }} title={`${s.name} ${shiftRangeOf(s, formatClock)}`}>
                       {s.name}
                     </span>
                   ))

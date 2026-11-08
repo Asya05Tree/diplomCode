@@ -22,8 +22,11 @@
 
 .theme-dark .study-page {
   --status-ok-bg: #1f3a2b;
+  --status-ok-text: #6fd99a;
   --status-warn-bg: #3f3320;
+  --status-warn-text: #e5b567;
   --status-bad-bg: #4a2320;
+  --status-bad-text: #f0918a;
 }
 
 .study-page h2 {
