@@ -577,6 +577,7 @@
   "food.planCook": "+ Планую готувати",
   "food.badgeHave": "Все є",
   "food.badgeBuy": "докупити {count} (~{cost} грн)",
+  "food.badgeBuyNoPrice": "докупити {count} · ціни поки що невідомі",
   "food.minutes": "{n} хв",
   "food.emptyRecipes": "На цих умовах страв немає — збільшіть суму або оберіть «Все»",
   "food.favoriteRibbon": "обране",

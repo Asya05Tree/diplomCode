@@ -577,6 +577,7 @@
   "food.planCook": "+ Plan to cook",
   "food.badgeHave": "Got it all",
   "food.badgeBuy": "buy {count} more (~{cost} UAH)",
+  "food.badgeBuyNoPrice": "buy {count} more · prices unknown for now",
   "food.minutes": "{n} min",
   "food.emptyRecipes": "No dishes match — raise the budget or pick “All”",
   "food.favoriteRibbon": "selected",

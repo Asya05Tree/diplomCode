@@ -8,12 +8,10 @@ import {
   setStockState as apiSetStockState,
   addStockProduct as apiAddStockProduct,
   toggleSelected as apiToggleSelected,
-  markCooked as apiMarkCooked,
   getWeeklyMenu,
   saveMenuDay,
   productName,
   recipeName,
-  ingredientAmount,
   tagLabelFrom,
 } from '../api/food'
 import { addDays, toApiDate, fromApiDate, todayApiDate } from '../utils/date'
@@ -77,9 +75,6 @@ export default function Food() {
   // Id продуктів, що вже є у списку покупок (невідмічені) — щоб не пропонувати додати двічі.
   const [inShopping, setInShopping] = useState(() => new Set())
 
-  // Спливне вікно готовки: { recipe, step, have, states }
-  const [cooking, setCooking] = useState(null)
-
   useEffect(() => {
     let cancelled = false
     Promise.all([
@@ -115,7 +110,6 @@ export default function Food() {
 
   const productMap = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products])
   const recipeMap = useMemo(() => Object.fromEntries(recipes.map((r) => [r.id, r])), [recipes])
-  const getProduct = (id) => productMap[id] ?? null
   const isPresent = (productId) => stock[productId] === 'Available' || stock[productId] === 'RunningLow'
   const tagLabel = (key) => tagLabelFrom(restrictions, key)
 
@@ -240,53 +234,11 @@ export default function Food() {
   const goWeek = (deltaWeeks) => setWeekStart(toApiDate(addDays(fromApiDate(weekStart), deltaWeeks * 7)))
   const goThisWeek = () => setWeekStart(startOfWeek(weekStartSetting, todayApiDate()))
 
+  // Страву можна лише додати/прибрати з обраних (готувати її не можна — §4.6 спрощено).
   const handleToggleFavorite = async (recipe) => {
     const willSelect = !selected.includes(recipe.id)
     setSelected((prev) => (willSelect ? [...prev, recipe.id] : prev.filter((id) => id !== recipe.id)))
     await apiToggleSelected(recipe.id, willSelect)
-    // Щойно відмітили страву галочкою — одразу відкриваємо вікно готовки (§4.6).
-    if (willSelect) openCooking(recipe)
-  }
-
-  const openCooking = (recipe) => {
-    const have = {}
-    const states = {}
-    for (const ing of recipe.ingredients) {
-      const present = isPresent(ing.productId)
-      have[ing.productId] = present
-      states[ing.productId] = present ? stock[ing.productId] : 'OutOfStock'
-    }
-    setCooking({ recipe, step: 'confirm', have, states })
-  }
-
-  const toggleHave = (productId) => {
-    setCooking((prev) => ({ ...prev, have: { ...prev.have, [productId]: !prev.have[productId] } }))
-  }
-
-  const setResultState = (productId, state) => {
-    setCooking((prev) => ({ ...prev, states: { ...prev.states, [productId]: state } }))
-  }
-
-  // Крок 2 готовки: застосувати нові стани запасів і оновити LastCookedAt.
-  const finishCooking = async (keepAll) => {
-    const { recipe, states } = cooking
-    if (!keepAll) {
-      const nextStock = { ...stock }
-      const calls = []
-      for (const ing of recipe.ingredients) {
-        const newState = states[ing.productId]
-        const wasPresent = isPresent(ing.productId)
-        calls.push(apiSetStockState(ing.productId, newState))
-        nextStock[ing.productId] = newState
-        if (newState === 'OutOfStock' && wasPresent) {
-          calls.push(addShoppingItem({ section: 'Groceries', productId: ing.productId }))
-        }
-      }
-      setStock(nextStock)
-      await Promise.all(calls)
-    }
-    await apiMarkCooked(recipe.id)
-    setCooking(null)
   }
 
   if (loading) {
@@ -408,8 +360,16 @@ export default function Food() {
                         if (!r) return null
                         return (
                           <span key={`${id}-${idx}`} className="food-menu-chip">
-                            <span className="food-menu-chip-emoji">{r.emoji}</span>
                             <span className="food-menu-chip-name">{recipeName(r, language)}</span>
+                            {r.health?.forbidden ? (
+                              <span className="food-menu-chip-health food-menu-chip-health--bad" title={tagLabel(r.health.forbidden)}>
+                                {t('food.health.forbidden')}
+                              </span>
+                            ) : r.health?.avoid ? (
+                              <span className="food-menu-chip-health food-menu-chip-health--warn" title={tagLabel(r.health.avoid)}>
+                                {t('food.health.avoid')}
+                              </span>
+                            ) : null}
                             <button
                               type="button"
                               className="food-menu-chip-x"
@@ -503,28 +463,26 @@ export default function Food() {
                     key={recipe.id}
                     className={isFav ? 'recipe-card recipe-card--selected' : 'recipe-card'}
                   >
-                    <div className="recipe-card-photo" onClick={() => openCooking(recipe)}>
-                      <label className="recipe-check" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isFav}
-                          onChange={() => handleToggleFavorite(recipe)}
-                        />
-                        <span className="recipe-check-box" />
-                      </label>
-                      {isFav && <span className="recipe-ribbon">{t('food.favoriteRibbon')}</span>}
-                      <span className="recipe-emoji">{recipe.emoji}</span>
-                      <span className="recipe-card-time">
-                        {t('food.minutes', { n: recipe.cookTimeMinutes })}
-                      </span>
-                    </div>
                     <div className="recipe-card-body">
-                      <span className="recipe-card-name">{recipeName(recipe, language)}</span>
+                      <div className="recipe-card-head">
+                        <label className="recipe-check">
+                          <input
+                            type="checkbox"
+                            checked={isFav}
+                            onChange={() => handleToggleFavorite(recipe)}
+                          />
+                          <span className="recipe-check-box" />
+                        </label>
+                        <span className="recipe-card-name">{recipeName(recipe, language)}</span>
+                      </div>
+                      <span className="recipe-card-time">{t('food.minutes', { n: recipe.cookTimeMinutes })}</span>
                       {av.isAvailable ? (
                         <span className="badge badge--ok">{t('food.badgeHave')}</span>
                       ) : (
                         <span className="badge badge--warn">
-                          {t('food.badgeBuy', { count: av.missingCount, cost: av.missingCost })}
+                          {av.missingCost > 0
+                            ? t('food.badgeBuy', { count: av.missingCount, cost: av.missingCost })
+                            : t('food.badgeBuyNoPrice', { count: av.missingCount })}
                         </span>
                       )}
                       {hs.avoid && (
