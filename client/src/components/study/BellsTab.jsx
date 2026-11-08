@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { setBells as apiSetBells } from '../../api/study'
 
 // Фіксовані дефолтні дзвінки. Школяр: урок 45 хв, максимум 7 уроків. Студент: пара 90 хв, максимум 6 пар.
@@ -75,7 +76,7 @@ export default function BellsTab({ bells, setBells, isPupil }) {
   return (
     <div className="card">
       <div className="grade-head">
-        <h4>{t('study.tab.bells')}</h4>
+        <h4>{t('study.tab.bells')}<FieldHelp text={t('study.bellsHelp')} label={t('fieldHelp.label')} /></h4>
         <div className="grade-switch">
           {savedNote && <span className="study-saved-note">{savedNote}</span>}
           <button type="button" className="pill" onClick={addRow} disabled={rows.length >= b.max}>

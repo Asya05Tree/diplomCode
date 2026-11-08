@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import {
   getProjects, addProject, removeProject,
   addProjectStep, updateProjectStep, removeProjectStep,
@@ -48,8 +49,14 @@ export default function ProjectsTab() {
       </div>
 
       <form className="study-form" onSubmit={submit}>
-        <input type="text" placeholder={t('study.projectName')} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-        <input type="text" placeholder={t('study.curator')} value={form.curator} onChange={(e) => setForm((f) => ({ ...f, curator: e.target.value }))} />
+        <div className="study-field-with-help">
+          <input type="text" placeholder={t('study.projectName')} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+          <FieldHelp text={t('study.projectNameHelp')} label={t('fieldHelp.label')} />
+        </div>
+        <div className="study-field-with-help">
+          <input type="text" placeholder={t('study.curator')} value={form.curator} onChange={(e) => setForm((f) => ({ ...f, curator: e.target.value }))} />
+          <FieldHelp text={t('study.curatorHelp')} label={t('fieldHelp.label')} />
+        </div>
         <select value={form.deadlineKind} onChange={(e) => setForm((f) => ({ ...f, deadlineKind: e.target.value }))}>
           <option value="">{t('study.noDeadline')}</option>
           {DEADLINE_KINDS.map((k) => (
@@ -160,7 +167,10 @@ function ProjectCard({ project, reload }) {
       </div>
 
       <form className="study-step-form" onSubmit={addStep}>
-        <input type="text" placeholder={t('study.stepName')} value={step.name} onChange={(e) => setStep((s) => ({ ...s, name: e.target.value }))} />
+        <div className="study-field-with-help">
+          <input type="text" placeholder={t('study.stepName')} value={step.name} onChange={(e) => setStep((s) => ({ ...s, name: e.target.value }))} />
+          <FieldHelp text={t('study.stepNameHelp')} label={t('fieldHelp.label')} />
+        </div>
         <input type="date" value={step.startDate} onChange={(e) => setStep((s) => ({ ...s, startDate: e.target.value }))} />
         <input type="date" value={step.endDate} onChange={(e) => setStep((s) => ({ ...s, endDate: e.target.value }))} />
         <button type="submit" className="pill" disabled={!step.name.trim()}><Icon name="plus" /> {t('study.addStep')}</button>

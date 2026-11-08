@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import RecurrenceFields from '../planner/RecurrenceFields'
 import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue } from '../../utils/recurrence'
 import { getScheduleEntries, addScheduleEntry, removeScheduleEntry } from '../../api/study'
@@ -85,7 +86,10 @@ export default function ExtraTab({ subjects, learningForm, isPupil }) {
         )}
 
         <div className="study-form">
-          <input type="text" placeholder={t('study.extraName')} value={name} onChange={(e) => setName(e.target.value)} />
+          <div className="study-field-with-help">
+            <input type="text" placeholder={t('study.extraName')} value={name} onChange={(e) => setName(e.target.value)} />
+            <FieldHelp text={t('study.extraNameHelp')} label={t('fieldHelp.label')} />
+          </div>
           <select value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
             <option value="">{t('study.noSubject')}</option>
             {subjects.map((s) => (

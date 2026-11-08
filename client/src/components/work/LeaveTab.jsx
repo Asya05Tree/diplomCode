@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { getLeaves, addLeave, removeLeave } from '../../api/work'
 import { LEAVE_TYPES, leaveDays } from './workShared'
 import { todayApiDate } from '../../utils/date'
@@ -39,7 +40,7 @@ export default function LeaveTab() {
 
       <form className="work-form" onSubmit={submit}>
         <div className="work-form-grid">
-          <label>{t('work.leaveType')}
+          <label><span className="field-label">{t('work.leaveType')}<FieldHelp text={t('work.leaveTypeHelp')} label={t('fieldHelp.label')} /></span>
             <select value={type} onChange={(e) => setType(e.target.value)}>
               {LEAVE_TYPES.map((v) => <option key={v} value={v}>{t(`work.leaveKind.${v}`)}</option>)}
             </select>

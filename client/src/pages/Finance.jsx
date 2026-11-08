@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n'
 import Icon from '../components/Icon'
 import NumberStepper from '../components/NumberStepper'
+import FieldHelp from '../components/FieldHelp'
 import { FINANCE_CATEGORIES, categoryName } from '../utils/financeCategories'
 import { RANGES } from '../utils/validation'
 import {
@@ -307,7 +308,10 @@ export default function Finance() {
   return (
     <div className="finance-page">
       <label className="finance-balance-field card">
-        <span className="kpi-label">{t('finance.balanceLabel')}</span>
+        <span className="kpi-label">
+          {t('finance.balanceLabel')}
+          <FieldHelp text={t('finance.balanceHelp')} label={t('fieldHelp.label')} />
+        </span>
         <div className="finance-money-field">
           <NumberStepper min={0} max={RANGES.money.max} value={String(balance)} onChange={handleBalanceChange} />
           <span className="finance-money-currency">{currency}</span>
@@ -337,8 +341,8 @@ export default function Finance() {
               <thead>
                 <tr>
                   <th>{t('finance.col.category')}</th>
-                  <th>{t('finance.col.income')}</th>
-                  <th>{t('finance.col.expense')}</th>
+                  <th>{t('finance.col.income')}<FieldHelp text={t('finance.colIncomeHelp')} label={t('fieldHelp.label')} /></th>
+                  <th>{t('finance.col.expense')}<FieldHelp text={t('finance.colExpenseHelp')} label={t('fieldHelp.label')} /></th>
                   <th>{t('finance.col.current')}</th>
                   <th className="finance-col-actions" />
                 </tr>

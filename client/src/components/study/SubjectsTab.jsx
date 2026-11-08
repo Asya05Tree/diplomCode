@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { addSubject, updateSubject, removeSubject } from '../../api/study'
 import { roomLinkVisibility, SUBJECT_PRESETS } from './studyShared'
 
@@ -77,24 +78,30 @@ export default function SubjectsTab({ subjects, reloadSubjects, learningForm, is
   return (
     <div className="card">
       <form className="study-form" onSubmit={submit}>
-        <input
-          type="text"
-          placeholder={t('study.subjectName')}
-          list="study-subject-presets"
-          value={form.name}
-          onChange={(e) => set({ name: e.target.value })}
-        />
+        <div className="study-field-with-help">
+          <input
+            type="text"
+            placeholder={t('study.subjectName')}
+            list="study-subject-presets"
+            value={form.name}
+            onChange={(e) => set({ name: e.target.value })}
+          />
+          <FieldHelp text={t('study.subjectNameHelp')} label={t('fieldHelp.label')} />
+        </div>
         <datalist id="study-subject-presets">
           {SUBJECT_PRESETS.map((s) => (
             <option key={s.uk} value={language === 'en' ? s.en : s.uk} />
           ))}
         </datalist>
-        <input
-          type="text"
-          placeholder={t('study.subjectTeacher')}
-          value={form.teacher}
-          onChange={(e) => set({ teacher: e.target.value })}
-        />
+        <div className="study-field-with-help">
+          <input
+            type="text"
+            placeholder={t('study.subjectTeacher')}
+            value={form.teacher}
+            onChange={(e) => set({ teacher: e.target.value })}
+          />
+          <FieldHelp text={t('study.subjectTeacherHelp')} label={t('fieldHelp.label')} />
+        </div>
 
         {isPupil ? (
           <div className="study-slot">{slotFields('lecture')}</div>

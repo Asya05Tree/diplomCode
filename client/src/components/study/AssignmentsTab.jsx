@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { getAssignments, addAssignment, updateAssignment, removeAssignment } from '../../api/study'
 import { DEADLINE_KINDS, PUPIL_ASSIGNMENT_TYPES, STUDENT_ASSIGNMENT_TYPES } from './studyShared'
 
@@ -82,11 +83,14 @@ export default function AssignmentsTab({ subjects, isPupil }) {
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
-        <select value={form.deadlineKind} onChange={(e) => set({ deadlineKind: e.target.value })}>
-          {DEADLINE_KINDS.map((k) => (
-            <option key={k} value={k}>{t(`study.deadline.${k}`)}</option>
-          ))}
-        </select>
+        <div className="study-field-with-help">
+          <select value={form.deadlineKind} onChange={(e) => set({ deadlineKind: e.target.value })}>
+            {DEADLINE_KINDS.map((k) => (
+              <option key={k} value={k}>{t(`study.deadline.${k}`)}</option>
+            ))}
+          </select>
+          <FieldHelp text={t('study.deadlineKindHelp')} label={t('fieldHelp.label')} />
+        </div>
         {/* Своя дата доступна завжди: обравши дату, автоматично перемикаємося на "До дати" */}
         <input
           type="date"
@@ -95,14 +99,17 @@ export default function AssignmentsTab({ subjects, isPupil }) {
           value={form.dueDate}
           onChange={(e) => set({ dueDate: e.target.value, deadlineKind: e.target.value ? 'date' : form.deadlineKind })}
         />
-        <textarea
-          className="study-textarea"
-          rows={2}
-          maxLength={DESCRIPTION_MAX}
-          placeholder={t('study.assignmentDescription')}
-          value={form.description}
-          onChange={(e) => set({ description: e.target.value })}
-        />
+        <div className="study-field-with-help">
+          <textarea
+            className="study-textarea"
+            rows={2}
+            maxLength={DESCRIPTION_MAX}
+            placeholder={t('study.assignmentDescription')}
+            value={form.description}
+            onChange={(e) => set({ description: e.target.value })}
+          />
+          <FieldHelp text={t('study.assignmentDescriptionHelp')} label={t('fieldHelp.label')} />
+        </div>
         <div className="study-form-actions">
           <button type="submit" className="btn-accent" disabled={!form.description.trim()}>
             {t('study.addAssignment')}

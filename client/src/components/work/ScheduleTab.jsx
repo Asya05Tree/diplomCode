@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import RecurrenceFields from '../planner/RecurrenceFields'
 import {
   createDefaultRecurrenceValue, ruleToRecurrenceValue, recurrenceValueToPayload, validateRecurrenceValue, DEFAULT_END_MONTHS,
@@ -301,8 +302,8 @@ export default function ScheduleTab({ onScheduleChange }) {
         {showTypeForm && (
           <>
           <form className="work-form work-inline-form" onSubmit={submitType}>
-            <label className="work-form-grow">{t('work.shiftName')}<input value={typeForm.name} maxLength={24} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} placeholder={t('work.shiftNamePlaceholder')} /></label>
-            <label>{t('work.shiftKind')}
+            <label className="work-form-grow"><span className="work-label-head">{t('work.shiftName')}<FieldHelp text={t('work.shiftNameHelp')} label={t('fieldHelp.label')} /></span><input value={typeForm.name} maxLength={24} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} placeholder={t('work.shiftNamePlaceholder')} /></label>
+            <label><span className="field-label">{t('work.shiftKind')}<FieldHelp text={t('work.shiftKindHelp')} label={t('fieldHelp.label')} /></span>
               <select value={typeForm.kind} onChange={(e) => setTypeForm({ ...typeForm, kind: e.target.value })}>
                 {SHIFT_KINDS.map((k) => <option key={k} value={k}>{t(`work.shiftKind.${k}`)}</option>)}
               </select>
@@ -316,7 +317,7 @@ export default function ScheduleTab({ onScheduleChange }) {
               </>
             )}
             {typeForm.kind === 'oncall' && (
-              <label>{t('work.onCallMultiplier')}<input type="number" min="1" step="0.1" placeholder="1.5" value={typeForm.onCallMultiplier} onChange={(e) => setTypeForm({ ...typeForm, onCallMultiplier: e.target.value })} /></label>
+              <label><span className="field-label">{t('work.onCallMultiplier')}<FieldHelp text={t('work.onCallMultiplierHelp')} label={t('fieldHelp.label')} /></span><input type="number" min="1" step="0.1" placeholder="1.5" value={typeForm.onCallMultiplier} onChange={(e) => setTypeForm({ ...typeForm, onCallMultiplier: e.target.value })} /></label>
             )}
             <div className="work-color-field">
               <span className="work-field-label">{t('work.shiftColor')}</span>
@@ -404,7 +405,7 @@ export default function ScheduleTab({ onScheduleChange }) {
               <div className="work-quick">
                 <p className="placeholder-text">{t('work.quickHint')}</p>
                 <div className="work-field-row">
-                  <label>{t('work.workDays')}
+                  <label><span className="field-label">{t('work.workDays')}<FieldHelp text={t('work.workDaysHelp')} label={t('fieldHelp.label')} /></span>
                     <select value={workDays} onChange={(e) => setWorkDays(Number(e.target.value))}>
                       {[1, 2, 3, 4, 5, 6].map((x) => <option key={x} value={x}>{x} / {7 - x}</option>)}
                     </select>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { getObligations, addObligation, removeObligation } from '../../api/work'
 
 // Зобов'язання — статичний перелік того, що людина робить на посаді (обов'язки ролі): назва + опис.
@@ -31,7 +32,7 @@ export default function ObligationsTab() {
       <p className="work-regime-hint">{t('work.obligationsHint')}</p>
 
       <form className="work-form work-inline-form" onSubmit={submit}>
-        <label className="work-form-grow">{t('work.obligationTitle')}<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('work.obligationPlaceholder')} /></label>
+        <label className="work-form-grow"><span className="work-label-head">{t('work.obligationTitle')}<FieldHelp text={t('work.obligationTitleHelp')} label={t('fieldHelp.label')} /></span><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('work.obligationPlaceholder')} /></label>
         <label className="work-form-grow"><span className="work-label-head">{t('work.obligationNote')} <span className="work-optional">({t('work.optional')})</span></span><input value={note} onChange={(e) => setNote(e.target.value)} /></label>
         <button type="submit" className="btn-accent">{t('work.addObligation')}</button>
       </form>

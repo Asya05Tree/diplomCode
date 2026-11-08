@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { setStudySettings, getScheduleEntries, addScheduleEntry, removeScheduleEntry } from '../../api/study'
 import { encodeWeekDaysPattern } from '../../utils/recurrence'
 import { summarizeEntry } from './studyShared'
@@ -122,16 +123,16 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
         </div>
 
         <div className="study-dates-grid">
-          <DateField label={t('study.studyStart')} value={cfg?.studyStart} onChange={(v) => setC({ studyStart: v })} />
-          <DateField label={t('study.studyEnd')} value={cfg?.studyEnd} onChange={(v) => setC({ studyEnd: v })} />
-          <DateField label={t('study.semesterEnd')} value={cfg?.semesterEnd} onChange={(v) => setC({ semesterEnd: v })} />
-          <DateField label={t('study.yearEnd')} value={cfg?.yearEnd} onChange={(v) => setC({ yearEnd: v })} />
+          <DateField label={t('study.studyStart')} help={t('study.studyStartHelp')} ariaLabel={t('fieldHelp.label')} value={cfg?.studyStart} onChange={(v) => setC({ studyStart: v })} />
+          <DateField label={t('study.studyEnd')} help={t('study.studyEndHelp')} ariaLabel={t('fieldHelp.label')} value={cfg?.studyEnd} onChange={(v) => setC({ studyEnd: v })} />
+          <DateField label={t('study.semesterEnd')} help={t('study.semesterEndHelp')} ariaLabel={t('fieldHelp.label')} value={cfg?.semesterEnd} onChange={(v) => setC({ semesterEnd: v })} />
+          <DateField label={t('study.yearEnd')} help={t('study.yearEndHelp')} ariaLabel={t('fieldHelp.label')} value={cfg?.yearEnd} onChange={(v) => setC({ yearEnd: v })} />
         </div>
       </div>
 
       {/* Додавання пари у розклад */}
       <form className="study-lesson-form" onSubmit={addLesson}>
-        <h4>{t('study.addLessonTitle')}</h4>
+        <h4>{t('study.addLessonTitle')}<FieldHelp text={t('study.addLessonHelp')} label={t('fieldHelp.label')} /></h4>
         {subjects.length === 0 ? (
           <p className="placeholder-text">{t('study.needSubjectFirst')}</p>
         ) : (
@@ -158,11 +159,14 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
                 ))}
               </select>
 
-              <select value={lesson.parity} onChange={(e) => setLesson((l) => ({ ...l, parity: e.target.value }))}>
-                {PARITIES.map((p) => (
-                  <option key={p} value={p}>{t(`study.parity.${p}`)}</option>
-                ))}
-              </select>
+              <div className="study-field-with-help">
+                <select value={lesson.parity} onChange={(e) => setLesson((l) => ({ ...l, parity: e.target.value }))}>
+                  {PARITIES.map((p) => (
+                    <option key={p} value={p}>{t(`study.parity.${p}`)}</option>
+                  ))}
+                </select>
+                <FieldHelp text={t('study.parityHelp')} label={t('fieldHelp.label')} />
+              </div>
             </div>
 
             <div className="study-weekdays">
@@ -249,10 +253,10 @@ export default function ScheduleTab({ subjects, bells, settings, reloadSettings,
   )
 }
 
-function DateField({ label, value, onChange }) {
+function DateField({ label, value, onChange, help, ariaLabel }) {
   return (
     <label className="study-date-field">
-      <span>{label}</span>
+      <span>{label}{help && <FieldHelp text={help} label={ariaLabel} />}</span>
       <input type="date" value={value ?? ''} onChange={(e) => onChange(e.target.value || null)} />
     </label>
   )

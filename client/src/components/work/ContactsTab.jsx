@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { getContacts, addContact, updateContact, removeContact } from '../../api/work'
 import { phoneDigits, phoneOperator, operatorName, countryName, parsePhone, OPERATOR_ORDER, splitPhones, dedupPhones } from '../../utils/phone'
 
@@ -284,7 +285,7 @@ export default function ContactsTab() {
                 <input value={form.middleName} maxLength={40} onChange={(e) => set({ middleName: e.target.value })} />
               </label>
 
-              <label><span className="work-label-head">{t('work.birthday')} <span className="work-optional">({t('work.optional')})</span></span>
+              <label><span className="work-label-head">{t('work.birthday')} <span className="work-optional">({t('work.optional')})</span><FieldHelp text={t('work.birthdayHelp')} label={t('fieldHelp.label')} /></span>
                 <div className="work-bday">
                   <select value={form.bDay} onChange={(e) => set({ bDay: e.target.value })}>
                     <option value="">{t('work.bdayDay')}</option>
@@ -298,7 +299,7 @@ export default function ContactsTab() {
               </label>
 
               <div className="contact-phones">
-                <span className="work-field-label">{t('work.phones')} <span className="work-optional">({t('work.phonesHint')})</span></span>
+                <span className="work-field-label">{t('work.phones')} <span className="work-optional">({t('work.phonesHint')})</span><FieldHelp text={t('work.phonesHelp')} label={t('fieldHelp.label')} /></span>
                 {form.phones.map((p, i) => {
                   const info = p.trim() ? parsePhone(p) : null
                   return (

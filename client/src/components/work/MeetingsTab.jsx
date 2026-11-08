@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../../i18n'
 import Icon from '../Icon'
+import FieldHelp from '../FieldHelp'
 import { getMeetings, addMeeting, removeMeeting, getContacts } from '../../api/work'
 import { todayApiDate, fromApiDateTime } from '../../utils/date'
 
@@ -63,7 +64,7 @@ export default function MeetingsTab() {
       <div className="work-section-head"><h3>{t('work.meetingsTitle')}</h3></div>
 
       <form className="work-form work-inline-form" onSubmit={submit}>
-        <label className="work-form-grow">{t('work.meetingWith')}<input value={withWhom} onChange={(e) => setWithWhom(e.target.value)} placeholder={t('work.meetingWithPlaceholder')} list="work-contacts-list" /></label>
+        <label className="work-form-grow"><span className="work-label-head">{t('work.meetingWith')}<FieldHelp text={t('work.meetingWithHelp')} label={t('fieldHelp.label')} /></span><input value={withWhom} onChange={(e) => setWithWhom(e.target.value)} placeholder={t('work.meetingWithPlaceholder')} list="work-contacts-list" /></label>
         <datalist id="work-contacts-list">
           {contacts.map((c) => <option key={c.id} value={c.fullName} />)}
         </datalist>

@@ -9,6 +9,7 @@ import { createDefaultRecurrenceValue, recurrenceValueToPayload, validateRecurre
 import DurationFields from './DurationFields'
 import RecurrenceFields from './RecurrenceFields'
 import ShoppingTaskTabs from './ShoppingTaskTabs'
+import FieldHelp from '../FieldHelp'
 import './TaskForm.css'
 
 // Дефолтні назви у випадаючому списку справа від заголовка — обрання одного з них просто
@@ -169,7 +170,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
       <div className="task-form-row">
         {isMediaTask ? (
           <label>
-            {t(`taskForm.mediaTitle.${mediaKind}`)}
+            <span className="field-label">
+              {t(`taskForm.mediaTitle.${mediaKind}`)}
+              <FieldHelp text={t('taskForm.mediaTitleHelp')} label={t('fieldHelp.label')} />
+            </span>
             <input
               value={mediaTitle}
               onChange={(e) => setMediaTitle(limitText(e.target.value, MAX_LEN.title))}
@@ -180,7 +184,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           </label>
         ) : (
           <label>
-            {t('taskForm.titleLabel')}
+            <span className="field-label">
+              {t('taskForm.titleLabel')}
+              <FieldHelp text={t('taskForm.titleHelp')} label={t('fieldHelp.label')} />
+            </span>
             <input
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
@@ -190,7 +197,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           </label>
         )}
         <label>
-          {t('taskForm.presetLabel')}
+          <span className="field-label">
+            {t('taskForm.presetLabel')}
+            <FieldHelp text={t('taskForm.presetHelp')} label={t('fieldHelp.label')} />
+          </span>
           <select value={titlePreset} onChange={handlePresetSelect}>
             <option value="">{t('taskForm.preset.custom')}</option>
             {TITLE_PRESETS.map((key) => (
@@ -208,7 +218,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
         <div className="task-form-row">
           {mediaKind === 'book' && (
             <label>
-              {t('taskForm.mediaAuthor')}
+              <span className="field-label">
+                {t('taskForm.mediaAuthor')}
+                <FieldHelp text={t('taskForm.mediaAuthorHelp')} label={t('fieldHelp.label')} />
+              </span>
               <input
                 value={mediaAuthor}
                 onChange={(e) => setMediaAuthor(filterWords(e.target.value, MAX_LEN.name))}
@@ -268,11 +281,17 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
       ) : (
         <div className="task-form-row">
           <label>
-            {t('taskForm.date')}
+            <span className="field-label">
+              {t('taskForm.date')}
+              <FieldHelp text={t('taskForm.dateHelp')} label={t('fieldHelp.label')} />
+            </span>
             <input type="date" value={date} min={todayApiDate()} onChange={(e) => setDate(e.target.value)} required />
           </label>
           <label>
-            {t('taskForm.time')}
+            <span className="field-label">
+              {t('taskForm.time')}
+              <FieldHelp text={t('taskForm.timeHelp')} label={t('fieldHelp.label')} />
+            </span>
             <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
           </label>
         </div>
@@ -283,7 +302,10 @@ export default function TaskForm({ token, initialDate, defaultRecurring = false,
           <DurationFields hours={durationH} minutes={durationM} onHours={setDurationH} onMinutes={setDurationM} />
           {!repeats && (
             <label>
-              {t('taskForm.deadline')}
+              <span className="field-label">
+                {t('taskForm.deadline')}
+                <FieldHelp text={t('taskForm.deadlineHelp')} label={t('fieldHelp.label')} />
+              </span>
               <input type="date" value={deadline} min={todayApiDate()} onChange={(e) => setDeadline(e.target.value)} />
             </label>
           )}
