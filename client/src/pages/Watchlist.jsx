@@ -38,7 +38,7 @@ function Stars({ value = 0, onChange, readOnly = false }) {
           aria-label={`${n}`}
           onClick={readOnly ? undefined : () => onChange(n === value ? 0 : n)}
         >
-          ★
+          <Icon name="star" />
         </button>
       ))}
     </div>

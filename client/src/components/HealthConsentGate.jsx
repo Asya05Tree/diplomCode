@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
+import Icon from './Icon'
 import './HealthConsentGate.css'
 
 // Екран окремої явної згоди перед модулями «Здоров'я»/«Цикл» (особлива категорія даних, ЗУ №2297-VI
@@ -24,7 +25,7 @@ export default function HealthConsentGate({ consented, onConsent, children }) {
   return (
     <div className="consent-gate">
       <div className="consent-card card">
-        <div className="consent-icon">🔒</div>
+        <Icon name="lock" className="consent-icon" />
         <h2>{t('healthConsent.title')}</h2>
         <p>{t('healthConsent.body')}</p>
         <p className="consent-link">

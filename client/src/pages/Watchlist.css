@@ -423,9 +423,13 @@
   transform: scale(1.15);
 }
 
+.watch-star .icon { width: 1.2rem; height: 1.2rem; vertical-align: 0; }
+
 .watch-star--on {
   color: #f5b301;
 }
+/* Зафарбована зірка для виставленого рейтингу (контур — для невиставлених) */
+.watch-star--on .icon { fill: currentColor; }
 
 .watch-stars--ro .watch-star {
   cursor: default;

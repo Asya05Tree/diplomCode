@@ -564,7 +564,7 @@
   "food.favoritesEmpty": "Обраних страв ще немає — відмітьте галочкою на картці",
   "food.cooked": "Приготував",
   "food.planCook": "+ Планую готувати",
-  "food.badgeHave": "✓ все є",
+  "food.badgeHave": "Все є",
   "food.badgeBuy": "докупити {count} (~{cost} грн)",
   "food.minutes": "{n} хв",
   "food.emptyRecipes": "На цих умовах страв немає — збільшіть суму або оберіть «Все»",

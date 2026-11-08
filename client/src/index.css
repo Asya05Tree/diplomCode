@@ -168,16 +168,16 @@
   --color-accent-2: #c5cae9;
 }
 [data-palette='ocean'][data-style='vivid'] {
-  --color-accent: #00c6ff;
-  --color-accent-2: #0072ff;
+  --color-accent: #2ba7e0;
+  --color-accent-2: #2f72d6;
 }
 [data-palette='sunset'][data-style='pastel'] {
   --color-accent: #ff80ab;
   --color-accent-2: #ffe0b2;
 }
 [data-palette='sunset'][data-style='vivid'] {
-  --color-accent: #ff416c;
-  --color-accent-2: #ffb347;
+  --color-accent: #f0607f;
+  --color-accent-2: #ffb36b;
 }
 [data-palette='lavender'][data-style='pastel'] {
   --color-accent: #d1c4e9;
@@ -185,7 +185,7 @@
 }
 [data-palette='lavender'][data-style='vivid'] {
   --color-accent: #8360c3;
-  --color-accent-2: #ff8fbf;
+  --color-accent-2: #d986b8;
 }
 [data-palette='orange'][data-style='pastel'] {
   --color-accent: #ffccbc;
@@ -209,8 +209,8 @@
   --color-accent-2: #ffd59e;
 }
 [data-palette='amber'][data-style='vivid'] {
-  --color-accent: #ffd200;
-  --color-accent-2: #ff8008;
+  --color-accent: #f3c53a;
+  --color-accent-2: #ef8a2b;
 }
 /* Рожева→фіолетова */
 [data-palette='berry'][data-style='pastel'] {
@@ -218,8 +218,8 @@
   --color-accent-2: #d7bbf0;
 }
 [data-palette='berry'][data-style='vivid'] {
-  --color-accent: #ff52a2;
-  --color-accent-2: #9b36d9;
+  --color-accent: #e8609e;
+  --color-accent-2: #9a53c9;
 }
 
 /* Похідні від акценту токени мусять обчислюватись ТАМ, де визначено --color-accent
