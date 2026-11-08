@@ -102,7 +102,9 @@ export async function provision({
   }
   const code = readCodeFromDb(e)
   const reg = await api('POST', '/api/auth/register', {
-    body: { nickname, gender, email: e, code, password, studentType, isWorking },
+    // consentAccepted — обов'язкова згода на обробку ПД (додано в сесії 13, блок C/L2); без неї
+    // сервер відповідає consent_required. Харнес завжди погоджується, щоб провізія акаунтів працювала.
+    body: { nickname, gender, email: e, code, password, studentType, isWorking, consentAccepted: true },
   })
   if (reg.status !== 200) {
     if (reg.json?.error === 'email_taken') return login({ email: e, password })
