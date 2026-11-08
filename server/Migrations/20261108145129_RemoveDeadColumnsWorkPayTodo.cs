@@ -15,6 +15,24 @@ namespace Server.Migrations
             migrationBuilder.DropTable(
                 name: "TodoItems");
 
+            // Спершу переводимо FullName у varchar(255) і створюємо новий індекс (UserId, FullName),
+            // і лише тоді дропаємо старий (UserId, GroupName). Інакше MySQL блокує дроп: старий індекс
+            // підпирає FK на UserId, і без заміни FK лишився б без підтримувального індексу.
+            migrationBuilder.AlterColumn<string>(
+                name: "FullName",
+                table: "WorkContacts",
+                type: "varchar(255)",
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "longtext")
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkContacts_UserId_FullName",
+                table: "WorkContacts",
+                columns: new[] { "UserId", "FullName" });
+
             migrationBuilder.DropIndex(
                 name: "IX_WorkContacts_UserId_GroupName",
                 table: "WorkContacts");
@@ -110,21 +128,6 @@ namespace Server.Migrations
             migrationBuilder.DropColumn(
                 name: "UpdatedAt",
                 table: "FinanceAccounts");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "FullName",
-                table: "WorkContacts",
-                type: "varchar(255)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "longtext")
-                .Annotation("MySql:CharSet", "utf8mb4")
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorkContacts_UserId_FullName",
-                table: "WorkContacts",
-                columns: new[] { "UserId", "FullName" });
         }
 
         /// <inheritdoc />
