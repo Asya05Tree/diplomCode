@@ -67,6 +67,7 @@ export default function Login({ onLoggedIn }) {
           {error && <p className="auth-error">{error}</p>}
 
           <button type="submit" className="auth-submit" disabled={busy}>{t('login.submit')}</button>
+          <Link to="/forgot" className="auth-link">{t('login.forgot')}</Link>
           <Link to="/reg" className="auth-link">{t('auth.noAccount')}</Link>
           <Link to="/" className="auth-link">{t('auth.back')}</Link>
         </form>

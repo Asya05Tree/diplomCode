@@ -18,6 +18,7 @@ import Settings from './pages/Settings'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Login from './pages/Login'
+import ResetPassword from './pages/ResetPassword'
 import Legal from './pages/Legal'
 import Footer from './components/Footer'
 import HealthConsentGate from './components/HealthConsentGate'
@@ -201,6 +202,10 @@ function AppContent() {
         <Route
           path="/login"
           element={user ? <Navigate to="/app" replace /> : <Login onLoggedIn={handleAuthed} />}
+        />
+        <Route
+          path="/forgot"
+          element={user ? <Navigate to="/app" replace /> : <ResetPassword />}
         />
         {/* Юридичні сторінки — публічні (доступні й до входу, і з футера застосунку) */}
         <Route path="/privacy" element={<Legal doc="privacy" />} />
