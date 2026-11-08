@@ -208,8 +208,8 @@ function AppContent() {
           element={user ? <Navigate to="/app" replace /> : <ResetPassword />}
         />
         {/* Юридичні сторінки — публічні (доступні й до входу, і з футера застосунку) */}
-        <Route path="/privacy" element={<Legal doc="privacy" />} />
-        <Route path="/terms" element={<Legal doc="terms" />} />
+        <Route path="/privacy" element={<Legal doc="privacy" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} />} />
+        <Route path="/terms" element={<Legal doc="terms" themeMode={themeMode} onSetThemeMode={handleSetThemeMode} />} />
         <Route
           path="/app"
           element={
