@@ -108,8 +108,12 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
         />
       </div>
 
-      {/* Обмежена картка по центру: форма ліворуч, ілюстрація праворуч */}
+      {/* Обмежена картка по центру: ілюстрація ліворуч, форма праворуч */}
       <div className="register-card">
+        <aside className="register-illus" aria-hidden="true">
+          <img src="/images/hero-image.png" alt="" className="register-illus-img" />
+        </aside>
+
         <form className="auth-form auth-form--wide register-main" onSubmit={handleSubmit}>
           <div className="register-head">
             <span className="register-brand">Всетута</span>
@@ -241,10 +245,6 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
             <Link to="/" className="auth-link">{t('auth.back')}</Link>
           </div>
         </form>
-
-        <aside className="register-illus" aria-hidden="true">
-          <img src="/images/hero-image.png" alt="" className="register-illus-img" />
-        </aside>
       </div>
     </div>
   )
