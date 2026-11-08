@@ -177,12 +177,13 @@
 }
 .auth-checkbox span a { color: var(--color-accent, var(--color-tasks)); }
 
-/* ===== Реєстрація: обмежена картка по центру — форма ліворуч, ілюстрація праворуч ===== */
+/* ===== Реєстрація: декоративна картинка ліворуч + окрема форма праворуч ===== */
 .register-page {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: clamp(20px, 4vw, 56px);
   min-height: 100vh;
   padding: clamp(16px, 4vw, 40px);
   background:
@@ -191,50 +192,27 @@
     var(--color-bg);
 }
 
-/* Картка-контейнер: обидві частини всередині неї, жодна не на всю сторінку */
-.register-card {
+/* Ліворуч — лише декоративна картинка (прозорий PNG), окремо від форми */
+.register-decor {
+  flex: 0 1 380px;
+  min-width: 0;
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
+}
+.register-decor-img {
   width: 100%;
-  max-width: 960px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-  animation: pop-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  max-width: 380px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.18));
 }
 
-/* Ліворуч — ілюстрація, що заповнює свою частину картки (без порожнеч і спотворень) */
-.register-illus {
-  flex: 0 0 40%;
-  max-width: 400px;
-  min-width: 0;
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(160deg, var(--color-accent-soft), transparent 70%),
-    var(--color-surface-2);
-}
-.register-illus-img {
-  position: absolute;
-  inset: 0;
+/* Праворуч — окрема форма-картка, обмежена за шириною (не виходить за межі) */
+.auth-form--wide {
+  flex: 0 1 600px;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-/* Праворуч — форма (бере більшу частину картки) */
-.register-main {
-  flex: 1 1 auto;
-  min-width: 0;
-  box-shadow: none;
-  border-radius: 0;
-  animation: none;
-  padding: clamp(24px, 3vw, 38px);
-  gap: 16px;
+  max-width: 600px;
 }
 .register-head {
   display: flex;
@@ -245,7 +223,7 @@
 .register-head h2 {
   margin: 0;
   text-align: left;
-  font-size: 1.55rem;
+  font-size: 1.5rem;
 }
 .register-brand {
   font-family: var(--font-heading);
@@ -256,14 +234,10 @@
   color: var(--color-accent);
 }
 
-/* Широка форма: поля у дві колонки (не висока, а широка) */
-.auth-form--wide {
-  max-width: none;
-}
 .auth-form-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 28px;
+  gap: 14px 24px;
 }
 .auth-col {
   border: none;
@@ -343,10 +317,9 @@
   backdrop-filter: blur(4px);
 }
 
-/* Планшет: ілюстрація завузька — ховаємо, форма лишається у дві колонки по центру картки */
+/* Планшет: декоративну картинку ховаємо, форма лишається по центру у дві колонки */
 @media (max-width: 860px) {
-  .register-card { max-width: 620px; }
-  .register-illus { display: none; }
+  .register-decor { display: none; }
 }
 /* Телефон: колонки форми складаються в одну */
 @media (max-width: 560px) {

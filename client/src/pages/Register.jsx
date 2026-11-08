@@ -108,19 +108,18 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
         />
       </div>
 
-      {/* Обмежена картка по центру: ілюстрація ліворуч, форма праворуч */}
-      <div className="register-card">
-        <aside className="register-illus" aria-hidden="true">
-          <img src="/images/hero-image.png" alt="" className="register-illus-img" />
-        </aside>
+      {/* Декоративна картинка ліворуч і окрема форма праворуч — два незалежні елементи */}
+      <aside className="register-decor" aria-hidden="true">
+        <img src="/images/hero-image.png" alt="" className="register-decor-img" />
+      </aside>
 
-        <form className="auth-form auth-form--wide register-main" onSubmit={handleSubmit}>
-          <div className="register-head">
-            <span className="register-brand">Всетута</span>
-            <h2>{t('register.title')}</h2>
-          </div>
+      <form className="card auth-form auth-form--wide" onSubmit={handleSubmit}>
+        <div className="register-head">
+          <span className="register-brand">Всетута</span>
+          <h2>{t('register.title')}</h2>
+        </div>
 
-          <div className="auth-form-cols">
+        <div className="auth-form-cols">
             {/* Колонка 1 — про користувача */}
             <fieldset className="auth-col">
               <legend className="auth-col-title">{t('register.sectionAbout')}</legend>
@@ -245,7 +244,6 @@ export default function Register({ onRegistered, themeMode, onSetThemeMode, pale
             <Link to="/" className="auth-link">{t('auth.back')}</Link>
           </div>
         </form>
-      </div>
     </div>
   )
 }
