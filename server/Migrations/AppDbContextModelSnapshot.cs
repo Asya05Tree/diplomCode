@@ -1538,6 +1538,83 @@ namespace Server.Migrations
                     b.ToTable("UserTagPreferences");
                 });
 
+            modelBuilder.Entity("Server.Models.UserVaccination", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CustomName")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("DoneDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VaccineDoseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VaccineDoseId");
+
+                    b.HasIndex("UserId", "VaccineDoseId");
+
+                    b.ToTable("UserVaccinations");
+                });
+
+            modelBuilder.Entity("Server.Models.VaccineDose", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DoseNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InfectionEn")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("InfectionKey")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("InfectionUk")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RuleType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("RuleValueMonths")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InfectionKey", "DoseNumber")
+                        .IsUnique();
+
+                    b.ToTable("VaccineDoses");
+                });
+
             modelBuilder.Entity("Server.Models.WorkContact", b =>
                 {
                     b.Property<int>("Id")
@@ -2368,6 +2445,24 @@ namespace Server.Migrations
                     b.Navigation("Tag");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.UserVaccination", b =>
+                {
+                    b.HasOne("Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Server.Models.VaccineDose", "VaccineDose")
+                        .WithMany()
+                        .HasForeignKey("VaccineDoseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("User");
+
+                    b.Navigation("VaccineDose");
                 });
 
             modelBuilder.Entity("Server.Models.WorkContact", b =>
