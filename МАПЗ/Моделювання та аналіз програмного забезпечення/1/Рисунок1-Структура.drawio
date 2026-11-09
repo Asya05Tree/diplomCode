@@ -1,0 +1,44 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="Структура системи" id="arch1">
+    <mxGraphModel dx="900" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="client" value="Клієнтська частина&#10;React + Vite (JS/TS)&#10;Двомовний UI (uk/en)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="40" width="300" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ctrl" value="Controllers&#10;HTTP API, валідація запитів, JWT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="170" width="300" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="svc" value="Services&#10;Бізнес-логіка за доменами&#10;(Food, Health, Finance, Study, Work…)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="280" width="300" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rule" value="RuleEngine&#10;Спільний компонент:&#10;фільтрація та перевірка&#10;обмежень («правила як дані»)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="610" y="275" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="repo" value="Repositories / Entity Framework Core&#10;Доступ до даних (ORM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="410" width="300" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db" value="СУБД MySQL&#10;(~60 таблиць)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="330" y="530" width="160" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="endArrow=classic;html=1;startArrow=classic;fontSize=11;" edge="1" parent="1" source="client" target="ctrl">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell id="e1l" value="HTTP / JWT" style="text;" vertex="1" connectable="0" parent="e1"><mxGeometry x="-0.1" relative="1" as="geometry"/></mxCell>
+        </mxCell>
+        <mxCell id="e2" style="endArrow=classic;html=1;" edge="1" parent="1" source="ctrl" target="svc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=classic;html=1;startArrow=classic;" edge="1" parent="1" source="svc" target="rule"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=classic;html=1;" edge="1" parent="1" source="svc" target="repo"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=classic;html=1;startArrow=classic;" edge="1" parent="1" source="repo" target="db"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
