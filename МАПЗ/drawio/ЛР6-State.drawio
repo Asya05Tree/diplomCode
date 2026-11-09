@@ -1,0 +1,89 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="1. Діаграма станів" id="st1">
+    <mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="620" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p1_s" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="150" y="30" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p1_init" value="Ініціалізація" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="80" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_ready" value="Готова до роботи" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="180" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_proc" value="Оброблення дії" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="290" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_check" value="Перевірка обмежень" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="400" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_apply" value="Застосування ефектів" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="510" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_sync" value="Синхронізація" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="620" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_err" value="Оброблення помилки" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="360" y="400" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p1_e" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="150" y="730" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p1_e0" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_s" target="p1_init"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e1" value="дані завантажено / показати календар" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_init" target="p1_ready"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e2" value="after(5 хв) / автозбереження" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;" edge="1" parent="1" source="p1_ready" target="p1_ready"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e3" value="дія користувача / прийняти запит" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_ready" target="p1_proc"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e4" value="потрібна перевірка [є обмеження]" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_proc" target="p1_check"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e5" value="[перевірка не потрібна] / сформувати зміни" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_proc" target="p1_apply"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e6" value="перевірка пройдена [немає заборон] / сформувати зміни" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_check" target="p1_apply"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e7" value="зміни збережено / оновити списки" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_apply" target="p1_sync"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e8" value="/ відобразити оновлення" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_sync" target="p1_ready"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e9" value="виникла помилка / залогувати" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_proc" target="p1_err"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e10" value="виявлено заборону [алерген невідомий] / попередити" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_check" target="p1_err"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e11" value="відновлено / показати повідомлення" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_err" target="p1_ready"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p1_e12" value="вихід користувача / завершити сеанс" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p1_ready" target="p1_e"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="2. Діаграма станів" id="st2">
+    <mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="630" pageHeight="660" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p2_s" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="150" y="30" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p2_new" value="Створено" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="80" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_plan" value="Заплановано" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="190" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_act" value="Активна" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="310" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_over" value="Прострочена" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="370" y="310" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_done" value="Виконана" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="430" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_resch" value="Перенесена" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="370" y="190" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_canc" value="Скасована" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="370" y="430" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p2_e" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="150" y="540" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p2_e0" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_s" target="p2_new"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e1" value="збережено / додати в календар" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_new" target="p2_plan"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e2" value="змінити час / оновити подію" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;" edge="1" parent="1" source="p2_plan" target="p2_plan"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e3" value="настав час [StartDateTime ≤ now] / надіслати нагадування" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_plan" target="p2_act"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e4" value="відмітити виконаним / закрити задачу" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_act" target="p2_done"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e5" value="дедлайн минув [now &gt; Deadline] / позначити простроченою" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_act" target="p2_over"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e6" value="after(1 день) / повторне нагадування" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;" edge="1" parent="1" source="p2_over" target="p2_over"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e7" value="перенести(date) / створити виняток-перенос" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_over" target="p2_resch"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e8" value="/ оновити розклад" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_resch" target="p2_plan"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e9" value="скасувати / звільнити слот" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_act" target="p2_canc"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e10" value="скасувати / звільнити слот" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_plan" target="p2_canc"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e11" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_done" target="p2_e"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p2_e12" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p2_canc" target="p2_e"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="3. Діаграма станів" id="st3">
+    <mxGraphModel dx="1100" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="630" pageHeight="740" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p3_s" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="150" y="30" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p3_planned" value="Заплановано" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="80" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p3_active" value="Активний у списку" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="190" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p3_bought" value="Куплений" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="300" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p3_effects" value="Оброблення ефектів" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="410" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p3_hist" value="У історії" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="80" y="520" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p3_del" value="Видалений" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="370" y="190" width="190" height="54" as="geometry"/></mxCell>
+        <mxCell id="p3_e" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="150" y="620" width="30" height="30" as="geometry"/></mxCell>
+        <mxCell id="p3_e0" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_s" target="p3_planned"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e1" value="/ показати у списку" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_planned" target="p3_active"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e2" value="редагувати кількість/ціну / оновити суму" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;" edge="1" parent="1" source="p3_active" target="p3_active"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e3" value="відмітити куплено / зафіксувати покупку" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_active" target="p3_bought"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e4" value="[джерело товару відоме] / закрити задачу, поповнити запаси" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_bought" target="p3_effects"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e5" value="[є ціна] / списати кошти" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=11;" edge="1" parent="1" source="p3_effects" target="p3_effects"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e6" value="ефекти застосовано / перенести в історію" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_effects" target="p3_hist"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e7" value="видалити" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_active" target="p3_del"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e8" value="видалити" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_planned" target="p3_del"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e9" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_hist" target="p3_e"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p3_e10" value="" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" parent="1" source="p3_del" target="p3_e"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
