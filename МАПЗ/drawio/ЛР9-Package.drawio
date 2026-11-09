@@ -1,0 +1,23 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="Діаграма пакетів – Всетут" id="pkg1">
+    <mxGraphModel dx="1000" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p0" value="Presentation (клієнт)&#10;• ВебІнтерфейс" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;tabWidth=120;tabHeight=22;tabPosition=left;fontSize=12;" vertex="1" parent="1"><mxGeometry x="270" y="40" width="240" height="80" as="geometry"/></mxCell>
+        <mxCell id="p1" value="Controllers&#10;• TasksController&#10;• ShoppingListController&#10;• FinanceController&#10;• FoodController&#10;• CycleController" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;tabWidth=120;tabHeight=22;tabPosition=left;fontSize=12;" vertex="1" parent="1"><mxGeometry x="210" y="170" width="360" height="130" as="geometry"/></mxCell>
+        <mxCell id="p2" value="Services&#10;• TaskService&#10;• ShoppingService&#10;• FinanceService&#10;• RecipeService&#10;• CycleService&#10;• РозгортачПовторень&#10;• ЧернеткаМеню" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;tabWidth=120;tabHeight=22;tabPosition=left;fontSize=12;" vertex="1" parent="1"><mxGeometry x="160" y="350" width="380" height="170" as="geometry"/></mxCell>
+        <mxCell id="p3" value="RuleEngine&#10;• RuleEngine" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;tabWidth=120;tabHeight=22;tabPosition=left;fontSize=12;" vertex="1" parent="1"><mxGeometry x="600" y="370" width="210" height="100" as="geometry"/></mxCell>
+        <mxCell id="p4" value="Data&#10;• AppDbContext" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;tabWidth=120;tabHeight=22;tabPosition=left;fontSize=12;" vertex="1" parent="1"><mxGeometry x="160" y="570" width="250" height="90" as="geometry"/></mxCell>
+        <mxCell id="p5" value="Models&#10;• Користувач&#10;• БазовийКористувач&#10;• ПреміумКористувач&#10;• TaskItem&#10;• RecurrenceRule&#10;• RecurrenceException&#10;• Recipe&#10;• RecipeIngredient" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;tabWidth=120;tabHeight=22;tabPosition=left;fontSize=12;" vertex="1" parent="1"><mxGeometry x="470" y="560" width="350" height="180" as="geometry"/></mxCell>
+        <mxCell id="d0" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p0" target="p1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d1" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p1" target="p2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d2" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p2" target="p3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d3" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p2" target="p4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d4" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p2" target="p5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d5" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p3" target="p5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="d6" value="«import»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="p4" target="p5"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
