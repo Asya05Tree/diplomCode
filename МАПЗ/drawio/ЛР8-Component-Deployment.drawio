@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram name="1. Діаграма компонентів" id="comp1">
+    <mxGraphModel dx="1000" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="864" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c0" value="«component»&#10;Клієнтський застосунок (React + Vite)&#10;— ВебІнтерфейс" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;verticalAlign=top;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="40" width="360" height="76" as="geometry"/></mxCell>
+        <mxCell id="c1" value="«component»&#10;Web API (контролери)&#10;— TasksController, ShoppingListController, FinanceController, FoodController, CycleController" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;verticalAlign=top;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="186" width="360" height="96" as="geometry"/></mxCell>
+        <mxCell id="c2" value="«component»&#10;Бізнес-логіка (Services + RuleEngine)&#10;— TaskService, ShoppingService, FinanceService, RecipeService, CycleService, RuleEngine, РозгортачПовторень, ЧернеткаМеню" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;verticalAlign=top;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="352" width="360" height="116" as="geometry"/></mxCell>
+        <mxCell id="c3" value="«component»&#10;Доступ до даних (EF Core)&#10;— AppDbContext, Користувач, БазовийКористувач, ПреміумКористувач, TaskItem, RecurrenceRule, RecurrenceException, Recipe, RecipeIngredient" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;verticalAlign=top;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="538" width="360" height="116" as="geometry"/></mxCell>
+        <mxCell id="cdb" value="СУБД MySQL&#10;Зберігання даних (~60 таблиць)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1"><mxGeometry x="210" y="724" width="220" height="90" as="geometry"/></mxCell>
+        <mxCell id="e0" value="«REST / HTTPS, JWT»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="c0" target="c1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e1" value="«виклики сервісів»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="c1" target="c2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="«EF Core API»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="c2" target="c3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="«MySQL / ADO.NET»" style="endArrow=open;dashed=1;html=1;endFill=0;fontSize=11;" edge="1" parent="1" source="c3" target="cdb"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="2. Діаграма впровадження" id="dep1">
+    <mxGraphModel dx="1000" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="668" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n0" value="«device» Клієнтський пристрій&#10;(вебоглядач)" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=center;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="40" width="380" height="100" as="geometry"/></mxCell>
+        <mxCell id="n0a0" value="«artifact» SPA (React-бандл)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="1"><mxGeometry x="165" y="88" width="320" height="34" as="geometry"/></mxCell>
+        <mxCell id="n1" value="«device» Веб-сервер&#10;(Kestrel, ASP.NET Core)" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=center;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="200" width="380" height="188" as="geometry"/></mxCell>
+        <mxCell id="n1a0" value="«artifact» Vsetut.WebApi.dll" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="1"><mxGeometry x="165" y="248" width="320" height="34" as="geometry"/></mxCell>
+        <mxCell id="n1a1" value="«artifact» Services + RuleEngine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="1"><mxGeometry x="165" y="290" width="320" height="34" as="geometry"/></mxCell>
+        <mxCell id="n1a2" value="«artifact» EF Core (Data Access)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="1"><mxGeometry x="165" y="332" width="320" height="34" as="geometry"/></mxCell>
+        <mxCell id="n2" value="«device» Сервер бази даних" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=center;spacingTop=4;fontSize=12;" vertex="1" parent="1"><mxGeometry x="140" y="448" width="380" height="100" as="geometry"/></mxCell>
+        <mxCell id="n2a0" value="«artifact» База даних vsetut (MySQL)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="1"><mxGeometry x="165" y="496" width="320" height="34" as="geometry"/></mxCell>
+        <mxCell id="cp0" value="«HTTPS / REST»" style="endArrow=none;html=1;strokeWidth=1.5;fontSize=11;" edge="1" parent="1" source="n0" target="n1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="cp1" value="«TCP/IP, порт 3306»" style="endArrow=none;html=1;strokeWidth=1.5;fontSize=11;" edge="1" parent="1" source="n1" target="n2"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
